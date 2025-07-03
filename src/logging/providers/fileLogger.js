@@ -22,7 +22,7 @@ class FileLogger {
    * Logs a message to a file.
    * @param {string} message The message to log.
    */
-  log(message) {
+  async log(message) {
     fs.appendFileSync(this.filename_, message + '\n');
     if (this.eventEmitter_) this.eventEmitter_.emit('log:log', {filename: this.filename_, message});
   }

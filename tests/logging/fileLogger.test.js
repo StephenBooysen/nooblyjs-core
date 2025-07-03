@@ -2,6 +2,7 @@
  * @fileoverview Unit tests for the file logger.
  */
 
+const EventEmitter = require('events');
 const createLogger = require('../../src/logging');
 const fs = require('fs');
 
@@ -12,7 +13,7 @@ describe('FileLogger', () => {
   const filename = 'test.log';
 
   beforeEach(() => {
-    logger = createLogger('file', {filename});
+    logger = createLogger('file', {filename}, new EventEmitter());
   });
 
   afterEach(() => {
@@ -21,7 +22,6 @@ describe('FileLogger', () => {
 
   it('should log a message to a file', () => {
     const message = 'Test message';
-    logger.log(message);
-    expect(fs.appendFileSync).toHaveBeenCalledWith(filename, message + '\n');
+    logger.log(message).then(expect(fs.appendFileSync).toHaveBeenCalledWith(filename, message + '\n'));
   });
 });

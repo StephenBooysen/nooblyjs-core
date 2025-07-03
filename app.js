@@ -25,7 +25,7 @@ var eventEmitter = new EventEmitter();
 patchEmitter(eventEmitter);
 
 // lets log
-const log = require('./src/logging')();
+const log = require('./src/logging')('', { 'express-app': app },eventEmitter);
 
 // lets cache
 const cache = require('./src/caching')('memory', { 'express-app': app },eventEmitter);
