@@ -23,5 +23,4 @@ function createCache(type, options, eventEmitter) {
     return new Cache(options, eventEmitter);
   }
 }
-
 module.exports = createCache;
