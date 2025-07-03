@@ -8,6 +8,7 @@
   "main": "index.js",
   "scripts": {
     "test": "jest",
+    "test-load": "node ./tests-load/",
     "docs": "jsdoc -c jsdoc.json",
     "build": "babel src -d dist; npm pack --pack-destination='package'"
   },

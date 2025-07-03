@@ -14,13 +14,18 @@ const cachingRoutes = require('./routes');
  * @return {!Cache|!CacheRedis} A cache instance.
  */
 function createCache(type, options, eventEmitter) {
-  cachingRoutes(options);
   if (type === 'redis') {
-    return new CacheRedis(options, eventEmitter);
+    var cache = new CacheRedis(options, eventEmitter);
+    cachingRoutes(options, eventEmitter, cache);
+    return cache;
   } else if (type === 'memcached') {
-    return new CacheMemcached(options, eventEmitter);
+    var cache = new CacheMemcached(options, eventEmitter);
+    cachingRoutes(options, eventEmitter, cache);
+    return cache;
   } else {
-    return new Cache(options, eventEmitter);
+    var cache =  new Cache(options, eventEmitter);
+    cachingRoutes(options, eventEmitter, cache);
+    return cache;
   }
 }
 

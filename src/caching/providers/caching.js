@@ -20,7 +20,7 @@ class Cache {
    * @param {string} key The key to store the value under.
    * @param {*} value The value to store.
    */
-  put(key, value) {
+  async put(key, value) {
     this.cache_[key] = value;
     if (this.eventEmitter_) this.eventEmitter_.emit('cache:put', {key, value});
   }
@@ -30,7 +30,7 @@ class Cache {
    * @param {string} key The key to retrieve the value for.
    * @return {*} The cached value, or undefined if the key is not found.
    */
-  get(key) {
+  async get(key) {
     const value = this.cache_[key];
     if (this.eventEmitter_) this.eventEmitter_.emit('cache:get', {key, value});
     return value;
@@ -40,7 +40,7 @@ class Cache {
    * Deletes a value from the cache.
    * @param {string} key The key to delete.
    */
-  delete(key) {
+  async delete(key) {
     delete this.cache_[key];
     if (this.eventEmitter_) this.eventEmitter_.emit('cache:delete', {key});
   }

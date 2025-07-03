@@ -1,0 +1,13 @@
+### User vs code extension RestClient
+
+http://localhost:3000/api/caching/status
+
+###
+
+POST http://localhost:3000/api/caching/put/1234 HTTP/1.1
+content-type: application/json
+
+{
+    "name": "sample",
+    "time": "Wed, 21 Oct 2015 18:27:50 GMT"
+}
