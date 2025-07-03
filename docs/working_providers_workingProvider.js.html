@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: working/providers/workingProvider.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: working/providers/workingProvider.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * @fileoverview Provides a singleton worker thread for executing tasks.
+ */
+
+const {Worker} = require('worker_threads');
+const path = require('path');
+
+/**
+ * Manages a single worker thread for executing tasks.
+ */
+class WorkerProvider {
+  /**
+   * Initializes the WorkerProvider.
+   */
+  constructor(options, eventEmitter) {
+    /** @private {Worker} */
+    this.worker_ = null;
+    /** @private {string} */
+    this.status_ = 'idle';
+    /** @private {Function} */
+    this.completionCallback_ = null;
+    this.eventEmitter_ = eventEmitter;
+  }
+
+  /**
+   * Starts the worker thread and executes the provided script.
+   * @param {string} scriptPath The absolute path to the script to execute in the worker.
+   * @param {Function=} completionCallback Optional callback function to be called on completion.
+   */
+  start(scriptPath, completionCallback) {
+    if (this.worker_) {
+      if (this.eventEmitter_) this.eventEmitter_.emit('worker:start:error', {scriptPath, error: 'Worker already running.'});
+      return;
+    }
+
+    this.completionCallback_ = completionCallback;
+    this.worker_ = new Worker(path.resolve(__dirname, '../workerScript.js'));
+    if (this.eventEmitter_) this.eventEmitter_.emit('worker:start', {scriptPath});
+
+    this.worker_.on('message', (message) => {
+      if (message.type === 'status') {
+        this.status_ = message.status;
+        if (this.eventEmitter_) this.eventEmitter_.emit('worker:status', {status: this.status_, data: message.data});
+        if (this.status_ === 'completed' || this.status_ === 'error') {
+          if (this.completionCallback_) {
+            this.completionCallback_(this.status_, message.data);
+          }
+          this.stop(); // Automatically stop worker after completion or error
+        }
+      } else if (message.type === 'currentStatus') {
+        // This is a response to a getStatus call, not handled here directly
+      }
+    });
+
+    this.worker_.on('error', (err) => {
+      this.status_ = 'error';
+      console.error('Worker error:', err);
+      if (this.eventEmitter_) this.eventEmitter_.emit('worker:error', {error: err.message});
+      if (this.completionCallback_) {
+        this.completionCallback_(this.status_, err.message);
+      }
+      this.stop();
+    });
+
+    this.worker_.on('exit', (code) => {
+      if (code !== 0 &amp;&amp; this.status_ !== 'error') {
+        this.status_ = 'error';
+        console.error(`Worker stopped with exit code ${code}`);
+        if (this.eventEmitter_) this.eventEmitter_.emit('worker:exit:error', {code});
+        if (this.completionCallback_) {
+          this.completionCallback_(this.status_, `Worker exited with code ${code}`);
+        }
+      }
+      if (this.eventEmitter_) this.eventEmitter_.emit('worker:exit', {code});
+      this.worker_ = null;
+    });
+
+    this.worker_.postMessage({type: 'start', scriptPath: scriptPath});
+  }
+
+  /**
+   * Stops the worker thread.
+   */
+  stop() {
+    if (this.worker_) {
+      this.worker_.terminate();
+      this.worker_ = null;
+      this.status_ = 'idle';
+      if (this.eventEmitter_) this.eventEmitter_.emit('worker:stop');
+    }
+  }
+
+  /**
+   * Gets the current status of the worker.
+   * @return {string} The current status of the worker.
+   */
+  getStatus() {
+    return this.status_;
+  }
+}
+
+module.exports = WorkerProvider;
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Cache.html">Cache</a></li><li><a href="CacheMemcached.html">CacheMemcached</a></li><li><a href="CacheRedis.html">CacheRedis</a></li><li><a href="ConsoleLogger.html">ConsoleLogger</a></li><li><a href="FileLogger.html">FileLogger</a></li><li><a href="InMemoryQueue.html">InMemoryQueue</a></li><li><a href="S3FilingProvider.html">S3FilingProvider</a></li><li><a href="SchedulerProvider.html">SchedulerProvider</a></li><li><a href="SimpleDbDataRingProvider.html">SimpleDbDataRingProvider</a></li><li><a href="WorkerProvider.html">WorkerProvider</a></li></ul><h3>Global</h3><ul><li><a href="global.html#createCache">createCache</a></li><li><a href="global.html#createDataserveService">createDataserveService</a></li><li><a href="global.html#createFilingService">createFilingService</a></li><li><a href="global.html#createLogger">createLogger</a></li><li><a href="global.html#createMeasuringService">createMeasuringService</a></li><li><a href="global.html#createNotificationService">createNotificationService</a></li><li><a href="global.html#createQueue">createQueue</a></li><li><a href="global.html#createSearchService">createSearchService</a></li><li><a href="global.html#createWorkflowService">createWorkflowService</a></li><li><a href="global.html#getSchedulerInstance">getSchedulerInstance</a></li><li><a href="global.html#getWorkerInstance">getWorkerInstance</a></li><li><a href="global.html#instance">instance</a></li><li><a href="global.html#resetSchedulerInstance">resetSchedulerInstance</a></li><li><a href="global.html#run">run</a></li><li><a href="global.html#updateStatus">updateStatus</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Thu Jul 03 2025 13:17:02 GMT+0200 (South Africa Standard Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
