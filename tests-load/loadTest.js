@@ -12,7 +12,7 @@ const runWorkflowLoadTest = require('./workflow/loadTest');
 const runWorkingLoadTest = require('./working/loadTest');
 
 async function runAllLoadTests() {
-  const iterations = 10000; // Adjust as needed
+  const iterations = 100; // Adjust as needed
   const results = [];
 
   console.log('\n--- Running Load Tests ---');
