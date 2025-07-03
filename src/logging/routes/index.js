@@ -1,26 +1,27 @@
-
 /**
  * Logging routes for the Express app.
  * @param {object} options - The options object.
  * @param {object} options.express-app - The Express app instance.
- * @param {object} eventEmitter - The event emitter.
- * @param {object} log - The logging provider.
+ * @param {object} options.logger - The logging provider.
  */
-module.exports = (options,eventEmitter, log) => {
+module.exports = (options, eventEmitter, logger) => {
   eventEmitter.emit('instance', { options: options });
-
-  if (options['express-app'] && log) {
+  if (options['express-app'] && logger) {
     const app = options['express-app'];
 
     app.post('/api/logging/log', (req, res) => {
-      const value = req.body;
-      log.log(value)
-        .then(() => res.status(200).send('OK'))
-        .catch((err) => res.status(500).send(err.message));
+      const { level, message } = req.body;
+      if (level && message) {
+        logger.log(level, message)
+          .then(() => res.status(200).send('OK'))
+          .catch((err) => res.status(500).send(err.message));
+      } else {
+        res.status(400).send('Bad Request: Missing level or message');
+      }
     });
 
     app.get('/api/logging/status', (req, res) => {
-      eventEmitter.emit("api-cache-status","caching api running");
+      eventEmitter.emit("api-logging-status","logging api running");
       res.status(200).json("running");
     });
   }

@@ -32,6 +32,10 @@ const cache = require('./src/caching')('memory', { 'express-app': app },eventEmi
 cache.put('currentdate', new Date());
 log.log(cache.get('currentdate'))
 
+// lets queue
+const queue = require('./src/queueing')('memory', { 'express-app': app },eventEmitter);
+queue.enqueue(new Date());
+
 eventEmitter.on('instance', (data) => {
   console.log(data.options);
 });

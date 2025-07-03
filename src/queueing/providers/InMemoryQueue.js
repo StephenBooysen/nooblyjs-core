@@ -19,7 +19,7 @@ class InMemoryQueue {
    * Adds an item to the end of the queue.
    * @param {*} item The item to add to the queue.
    */
-  enqueue(item) {
+  async enqueue(item) {
     this.queue_.push(item);
     if (this.eventEmitter_) this.eventEmitter_.emit('queue:enqueue', {item});
   }
@@ -28,7 +28,7 @@ class InMemoryQueue {
    * Removes and returns the item at the front of the queue.
    * @return {*} The item at the front of the queue, or undefined if the queue is empty.
    */
-  dequeue() {
+  async dequeue() {
     const item = this.queue_.shift();
     if (item && this.eventEmitter_) this.eventEmitter_.emit('queue:dequeue', {item});
     return item;
@@ -38,7 +38,7 @@ class InMemoryQueue {
    * Returns the number of items in the queue.
    * @return {number} The number of items in the queue.
    */
-  size() {
+  async size() {
     return this.queue_.length;
   }
 }
