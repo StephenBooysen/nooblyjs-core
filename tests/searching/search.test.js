@@ -8,7 +8,7 @@ describe('SearchService', () => {
   beforeEach(() => {
     mockEventEmitter = new EventEmitter();
     jest.spyOn(mockEventEmitter, 'emit');
-    searchService = createSearchService(mockEventEmitter);
+    searchService = createSearchService('default', {}, mockEventEmitter);
   });
 
   it('should add a JSON object with a unique key', () => {

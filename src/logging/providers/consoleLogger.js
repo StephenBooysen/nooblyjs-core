@@ -8,7 +8,7 @@ const os = require('os');
  * A class that implements a console logger.
  */
 class ConsoleLogger {
-  constructor(eventEmitter) {
+  constructor(options, eventEmitter) {
     this.eventEmitter_ = eventEmitter;
   }
 

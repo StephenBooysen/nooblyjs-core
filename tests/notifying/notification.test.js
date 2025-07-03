@@ -10,7 +10,7 @@ describe('NotificationService', () => {
   beforeEach(() => {
     mockEventEmitter = new EventEmitter();
     jest.spyOn(mockEventEmitter, 'emit');
-    notificationService = createNotificationService(mockEventEmitter);
+    notificationService = createNotificationService('default', {}, mockEventEmitter);
     mockCallback1 = jest.fn();
     mockCallback2 = jest.fn();
   });

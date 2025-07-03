@@ -80,6 +80,15 @@ class WorkflowService {
   }
 }
 
-// This file will act as the main entry point for the service.
-// If it's run as a worker, it will execute the step.
-module.exports = WorkflowService;
+/**
+ * Creates a WorkflowService instance.
+ * @param {string} type The type of workflow service to create. (Currently only 'default' is supported).
+ * @param {Object=} options Options for the workflow service (currently not used).
+ * @param {EventEmitter=} eventEmitter Optional EventEmitter instance for event bubbling.
+ * @return {!WorkflowService} A WorkflowService instance.
+ */
+function createWorkflowService(type, options, eventEmitter) {
+  return new WorkflowService(eventEmitter);
+}
+
+module.exports = createWorkflowService;

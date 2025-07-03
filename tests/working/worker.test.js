@@ -27,7 +27,7 @@ describe('WorkerProvider', () => {
     jest.spyOn(mockEventEmitter, 'emit');
     // Re-import the module and its dependencies after resetting
     getWorkerInstance = require('../../src/working');
-    workerInstance = getWorkerInstance(mockEventEmitter);
+    workerInstance = getWorkerInstance('default', {}, mockEventEmitter);
     MockWorker = require('worker_threads').Worker;
   });
 

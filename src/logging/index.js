@@ -13,9 +13,9 @@ const FileLogger = require('./providers/fileLogger');
  */
 function createLogger(type, options, eventEmitter) {
   if (type === 'file') {
-    return new FileLogger(options.filename, eventEmitter);
+    return new FileLogger(options, eventEmitter);
   } else {
-    return new ConsoleLogger(eventEmitter);
+    return new ConsoleLogger(options, eventEmitter);
   }
 }
 

@@ -2,9 +2,9 @@
  * @fileoverview Factory for creating cache instances.
  */
 
-const Cache = require('./providers/cache');
-const CacheRedis = require('./providers/cacheRedis');
-const CacheMemcached = require('./providers/cacheMemcached');
+const Cache = require('./providers/caching');
+const CacheRedis = require('./providers/cachingRedis');
+const CacheMemcached = require('./providers/cachingMemcached');
 
 /**
  * Creates a cache instance based on the provided type.
@@ -18,7 +18,7 @@ function createCache(type, options, eventEmitter) {
   } else if (type === 'memcached') {
     return new CacheMemcached(options, eventEmitter);
   } else {
-    return new Cache(eventEmitter);
+    return new Cache(options, eventEmitter);
   }
 }
 

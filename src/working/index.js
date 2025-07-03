@@ -2,7 +2,7 @@
  * @fileoverview Singleton factory for the WorkerProvider.
  */
 
-const WorkerProvider = require('./providers/workerProvider');
+const WorkerProvider = require('./providers/workingProvider');
 
 /** @type {WorkerProvider} */
 let instance = null;
@@ -11,9 +11,9 @@ let instance = null;
  * Returns the singleton instance of the WorkerProvider.
  * @return {!WorkerProvider} The singleton WorkerProvider instance.
  */
-function getWorkerInstance(eventEmitter) {
+function getWorkerInstance(type, options, eventEmitter) {
   if (!instance) {
-    instance = new WorkerProvider(eventEmitter);
+    instance = new WorkerProvider(options, eventEmitter);
   }
   return instance;
 }

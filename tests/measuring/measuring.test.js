@@ -1,4 +1,4 @@
-const MeasuringService = require('../../src/measuring');
+const createMeasuringService = require('../../src/measuring');
 const EventEmitter = require('events');
 
 describe('MeasuringService', () => {
@@ -8,7 +8,7 @@ describe('MeasuringService', () => {
   beforeEach(() => {
     mockEventEmitter = new EventEmitter();
     jest.spyOn(mockEventEmitter, 'emit');
-    measuringService = new MeasuringService(mockEventEmitter);
+    measuringService = createMeasuringService('default', {}, mockEventEmitter);
   });
 
   it('should add a measure to a metric', () => {

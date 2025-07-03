@@ -5,8 +5,8 @@
 const Client = require('ftp');
 
 class FtpFilingProvider {
-  constructor(connectionString, eventEmitter) {
-    this.connectionString = connectionString;
+  constructor(options, eventEmitter) {
+    this.connectionString = options.connectionString;
     this.client = new Client();
     this.isConnected = false;
     this.eventEmitter_ = eventEmitter;

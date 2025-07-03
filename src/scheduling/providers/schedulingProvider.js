@@ -11,7 +11,7 @@ class SchedulerProvider {
   /**
    * Initializes the SchedulerProvider.
    */
-  constructor(eventEmitter) {
+  constructor(options, eventEmitter) {
     /** @private {?NodeJS.Timeout} */
     this.intervalId_ = null;
     /** @private {string} */
@@ -19,7 +19,7 @@ class SchedulerProvider {
     /** @private {Function} */
     this.executionCallback_ = null;
     /** @private {WorkerProvider} */
-    this.worker_ = getWorkerInstance();
+    this.worker_ = getWorkerInstance(this.eventEmitter_);
     this.eventEmitter_ = eventEmitter;
   }
 
@@ -31,6 +31,7 @@ class SchedulerProvider {
    */
   start(scriptPath, intervalSeconds, executionCallback) {
     if (this.intervalId_) {
+      if (this.eventEmitter_) this.eventEmitter_.emit('scheduler:start:error', {scriptPath, error: 'Scheduler already running.'});
       return;
     }
 

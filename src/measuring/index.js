@@ -87,4 +87,15 @@ class MeasuringService {
   }
 }
 
-module.exports = MeasuringService;
+module.exports = createMeasuringService;
+
+/**
+ * Creates a MeasuringService instance.
+ * @param {string} type The type of measuring service to create. (Currently only 'default' is supported).
+ * @param {Object=} options Options for the measuring service (currently not used).
+ * @param {EventEmitter=} eventEmitter Optional EventEmitter instance for event bubbling.
+ * @return {!MeasuringService} A MeasuringService instance.
+ */
+function createMeasuringService(type, options, eventEmitter) {
+  return new MeasuringService(eventEmitter);
+}

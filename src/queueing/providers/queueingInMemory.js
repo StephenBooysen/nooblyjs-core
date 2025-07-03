@@ -9,7 +9,7 @@ class InMemoryQueue {
   /**
    * Initializes the in-memory queue.
    */
-  constructor(eventEmitter) {
+  constructor(options, eventEmitter) {
     /** @private @const {!Array<*>} */
     this.queue_ = [];
     this.eventEmitter_ = eventEmitter;

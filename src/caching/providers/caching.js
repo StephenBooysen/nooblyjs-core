@@ -9,7 +9,7 @@ class Cache {
   /**
    * Initializes the cache.
    */
-  constructor(eventEmitter) {
+  constructor(options, eventEmitter) {
     /** @private @const {!Object<string, *>} */
     this.cache_ = {};
     this.eventEmitter_ = eventEmitter;

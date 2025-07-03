@@ -3,9 +3,9 @@
  * @fileoverview Factory for creating DataRingService instances.
  */
 
-const InMemoryDataRingProvider = require('./providers/inMemoryserver');
-const FileDataRingProvider = require('./providers/fileDataserve');
-const SimpleDbDataRingProvider = require('./providers/simpleDbDataserver');
+const InMemoryDataRingProvider = require('./providers/dataserveInMemory');
+const FileDataRingProvider = require('./providers/dataserveFile');
+const SimpleDbDataRingProvider = require('./providers/dataserveSimpleDb');
 
 class DataServeService {
   constructor(provider, eventEmitter) {
@@ -66,18 +66,18 @@ function createDataserveService(type, options, eventEmitter) {
   let provider;
   switch (type) {
     case 'memory':
-      provider = new InMemoryDataRingProvider();
+      provider = new InMemoryDataRingProvider(options, eventEmitter);
       break;
     case 'file':
-      provider = new FileDataRingProvider(options.baseDir);
+      provider = new FileDataRingProvider(options, eventEmitter);
       break;
     case 'simpledb':
-      provider = new SimpleDbDataRingProvider(options);
+      provider = new SimpleDbDataRingProvider(options, eventEmitter);
       break;
     default:
       throw new Error(`Unsupported data ring provider type: ${type}`);
   }
-  return new DataRingService(provider, eventEmitter);
+  return new DataServeService(provider, eventEmitter);
 }
 
-module.exports = createDataserverService;
+module.exports = createDataserveService;

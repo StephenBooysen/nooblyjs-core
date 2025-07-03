@@ -74,6 +74,6 @@ module.exports = createNotificationService;
  * @param {EventEmitter=} eventEmitter Optional EventEmitter instance for event bubbling.
  * @return {!NotificationService} A NotificationService instance.
  */
-function createNotificationService(eventEmitter) {
+function createNotificationService(type, options, eventEmitter) {
   return new NotificationService(eventEmitter);
 }

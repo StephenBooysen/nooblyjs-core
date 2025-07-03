@@ -7,8 +7,8 @@ const path = require('path');
 const {v4: uuidv4} = require('uuid');
 
 class FileDataRingProvider {
-  constructor(baseDir = './dataserve_data', eventEmitter) {
-    this.baseDir = path.resolve(baseDir);
+  constructor(options, eventEmitter) {
+    this.baseDir = path.resolve(options.baseDir || './dataserve_data');
     this.containers = new Map(); // Map<containerName, containerFilePath>
     this.eventEmitter_ = eventEmitter;
   }

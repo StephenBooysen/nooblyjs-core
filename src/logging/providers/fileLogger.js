@@ -12,9 +12,9 @@ class FileLogger {
    * Initializes the file logger.
    * @param {string} filename The name of the file to log to.
    */
-  constructor(filename, eventEmitter) {
+  constructor(options, eventEmitter) {
     /** @private @const {string} */
-    this.filename_ = filename;
+    this.filename_ = options.filename;
     this.eventEmitter_ = eventEmitter;
   }
 

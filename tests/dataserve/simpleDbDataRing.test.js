@@ -2,7 +2,8 @@
  * @fileoverview Unit tests for the AWS SimpleDB DataRing provider.
  */
 
-const createDataRingService = require('src/dataserve');
+const createDataserveService = require('../../src/dataserve');
+const SimpleDbDataRingProvider = require('../../src/dataserve/providers/dataserveSimpleDb');
 const AWS = require('aws-sdk');
 const EventEmitter = require('events');
 

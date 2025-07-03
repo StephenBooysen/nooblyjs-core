@@ -12,7 +12,7 @@ class WorkerProvider {
   /**
    * Initializes the WorkerProvider.
    */
-  constructor(eventEmitter) {
+  constructor(options, eventEmitter) {
     /** @private {Worker} */
     this.worker_ = null;
     /** @private {string} */

@@ -35,7 +35,9 @@ class CacheRedis {
    * @return {!Promise<*|null>}
    */
   async get(key) {
-    return await this.client_.get(key);
+    const value = await this.client_.get(key);
+    if (this.eventEmitter_) this.eventEmitter_.emit('cache:get', {key, value});
+    return value;
   }
 
   /**
@@ -45,6 +47,7 @@ class CacheRedis {
    */
   async delete(key) {
     await this.client_.del(key);
+    if (this.eventEmitter_) this.eventEmitter_.emit('cache:delete', {key});
   }
 }
 

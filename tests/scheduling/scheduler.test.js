@@ -9,22 +9,44 @@ const EventEmitter = require('events');
 
 jest.useFakeTimers();
 
-describe('SchedulerProvider', () => {
-  let schedulerInstance;
-  let workerInstanceMock;
-  let mockEventEmitter;
-
   beforeEach(() => {
     jest.resetModules();
     mockEventEmitter = new EventEmitter();
     jest.spyOn(mockEventEmitter, 'emit');
-    schedulerInstance = getSchedulerInstance(mockEventEmitter);
-    const worker = getWorkerInstance(mockEventEmitter);
-    workerInstanceMock = {
-      start: jest.spyOn(worker, 'start').mockImplementation(() => {}),
-      stop: jest.spyOn(worker, 'stop').mockImplementation(() => {}),
-      getStatus: jest.spyOn(worker, 'getStatus').mockImplementation(() => 'idle'),
+    getSchedulerInstance.reset(); // Reset the singleton instance
+
+    // Define and mock getWorkerInstance locally for each test
+    const mockWorker = {
+      start: jest.fn(),
+      stop: jest.fn(),
+      getStatus: jest.fn(() => 'idle'),
     };
+    let mockWorker;
+
+let mockWorker;
+
+jest.mock('../../src/working', () => {
+  mockWorker = {
+    start: jest.fn(),
+    stop: jest.fn(),
+    getStatus: jest.fn(() => 'idle'),
+  };
+  return jest.fn(() => mockWorker);
+});
+    const getWorkerInstance = require('../../src/working');
+    workerInstanceMock = getWorkerInstance();
+
+    // Reset the mock implementations for each test
+    mockWorker.start.mockClear();
+    mockWorker.stop.mockClear();
+    mockWorker.getStatus.mockClear();
+
+    schedulerInstance = getSchedulerInstance('default', {}, mockEventEmitter);
+
+    // Store the callback to be invoked manually by the test
+    workerInstanceMock.start.mockImplementation((scriptPath, callback) => {
+      workerInstanceMock.lastCallback = callback;
+    });
   });
 
   afterEach(() => {
@@ -48,8 +70,13 @@ describe('SchedulerProvider', () => {
     expect(schedulerInstance.isRunning()).toBe(true);
     expect(mockEventEmitter.emit).toHaveBeenCalledWith('scheduler:started', {scriptPath: mockScriptPath, intervalSeconds: mockInterval});
 
+    // Manually trigger the first worker completion
+    workerInstanceMock.lastCallback('completed', 'initial run');
+
     jest.advanceTimersByTime(mockInterval * 1000);
     expect(workerInstanceMock.start).toHaveBeenCalledTimes(2); // Initial call + 1 interval
+    // Manually trigger the second worker completion
+    workerInstanceMock.lastCallback('completed', 'interval run');
     expect(mockEventEmitter.emit).toHaveBeenCalledWith('scheduler:taskExecuted', {scriptPath: mockScriptPath, status: expect.any(String), data: expect.any(String)});
 
     mockEventEmitter.emit.mockClear();
@@ -67,7 +94,7 @@ describe('SchedulerProvider', () => {
     schedulerInstance.start(mockScriptPath, mockInterval, mockCallback);
 
     // Simulate worker completion for the initial call
-    workerInstanceMock.start.mock.calls[0][1]('completed', 'initial run');
+    workerInstanceMock.lastCallback('completed', 'initial run');
     expect(mockCallback).toHaveBeenCalledWith('completed', 'initial run');
     expect(mockEventEmitter.emit).toHaveBeenCalledWith('scheduler:taskExecuted', {scriptPath: mockScriptPath, status: 'completed', data: 'initial run'});
 
@@ -75,7 +102,7 @@ describe('SchedulerProvider', () => {
     jest.advanceTimersByTime(mockInterval * 1000);
 
     // Simulate worker completion for the interval call
-    workerInstanceMock.start.mock.calls[1][1]('completed', 'interval run');
+    workerInstanceMock.lastCallback('completed', 'interval run');
     expect(mockCallback).toHaveBeenCalledWith('completed', 'interval run');
     expect(mockEventEmitter.emit).toHaveBeenCalledWith('scheduler:taskExecuted', {scriptPath: mockScriptPath, status: 'completed', data: 'interval run'});
 

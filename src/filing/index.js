@@ -2,9 +2,9 @@
  * @fileoverview Filing service for abstracting file operations and factory for creating FilingService instances.
  */
 
-const LocalFilingProvider = require('./providers/localFiling');
-const FtpFilingProvider = require('./providers/ftpFiling');
-const S3FilingProvider = require('./providers/s3Filing');
+const LocalFilingProvider = require('./providers/filingLocal');
+const FtpFilingProvider = require('./providers/filingFtp');
+const S3FilingProvider = require('./providers/filingS3');
 
 class FilingService {
   constructor(provider, eventEmitter) {
@@ -73,13 +73,13 @@ function createFilingService(type = 'local', options, eventEmitter) {
   let provider;
   switch (type) {
     case 'local':
-      provider = new LocalFilingProvider();
+      provider = new LocalFilingProvider(options, eventEmitter);
       break;
     case 'ftp':
-      provider = new FtpFilingProvider(options.connectionString);
+      provider = new FtpFilingProvider(options, eventEmitter);
       break;
     case 's3':
-      provider = new S3FilingProvider(options);
+      provider = new S3FilingProvider(options, eventEmitter);
       break;
     default:
       throw new Error(`Unsupported filing provider type: ${type}`);

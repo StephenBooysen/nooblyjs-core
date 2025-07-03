@@ -3,8 +3,8 @@
  */
 
 const createFilingService = require('../../src/filing');
-const LocalFilingProvider = require('../../src/filing/providers/localFiling');
-const FtpFilingProvider = require('../../src/filing/providers/ftpFiling');
+const LocalFilingProvider = require('../../src/filing/providers/filingLocal');
+const FtpFilingProvider = require('../../src/filing/providers/filingFtp');
 const AWS = require('aws-sdk');
 const fs = require('fs').promises;
 const path = require('path');

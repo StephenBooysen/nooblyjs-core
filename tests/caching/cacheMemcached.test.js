@@ -2,7 +2,7 @@
  * @fileoverview Unit tests for the Memcached-backed cache implementation.
  */
 
-const CacheMemcached = require('src/caching/providers/cacheMemcached.js');
+const CacheMemcached = require('../../src/caching/providers/cachingMemcached.js');
 const {Client} = require('memjs');
 const EventEmitter = require('events');
 

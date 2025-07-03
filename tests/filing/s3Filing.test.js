@@ -2,7 +2,7 @@
  * @fileoverview Unit tests for the AWS S3 filing provider.
  */
 
-const S3FilingProvider = require('src/filing/providers/s3Filing');
+const S3FilingProvider = require('../../src/filing/providers/filingS3');
 const AWS = require('aws-sdk');
 
 // Mock the AWS S3 client

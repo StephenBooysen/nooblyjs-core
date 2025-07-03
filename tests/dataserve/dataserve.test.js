@@ -2,7 +2,8 @@
  * @fileoverview Unit tests for the DataServeService and its providers.
  */
 
-const createDataRingService = require('../../src/dataserve');
+const createDataserveService = require('../../src/dataserve');
+const DataRingService = require('../../src/dataserve/index');
 const AWS = require('aws-sdk');
 const fs = require('fs').promises;
 const path = require('path');
@@ -34,7 +35,7 @@ describe('DataServeService', () => {
     beforeEach(() => {
       mockEventEmitter = new EventEmitter();
       jest.spyOn(mockEventEmitter, 'emit');
-      dataServeService = createDataRingService('memory', {}, mockEventEmitter);
+      dataServeService = createDataserveService('memory', {}, mockEventEmitter);
     });
 
     it('should create a container', async () => {
@@ -115,7 +116,7 @@ describe('DataServeService', () => {
       mockEventEmitter = new EventEmitter();
       jest.spyOn(mockEventEmitter, 'emit');
       await fs.rm(testBaseDir, {recursive: true, force: true}).catch(() => {}); // Clean up before each test
-      dataServeService = createDataRingService('file', {baseDir: testBaseDir}, mockEventEmitter);
+      dataServeService = createDataserveService('file', {baseDir: testBaseDir}, mockEventEmitter);
     });
 
     afterAll(async () => {
@@ -220,7 +221,7 @@ describe('DataServeService', () => {
       mockEventEmitter = new EventEmitter();
       jest.spyOn(mockEventEmitter, 'emit');
       jest.clearAllMocks();
-      simpleDbDataRingService = createDataRingService('simpledb', {
+      simpleDbDataRingService = createDataserveService('simpledb', {
         region: mockRegion,
         accessKeyId: mockAccessKeyId,
         secretAccessKey: mockSecretAccessKey,

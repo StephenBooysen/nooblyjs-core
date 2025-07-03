@@ -86,6 +86,6 @@ module.exports = createSearchService;
  * @param {EventEmitter=} eventEmitter Optional EventEmitter instance for event bubbling.
  * @return {!SearchService} A SearchService instance.
  */
-function createSearchService(eventEmitter) {
+function createSearchService(type, options, eventEmitter) {
   return new SearchService(eventEmitter);
 }

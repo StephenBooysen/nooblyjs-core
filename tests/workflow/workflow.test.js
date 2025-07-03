@@ -1,5 +1,5 @@
 const path = require('path');
-const WorkflowService = require('../../src/workflow');
+const createWorkflowService = require('../../src/workflow');
 const EventEmitter = require('events');
 
 describe('WorkflowService', () => {
@@ -21,7 +21,7 @@ describe('WorkflowService', () => {
   beforeEach(() => {
     mockEventEmitter = new EventEmitter();
     jest.spyOn(mockEventEmitter, 'emit');
-    workflowService = new WorkflowService(mockEventEmitter);
+    workflowService = createWorkflowService('default', {}, mockEventEmitter);
     mockStatusCallback = jest.fn();
   });
 
