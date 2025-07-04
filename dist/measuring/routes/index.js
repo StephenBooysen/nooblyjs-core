@@ -5,9 +5,6 @@
  * @param {object} options.measuring - The measuring provider.
  */
 module.exports = (options, eventEmitter, measuring) => {
-  eventEmitter.emit('instance', {
-    options: options
-  });
   if (options['express-app'] && measuring) {
     const app = options['express-app'];
     app.post('/api/measuring/measure', (req, res) => {
@@ -22,8 +19,8 @@ module.exports = (options, eventEmitter, measuring) => {
       }
     });
     app.get('/api/measuring/status', (req, res) => {
-      eventEmitter.emit("api-measuring-status", "measuring api running");
-      res.status(200).json("running");
+      eventEmitter.emit('api-measuring-status', 'measuring api running');
+      res.status(200).json('running');
     });
   }
 };

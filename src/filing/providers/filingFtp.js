@@ -13,18 +13,28 @@ class FtpFilingProvider {
 
     this.client.on('ready', () => {
       this.isConnected = true;
-      if (this.eventEmitter_) this.eventEmitter_.emit('filing:ftp:connected', {connectionString});
+      if (this.eventEmitter_)
+        this.eventEmitter_.emit('filing:ftp:connected', {
+          connectionString: this.connectionString,
+        });
     });
 
     this.client.on('end', () => {
       this.isConnected = false;
-      if (this.eventEmitter_) this.eventEmitter_.emit('filing:ftp:disconnected', {connectionString});
+      if (this.eventEmitter_)
+        this.eventEmitter_.emit('filing:ftp:disconnected', {
+          connectionString: this.connectionString,
+        });
     });
 
     this.client.on('error', (err) => {
       console.error('FTP Client Error:', err);
       this.isConnected = false;
-      if (this.eventEmitter_) this.eventEmitter_.emit('filing:ftp:error', {connectionString, error: err.message});
+      if (this.eventEmitter_)
+        this.eventEmitter_.emit('filing:ftp:error', {
+          connectionString: this.connectionString,
+          error: err.message,
+        });
     });
   }
 
@@ -53,10 +63,15 @@ class FtpFilingProvider {
     return new Promise((resolve, reject) => {
       this.client.put(Buffer.from(content), filePath, (err) => {
         if (err) {
-          if (this.eventEmitter_) this.eventEmitter_.emit('filing:create:error', {filePath, error: err.message});
+          if (this.eventEmitter_)
+            this.eventEmitter_.emit('filing:create:error', {
+              filePath,
+              error: err.message,
+            });
           return reject(err);
         }
-        if (this.eventEmitter_) this.eventEmitter_.emit('filing:create', {filePath, content});
+        if (this.eventEmitter_)
+          this.eventEmitter_.emit('filing:create', { filePath, content });
         resolve();
       });
     });
@@ -68,16 +83,25 @@ class FtpFilingProvider {
       let data = '';
       this.client.get(filePath, (err, stream) => {
         if (err) {
-          if (this.eventEmitter_) this.eventEmitter_.emit('filing:read:error', {filePath, error: err.message});
+          if (this.eventEmitter_)
+            this.eventEmitter_.emit('filing:read:error', {
+              filePath,
+              error: err.message,
+            });
           return reject(err);
         }
-        stream.on('data', (chunk) => data += chunk.toString());
+        stream.on('data', (chunk) => (data += chunk.toString()));
         stream.on('end', () => {
-          if (this.eventEmitter_) this.eventEmitter_.emit('filing:read', {filePath, content: data});
+          if (this.eventEmitter_)
+            this.eventEmitter_.emit('filing:read', { filePath, content: data });
           resolve(data);
         });
         stream.on('error', (err) => {
-          if (this.eventEmitter_) this.eventEmitter_.emit('filing:read:error', {filePath, error: err.message});
+          if (this.eventEmitter_)
+            this.eventEmitter_.emit('filing:read:error', {
+              filePath,
+              error: err.message,
+            });
           reject(err);
         });
       });
@@ -89,10 +113,15 @@ class FtpFilingProvider {
     return new Promise((resolve, reject) => {
       this.client.delete(filePath, (err) => {
         if (err) {
-          if (this.eventEmitter_) this.eventEmitter_.emit('filing:delete:error', {filePath, error: err.message});
+          if (this.eventEmitter_)
+            this.eventEmitter_.emit('filing:delete:error', {
+              filePath,
+              error: err.message,
+            });
           return reject(err);
         }
-        if (this.eventEmitter_) this.eventEmitter_.emit('filing:delete', {filePath});
+        if (this.eventEmitter_)
+          this.eventEmitter_.emit('filing:delete', { filePath });
         resolve();
       });
     });
@@ -103,11 +132,16 @@ class FtpFilingProvider {
     return new Promise((resolve, reject) => {
       this.client.list(dirPath, (err, list) => {
         if (err) {
-          if (this.eventEmitter_) this.eventEmitter_.emit('filing:list:error', {dirPath, error: err.message});
+          if (this.eventEmitter_)
+            this.eventEmitter_.emit('filing:list:error', {
+              dirPath,
+              error: err.message,
+            });
           return reject(err);
         }
-        const files = list.map(item => item.name);
-        if (this.eventEmitter_) this.eventEmitter_.emit('filing:list', {dirPath, files});
+        const files = list.map((item) => item.name);
+        if (this.eventEmitter_)
+          this.eventEmitter_.emit('filing:list', { dirPath, files });
         resolve(files);
       });
     });
@@ -119,10 +153,15 @@ class FtpFilingProvider {
     return new Promise((resolve, reject) => {
       this.client.put(Buffer.from(content), filePath, (err) => {
         if (err) {
-          if (this.eventEmitter_) this.eventEmitter_.emit('filing:update:error', {filePath, error: err.message});
+          if (this.eventEmitter_)
+            this.eventEmitter_.emit('filing:update:error', {
+              filePath,
+              error: err.message,
+            });
           return reject(err);
         }
-        if (this.eventEmitter_) this.eventEmitter_.emit('filing:update', {filePath, content});
+        if (this.eventEmitter_)
+          this.eventEmitter_.emit('filing:update', { filePath, content });
         resolve();
       });
     });

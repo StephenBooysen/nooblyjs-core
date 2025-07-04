@@ -5,9 +5,6 @@
  * @param {object} options.notifier - The notifying provider.
  */
 module.exports = (options, eventEmitter, notifier) => {
-  eventEmitter.emit('instance', {
-    options: options
-  });
   if (options['express-app'] && notifier) {
     const app = options['express-app'];
     app.post('/api/notifying/send', (req, res) => {
@@ -22,8 +19,8 @@ module.exports = (options, eventEmitter, notifier) => {
       }
     });
     app.get('/api/notifying/status', (req, res) => {
-      eventEmitter.emit("api-notifying-status", "notifying api running");
-      res.status(200).json("running");
+      eventEmitter.emit('api-notifying-status', 'notifying api running');
+      res.status(200).json('running');
     });
   }
 };

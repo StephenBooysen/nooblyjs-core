@@ -1,4 +1,3 @@
-
 const createMeasuringService = require('../../src/measuring');
 const EventEmitter = require('events');
 
@@ -20,8 +19,10 @@ async function runMeasuringLoadTest(iterations) {
 
   const endTime = Date.now();
   const duration = endTime - startTime;
-  console.log(`Measuring Load Test Completed: ${iterations} operations in ${duration} ms.`);
-  return {service: 'measuring', iterations, duration};
+  console.log(
+    `Measuring Load Test Completed: ${iterations} operations in ${duration} ms.`,
+  );
+  return { service: 'measuring', iterations, duration };
 }
 
 module.exports = runMeasuringLoadTest;

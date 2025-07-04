@@ -3,9 +3,7 @@
  */
 
 const {
-  Worker,
-  isMainThread,
-  parentPort
+  Worker
 } = require('worker_threads');
 const path = require('path');
 const Routes = require('./routes');
@@ -134,7 +132,7 @@ class WorkflowService {
  * @return {!WorkflowService} A WorkflowService instance.
  */
 function createWorkflowService(type, options, eventEmitter) {
-  var workflow = new WorkflowService(eventEmitter);
+  const workflow = new WorkflowService(eventEmitter);
   Routes(options, eventEmitter, workflow);
   return workflow;
 }

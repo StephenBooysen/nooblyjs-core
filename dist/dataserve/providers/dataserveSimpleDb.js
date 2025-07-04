@@ -104,7 +104,7 @@ class SimpleDbDataRingProvider {
    * @returns {Promise<Array<object>>} A promise that resolves with an array of matching JSON objects.
    */
   async find(domainName, searchTerm) {
-    const selectExpression = 'SELECT * FROM `' + domainName + '` WHERE itemName() LIKE ' % ' + searchTerm + ' % '';
+    const selectExpression = `SELECT * FROM \`${domainName}\` WHERE itemName() LIKE '%${searchTerm}%'`;
     // This is a very basic search. A more robust solution would parse the JSON object
     // and search within its attributes, potentially requiring more complex queries.
 

@@ -24,10 +24,9 @@ class FileLogger {
    */
   async log(message) {
     fs.appendFileSync(this.filename_, message + '\n');
-    if (this.eventEmitter_) this.eventEmitter_.emit('log:log', {filename: this.filename_, message});
+    if (this.eventEmitter_)
+      this.eventEmitter_.emit('log:log', { filename: this.filename_, message });
   }
-
 }
 
 module.exports = FileLogger;
-

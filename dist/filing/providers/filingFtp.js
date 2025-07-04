@@ -12,20 +12,20 @@ class FtpFilingProvider {
     this.client.on('ready', () => {
       this.isConnected = true;
       if (this.eventEmitter_) this.eventEmitter_.emit('filing:ftp:connected', {
-        connectionString
+        connectionString: this.connectionString
       });
     });
     this.client.on('end', () => {
       this.isConnected = false;
       if (this.eventEmitter_) this.eventEmitter_.emit('filing:ftp:disconnected', {
-        connectionString
+        connectionString: this.connectionString
       });
     });
     this.client.on('error', err => {
       console.error('FTP Client Error:', err);
       this.isConnected = false;
       if (this.eventEmitter_) this.eventEmitter_.emit('filing:ftp:error', {
-        connectionString,
+        connectionString: this.connectionString,
         error: err.message
       });
     });

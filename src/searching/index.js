@@ -14,8 +14,8 @@ const Routes = require('./routes');
  * @return {!SearchService} A SearchService instance.
  */
 function createSearchService(type, options, eventEmitter) {
-  eventEmitter.emit("Search Service Intantiated", {});
-  var searching = new SearchService(options,eventEmitter);
+  eventEmitter.emit('Search Service Intantiated', {});
+  const searching = new SearchService(options, eventEmitter);
   Routes(options, eventEmitter, searching);
   return searching;
 }

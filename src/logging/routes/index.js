@@ -5,14 +5,15 @@
  * @param {object} options.logger - The logging provider.
  */
 module.exports = (options, eventEmitter, logger) => {
-  eventEmitter.emit('instance', { options: options });
+
   if (options['express-app'] && logger) {
     const app = options['express-app'];
 
     app.post('/api/logging/log', (req, res) => {
       const { level, message } = req.body;
       if (level && message) {
-        logger.log(level, message)
+        logger
+          .log(level, message)
           .then(() => res.status(200).send('OK'))
           .catch((err) => res.status(500).send(err.message));
       } else {
@@ -21,8 +22,8 @@ module.exports = (options, eventEmitter, logger) => {
     });
 
     app.get('/api/logging/status', (req, res) => {
-      eventEmitter.emit("api-logging-status","logging api running");
-      res.status(200).json("running");
+      eventEmitter.emit('api-logging-status', 'logging api running');
+      res.status(200).json('running');
     });
   }
 };

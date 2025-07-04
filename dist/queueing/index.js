@@ -13,7 +13,7 @@ const Routes = require('./routes');
  */
 function createQueue(type, options, eventEmitter) {
   if (type === 'memory') {
-    var queue = new InMemoryQueue(options, eventEmitter);
+    const queue = new InMemoryQueue(options, eventEmitter);
     Routes(options, eventEmitter, queue);
     return queue;
   } else {

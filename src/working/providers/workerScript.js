@@ -2,7 +2,7 @@
  * @fileoverview Worker thread script for executing user-defined tasks.
  */
 
-const {parentPort} = require('worker_threads');
+const { parentPort } = require('worker_threads');
 
 let userScriptPath = null;
 let userScript = null;
@@ -15,7 +15,7 @@ let status = 'idle'; // idle, running, completed, error
  */
 function updateStatus(newStatus, data) {
   status = newStatus;
-  parentPort.postMessage({type: 'status', status: newStatus, data: data});
+  parentPort.postMessage({ type: 'status', status: newStatus, data: data });
 }
 
 parentPort.on('message', async (message) => {
@@ -30,6 +30,6 @@ parentPort.on('message', async (message) => {
       updateStatus('error', error.message);
     }
   } else if (message.type === 'getStatus') {
-    parentPort.postMessage({type: 'currentStatus', status: status});
+    parentPort.postMessage({ type: 'currentStatus', status: status });
   }
 });

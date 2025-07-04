@@ -31,7 +31,11 @@ class SchedulerProvider {
    */
   start(scriptPath, intervalSeconds, executionCallback) {
     if (this.intervalId_) {
-      if (this.eventEmitter_) this.eventEmitter_.emit('scheduler:start:error', {scriptPath, error: 'Scheduler already running.'});
+      if (this.eventEmitter_)
+        this.eventEmitter_.emit('scheduler:start:error', {
+          scriptPath,
+          error: 'Scheduler already running.',
+        });
       return;
     }
 
@@ -43,14 +47,23 @@ class SchedulerProvider {
         if (this.executionCallback_) {
           this.executionCallback_(status, data);
         }
-        if (this.eventEmitter_) this.eventEmitter_.emit('scheduler:taskExecuted', {scriptPath, status, data});
+        if (this.eventEmitter_)
+          this.eventEmitter_.emit('scheduler:taskExecuted', {
+            scriptPath,
+            status,
+            data,
+          });
       });
     };
 
     // Execute immediately and then at intervals
     executeTask();
     this.intervalId_ = setInterval(executeTask, intervalSeconds * 1000);
-    if (this.eventEmitter_) this.eventEmitter_.emit('scheduler:started', {scriptPath, intervalSeconds});
+    if (this.eventEmitter_)
+      this.eventEmitter_.emit('scheduler:started', {
+        scriptPath,
+        intervalSeconds,
+      });
   }
 
   /**

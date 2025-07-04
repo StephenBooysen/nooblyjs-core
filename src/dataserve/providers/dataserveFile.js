@@ -4,7 +4,7 @@
 
 const fs = require('fs').promises;
 const path = require('path');
-const {v4: uuidv4} = require('uuid');
+const { v4: uuidv4 } = require('uuid');
 
 class FileDataRingProvider {
   constructor(options, eventEmitter) {
@@ -41,7 +41,7 @@ class FileDataRingProvider {
 
   async _writeContainerData(containerName, data) {
     const containerFilePath = await this._getContainerFilePath(containerName);
-    await fs.mkdir(path.dirname(containerFilePath), {recursive: true});
+    await fs.mkdir(path.dirname(containerFilePath), { recursive: true });
     await fs.writeFile(containerFilePath, JSON.stringify(data, null, 2));
   }
 
@@ -55,7 +55,10 @@ class FileDataRingProvider {
         // Container does not exist, create an empty file for it
         await this._writeContainerData(containerName, {});
         this.containers.set(containerName, containerFilePath);
-        if (this.eventEmitter_) this.eventEmitter_.emit('dataserve:createContainer', {containerName});
+        if (this.eventEmitter_)
+          this.eventEmitter_.emit('dataserve:createContainer', {
+            containerName,
+          });
       } else {
         throw error;
       }
@@ -67,7 +70,12 @@ class FileDataRingProvider {
     const objectKey = uuidv4();
     data[objectKey] = jsonObject;
     await this._writeContainerData(containerName, data);
-    if (this.eventEmitter_) this.eventEmitter_.emit('dataserve:add', {containerName, objectKey, jsonObject});
+    if (this.eventEmitter_)
+      this.eventEmitter_.emit('dataserve:add', {
+        containerName,
+        objectKey,
+        jsonObject,
+      });
     return objectKey;
   }
 
@@ -76,7 +84,11 @@ class FileDataRingProvider {
     if (data[objectKey]) {
       delete data[objectKey];
       await this._writeContainerData(containerName, data);
-      if (this.eventEmitter_) this.eventEmitter_.emit('dataserve:remove', {containerName, objectKey});
+      if (this.eventEmitter_)
+        this.eventEmitter_.emit('dataserve:remove', {
+          containerName,
+          objectKey,
+        });
       return true;
     }
     return false;
@@ -114,7 +126,12 @@ class FileDataRingProvider {
         }
       }
     }
-    if (this.eventEmitter_) this.eventEmitter_.emit('dataserve:find', {containerName, searchTerm, results});
+    if (this.eventEmitter_)
+      this.eventEmitter_.emit('dataserve:find', {
+        containerName,
+        searchTerm,
+        results,
+      });
     return results;
   }
 }

@@ -15,16 +15,16 @@ class SearchService {
    */
   async add(key, jsonObject) {
     if (this.data.has(key)) {
-      if (this.eventEmitter_)
-        this.eventEmitter_.emit('search:add:error', {
-          sonObject: jsonObject,
-          error: 'Key already exists.',
-        });
+      if (this.eventEmitter_) this.eventEmitter_.emit('search:add:error', {
+        sonObject: jsonObject,
+        error: 'Key already exists.'
+      });
       return false;
     }
     this.data.set(key, jsonObject);
-    if (this.eventEmitter_)
-      this.eventEmitter_.emit('search:add', { jsonObject: jsonObject });
+    if (this.eventEmitter_) this.eventEmitter_.emit('search:add', {
+      jsonObject: jsonObject
+    });
     return true;
   }
 
@@ -35,8 +35,9 @@ class SearchService {
    */
   async remove(key) {
     const removed = this.data.delete(key);
-    if (removed && this.eventEmitter_)
-      this.eventEmitter_.emit('search:remove', { key });
+    if (removed && this.eventEmitter_) this.eventEmitter_.emit('search:remove', {
+      key
+    });
     return removed;
   }
 
@@ -49,16 +50,16 @@ class SearchService {
   async search(searchTerm) {
     const results = [];
     if (!searchTerm) {
-      if (this.eventEmitter_)
-        this.eventEmitter_.emit('search:search', { searchTerm, results });
+      if (this.eventEmitter_) this.eventEmitter_.emit('search:search', {
+        searchTerm,
+        results
+      });
       return results;
     }
     const lowerCaseSearchTerm = searchTerm.toLowerCase();
-
     for (const [key, obj] of this.data.entries()) {
       let found = false;
-
-      const searchInObject = (currentObj) => {
+      const searchInObject = currentObj => {
         for (const prop in currentObj) {
           if (Object.prototype.hasOwnProperty.call(currentObj, prop)) {
             const value = currentObj[prop];
@@ -74,16 +75,19 @@ class SearchService {
           }
         }
       };
-
       searchInObject(obj);
       if (found) {
-        results.push({ key, obj });
+        results.push({
+          key,
+          obj
+        });
       }
     }
-    if (this.eventEmitter_)
-      this.eventEmitter_.emit('search:search', { searchTerm, results });
+    if (this.eventEmitter_) this.eventEmitter_.emit('search:search', {
+      searchTerm,
+      results
+    });
     return results;
   }
 }
-
 module.exports = SearchService;

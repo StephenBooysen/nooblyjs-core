@@ -5,9 +5,6 @@
  * @param {object} options.queue - The queueing provider.
  */
 module.exports = (options, eventEmitter, queue) => {
-  eventEmitter.emit('instance', {
-    options: options
-  });
   if (options['express-app'] && queue) {
     const app = options['express-app'];
     app.post('/api/queueing/enqueue', (req, res) => {
@@ -27,8 +24,8 @@ module.exports = (options, eventEmitter, queue) => {
       queue.size().then(size => res.status(200).json(size)).catch(err => res.status(500).send(err.message));
     });
     app.get('/api/queueing/status', (req, res) => {
-      eventEmitter.emit("api-queueing-status", "queueing api running");
-      res.status(200).json("running");
+      eventEmitter.emit('api-queueing-status', 'queueing api running');
+      res.status(200).json('running');
     });
   }
 };

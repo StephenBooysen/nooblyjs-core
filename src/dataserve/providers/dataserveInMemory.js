@@ -2,7 +2,7 @@
  * @fileoverview In-memory DataRing provider.
  */
 
-const {v4: uuidv4} = require('uuid');
+const { v4: uuidv4 } = require('uuid');
 
 class InMemoryDataServeProvider {
   constructor(options, eventEmitter) {
@@ -15,7 +15,8 @@ class InMemoryDataServeProvider {
       throw new Error(`Container '${containerName}' already exists.`);
     }
     this.containers.set(containerName, new Map());
-    if (this.eventEmitter_) this.eventEmitter_.emit('dataserve:createContainer', {containerName});
+    if (this.eventEmitter_)
+      this.eventEmitter_.emit('dataserve:createContainer', { containerName });
   }
 
   async add(containerName, jsonObject) {
@@ -24,7 +25,12 @@ class InMemoryDataServeProvider {
     }
     const objectKey = uuidv4();
     this.containers.get(containerName).set(objectKey, jsonObject);
-    if (this.eventEmitter_) this.eventEmitter_.emit('dataserve:add', {containerName, objectKey, jsonObject});
+    if (this.eventEmitter_)
+      this.eventEmitter_.emit('dataserve:add', {
+        containerName,
+        objectKey,
+        jsonObject,
+      });
     return objectKey;
   }
 
@@ -33,13 +39,19 @@ class InMemoryDataServeProvider {
       return false;
     }
     const removed = this.containers.get(containerName).delete(objectKey);
-    if (removed && this.eventEmitter_) this.eventEmitter_.emit('dataserve:remove', {containerName, objectKey});
+    if (removed && this.eventEmitter_)
+      this.eventEmitter_.emit('dataserve:remove', { containerName, objectKey });
     return removed;
   }
 
   async find(containerName, searchTerm) {
     if (!this.containers.has(containerName)) {
-      if (this.eventEmitter_) this.eventEmitter_.emit('dataserve:find', {containerName, searchTerm, results: []});
+      if (this.eventEmitter_)
+        this.eventEmitter_.emit('dataserve:find', {
+          containerName,
+          searchTerm,
+          results: [],
+        });
       return [];
     }
     const results = [];
@@ -66,10 +78,15 @@ class InMemoryDataServeProvider {
 
       searchInObject(obj);
       if (found) {
-        results.push(obj);
+        results.push({ key, obj });
       }
     }
-    if (this.eventEmitter_) this.eventEmitter_.emit('dataserve:find', {containerName, searchTerm, results});
+    if (this.eventEmitter_)
+      this.eventEmitter_.emit('dataserve:find', {
+        containerName,
+        searchTerm,
+        results,
+      });
     return results;
   }
 }

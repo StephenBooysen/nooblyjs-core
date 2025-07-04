@@ -2,7 +2,7 @@
  * @fileoverview A Memcached-backed cache implementation.
  */
 
-const {Client} = require('memjs');
+const { Client } = require('memjs');
 
 /**
  * A class that implements a Memcached-backed cache.
@@ -31,9 +31,11 @@ class CacheMemcached {
    */
   async put(key, value, ttl) {
     // Memcached stores values as strings, so we need to stringify objects.
-    const stringValue = typeof value === 'object' ? JSON.stringify(value) : String(value);
-    await this.client_.set(key, stringValue, {expires: ttl || 0});
-    if (this.eventEmitter_) this.eventEmitter_.emit('cache:put', {key, value, ttl});
+    const stringValue =
+      typeof value === 'object' ? JSON.stringify(value) : String(value);
+    await this.client_.set(key, stringValue, { expires: ttl || 0 });
+    if (this.eventEmitter_)
+      this.eventEmitter_.emit('cache:put', { key, value, ttl });
   }
 
   /**
@@ -42,19 +44,22 @@ class CacheMemcached {
    * @return {!Promise<*|null>}
    */
   async get(key) {
-    const {value} = await this.client_.get(key);
+    const { value } = await this.client_.get(key);
     if (value === null) {
-      if (this.eventEmitter_) this.eventEmitter_.emit('cache:get', {key, value: null});
+      if (this.eventEmitter_)
+        this.eventEmitter_.emit('cache:get', { key, value: null });
       return null;
     }
     // Attempt to parse as JSON, otherwise return as string.
     try {
       const parsedValue = JSON.parse(value.toString());
-      if (this.eventEmitter_) this.eventEmitter_.emit('cache:get', {key, value: parsedValue});
+      if (this.eventEmitter_)
+        this.eventEmitter_.emit('cache:get', { key, value: parsedValue });
       return parsedValue;
     } catch (e) {
       const stringValue = value.toString();
-      if (this.eventEmitter_) this.eventEmitter_.emit('cache:get', {key, value: stringValue});
+      if (this.eventEmitter_)
+        this.eventEmitter_.emit('cache:get', { key, value: stringValue });
       return stringValue;
     }
   }
@@ -66,7 +71,7 @@ class CacheMemcached {
    */
   async delete(key) {
     await this.client_.delete(key);
-    if (this.eventEmitter_) this.eventEmitter_.emit('cache:delete', {key});
+    if (this.eventEmitter_) this.eventEmitter_.emit('cache:delete', { key });
   }
 }
 

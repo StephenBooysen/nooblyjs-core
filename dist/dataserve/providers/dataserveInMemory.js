@@ -74,7 +74,10 @@ class InMemoryDataServeProvider {
       };
       searchInObject(obj);
       if (found) {
-        results.push(obj);
+        results.push({
+          key,
+          obj
+        });
       }
     }
     if (this.eventEmitter_) this.eventEmitter_.emit('dataserve:find', {

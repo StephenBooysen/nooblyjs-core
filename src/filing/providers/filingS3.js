@@ -15,7 +15,9 @@ class S3FilingProvider {
    */
   constructor(options, eventEmitter) {
     if (!options || !options.bucketName || !options.region) {
-      throw new Error('S3FilingProvider requires bucketName and region in options.');
+      throw new Error(
+        'S3FilingProvider requires bucketName and region in options.',
+      );
     }
 
     this.bucketName = options.bucketName;
@@ -42,9 +44,14 @@ class S3FilingProvider {
     };
     try {
       await this.s3.upload(params).promise();
-      if (this.eventEmitter_) this.eventEmitter_.emit('filing:create', {filePath, content});
+      if (this.eventEmitter_)
+        this.eventEmitter_.emit('filing:create', { filePath, content });
     } catch (error) {
-      if (this.eventEmitter_) this.eventEmitter_.emit('filing:create:error', {filePath, error: error.message});
+      if (this.eventEmitter_)
+        this.eventEmitter_.emit('filing:create:error', {
+          filePath,
+          error: error.message,
+        });
       throw error;
     }
   }
@@ -62,10 +69,15 @@ class S3FilingProvider {
     try {
       const data = await this.s3.getObject(params).promise();
       const content = data.Body.toString('utf-8');
-      if (this.eventEmitter_) this.eventEmitter_.emit('filing:read', {filePath, content});
+      if (this.eventEmitter_)
+        this.eventEmitter_.emit('filing:read', { filePath, content });
       return content;
     } catch (error) {
-      if (this.eventEmitter_) this.eventEmitter_.emit('filing:read:error', {filePath, error: error.message});
+      if (this.eventEmitter_)
+        this.eventEmitter_.emit('filing:read:error', {
+          filePath,
+          error: error.message,
+        });
       throw error;
     }
   }
@@ -82,9 +94,14 @@ class S3FilingProvider {
     };
     try {
       await this.s3.deleteObject(params).promise();
-      if (this.eventEmitter_) this.eventEmitter_.emit('filing:delete', {filePath});
+      if (this.eventEmitter_)
+        this.eventEmitter_.emit('filing:delete', { filePath });
     } catch (error) {
-      if (this.eventEmitter_) this.eventEmitter_.emit('filing:delete:error', {filePath, error: error.message});
+      if (this.eventEmitter_)
+        this.eventEmitter_.emit('filing:delete:error', {
+          filePath,
+          error: error.message,
+        });
       throw error;
     }
   }
@@ -101,11 +118,16 @@ class S3FilingProvider {
     };
     try {
       const data = await this.s3.listObjectsV2(params).promise();
-      const files = data.Contents ? data.Contents.map(item => item.Key) : [];
-      if (this.eventEmitter_) this.eventEmitter_.emit('filing:list', {dirPath, files});
+      const files = data.Contents ? data.Contents.map((item) => item.Key) : [];
+      if (this.eventEmitter_)
+        this.eventEmitter_.emit('filing:list', { dirPath, files });
       return files;
     } catch (error) {
-      if (this.eventEmitter_) this.eventEmitter_.emit('filing:list:error', {dirPath, error: error.message});
+      if (this.eventEmitter_)
+        this.eventEmitter_.emit('filing:list:error', {
+          dirPath,
+          error: error.message,
+        });
       throw error;
     }
   }
@@ -125,9 +147,14 @@ class S3FilingProvider {
     };
     try {
       await this.s3.upload(params).promise();
-      if (this.eventEmitter_) this.eventEmitter_.emit('filing:update', {filePath, content});
+      if (this.eventEmitter_)
+        this.eventEmitter_.emit('filing:update', { filePath, content });
     } catch (error) {
-      if (this.eventEmitter_) this.eventEmitter_.emit('filing:update:error', {filePath, error: error.message});
+      if (this.eventEmitter_)
+        this.eventEmitter_.emit('filing:update:error', {
+          filePath,
+          error: error.message,
+        });
       throw error;
     }
   }

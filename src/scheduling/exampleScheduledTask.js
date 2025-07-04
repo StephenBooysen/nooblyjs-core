@@ -12,4 +12,4 @@ async function run() {
   return `Scheduled task completed at: ${timestamp}`;
 }
 
-module.exports = {run};
+module.exports = { run };

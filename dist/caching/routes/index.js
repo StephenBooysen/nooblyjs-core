@@ -5,9 +5,6 @@
  * @param {object} options.cache - The caching provider.
  */
 module.exports = (options, eventEmitter, cache) => {
-  eventEmitter.emit('instance', {
-    options: options
-  });
   if (options['express-app'] && cache) {
     const app = options['express-app'];
     app.post('/api/caching/put/:key', (req, res) => {
@@ -24,8 +21,8 @@ module.exports = (options, eventEmitter, cache) => {
       cache.delete(key).then(() => res.status(200).send('OK')).catch(err => res.status(500).send(err.message));
     });
     app.get('/api/caching/status', (req, res) => {
-      eventEmitter.emit("api-cache-status", "caching api running");
-      res.status(200).json("running");
+      eventEmitter.emit('api-cache-status', 'caching api running');
+      res.status(200).json('running');
     });
   }
 };

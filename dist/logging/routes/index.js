@@ -5,9 +5,6 @@
  * @param {object} options.logger - The logging provider.
  */
 module.exports = (options, eventEmitter, logger) => {
-  eventEmitter.emit('instance', {
-    options: options
-  });
   if (options['express-app'] && logger) {
     const app = options['express-app'];
     app.post('/api/logging/log', (req, res) => {
@@ -22,8 +19,8 @@ module.exports = (options, eventEmitter, logger) => {
       }
     });
     app.get('/api/logging/status', (req, res) => {
-      eventEmitter.emit("api-logging-status", "logging api running");
-      res.status(200).json("running");
+      eventEmitter.emit('api-logging-status', 'logging api running');
+      res.status(200).json('running');
     });
   }
 };

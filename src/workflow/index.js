@@ -2,12 +2,11 @@
  * @fileoverview Workflow service for defining and executing sequential workflows.
  */
 
-const {Worker, isMainThread, parentPort} = require('worker_threads');
+const { Worker } = require('worker_threads');
 const path = require('path');
 const Routes = require('./routes');
 
 class WorkflowService {
-
   constructor(eventEmitter) {
     this.workflows = new Map();
     this.eventEmitter_ = eventEmitter;
@@ -20,7 +19,8 @@ class WorkflowService {
    */
   async defineWorkflow(workflowName, steps) {
     this.workflows.set(workflowName, steps);
-    if (this.eventEmitter_) this.eventEmitter_.emit('workflow:defined', {workflowName, steps});
+    if (this.eventEmitter_)
+      this.eventEmitter_.emit('workflow:defined', { workflowName, steps });
   }
 
   /**
@@ -33,24 +33,46 @@ class WorkflowService {
     const steps = this.workflows.get(workflowName);
     if (!steps) {
       const error = new Error(`Workflow '${workflowName}' not found.`);
-      if (this.eventEmitter_) this.eventEmitter_.emit('workflow:error', {workflowName, error: error.message});
+      if (this.eventEmitter_)
+        this.eventEmitter_.emit('workflow:error', {
+          workflowName,
+          error: error.message,
+        });
       throw error;
     }
 
     let currentData = data;
-    if (this.eventEmitter_) this.eventEmitter_.emit('workflow:start', {workflowName, initialData: data});
+    if (this.eventEmitter_)
+      this.eventEmitter_.emit('workflow:start', {
+        workflowName,
+        initialData: data,
+      });
 
     for (let i = 0; i < steps.length; i++) {
       const stepPath = steps[i];
       const stepName = `Step ${i + 1}: ${path.basename(stepPath)}`;
 
-      statusCallback({status: 'step_start', stepName, stepPath, data: currentData});
-      if (this.eventEmitter_) this.eventEmitter_.emit('workflow:step:start', {workflowName, stepName, stepPath, data: currentData});
+      statusCallback({
+        status: 'step_start',
+        stepName,
+        stepPath,
+        data: currentData,
+      });
+      if (this.eventEmitter_)
+        this.eventEmitter_.emit('workflow:step:start', {
+          workflowName,
+          stepName,
+          stepPath,
+          data: currentData,
+        });
 
       try {
-        const worker = new Worker(path.resolve(__dirname, './provider/workerRunner.js'), {
-          workerData: {stepPath, data: currentData},
-        });
+        const worker = new Worker(
+          path.resolve(__dirname, './provider/workerRunner.js'),
+          {
+            workerData: { stepPath, data: currentData },
+          },
+        );
 
         currentData = await new Promise((resolve, reject) => {
           worker.on('message', (message) => {
@@ -68,17 +90,47 @@ class WorkflowService {
           });
         });
 
-        statusCallback({status: 'step_end', stepName, stepPath, data: currentData});
-        if (this.eventEmitter_) this.eventEmitter_.emit('workflow:step:end', {workflowName, stepName, stepPath, data: currentData});
+        statusCallback({
+          status: 'step_end',
+          stepName,
+          stepPath,
+          data: currentData,
+        });
+        if (this.eventEmitter_)
+          this.eventEmitter_.emit('workflow:step:end', {
+            workflowName,
+            stepName,
+            stepPath,
+            data: currentData,
+          });
       } catch (error) {
-        statusCallback({status: 'step_error', stepName, stepPath, error: error.message});
-        if (this.eventEmitter_) this.eventEmitter_.emit('workflow:step:error', {workflowName, stepName, stepPath, error: error.message});
+        statusCallback({
+          status: 'step_error',
+          stepName,
+          stepPath,
+          error: error.message,
+        });
+        if (this.eventEmitter_)
+          this.eventEmitter_.emit('workflow:step:error', {
+            workflowName,
+            stepName,
+            stepPath,
+            error: error.message,
+          });
         throw error; // Re-throw to stop workflow execution on error
       }
     }
 
-    statusCallback({status: 'workflow_complete', workflowName, finalData: currentData});
-    if (this.eventEmitter_) this.eventEmitter_.emit('workflow:complete', {workflowName, finalData: currentData});
+    statusCallback({
+      status: 'workflow_complete',
+      workflowName,
+      finalData: currentData,
+    });
+    if (this.eventEmitter_)
+      this.eventEmitter_.emit('workflow:complete', {
+        workflowName,
+        finalData: currentData,
+      });
   }
 }
 
@@ -90,9 +142,9 @@ class WorkflowService {
  * @return {!WorkflowService} A WorkflowService instance.
  */
 function createWorkflowService(type, options, eventEmitter) {
-  var workflow = new WorkflowService(eventEmitter);
+  const workflow = new WorkflowService(eventEmitter);
   Routes(options, eventEmitter, workflow);
-  return workflow
+  return workflow;
 }
 
 module.exports = createWorkflowService;

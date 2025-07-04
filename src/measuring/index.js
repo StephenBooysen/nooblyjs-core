@@ -17,9 +17,10 @@ class MeasuringService {
     if (!this.metrics.has(metricName)) {
       this.metrics.set(metricName, []);
     }
-    const measure = {value, timestamp: new Date()};
+    const measure = { value, timestamp: new Date() };
     this.metrics.get(metricName).push(measure);
-    if (this.eventEmitter_) this.eventEmitter_.emit('measuring:add', {metricName, measure});
+    if (this.eventEmitter_)
+      this.eventEmitter_.emit('measuring:add', { metricName, measure });
   }
 
   /**
@@ -34,7 +35,7 @@ class MeasuringService {
     if (!measures) {
       return [];
     }
-    return measures.filter(measure => {
+    return measures.filter((measure) => {
       const timestamp = measure.timestamp.getTime();
       return timestamp >= startDate.getTime() && timestamp <= endDate.getTime();
     });
@@ -48,8 +49,18 @@ class MeasuringService {
    * @returns {Array<{value: number, timestamp: Date}>} - An array of measures.
    */
   list(metricName, startDate, endDate) {
-    const measures = this._filterMeasuresByPeriod(metricName, startDate, endDate);
-    if (this.eventEmitter_) this.eventEmitter_.emit('measuring:list', {metricName, startDate, endDate, measures});
+    const measures = this._filterMeasuresByPeriod(
+      metricName,
+      startDate,
+      endDate,
+    );
+    if (this.eventEmitter_)
+      this.eventEmitter_.emit('measuring:list', {
+        metricName,
+        startDate,
+        endDate,
+        measures,
+      });
     return measures;
   }
 
@@ -61,9 +72,19 @@ class MeasuringService {
    * @returns {number} - The total sum of measures.
    */
   total(metricName, startDate, endDate) {
-    const measures = this._filterMeasuresByPeriod(metricName, startDate, endDate);
+    const measures = this._filterMeasuresByPeriod(
+      metricName,
+      startDate,
+      endDate,
+    );
     const total = measures.reduce((sum, measure) => sum + measure.value, 0);
-    if (this.eventEmitter_) this.eventEmitter_.emit('measuring:total', {metricName, startDate, endDate, total});
+    if (this.eventEmitter_)
+      this.eventEmitter_.emit('measuring:total', {
+        metricName,
+        startDate,
+        endDate,
+        total,
+      });
     return total;
   }
 
@@ -75,14 +96,30 @@ class MeasuringService {
    * @returns {number} - The average of measures.
    */
   average(metricName, startDate, endDate) {
-    const measures = this._filterMeasuresByPeriod(metricName, startDate, endDate);
+    const measures = this._filterMeasuresByPeriod(
+      metricName,
+      startDate,
+      endDate,
+    );
     if (measures.length === 0) {
-      if (this.eventEmitter_) this.eventEmitter_.emit('measuring:average', {metricName, startDate, endDate, average: 0});
+      if (this.eventEmitter_)
+        this.eventEmitter_.emit('measuring:average', {
+          metricName,
+          startDate,
+          endDate,
+          average: 0,
+        });
       return 0;
     }
     const sum = this.total(metricName, startDate, endDate);
     const average = sum / measures.length;
-    if (this.eventEmitter_) this.eventEmitter_.emit('measuring:average', {metricName, startDate, endDate, average});
+    if (this.eventEmitter_)
+      this.eventEmitter_.emit('measuring:average', {
+        metricName,
+        startDate,
+        endDate,
+        average,
+      });
     return average;
   }
 }

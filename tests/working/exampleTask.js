@@ -7,12 +7,12 @@
  * @return {!Promise<string>} A promise that resolves with a completion message.
  */
 async function run() {
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     setTimeout(() => {
       resolve('Example task completed successfully!');
     }, 1000);
   });
 }
 module.exports = {
-  run
+  run,
 };

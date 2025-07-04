@@ -13,7 +13,7 @@ describe('FileLogger', () => {
   const filename = 'test.log';
 
   beforeEach(() => {
-    logger = createLogger('file', {filename}, new EventEmitter());
+    logger = createLogger('file', { filename }, new EventEmitter());
   });
 
   afterEach(() => {
@@ -22,6 +22,13 @@ describe('FileLogger', () => {
 
   it('should log a message to a file', () => {
     const message = 'Test message';
-    logger.log(message).then(expect(fs.appendFileSync).toHaveBeenCalledWith(filename, message + '\n'));
+    logger
+      .log(message)
+      .then(
+        expect(fs.appendFileSync).toHaveBeenCalledWith(
+          filename,
+          message + '\n',
+        ),
+      );
   });
 });

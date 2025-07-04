@@ -40,7 +40,7 @@ describe('S3FilingProvider', () => {
       accessKeyId: mockAccessKeyId,
       secretAccessKey: mockSecretAccessKey,
     });
-    mockS3Instance = s3FilingProvider.s3;
+    
   });
 
   it('should initialize with correct S3 configuration', () => {
@@ -54,9 +54,15 @@ describe('S3FilingProvider', () => {
   });
 
   it('should throw an error if bucketName or region are missing', () => {
-    expect(() => new S3FilingProvider({region: mockRegion})).toThrow('S3FilingProvider requires bucketName and region in options.');
-    expect(() => new S3FilingProvider({bucketName: mockBucketName})).toThrow('S3FilingProvider requires bucketName and region in options.');
-    expect(() => new S3FilingProvider({})).toThrow('S3FilingProvider requires bucketName and region in options.');
+    expect(() => new S3FilingProvider({ region: mockRegion })).toThrow(
+      'S3FilingProvider requires bucketName and region in options.',
+    );
+    expect(() => new S3FilingProvider({ bucketName: mockBucketName })).toThrow(
+      'S3FilingProvider requires bucketName and region in options.',
+    );
+    expect(() => new S3FilingProvider({})).toThrow(
+      'S3FilingProvider requires bucketName and region in options.',
+    );
   });
 
   describe('create', () => {
@@ -78,7 +84,9 @@ describe('S3FilingProvider', () => {
     it('should download a file from S3', async () => {
       const filePath = 'path/to/file.txt';
       const content = 'Hello S3!';
-      mockS3Instance.getObject().promise.mockResolvedValueOnce({Body: Buffer.from(content)});
+      mockS3Instance
+        .getObject()
+        .promise.mockResolvedValueOnce({ Body: Buffer.from(content) });
       const result = await s3FilingProvider.read(filePath);
       expect(mockS3Instance.getObject).toHaveBeenCalledWith({
         Bucket: mockBucketName,
@@ -105,21 +113,28 @@ describe('S3FilingProvider', () => {
     it('should list objects in a specified prefix', async () => {
       const dirPath = 'path/to/dir/';
       const s3Contents = [
-        {Key: 'path/to/dir/file1.txt'},
-        {Key: 'path/to/dir/file2.txt'},
+        { Key: 'path/to/dir/file1.txt' },
+        { Key: 'path/to/dir/file2.txt' },
       ];
-      mockS3Instance.listObjectsV2().promise.mockResolvedValueOnce({Contents: s3Contents});
+      mockS3Instance
+        .listObjectsV2()
+        .promise.mockResolvedValueOnce({ Contents: s3Contents });
       const result = await s3FilingProvider.list(dirPath);
       expect(mockS3Instance.listObjectsV2).toHaveBeenCalledWith({
         Bucket: mockBucketName,
         Prefix: dirPath,
       });
-      expect(result).toEqual(['path/to/dir/file1.txt', 'path/to/dir/file2.txt']);
+      expect(result).toEqual([
+        'path/to/dir/file1.txt',
+        'path/to/dir/file2.txt',
+      ]);
     });
 
     it('should return an empty array if no objects are found', async () => {
       const dirPath = 'empty/dir/';
-      mockS3Instance.listObjectsV2().promise.mockResolvedValueOnce({Contents: []});
+      mockS3Instance
+        .listObjectsV2()
+        .promise.mockResolvedValueOnce({ Contents: [] });
       const result = await s3FilingProvider.list(dirPath);
       expect(result).toEqual([]);
     });

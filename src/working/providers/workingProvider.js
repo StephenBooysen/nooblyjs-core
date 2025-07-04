@@ -2,7 +2,7 @@
  * @fileoverview Provides a singleton worker thread for executing tasks.
  */
 
-const {Worker} = require('worker_threads');
+const { Worker } = require('worker_threads');
 const path = require('path');
 
 /**
@@ -29,18 +29,29 @@ class WorkerProvider {
    */
   async start(scriptPath, completionCallback) {
     if (this.worker_) {
-      if (this.eventEmitter_) this.eventEmitter_.emit('worker:start:error', {scriptPath, error: 'Worker already running.'});
+      if (this.eventEmitter_)
+        this.eventEmitter_.emit('worker:start:error', {
+          scriptPath,
+          error: 'Worker already running.',
+        });
       return;
     }
 
     this.completionCallback_ = completionCallback;
-    this.worker_ = new Worker(path.resolve(__dirname, '../providers/workerScript.js'));
-    if (this.eventEmitter_) this.eventEmitter_.emit('worker:start', {scriptPath});
+    this.worker_ = new Worker(
+      path.resolve(__dirname, '../providers/workerScript.js'),
+    );
+    if (this.eventEmitter_)
+      this.eventEmitter_.emit('worker:start', { scriptPath });
 
     this.worker_.on('message', (message) => {
       if (message.type === 'status') {
         this.status_ = message.status;
-        if (this.eventEmitter_) this.eventEmitter_.emit('worker:status', {status: this.status_, data: message.data});
+        if (this.eventEmitter_)
+          this.eventEmitter_.emit('worker:status', {
+            status: this.status_,
+            data: message.data,
+          });
         if (this.status_ === 'completed' || this.status_ === 'error') {
           if (this.completionCallback_) {
             this.completionCallback_(this.status_, message.data);
@@ -55,7 +66,8 @@ class WorkerProvider {
     this.worker_.on('error', (err) => {
       this.status_ = 'error';
       console.error('Worker error:', err);
-      if (this.eventEmitter_) this.eventEmitter_.emit('worker:error', {error: err.message});
+      if (this.eventEmitter_)
+        this.eventEmitter_.emit('worker:error', { error: err.message });
       if (this.completionCallback_) {
         this.completionCallback_(this.status_, err.message);
       }
@@ -66,16 +78,20 @@ class WorkerProvider {
       if (code !== 0 && this.status_ !== 'error') {
         this.status_ = 'error';
         console.error(`Worker stopped with exit code ${code}`);
-        if (this.eventEmitter_) this.eventEmitter_.emit('worker:exit:error', {code});
+        if (this.eventEmitter_)
+          this.eventEmitter_.emit('worker:exit:error', { code });
         if (this.completionCallback_) {
-          this.completionCallback_(this.status_, `Worker exited with code ${code}`);
+          this.completionCallback_(
+            this.status_,
+            `Worker exited with code ${code}`,
+          );
         }
       }
-      if (this.eventEmitter_) this.eventEmitter_.emit('worker:exit', {code});
+      if (this.eventEmitter_) this.eventEmitter_.emit('worker:exit', { code });
       this.worker_ = null;
     });
 
-    this.worker_.postMessage({type: 'start', scriptPath: scriptPath});
+    this.worker_.postMessage({ type: 'start', scriptPath: scriptPath });
   }
 
   /**

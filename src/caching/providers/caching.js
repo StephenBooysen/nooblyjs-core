@@ -22,7 +22,8 @@ class Cache {
    */
   async put(key, value) {
     this.cache_[key] = value;
-    if (this.eventEmitter_) this.eventEmitter_.emit('cache:put', {key, value});
+    if (this.eventEmitter_)
+      this.eventEmitter_.emit('cache:put', { key, value });
   }
 
   /**
@@ -32,7 +33,8 @@ class Cache {
    */
   async get(key) {
     const value = this.cache_[key];
-    if (this.eventEmitter_) this.eventEmitter_.emit('cache:get', {key, value});
+    if (this.eventEmitter_)
+      this.eventEmitter_.emit('cache:get', { key, value });
     return value;
   }
 
@@ -42,7 +44,7 @@ class Cache {
    */
   async delete(key) {
     delete this.cache_[key];
-    if (this.eventEmitter_) this.eventEmitter_.emit('cache:delete', {key});
+    if (this.eventEmitter_) this.eventEmitter_.emit('cache:delete', { key });
   }
 }
 

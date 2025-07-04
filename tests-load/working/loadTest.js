@@ -9,13 +9,16 @@ async function runWorkingLoadTest(iterations) {
 
   // Create a dummy mockWorkerScript.js
   const fs = require('fs').promises;
-  await fs.writeFile(mockScriptPath, 'parentPort.postMessage({type: \'status\', status: \'completed\'});');
+  await fs.writeFile(
+    mockScriptPath,
+    "parentPort.postMessage({type: 'status', status: 'completed'});",
+  );
 
   const startTime = Date.now();
   console.log(`Starting Working Load Test for ${iterations} iterations...`);
 
   let completedTasks = 0;
-  const completionPromise = new Promise(resolve => {
+  const completionPromise = new Promise((resolve) => {
     eventEmitter.on('worker:status', (status) => {
       if (status.status === 'completed') {
         completedTasks++;
@@ -40,8 +43,10 @@ async function runWorkingLoadTest(iterations) {
 
   const endTime = Date.now();
   const duration = endTime - startTime;
-  console.log(`Working Load Test Completed: ${iterations} operations in ${duration} ms.`);
-  return {service: 'working', iterations, duration};
+  console.log(
+    `Working Load Test Completed: ${iterations} operations in ${duration} ms.`,
+  );
+  return { service: 'working', iterations, duration };
 }
 
 module.exports = runWorkingLoadTest;

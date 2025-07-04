@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Source: dataserve/providers/dataserveInMemory.js</title>
+    <title>JSDoc: Source: searching/provider/searching.js</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,7 +17,7 @@
 
 <div id="main">
 
-    <h1 class="page-title">Source: dataserve/providers/dataserveInMemory.js</h1>
+    <h1 class="page-title">Source: searching/provider/searching.js</h1>
 
     
 
@@ -27,66 +27,65 @@
     <section>
         <article>
             <pre class="prettyprint source linenums"><code>/**
- * @fileoverview In-memory DataRing provider.
+ * @fileoverview Search service for loading and searching JSON objects.
  */
 
-const { v4: uuidv4 } = require('uuid');
-
-class InMemoryDataServeProvider {
+class SearchService {
   constructor(options, eventEmitter) {
-    this.containers = new Map(); // Map&lt;containerName, Map&lt;objectKey, object>>
+    this.data = new Map(); // Stores objects with their keys
     this.eventEmitter_ = eventEmitter;
   }
 
-  async createContainer(containerName) {
-    if (this.containers.has(containerName)) {
-      throw new Error(`Container '${containerName}' already exists.`);
-    }
-    this.containers.set(containerName, new Map());
-    if (this.eventEmitter_)
-      this.eventEmitter_.emit('dataserve:createContainer', { containerName });
-  }
-
-  async add(containerName, jsonObject) {
-    if (!this.containers.has(containerName)) {
-      throw new Error(`Container '${containerName}' does not exist.`);
-    }
-    const objectKey = uuidv4();
-    this.containers.get(containerName).set(objectKey, jsonObject);
-    if (this.eventEmitter_)
-      this.eventEmitter_.emit('dataserve:add', {
-        containerName,
-        objectKey,
-        jsonObject,
-      });
-    return objectKey;
-  }
-
-  async remove(containerName, objectKey) {
-    if (!this.containers.has(containerName)) {
+  /**
+   * Adds a JSON object to the search service with a unique key.
+   * @param {object} jsonObject - The JSON object to add.
+   * @returns {boolean} - True if the object was added, false if the key already exists.
+   */
+  async add(key, jsonObject) {
+    if (this.data.has(key)) {
+      if (this.eventEmitter_)
+        this.eventEmitter_.emit('search:add:error', {
+          sonObject: jsonObject,
+          error: 'Key already exists.',
+        });
       return false;
     }
-    const removed = this.containers.get(containerName).delete(objectKey);
+    this.data.set(key, jsonObject);
+    if (this.eventEmitter_)
+      this.eventEmitter_.emit('search:add', { jsonObject: jsonObject });
+    return true;
+  }
+
+  /**
+   * Removes a JSON object from the search service by its key.
+   * @param {string} key - The key of the JSON object to remove.
+   * @returns {boolean} - True if the object was removed, false if the key was not found.
+   */
+  async remove(key) {
+    const removed = this.data.delete(key);
     if (removed &amp;&amp; this.eventEmitter_)
-      this.eventEmitter_.emit('dataserve:remove', { containerName, objectKey });
+      this.eventEmitter_.emit('search:remove', { key });
     return removed;
   }
 
-  async find(containerName, searchTerm) {
-    if (!this.containers.has(containerName)) {
-      if (this.eventEmitter_)
-        this.eventEmitter_.emit('dataserve:find', {
-          containerName,
-          searchTerm,
-          results: [],
-        });
-      return [];
-    }
+  /**
+   * Searches for a term across all string values within the stored JSON objects.
+   * The search is case-insensitive.
+   * @param {string} searchTerm - The term to search for.
+   * @returns {Array&lt;object>} - An array of JSON objects that contain the search term.
+   */
+  async search(searchTerm) {
     const results = [];
+    if (!searchTerm) {
+      if (this.eventEmitter_)
+        this.eventEmitter_.emit('search:search', { searchTerm, results });
+      return results;
+    }
     const lowerCaseSearchTerm = searchTerm.toLowerCase();
 
-    for (const [key, obj] of this.containers.get(containerName).entries()) {
+    for (const [key, obj] of this.data.entries()) {
       let found = false;
+
       const searchInObject = (currentObj) => {
         for (const prop in currentObj) {
           if (Object.prototype.hasOwnProperty.call(currentObj, prop)) {
@@ -94,11 +93,11 @@ class InMemoryDataServeProvider {
             if (typeof value === 'string') {
               if (value.toLowerCase().includes(lowerCaseSearchTerm)) {
                 found = true;
-                return;
+                return; // Found in this object, no need to search further
               }
             } else if (typeof value === 'object' &amp;&amp; value !== null) {
-              searchInObject(value);
-              if (found) return;
+              searchInObject(value); // Recurse for nested objects
+              if (found) return; // If found in nested object, stop
             }
           }
         }
@@ -110,16 +109,12 @@ class InMemoryDataServeProvider {
       }
     }
     if (this.eventEmitter_)
-      this.eventEmitter_.emit('dataserve:find', {
-        containerName,
-        searchTerm,
-        results,
-      });
+      this.eventEmitter_.emit('search:search', { searchTerm, results });
     return results;
   }
 }
 
-module.exports = InMemoryDataServeProvider;
+module.exports = SearchService;
 </code></pre>
         </article>
     </section>

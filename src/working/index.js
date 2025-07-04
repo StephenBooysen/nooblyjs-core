@@ -17,11 +17,11 @@ let instance = null;
  * @return {Object} A worker instance.
  */
 function getWorkerInstance(type, options, eventEmitter) {
-  if (!instance) { 
-    worker = new WorkerProvider(options, eventEmitter);
-    Routes(options, eventEmitter, worker);
+  if (!instance) {
+    instance = new WorkerProvider(options, eventEmitter);
+    Routes(options, eventEmitter, instance);
   }
-  return worker;
+  return instance;
 }
 
 module.exports = getWorkerInstance;

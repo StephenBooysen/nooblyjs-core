@@ -5,9 +5,6 @@
  * @param {object} options.dataserve - The dataserve provider.
  */
 module.exports = (options, eventEmitter, dataserve) => {
-  eventEmitter.emit('instance', {
-    options: options
-  });
   if (options['express-app'] && dataserve) {
     const app = options['express-app'];
     app.post('/api/dataserve/put/:key', (req, res) => {
@@ -24,8 +21,8 @@ module.exports = (options, eventEmitter, dataserve) => {
       dataserve.delete(key).then(() => res.status(200).send('OK')).catch(err => res.status(500).send(err.message));
     });
     app.get('/api/dataserve/status', (req, res) => {
-      eventEmitter.emit("api-dataserve-status", "dataserve api running");
-      res.status(200).json("running");
+      eventEmitter.emit('api-dataserve-status', 'dataserve api running');
+      res.status(200).json('running');
     });
   }
 };

@@ -17,21 +17,32 @@ describe('InMemoryQueue', () => {
 
   it('should enqueue and dequeue items', () => {
     queue.enqueue('item1');
-    expect(mockEventEmitter.emit).toHaveBeenCalledWith('queue:enqueue', {item: 'item1'});
+    expect(mockEventEmitter.emit).toHaveBeenCalledWith('queue:enqueue', {
+      item: 'item1',
+    });
     queue.enqueue('item2');
-    expect(mockEventEmitter.emit).toHaveBeenCalledWith('queue:enqueue', {item: 'item2'});
+    expect(mockEventEmitter.emit).toHaveBeenCalledWith('queue:enqueue', {
+      item: 'item2',
+    });
     mockEventEmitter.emit.mockClear(); // Clear previous emits
     expect(queue.dequeue()).toBe('item1');
-    expect(mockEventEmitter.emit).toHaveBeenCalledWith('queue:dequeue', {item: 'item1'});
+    expect(mockEventEmitter.emit).toHaveBeenCalledWith('queue:dequeue', {
+      item: 'item1',
+    });
     expect(queue.dequeue()).toBe('item2');
-    expect(mockEventEmitter.emit).toHaveBeenCalledWith('queue:dequeue', {item: 'item2'});
+    expect(mockEventEmitter.emit).toHaveBeenCalledWith('queue:dequeue', {
+      item: 'item2',
+    });
     expect(queue.size()).toBe(0);
   });
 
   it('should return undefined when dequeuing from an empty queue', () => {
     mockEventEmitter.emit.mockClear(); // Clear previous emits
     expect(queue.dequeue()).toBeUndefined();
-    expect(mockEventEmitter.emit).not.toHaveBeenCalledWith('queue:dequeue', expect.any(Object));
+    expect(mockEventEmitter.emit).not.toHaveBeenCalledWith(
+      'queue:dequeue',
+      expect.any(Object),
+    );
   });
 
   it('should return the correct size', () => {

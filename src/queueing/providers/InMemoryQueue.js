@@ -21,7 +21,7 @@ class InMemoryQueue {
    */
   async enqueue(item) {
     this.queue_.push(item);
-    if (this.eventEmitter_) this.eventEmitter_.emit('queue:enqueue', {item});
+    if (this.eventEmitter_) this.eventEmitter_.emit('queue:enqueue', { item });
   }
 
   /**
@@ -30,7 +30,8 @@ class InMemoryQueue {
    */
   async dequeue() {
     const item = this.queue_.shift();
-    if (item && this.eventEmitter_) this.eventEmitter_.emit('queue:dequeue', {item});
+    if (item && this.eventEmitter_)
+      this.eventEmitter_.emit('queue:dequeue', { item });
     return item;
   }
 

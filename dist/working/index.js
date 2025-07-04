@@ -18,9 +18,9 @@ let instance = null;
  */
 function getWorkerInstance(type, options, eventEmitter) {
   if (!instance) {
-    worker = new WorkerProvider(options, eventEmitter);
-    Routes(options, eventEmitter, worker);
+    instance = new WorkerProvider(options, eventEmitter);
+    Routes(options, eventEmitter, instance);
   }
-  return worker;
+  return instance;
 }
 module.exports = getWorkerInstance;

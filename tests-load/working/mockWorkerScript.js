@@ -1,1 +1,1 @@
-parentPort.postMessage({type: 'status', status: 'completed'});
+parentPort.postMessage({ type: 'status', status: 'completed' });

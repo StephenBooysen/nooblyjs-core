@@ -3,7 +3,6 @@
  */
 
 const fs = require('fs').promises;
-const path = require('path');
 class LocalFilingProvider {
   constructor(options, eventEmitter) {
     this.eventEmitter_ = eventEmitter;

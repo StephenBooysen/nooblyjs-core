@@ -13,15 +13,14 @@ const Routes = require('./routes');
  * @return {!ConsoleLogger|!FileLogger} A logger instance.
  */
 function createLogger(type, options, eventEmitter) {
+  let logger;
   if (type === 'file') {
-    var logger = new FileLogger(options, eventEmitter);
-    Routes(options, eventEmitter, logger);
-    return logger;
+    logger = new FileLogger(options, eventEmitter);
   } else {
-    var logger = new ConsoleLogger(options, eventEmitter);
-    Routes(options, eventEmitter, logger);
-    return logger;
+    logger = new ConsoleLogger(options, eventEmitter);
   }
+  Routes(options, eventEmitter, logger);
+  return logger;
 }
 
 module.exports = createLogger;

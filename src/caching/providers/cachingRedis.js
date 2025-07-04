@@ -26,7 +26,8 @@ class CacheRedis {
    */
   async put(key, value) {
     await this.client_.set(key, value);
-    if (this.eventEmitter_) this.eventEmitter_.emit('cache:put', {key, value});
+    if (this.eventEmitter_)
+      this.eventEmitter_.emit('cache:put', { key, value });
   }
 
   /**
@@ -36,7 +37,8 @@ class CacheRedis {
    */
   async get(key) {
     const value = await this.client_.get(key);
-    if (this.eventEmitter_) this.eventEmitter_.emit('cache:get', {key, value});
+    if (this.eventEmitter_)
+      this.eventEmitter_.emit('cache:get', { key, value });
     return value;
   }
 
@@ -47,7 +49,7 @@ class CacheRedis {
    */
   async delete(key) {
     await this.client_.del(key);
-    if (this.eventEmitter_) this.eventEmitter_.emit('cache:delete', {key});
+    if (this.eventEmitter_) this.eventEmitter_.emit('cache:delete', { key });
   }
 }
 

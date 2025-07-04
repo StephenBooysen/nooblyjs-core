@@ -1,4 +1,3 @@
-
 const getSchedulerInstance = require('../../src/scheduling');
 const EventEmitter = require('events');
 const path = require('path');
@@ -16,7 +15,7 @@ async function runSchedulingLoadTest(iterations) {
   console.log(`Starting Scheduling Load Test for ${iterations} iterations...`);
 
   let completedTasks = 0;
-  const completionPromise = new Promise(resolve => {
+  const completionPromise = new Promise((resolve) => {
     eventEmitter.on('scheduler:taskExecuted', () => {
       completedTasks++;
       if (completedTasks >= iterations) {
@@ -36,8 +35,10 @@ async function runSchedulingLoadTest(iterations) {
 
   const endTime = Date.now();
   const duration = endTime - startTime;
-  console.log(`Scheduling Load Test Completed: ${iterations} operations in ${duration} ms.`);
-  return {service: 'scheduling', iterations, duration};
+  console.log(
+    `Scheduling Load Test Completed: ${iterations} operations in ${duration} ms.`,
+  );
+  return { service: 'scheduling', iterations, duration };
 }
 
 module.exports = runSchedulingLoadTest;

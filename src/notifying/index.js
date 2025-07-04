@@ -15,7 +15,8 @@ class NotificationService {
   createTopic(topicName) {
     if (!this.topics.has(topicName)) {
       this.topics.set(topicName, new Set());
-      if (this.eventEmitter_) this.eventEmitter_.emit('notification:createTopic', {topicName});
+      if (this.eventEmitter_)
+        this.eventEmitter_.emit('notification:createTopic', { topicName });
     }
   }
 
@@ -29,7 +30,8 @@ class NotificationService {
       this.createTopic(topicName);
     }
     this.topics.get(topicName).add(callback);
-    if (this.eventEmitter_) this.eventEmitter_.emit('notification:subscribe', {topicName});
+    if (this.eventEmitter_)
+      this.eventEmitter_.emit('notification:subscribe', { topicName });
   }
 
   /**
@@ -41,7 +43,8 @@ class NotificationService {
   unsubscribe(topicName, callback) {
     if (this.topics.has(topicName)) {
       const unsubscribed = this.topics.get(topicName).delete(callback);
-      if (unsubscribed && this.eventEmitter_) this.eventEmitter_.emit('notification:unsubscribe', {topicName});
+      if (unsubscribed && this.eventEmitter_)
+        this.eventEmitter_.emit('notification:unsubscribe', { topicName });
       return unsubscribed;
     }
     return false;
@@ -54,13 +57,25 @@ class NotificationService {
    */
   notify(topicName, message) {
     if (this.topics.has(topicName)) {
-      this.topics.get(topicName).forEach(callback => {
+      this.topics.get(topicName).forEach((callback) => {
         try {
           callback(message);
-          if (this.eventEmitter_) this.eventEmitter_.emit('notification:notify', {topicName, message});
+          if (this.eventEmitter_)
+            this.eventEmitter_.emit('notification:notify', {
+              topicName,
+              message,
+            });
         } catch (error) {
-          console.error(`Error in notification callback for topic ${topicName}:`, error);
-          if (this.eventEmitter_) this.eventEmitter_.emit('notification:notify:error', {topicName, message, error: error.message});
+          console.error(
+            `Error in notification callback for topic ${topicName}:`,
+            error,
+          );
+          if (this.eventEmitter_)
+            this.eventEmitter_.emit('notification:notify:error', {
+              topicName,
+              message,
+              error: error.message,
+            });
         }
       });
     }

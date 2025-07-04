@@ -1,4 +1,3 @@
-
 const runCachingLoadTest = require('./caching/loadTest');
 const runDataserveLoadTest = require('./dataserve/loadTest');
 const runFilingLoadTest = require('./filing/loadTest');
@@ -30,7 +29,9 @@ async function runAllLoadTests() {
   // results.push(await runFilingLoadTest(iterations, 's3', {bucketName: 'your-s3-bucket', region: 'us-east-1'})); // Uncomment if S3 is set up
 
   results.push(await runLoggingLoadTest(iterations, 'console'));
-  results.push(await runLoggingLoadTest(iterations, 'file', {filename: './test.log'}));
+  results.push(
+    await runLoggingLoadTest(iterations, 'file', { filename: './test.log' }),
+  );
 
   results.push(await runMeasuringLoadTest(iterations));
   results.push(await runNotifyingLoadTest(iterations));
@@ -41,12 +42,14 @@ async function runAllLoadTests() {
   results.push(await runWorkingLoadTest(iterations));
 
   console.log('\n--- Load Test Summary ---');
-  results.forEach(result => {
-    console.log(`Service: ${result.service} (Type: ${result.type || 'N/A'}): ${result.iterations} operations in ${result.duration} ms`);
+  results.forEach((result) => {
+    console.log(
+      `Service: ${result.service} (Type: ${result.type || 'N/A'}): ${result.iterations} operations in ${result.duration} ms`,
+    );
   });
 }
 
-runAllLoadTests().catch(error => {
+runAllLoadTests().catch((error) => {
   console.error('Load test failed:', error);
   process.exit(1);
 });

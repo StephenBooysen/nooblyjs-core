@@ -7,9 +7,14 @@ describe('WorkflowService', () => {
 
   beforeAll(() => {
     // Mock the error step to throw an error
-    jest.mock(errorStepPath, () => jest.fn(() => {
-      throw new Error('Simulated step error');
-    }), {virtual: true});
+    jest.mock(
+      errorStepPath,
+      () =>
+        jest.fn(() => {
+          throw new Error('Simulated step error');
+        }),
+      { virtual: true },
+    );
   });
   let workflowService;
   let mockStatusCallback;
@@ -30,19 +35,29 @@ describe('WorkflowService', () => {
     const steps = [step1Path, step2Path];
     workflowService.defineWorkflow(workflowName, steps);
     expect(workflowService.workflows.get(workflowName)).toEqual(steps);
-    expect(mockEventEmitter.emit).toHaveBeenCalledWith('workflow:defined', {workflowName, steps});
+    expect(mockEventEmitter.emit).toHaveBeenCalledWith('workflow:defined', {
+      workflowName,
+      steps,
+    });
   });
 
   it('should run a defined workflow and pass data between steps', async () => {
     const workflowName = 'testWorkflow';
-    const initialData = {start: true};
+    const initialData = { start: true };
     const steps = [step1Path, step2Path];
     workflowService.defineWorkflow(workflowName, steps);
     mockEventEmitter.emit.mockClear(); // Clear emits from defineWorkflow
 
-    await workflowService.runWorkflow(workflowName, initialData, mockStatusCallback);
+    await workflowService.runWorkflow(
+      workflowName,
+      initialData,
+      mockStatusCallback,
+    );
 
-    expect(mockEventEmitter.emit).toHaveBeenCalledWith('workflow:start', {workflowName, initialData});
+    expect(mockEventEmitter.emit).toHaveBeenCalledWith('workflow:start', {
+      workflowName,
+      initialData,
+    });
 
     // Expect step_start and step_end for each step
     expect(mockStatusCallback).toHaveBeenCalledWith({
@@ -51,39 +66,74 @@ describe('WorkflowService', () => {
       stepPath: step1Path,
       data: initialData,
     });
-    expect(mockEventEmitter.emit).toHaveBeenCalledWith('workflow:step:start', {workflowName, stepName: `Step 1: ${path.basename(step1Path)}`, stepPath: step1Path, data: initialData});
+    expect(mockEventEmitter.emit).toHaveBeenCalledWith('workflow:step:start', {
+      workflowName,
+      stepName: `Step 1: ${path.basename(step1Path)}`,
+      stepPath: step1Path,
+      data: initialData,
+    });
 
     expect(mockStatusCallback).toHaveBeenCalledWith({
       status: 'step_end',
       stepName: `Step 1: ${path.basename(step1Path)}`,
       stepPath: step1Path,
-      data: expect.objectContaining({step1Processed: true}),
+      data: expect.objectContaining({ step1Processed: true }),
     });
-    expect(mockEventEmitter.emit).toHaveBeenCalledWith('workflow:step:end', {workflowName, stepName: `Step 1: ${path.basename(step1Path)}`, stepPath: step1Path, data: expect.objectContaining({step1Processed: true})});
+    expect(mockEventEmitter.emit).toHaveBeenCalledWith('workflow:step:end', {
+      workflowName,
+      stepName: `Step 1: ${path.basename(step1Path)}`,
+      stepPath: step1Path,
+      data: expect.objectContaining({ step1Processed: true }),
+    });
 
     expect(mockStatusCallback).toHaveBeenCalledWith({
       status: 'step_start',
       stepName: `Step 2: ${path.basename(step2Path)}`,
       stepPath: step2Path,
-      data: expect.objectContaining({step1Processed: true}),
+      data: expect.objectContaining({ step1Processed: true }),
     });
-    expect(mockEventEmitter.emit).toHaveBeenCalledWith('workflow:step:start', {workflowName, stepName: `Step 2: ${path.basename(step2Path)}`, stepPath: step2Path, data: expect.objectContaining({step1Processed: true})});
+    expect(mockEventEmitter.emit).toHaveBeenCalledWith('workflow:step:start', {
+      workflowName,
+      stepName: `Step 2: ${path.basename(step2Path)}`,
+      stepPath: step2Path,
+      data: expect.objectContaining({ step1Processed: true }),
+    });
 
     expect(mockStatusCallback).toHaveBeenCalledWith({
       status: 'step_end',
       stepName: `Step 2: ${path.basename(step2Path)}`,
       stepPath: step2Path,
-      data: expect.objectContaining({step1Processed: true, step2Processed: true}),
+      data: expect.objectContaining({
+        step1Processed: true,
+        step2Processed: true,
+      }),
     });
-    expect(mockEventEmitter.emit).toHaveBeenCalledWith('workflow:step:end', {workflowName, stepName: `Step 2: ${path.basename(step2Path)}`, stepPath: step2Path, data: expect.objectContaining({step1Processed: true, step2Processed: true})});
+    expect(mockEventEmitter.emit).toHaveBeenCalledWith('workflow:step:end', {
+      workflowName,
+      stepName: `Step 2: ${path.basename(step2Path)}`,
+      stepPath: step2Path,
+      data: expect.objectContaining({
+        step1Processed: true,
+        step2Processed: true,
+      }),
+    });
 
     // Expect workflow_complete
     expect(mockStatusCallback).toHaveBeenCalledWith({
       status: 'workflow_complete',
       workflowName,
-      finalData: expect.objectContaining({step1Processed: true, step2Processed: true}),
+      finalData: expect.objectContaining({
+        step1Processed: true,
+        step2Processed: true,
+      }),
     });
-    expect(mockEventEmitter.emit).toHaveBeenCalledWith('workflow:complete', {workflowName, finalData: expect.objectContaining({step1Processed: true, step2Processed: true})});
+    expect(mockEventEmitter.emit).toHaveBeenCalledWith('workflow:complete', {
+      workflowName,
+      finalData: expect.objectContaining({
+        step1Processed: true,
+        step2Processed: true,
+      }),
+    });
 
     // Ensure callbacks were called in the correct order and number of times
     expect(mockStatusCallback).toHaveBeenCalledTimes(5); // 2 start, 2 end, 1 complete
@@ -93,11 +143,19 @@ describe('WorkflowService', () => {
     const workflowName = 'nonExistentWorkflow';
     const initialData = {};
 
-    await expect(workflowService.runWorkflow(workflowName, initialData, mockStatusCallback))
-      .rejects.toThrow(`Workflow '${workflowName}' not found.`);
+    await expect(
+      workflowService.runWorkflow(
+        workflowName,
+        initialData,
+        mockStatusCallback,
+      ),
+    ).rejects.toThrow(`Workflow '${workflowName}' not found.`);
 
     expect(mockStatusCallback).not.toHaveBeenCalled();
-    expect(mockEventEmitter.emit).toHaveBeenCalledWith('workflow:error', {workflowName, error: `Workflow '${workflowName}' not found.`});
+    expect(mockEventEmitter.emit).toHaveBeenCalledWith('workflow:error', {
+      workflowName,
+      error: `Workflow '${workflowName}' not found.`,
+    });
   });
 
   it('should handle errors within a workflow step', async () => {
@@ -105,10 +163,15 @@ describe('WorkflowService', () => {
     const steps = [step1Path, errorStepPath];
     workflowService.defineWorkflow(workflowName, steps);
 
-    const initialData = {test: 'error'};
+    const initialData = { test: 'error' };
 
-    await expect(workflowService.runWorkflow(workflowName, initialData, mockStatusCallback))
-      .rejects.toThrow('Simulated step error');
+    await expect(
+      workflowService.runWorkflow(
+        workflowName,
+        initialData,
+        mockStatusCallback,
+      ),
+    ).rejects.toThrow('Simulated step error');
 
     expect(mockStatusCallback).toHaveBeenCalledWith({
       status: 'step_start',
@@ -116,23 +179,38 @@ describe('WorkflowService', () => {
       stepPath: step1Path,
       data: initialData,
     });
-    expect(mockEventEmitter.emit).toHaveBeenCalledWith('workflow:step:start', {workflowName, stepName: `Step 1: ${path.basename(step1Path)}`, stepPath: step1Path, data: initialData});
+    expect(mockEventEmitter.emit).toHaveBeenCalledWith('workflow:step:start', {
+      workflowName,
+      stepName: `Step 1: ${path.basename(step1Path)}`,
+      stepPath: step1Path,
+      data: initialData,
+    });
 
     expect(mockStatusCallback).toHaveBeenCalledWith({
       status: 'step_end',
       stepName: `Step 1: ${path.basename(step1Path)}`,
       stepPath: step1Path,
-      data: expect.objectContaining({step1Processed: true}),
+      data: expect.objectContaining({ step1Processed: true }),
     });
-    expect(mockEventEmitter.emit).toHaveBeenCalledWith('workflow:step:end', {workflowName, stepName: `Step 1: ${path.basename(step1Path)}`, stepPath: step1Path, data: expect.objectContaining({step1Processed: true})});
+    expect(mockEventEmitter.emit).toHaveBeenCalledWith('workflow:step:end', {
+      workflowName,
+      stepName: `Step 1: ${path.basename(step1Path)}`,
+      stepPath: step1Path,
+      data: expect.objectContaining({ step1Processed: true }),
+    });
 
     expect(mockStatusCallback).toHaveBeenCalledWith({
       status: 'step_start',
       stepName: `Step 2: ${path.basename(errorStepPath)}`,
       stepPath: errorStepPath,
-      data: expect.objectContaining({step1Processed: true}),
+      data: expect.objectContaining({ step1Processed: true }),
     });
-    expect(mockEventEmitter.emit).toHaveBeenCalledWith('workflow:step:start', {workflowName, stepName: `Step 2: ${path.basename(errorStepPath)}`, stepPath: errorStepPath, data: expect.objectContaining({step1Processed: true})});
+    expect(mockEventEmitter.emit).toHaveBeenCalledWith('workflow:step:start', {
+      workflowName,
+      stepName: `Step 2: ${path.basename(errorStepPath)}`,
+      stepPath: errorStepPath,
+      data: expect.objectContaining({ step1Processed: true }),
+    });
 
     expect(mockStatusCallback).toHaveBeenCalledWith({
       status: 'step_error',
@@ -140,10 +218,20 @@ describe('WorkflowService', () => {
       stepPath: errorStepPath,
       error: 'Simulated step error',
     });
-    expect(mockEventEmitter.emit).toHaveBeenCalledWith('workflow:step:error', {workflowName, stepName: `Step 2: ${path.basename(errorStepPath)}`, stepPath: errorStepPath, error: 'Simulated step error'});
+    expect(mockEventEmitter.emit).toHaveBeenCalledWith('workflow:step:error', {
+      workflowName,
+      stepName: `Step 2: ${path.basename(errorStepPath)}`,
+      stepPath: errorStepPath,
+      error: 'Simulated step error',
+    });
 
     // Workflow complete should not be called on error
-    expect(mockStatusCallback).not.toHaveBeenCalledWith(expect.objectContaining({status: 'workflow_complete'}));
-    expect(mockEventEmitter.emit).not.toHaveBeenCalledWith('workflow:complete', expect.any(Object));
+    expect(mockStatusCallback).not.toHaveBeenCalledWith(
+      expect.objectContaining({ status: 'workflow_complete' }),
+    );
+    expect(mockEventEmitter.emit).not.toHaveBeenCalledWith(
+      'workflow:complete',
+      expect.any(Object),
+    );
   });
 });

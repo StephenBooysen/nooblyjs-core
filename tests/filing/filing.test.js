@@ -3,8 +3,7 @@
  */
 
 const createFilingService = require('../../src/filing');
-const LocalFilingProvider = require('../../src/filing/providers/filingLocal');
-const FtpFilingProvider = require('../../src/filing/providers/filingFtp');
+
 const AWS = require('aws-sdk');
 const fs = require('fs').promises;
 const path = require('path');
@@ -38,7 +37,9 @@ jest.mock('ftp', () => {
         callback(null, mockStream);
       }),
       delete: jest.fn((filePath, callback) => callback(null)),
-      list: jest.fn((dirPath, callback) => callback(null, [{name: 'file1.txt'}, {name: 'file2.txt'}])),
+      list: jest.fn((dirPath, callback) =>
+        callback(null, [{ name: 'file1.txt' }, { name: 'file2.txt' }]),
+      ),
     };
     return mockClient;
   });
@@ -68,11 +69,11 @@ describe('FilingService', () => {
     const testFilePath = path.join(testDir, 'test.txt');
 
     beforeAll(async () => {
-      await fs.mkdir(testDir, {recursive: true});
+      await fs.mkdir(testDir, { recursive: true });
     });
 
     afterAll(async () => {
-      await fs.rm(testDir, {recursive: true, force: true});
+      await fs.rm(testDir, { recursive: true, force: true });
     });
 
     let localFilingService;
@@ -134,7 +135,9 @@ describe('FilingService', () => {
     beforeEach(() => {
       // Clear mock and re-initialize for each test
       require('ftp').mockClear();
-      ftpFilingService = createFilingService('ftp', {connectionString: 'ftp://localhost'});
+      ftpFilingService = createFilingService('ftp', {
+        connectionString: 'ftp://localhost',
+      });
       mockFtpClient = require('ftp').mock.results[0].value;
     });
 
@@ -148,26 +151,39 @@ describe('FilingService', () => {
       const filePath = '/remote/test.txt';
       const content = 'Hello FTP!';
       await ftpFilingService.create(filePath, content);
-      expect(mockFtpClient.put).toHaveBeenCalledWith(Buffer.from(content), filePath, expect.any(Function));
+      expect(mockFtpClient.put).toHaveBeenCalledWith(
+        Buffer.from(content),
+        filePath,
+        expect.any(Function),
+      );
     });
 
     it('should read a file from FTP server', async () => {
       const filePath = '/remote/test.txt';
       const content = await ftpFilingService.read(filePath);
-      expect(mockFtpClient.get).toHaveBeenCalledWith(filePath, expect.any(Function));
+      expect(mockFtpClient.get).toHaveBeenCalledWith(
+        filePath,
+        expect.any(Function),
+      );
       expect(content).toBe('mock file content');
     });
 
     it('should delete a file from FTP server', async () => {
       const filePath = '/remote/test.txt';
       await ftpFilingService.delete(filePath);
-      expect(mockFtpClient.delete).toHaveBeenCalledWith(filePath, expect.any(Function));
+      expect(mockFtpClient.delete).toHaveBeenCalledWith(
+        filePath,
+        expect.any(Function),
+      );
     });
 
     it('should list files on FTP server', async () => {
       const dirPath = '/remote/';
       const files = await ftpFilingService.list(dirPath);
-      expect(mockFtpClient.list).toHaveBeenCalledWith(dirPath, expect.any(Function));
+      expect(mockFtpClient.list).toHaveBeenCalledWith(
+        dirPath,
+        expect.any(Function),
+      );
       expect(files).toEqual(['file1.txt', 'file2.txt']);
     });
 
@@ -175,7 +191,11 @@ describe('FilingService', () => {
       const filePath = '/remote/test.txt';
       const newContent = 'Updated FTP content';
       await ftpFilingService.update(filePath, newContent);
-      expect(mockFtpClient.put).toHaveBeenCalledWith(Buffer.from(newContent), filePath, expect.any(Function));
+      expect(mockFtpClient.put).toHaveBeenCalledWith(
+        Buffer.from(newContent),
+        filePath,
+        expect.any(Function),
+      );
     });
   });
 
@@ -191,7 +211,7 @@ describe('FilingService', () => {
 
     beforeEach(() => {
       jest.clearAllMocks();
-      s3FilingService = createFilingService('s3', {
+      s3FilingService = require('../../src/filing')('s3', {
         bucketName: mockBucketName,
         region: mockRegion,
         accessKeyId: mockAccessKeyId,
@@ -226,7 +246,9 @@ describe('FilingService', () => {
     it('should download a file from S3', async () => {
       const filePath = 'path/to/file.txt';
       const content = 'Hello S3!';
-      mockS3Instance.getObject().promise.mockResolvedValueOnce({Body: Buffer.from(content)});
+      mockS3Instance
+        .getObject()
+        .promise.mockResolvedValueOnce({ Body: Buffer.from(content) });
       const result = await s3FilingService.read(filePath);
       expect(mockS3Instance.getObject).toHaveBeenCalledWith({
         Bucket: mockBucketName,
@@ -249,16 +271,21 @@ describe('FilingService', () => {
     it('should list objects in a specified prefix', async () => {
       const dirPath = 'path/to/dir/';
       const s3Contents = [
-        {Key: 'path/to/dir/file1.txt'},
-        {Key: 'path/to/dir/file2.txt'},
+        { Key: 'path/to/dir/file1.txt' },
+        { Key: 'path/to/dir/file2.txt' },
       ];
-      mockS3Instance.listObjectsV2().promise.mockResolvedValueOnce({Contents: s3Contents});
+      mockS3Instance
+        .listObjectsV2()
+        .promise.mockResolvedValueOnce({ Contents: s3Contents });
       const result = await s3FilingService.list(dirPath);
       expect(mockS3Instance.listObjectsV2).toHaveBeenCalledWith({
         Bucket: mockBucketName,
         Prefix: dirPath,
       });
-      expect(result).toEqual(['path/to/dir/file1.txt', 'path/to/dir/file2.txt']);
+      expect(result).toEqual([
+        'path/to/dir/file1.txt',
+        'path/to/dir/file2.txt',
+      ]);
     });
 
     it('should update a file in S3 (calls create)', async () => {

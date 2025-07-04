@@ -21,7 +21,8 @@ class ConsoleLogger {
     const device = os.hostname();
     const logMessage = `${timestamp} - ${device} - ${message}`;
     console.log(logMessage);
-    if (this.eventEmitter_) this.eventEmitter_.emit('log:log', {message: logMessage});
+    if (this.eventEmitter_)
+      this.eventEmitter_.emit('log:log', { message: logMessage });
   }
 }
 

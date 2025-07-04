@@ -1,4 +1,3 @@
-
 /**
  * Queueing routes for the Express app.
  * @param {object} options - The options object.
@@ -6,14 +5,14 @@
  * @param {object} options.queue - The queueing provider.
  */
 module.exports = (options, eventEmitter, queue) => {
-  eventEmitter.emit('instance', { options: options });
   if (options['express-app'] && queue) {
     const app = options['express-app'];
 
     app.post('/api/queueing/enqueue', (req, res) => {
       const { task } = req.body;
       if (task) {
-        queue.enqueue(task)
+        queue
+          .enqueue(task)
           .then(() => res.status(200).send('OK'))
           .catch((err) => res.status(500).send(err.message));
       } else {
@@ -22,20 +21,22 @@ module.exports = (options, eventEmitter, queue) => {
     });
 
     app.get('/api/queueing/dequeue', (req, res) => {
-      queue.dequeue()
+      queue
+        .dequeue()
         .then((task) => res.status(200).json(task))
         .catch((err) => res.status(500).send(err.message));
     });
 
     app.get('/api/queueing/size', (req, res) => {
-      queue.size()
+      queue
+        .size()
         .then((size) => res.status(200).json(size))
         .catch((err) => res.status(500).send(err.message));
     });
 
     app.get('/api/queueing/status', (req, res) => {
-      eventEmitter.emit("api-queueing-status","queueing api running");
-      res.status(200).json("running");
+      eventEmitter.emit('api-queueing-status', 'queueing api running');
+      res.status(200).json('running');
     });
   }
 };

@@ -5,9 +5,6 @@
  * @param {object} options.workflow - The workflow provider.
  */
 module.exports = (options, eventEmitter, workflow) => {
-  eventEmitter.emit('instance', {
-    options: options
-  });
   if (options['express-app'] && workflow) {
     const app = options['express-app'];
     app.post('/api/workflow/defineworkflow', (req, res) => {
@@ -29,7 +26,7 @@ module.exports = (options, eventEmitter, workflow) => {
         data
       } = req.body;
       if (name) {
-        workflow.runWorkflow(name, data, function (data) {
+        workflow.runWorkflow(name, data, data => {
           eventEmitter.emit('workflow-complete', data);
         }).then(workflowId => res.status(200).json({
           workflowId
@@ -39,8 +36,8 @@ module.exports = (options, eventEmitter, workflow) => {
       }
     });
     app.get('/api/workflow/status', (req, res) => {
-      eventEmitter.emit("api-working-status", "working api running");
-      res.status(200).json("running");
+      eventEmitter.emit('api-working-status', 'working api running');
+      res.status(200).json('running');
     });
   }
 };

@@ -10,7 +10,7 @@ describe('ConsoleLogger', () => {
   let consoleSpy;
 
   beforeEach(() => {
-    logger = createLogger('console',{}, new EventEmitter());
+    logger = createLogger('console', {}, new EventEmitter());
     consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
   });
 
@@ -20,7 +20,14 @@ describe('ConsoleLogger', () => {
 
   it('should log a message to the console', () => {
     const message = 'Test message';
-    const expectedLogPattern = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z - [\w.-]+ - Test message$/;
-    logger.log(message).then(expect(consoleSpy).toHaveBeenCalledWith(expect.stringMatching(expectedLogPattern)));
+    const expectedLogPattern =
+      /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z - [\w.-]+ - Test message$/;
+    logger
+      .log(message)
+      .then(
+        expect(consoleSpy).toHaveBeenCalledWith(
+          expect.stringMatching(expectedLogPattern),
+        ),
+      );
   });
 });

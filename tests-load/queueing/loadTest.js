@@ -1,4 +1,3 @@
-
 const createQueue = require('../../src/queueing');
 const EventEmitter = require('events');
 
@@ -21,8 +20,10 @@ async function runQueueingLoadTest(iterations) {
 
   const endTime = Date.now();
   const duration = endTime - startTime;
-  console.log(`Queueing Load Test Completed: ${iterations} operations in ${duration} ms.`);
-  return {service: 'queueing', iterations, duration};
+  console.log(
+    `Queueing Load Test Completed: ${iterations} operations in ${duration} ms.`,
+  );
+  return { service: 'queueing', iterations, duration };
 }
 
 module.exports = runQueueingLoadTest;

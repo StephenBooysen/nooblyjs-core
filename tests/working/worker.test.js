@@ -41,26 +41,43 @@ describe('WorkerProvider', () => {
   });
 
   it('should start a worker and execute a script', () => {
-    const mockScriptPath = path.resolve(__dirname, '../../src/working/exampleTask.js');
+    const mockScriptPath = path.resolve(
+      __dirname,
+      '../../src/working/exampleTask.js',
+    );
     const mockCallback = jest.fn();
 
     workerInstance.start(mockScriptPath, mockCallback);
 
     expect(MockWorker).toHaveBeenCalledTimes(1);
     const workerInstanceMock = MockWorker.mock.results[0].value;
-    expect(workerInstanceMock.on).toHaveBeenCalledWith('message', expect.any(Function));
-    expect(workerInstanceMock.on).toHaveBeenCalledWith('error', expect.any(Function));
-    expect(workerInstanceMock.on).toHaveBeenCalledWith('exit', expect.any(Function));
+    expect(workerInstanceMock.on).toHaveBeenCalledWith(
+      'message',
+      expect.any(Function),
+    );
+    expect(workerInstanceMock.on).toHaveBeenCalledWith(
+      'error',
+      expect.any(Function),
+    );
+    expect(workerInstanceMock.on).toHaveBeenCalledWith(
+      'exit',
+      expect.any(Function),
+    );
     expect(workerInstanceMock.postMessage).toHaveBeenCalledWith({
       type: 'start',
       scriptPath: mockScriptPath,
     });
     expect(workerInstance.getStatus()).toBe('idle'); // Status is updated by message from worker
-    expect(mockEventEmitter.emit).toHaveBeenCalledWith('worker:start', {scriptPath: mockScriptPath});
+    expect(mockEventEmitter.emit).toHaveBeenCalledWith('worker:start', {
+      scriptPath: mockScriptPath,
+    });
   });
 
   it('should report status updates from the worker', () => {
-    const mockScriptPath = path.resolve(__dirname, '../../src/working/exampleTask.js');
+    const mockScriptPath = path.resolve(
+      __dirname,
+      '../../src/working/exampleTask.js',
+    );
     const mockCallback = jest.fn();
     workerInstance.start(mockScriptPath, mockCallback);
 
@@ -68,21 +85,30 @@ describe('WorkerProvider', () => {
     const messageHandler = workerInstanceMock.on.mock.calls[0][1];
 
     // Simulate worker sending a running status
-    messageHandler({type: 'status', status: 'running'});
+    messageHandler({ type: 'status', status: 'running' });
     expect(workerInstance.getStatus()).toBe('running');
-    expect(mockEventEmitter.emit).toHaveBeenCalledWith('worker:status', {status: 'running', data: undefined});
+    expect(mockEventEmitter.emit).toHaveBeenCalledWith('worker:status', {
+      status: 'running',
+      data: undefined,
+    });
 
     mockEventEmitter.emit.mockClear();
     // Simulate worker sending a completed status
-    messageHandler({type: 'status', status: 'completed', data: 'task done'});
+    messageHandler({ type: 'status', status: 'completed', data: 'task done' });
     expect(workerInstance.getStatus()).toBe('idle'); // Should be idle after stop
     expect(mockCallback).toHaveBeenCalledWith('completed', 'task done');
     expect(workerInstanceMock.terminate).toHaveBeenCalledTimes(1);
-    expect(mockEventEmitter.emit).toHaveBeenCalledWith('worker:status', {status: 'completed', data: 'task done'});
+    expect(mockEventEmitter.emit).toHaveBeenCalledWith('worker:status', {
+      status: 'completed',
+      data: 'task done',
+    });
   });
 
   it('should handle worker errors', () => {
-    const mockScriptPath = path.resolve(__dirname, '../../src/working/exampleTask.js');
+    const mockScriptPath = path.resolve(
+      __dirname,
+      '../../src/working/exampleTask.js',
+    );
     const mockCallback = jest.fn();
     workerInstance.start(mockScriptPath, mockCallback);
 
@@ -95,11 +121,16 @@ describe('WorkerProvider', () => {
     expect(workerInstance.getStatus()).toBe('idle'); // Should be idle after stop
     expect(mockCallback).toHaveBeenCalledWith('error', error.message);
     expect(workerInstanceMock.terminate).toHaveBeenCalledTimes(1);
-    expect(mockEventEmitter.emit).toHaveBeenCalledWith('worker:error', {error: error.message});
+    expect(mockEventEmitter.emit).toHaveBeenCalledWith('worker:error', {
+      error: error.message,
+    });
   });
 
   it('should handle worker exit with non-zero code', () => {
-    const mockScriptPath = path.resolve(__dirname, '../../src/working/exampleTask.js');
+    const mockScriptPath = path.resolve(
+      __dirname,
+      '../../src/working/exampleTask.js',
+    );
     const mockCallback = jest.fn();
     workerInstance.start(mockScriptPath, mockCallback);
 
@@ -109,19 +140,30 @@ describe('WorkerProvider', () => {
     exitHandler(1); // Simulate non-zero exit code
 
     expect(workerInstance.getStatus()).toBe('error'); // Should be error after non-zero exit
-    expect(mockCallback).toHaveBeenCalledWith('error', 'Worker exited with code 1');
+    expect(mockCallback).toHaveBeenCalledWith(
+      'error',
+      'Worker exited with code 1',
+    );
     expect(workerInstanceMock.terminate).toHaveBeenCalledTimes(0); // Terminate is not called on exit
-    expect(mockEventEmitter.emit).toHaveBeenCalledWith('worker:exit:error', {code: 1});
+    expect(mockEventEmitter.emit).toHaveBeenCalledWith('worker:exit:error', {
+      code: 1,
+    });
   });
 
   it('should not start if worker is already running', () => {
-    const mockScriptPath = path.resolve(__dirname, '../../src/working/exampleTask.js');
+    const mockScriptPath = path.resolve(
+      __dirname,
+      '../../src/working/exampleTask.js',
+    );
     workerInstance.start(mockScriptPath);
     mockEventEmitter.emit.mockClear();
     workerInstance.start(mockScriptPath); // Try to start again
 
     expect(MockWorker).toHaveBeenCalledTimes(1); // Should only be called once
-    expect(mockEventEmitter.emit).toHaveBeenCalledWith('worker:start:error', {scriptPath: mockScriptPath, error: 'Worker already running.'});
+    expect(mockEventEmitter.emit).toHaveBeenCalledWith('worker:start:error', {
+      scriptPath: mockScriptPath,
+      error: 'Worker already running.',
+    });
   });
 
   it('should stop the worker', () => {
