@@ -17,7 +17,10 @@
   "jest": {
     "modulePaths": [
       "./"
-    ]
+    ],
+    "transform": {
+   
+    }
   },
   "devDependencies": {
     "@babel/cli": "^7.28.0",

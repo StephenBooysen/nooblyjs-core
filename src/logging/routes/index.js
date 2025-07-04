@@ -10,14 +10,14 @@ module.exports = (options, eventEmitter, logger) => {
     const app = options['express-app'];
 
     app.post('/api/logging/log', (req, res) => {
-      const { level, message } = req.body;
-      if (level && message) {
+      const message = req.body;
+      if (message) {
         logger
-          .log(level, message)
+          .log(message)
           .then(() => res.status(200).send('OK'))
           .catch((err) => res.status(500).send(err.message));
       } else {
-        res.status(400).send('Bad Request: Missing level or message');
+        res.status(400).send('Bad Request: Missing message');
       }
     });
 
