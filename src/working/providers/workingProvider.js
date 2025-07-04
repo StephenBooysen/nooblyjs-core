@@ -27,14 +27,14 @@ class WorkerProvider {
    * @param {string} scriptPath The absolute path to the script to execute in the worker.
    * @param {Function=} completionCallback Optional callback function to be called on completion.
    */
-  start(scriptPath, completionCallback) {
+  async start(scriptPath, completionCallback) {
     if (this.worker_) {
       if (this.eventEmitter_) this.eventEmitter_.emit('worker:start:error', {scriptPath, error: 'Worker already running.'});
       return;
     }
 
     this.completionCallback_ = completionCallback;
-    this.worker_ = new Worker(path.resolve(__dirname, '../workerScript.js'));
+    this.worker_ = new Worker(path.resolve(__dirname, '../providers/workerScript.js'));
     if (this.eventEmitter_) this.eventEmitter_.emit('worker:start', {scriptPath});
 
     this.worker_.on('message', (message) => {
@@ -81,7 +81,7 @@ class WorkerProvider {
   /**
    * Stops the worker thread.
    */
-  stop() {
+  async stop() {
     if (this.worker_) {
       this.worker_.terminate();
       this.worker_ = null;
@@ -94,7 +94,7 @@ class WorkerProvider {
    * Gets the current status of the worker.
    * @return {string} The current status of the worker.
    */
-  getStatus() {
+  async getStatus() {
     return this.status_;
   }
 }

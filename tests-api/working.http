@@ -6,7 +6,7 @@ POST http://localhost:3000/api/working/run
 Content-Type: application/json
 
 {
-  "task": "myWorkerTask",
+  "task": "../../../tests/working/exampleTask.js",
   "data": {
     "input": "someData"
   }

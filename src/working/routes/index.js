@@ -13,12 +13,18 @@ module.exports = (options, eventEmitter, worker) => {
     app.post('/api/working/run', (req, res) => {
       const { task, data } = req.body;
       if (task) {
-        worker.run(task, data)
+        worker.start(task, function(){})
           .then((result) => res.status(200).json(result))
           .catch((err) => res.status(500).send(err.message));
       } else {
         res.status(400).send('Bad Request: Missing task');
       }
+    });
+
+    app.get('/api/working/stop', (req, res) => {
+      worker.stop()
+        .then((result) => res.status(200).json(result))
+        .catch((err) => res.status(500).send(err.message));
     });
 
     app.get('/api/working/status', (req, res) => {

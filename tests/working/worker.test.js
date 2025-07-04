@@ -125,7 +125,7 @@ describe('WorkerProvider', () => {
   });
 
   it('should stop the worker', () => {
-    const mockScriptPath = path.resolve(__dirname, '../../src/working/exampleTask.js');
+    const mockScriptPath = path.resolve(__dirname, './exampleTask.js');
     workerInstance.start(mockScriptPath);
 
     const workerInstanceMock = MockWorker.mock.results[0].value;

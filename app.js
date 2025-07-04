@@ -23,6 +23,9 @@ function patchEmitter(emitter) {
 }
 var eventEmitter = new EventEmitter();
 patchEmitter(eventEmitter);
+eventEmitter.on('instance', (data) => {
+  console.log(data.options);
+});
 
 // lets log
 const log = require('./src/logging')('', { 'express-app': app },eventEmitter);
@@ -36,9 +39,10 @@ log.log(cache.get('currentdate'))
 const queue = require('./src/queueing')('memory', { 'express-app': app },eventEmitter);
 queue.enqueue(new Date());
 
-eventEmitter.on('instance', (data) => {
-  console.log(data.options);
-});
+const worker = require('./src/working')('memory', { 'express-app': app },eventEmitter);
+worker.start("../../../tests/working/exampleTask.js", function(data){
+  console.log("Example task ended");
+})
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
