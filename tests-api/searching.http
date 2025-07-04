@@ -1,5 +1,21 @@
 ### Searching API Status
 GET http://localhost:3000/api/searching/status
 
+### POST a cache record for a key
+POST http://localhost:3000/api/searching/add/ HTTP/1.1
+content-type: application/json
+
+{
+    "name":"John", 
+    "role": "user", 
+    "dob": "2025-01-01"
+}
+
+
 ### Searching API Search
-GET http://localhost:3000/api/searching/search?query=testQuery
+GET http://localhost:3000/api/searching/search/user
+
+
+### Delete a cache record for a key
+DELETE http://localhost:3000/api/caching/delete/1234
+

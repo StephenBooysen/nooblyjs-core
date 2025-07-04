@@ -40,6 +40,15 @@ log.log(cache.get('currentdate'))
 const queue = require('./src/queueing')('memory', { 'express-app': app },eventEmitter);
 queue.enqueue(new Date());
 
+const seaching = require('./src/searching')('memory', { 'express-app': app },eventEmitter);
+seaching.add({name:"John", role: "administrator", dob: "2025-01-01"}).then();
+seaching.add({name:"Jill", role: "user", dob: "2025-02-01"}).then();
+seaching.add({name:"Frank", role: "user", dob: "2025-03-01"}).then();
+seaching.add({name:"Bill", role: "user", dob: "2025-04-01"}).then();
+seaching.add({name:"Ted", role: "user", dob: "2025-05-01"}).then();
+seaching.search("user").then();
+
+
 // lets work
 const worker = require('./src/working')('memory', { 'express-app': app },eventEmitter);
 worker.start("../../../tests/working/exampleTask.js", function(data){
@@ -53,6 +62,7 @@ workflow.defineWorkflow('example-workflow',steps)
 workflow.runWorkflow('example-workflow', {}, function(data){
   console.log("Workdflow ended");
 })
+
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
