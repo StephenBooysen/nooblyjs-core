@@ -216,7 +216,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="working_index.js.html">working/index.js</a>, <a href="working_index.js.html#line8">line 8</a>
+        <a href="working_index.js.html">working/index.js</a>, <a href="working_index.js.html#line10">line 10</a>
     </li></ul></dd>
     
 
@@ -388,7 +388,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="caching_index.js.html">caching/index.js</a>, <a href="caching_index.js.html#line15">line 15</a>
+        <a href="caching_index.js.html">caching/index.js</a>, <a href="caching_index.js.html#line16">line 16</a>
     </li></ul></dd>
     
 
@@ -1009,7 +1009,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="logging_index.js.html">logging/index.js</a>, <a href="logging_index.js.html#line14">line 14</a>
+        <a href="logging_index.js.html">logging/index.js</a>, <a href="logging_index.js.html#line15">line 15</a>
     </li></ul></dd>
     
 
@@ -1620,7 +1620,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="queueing_index.js.html">queueing/index.js</a>, <a href="queueing_index.js.html#line13">line 13</a>
+        <a href="queueing_index.js.html">queueing/index.js</a>, <a href="queueing_index.js.html#line14">line 14</a>
     </li></ul></dd>
     
 
@@ -2026,7 +2026,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="workflow_index.js.html">workflow/index.js</a>, <a href="workflow_index.js.html#line90">line 90</a>
+        <a href="workflow_index.js.html">workflow/index.js</a>, <a href="workflow_index.js.html#line92">line 92</a>
     </li></ul></dd>
     
 
@@ -2194,7 +2194,7 @@
     
 
     
-    <h4 class="name" id="getWorkerInstance"><span class="type-signature"></span>getWorkerInstance<span class="signature">()</span><span class="type-signature"> &rarr; (non-null) {<a href="WorkerProvider.html">WorkerProvider</a>}</span></h4>
+    <h4 class="name" id="getWorkerInstance"><span class="type-signature"></span>getWorkerInstance<span class="signature">(type, options, eventEmitter)</span><span class="type-signature"> &rarr; {Object}</span></h4>
     
 
     
@@ -2202,7 +2202,7 @@
 
 
 <div class="description">
-    Returns the singleton instance of the WorkerProvider.
+    Creates a queue instance based on the provided type.
 </div>
 
 
@@ -2211,6 +2211,101 @@
 
 
 
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>type</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The type of queue to create. Valid options are 'memory'.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>options</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The options for the queue.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>eventEmitter</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">EventEmitter</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The eventEmitter for the queue.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
 
 
 
@@ -2246,7 +2341,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="working_index.js.html">working/index.js</a>, <a href="working_index.js.html#line14">line 14</a>
+        <a href="working_index.js.html">working/index.js</a>, <a href="working_index.js.html#line19">line 19</a>
     </li></ul></dd>
     
 
@@ -2275,7 +2370,7 @@
 
         
 <div class="param-desc">
-    The singleton WorkerProvider instance.
+    A worker instance.
 </div>
 
 
@@ -2286,7 +2381,7 @@
     </dt>
     <dd>
         
-<span class="param-type"><a href="WorkerProvider.html">WorkerProvider</a></span>
+<span class="param-type">Object</span>
 
 
     </dd>
@@ -2756,7 +2851,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="working_workerScript.js.html">working/workerScript.js</a>, <a href="working_workerScript.js.html#line16">line 16</a>
+        <a href="working_providers_workerScript.js.html">working/providers/workerScript.js</a>, <a href="working_providers_workerScript.js.html#line16">line 16</a>
     </li></ul></dd>
     
 
@@ -2808,7 +2903,7 @@
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Thu Jul 03 2025 13:17:02 GMT+0200 (South Africa Standard Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Fri Jul 04 2025 11:36:37 GMT+0000 (Coordinated Universal Time)
 </footer>
 
 <script> prettyPrint(); </script>

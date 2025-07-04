@@ -8,6 +8,7 @@ const {
   parentPort
 } = require('worker_threads');
 const path = require('path');
+const Routes = require('./routes');
 class WorkflowService {
   constructor(eventEmitter) {
     this.workflows = new Map();
@@ -19,7 +20,7 @@ class WorkflowService {
    * @param {string} workflowName - The name of the workflow.
    * @param {Array<string>} steps - An array of paths to Node.js files, each representing a step.
    */
-  defineWorkflow(workflowName, steps) {
+  async defineWorkflow(workflowName, steps) {
     this.workflows.set(workflowName, steps);
     if (this.eventEmitter_) this.eventEmitter_.emit('workflow:defined', {
       workflowName,
@@ -64,7 +65,7 @@ class WorkflowService {
         data: currentData
       });
       try {
-        const worker = new Worker(path.resolve(__dirname, './workerRunner.js'), {
+        const worker = new Worker(path.resolve(__dirname, './provider/workerRunner.js'), {
           workerData: {
             stepPath,
             data: currentData
@@ -133,6 +134,8 @@ class WorkflowService {
  * @return {!WorkflowService} A WorkflowService instance.
  */
 function createWorkflowService(type, options, eventEmitter) {
-  return new WorkflowService(eventEmitter);
+  var workflow = new WorkflowService(eventEmitter);
+  Routes(options, eventEmitter, workflow);
+  return workflow;
 }
 module.exports = createWorkflowService;

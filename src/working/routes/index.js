@@ -13,7 +13,7 @@ module.exports = (options, eventEmitter, worker) => {
     app.post('/api/working/run', (req, res) => {
       const { task, data } = req.body;
       if (task) {
-        worker.start(task, function(){})
+        worker.start(task, function(data){eventEmitter.emit('worker-complete',data)})
           .then((result) => res.status(200).json(result))
           .catch((err) => res.status(500).send(err.message));
       } else {

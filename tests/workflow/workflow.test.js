@@ -15,8 +15,8 @@ describe('WorkflowService', () => {
   let mockStatusCallback;
   let mockEventEmitter;
 
-  const step1Path = path.resolve(__dirname, '../../src/workflow/steps/exampleStep1.js');
-  const step2Path = path.resolve(__dirname, '../../src/workflow/steps/exampleStep2.js');
+  const step1Path = path.resolve(__dirname, '../steps/exampleStep1.js');
+  const step2Path = path.resolve(__dirname, '../steps/exampleStep2.js');
 
   beforeEach(() => {
     mockEventEmitter = new EventEmitter();

@@ -5,7 +5,7 @@
 const Cache = require('./providers/caching');
 const CacheRedis = require('./providers/cachingRedis');
 const CacheMemcached = require('./providers/cachingMemcached');
-const cachingRoutes = require('./routes');
+const Routes = require('./routes');
 
 /**
  * Creates a cache instance based on the provided type.
@@ -14,13 +14,18 @@ const cachingRoutes = require('./routes');
  * @return {!Cache|!CacheRedis} A cache instance.
  */
 function createCache(type, options, eventEmitter) {
-  cachingRoutes(options);
   if (type === 'redis') {
-    return new CacheRedis(options, eventEmitter);
+    var cache = new CacheRedis(options, eventEmitter);
+    Routes(options, eventEmitter, cache);
+    return cache;
   } else if (type === 'memcached') {
-    return new CacheMemcached(options, eventEmitter);
+    var cache = new CacheMemcached(options, eventEmitter);
+    Routes(options, eventEmitter, cache);
+    return cache;
   } else {
-    return new Cache(options, eventEmitter);
+    var cache = new Cache(options, eventEmitter);
+    Routes(options, eventEmitter, cache);
+    return cache;
   }
 }
 module.exports = createCache;
