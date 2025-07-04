@@ -16,7 +16,7 @@ class ConsoleLogger {
    * Logs a message to the console.
    * @param {string} message The message to log.
    */
-  log(message) {
+  async log(message) {
     const timestamp = new Date().toISOString();
     const device = os.hostname();
     const logMessage = `${timestamp} - ${device} - ${message}`;

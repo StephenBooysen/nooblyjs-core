@@ -15,17 +15,7 @@ jest.useFakeTimers();
     jest.spyOn(mockEventEmitter, 'emit');
     getSchedulerInstance.reset(); // Reset the singleton instance
 
-    // Define and mock getWorkerInstance locally for each test
-    const mockWorker = {
-      start: jest.fn(),
-      stop: jest.fn(),
-      getStatus: jest.fn(() => 'idle'),
-    };
-    let mockWorker;
-
-let mockWorker;
-
-jest.mock('../../src/working', () => {
+    jest.mock('../../src/working', () => {
   mockWorker = {
     start: jest.fn(),
     stop: jest.fn(),
@@ -122,4 +112,4 @@ jest.mock('../../src/working', () => {
     expect(schedulerInstance.isRunning()).toBe(true);
     expect(mockEventEmitter.emit).toHaveBeenCalledWith('scheduler:start:error', {scriptPath: mockScriptPath, error: 'Scheduler already running.'});
   });
-});
+  });

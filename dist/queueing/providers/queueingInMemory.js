@@ -21,7 +21,9 @@ class InMemoryQueue {
    */
   enqueue(item) {
     this.queue_.push(item);
-    if (this.eventEmitter_) this.eventEmitter_.emit('queue:enqueue', {item});
+    if (this.eventEmitter_) this.eventEmitter_.emit('queue:enqueue', {
+      item
+    });
   }
 
   /**
@@ -30,7 +32,9 @@ class InMemoryQueue {
    */
   dequeue() {
     const item = this.queue_.shift();
-    if (item && this.eventEmitter_) this.eventEmitter_.emit('queue:dequeue', {item});
+    if (item && this.eventEmitter_) this.eventEmitter_.emit('queue:dequeue', {
+      item
+    });
     return item;
   }
 
@@ -42,5 +46,4 @@ class InMemoryQueue {
     return this.queue_.length;
   }
 }
-
 module.exports = InMemoryQueue;

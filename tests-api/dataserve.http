@@ -1,0 +1,16 @@
+### Dataserve API Status
+GET http://localhost:3000/api/dataserve/status
+
+### Dataserve API Put
+POST http://localhost:3000/api/dataserve/put/testKey
+Content-Type: application/json
+
+{
+  "value": "testValue"
+}
+
+### Dataserve API Get
+GET http://localhost:3000/api/dataserve/get/testKey
+
+### Dataserve API Delete
+DELETE http://localhost:3000/api/dataserve/delete/testKey

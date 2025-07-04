@@ -2,7 +2,8 @@
  * @fileoverview Factory for creating queue instances.
  */
 
-const InMemoryQueue = require('./providers/queueingInMemory');
+const InMemoryQueue = require('./providers/InMemoryQueue');
+const Routes = require('./routes');
 
 /**
  * Creates a queue instance based on the provided type.
@@ -12,7 +13,9 @@ const InMemoryQueue = require('./providers/queueingInMemory');
  */
 function createQueue(type, options, eventEmitter) {
   if (type === 'memory') {
-    return new InMemoryQueue(options, eventEmitter);
+    var queue = new InMemoryQueue(options, eventEmitter);
+    Routes(options, eventEmitter, queue);
+    return queue;
   } else {
     throw new Error('Unsupported queue type: ' + type);
   }

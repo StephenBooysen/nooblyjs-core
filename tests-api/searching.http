@@ -1,0 +1,5 @@
+### Searching API Status
+GET http://localhost:3000/api/searching/status
+
+### Searching API Search
+GET http://localhost:3000/api/searching/search?query=testQuery

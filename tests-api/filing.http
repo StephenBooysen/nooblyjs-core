@@ -1,0 +1,14 @@
+### Filing API Status
+GET http://localhost:3000/api/filing/status
+
+### Filing API Upload
+POST http://localhost:3000/api/filing/upload/testFile.txt
+Content-Type: text/plain
+
+This is some test content for the file.
+
+### Filing API Download
+GET http://localhost:3000/api/filing/download/testFile.txt
+
+### Filing API Remove
+DELETE http://localhost:3000/api/filing/remove/testFile.txt

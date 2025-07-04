@@ -2,6 +2,7 @@
  * @fileoverview Unit tests for the console logger.
  */
 
+const EventEmitter = require('events');
 const createLogger = require('../../src/logging');
 
 describe('ConsoleLogger', () => {
@@ -9,7 +10,7 @@ describe('ConsoleLogger', () => {
   let consoleSpy;
 
   beforeEach(() => {
-    logger = createLogger('console');
+    logger = createLogger('console',{}, new EventEmitter());
     consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
   });
 
@@ -19,8 +20,7 @@ describe('ConsoleLogger', () => {
 
   it('should log a message to the console', () => {
     const message = 'Test message';
-    logger.log(message);
     const expectedLogPattern = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z - [\w.-]+ - Test message$/;
-    expect(consoleSpy).toHaveBeenCalledWith(expect.stringMatching(expectedLogPattern));
+    logger.log(message).then(expect(consoleSpy).toHaveBeenCalledWith(expect.stringMatching(expectedLogPattern)));
   });
 });

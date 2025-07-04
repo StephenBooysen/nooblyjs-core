@@ -1,0 +1,11 @@
+### Notifying API Status
+GET http://localhost:3000/api/notifying/status
+
+### Notifying API Send
+POST http://localhost:3000/api/notifying/send
+Content-Type: application/json
+
+{
+  "recipient": "test@example.com",
+  "message": "Hello from Notifying API"
+}

@@ -1,18 +1,46 @@
+const EventEmitter = require('events');
+const express = require('express');
+const bodyParser = require('body-parser');
+const app = express();
+app.use(bodyParser.json());
+
+/**
+ * Patch our emitter to capture all events
+ * @param {} emitter 
+ */
+function patchEmitter(emitter) {
+        const originalEmit = emitter.emit;
+
+        emitter.emit = function() {
+            const eventName = arguments[0];
+            const args = Array.from(arguments).slice(1); // Get arguments excluding the event name
+
+            console.log(`Caught event: "${eventName}" with arguments:`, args);
+
+            // Call the original emit method to ensure normal event handling continues
+            return originalEmit.apply(this, arguments);
+        };
+}
+var eventEmitter = new EventEmitter();
+patchEmitter(eventEmitter);
+
 // lets log
-log = require('./src/logging')();
+const log = require('./src/logging')('', { 'express-app': app },eventEmitter);
 
 // lets cache
-cache = require('./src/caching')('memory');;
+const cache = require('./src/caching')('memory', { 'express-app': app },eventEmitter);
 cache.put('currentdate', new Date());
 log.log(cache.get('currentdate'))
 
 // lets queue
-queue = require('./src/queueing')('memory');
-for (var i = 0 ; i <= 1000; i++){
-    queue.enqueue(i)
-}
-var val = queue.dequeue()
-while (val != null){
-   log.log('Dequeued: ' + val)
-   val = queue.dequeue() 
-}
+const queue = require('./src/queueing')('memory', { 'express-app': app },eventEmitter);
+queue.enqueue(new Date());
+
+eventEmitter.on('instance', (data) => {
+  console.log(data.options);
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  log.log(`Server is running on port ${PORT}`);
+});

@@ -1,0 +1,16 @@
+### Workflow API Status
+GET http://localhost:3000/api/workflow/status
+
+### Workflow API Start
+POST http://localhost:3000/api/workflow/start
+Content-Type: application/json
+
+{
+  "name": "myWorkflow",
+  "data": {
+    "initialData": "someValue"
+  }
+}
+
+### Workflow API Get Status
+GET http://localhost:3000/api/workflow/status/someWorkflowId

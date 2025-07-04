@@ -1,0 +1,19 @@
+### Scheduling API Status
+GET http://localhost:3000/api/scheduling/status
+
+### Scheduling API Schedule
+POST http://localhost:3000/api/scheduling/schedule
+Content-Type: application/json
+
+{
+  "task": {
+    "name": "myScheduledTask",
+    "data": {
+      "param1": "value1"
+    }
+  },
+  "cron": "* * * * *"
+}
+
+### Scheduling API Cancel
+DELETE http://localhost:3000/api/scheduling/cancel/someTaskId
