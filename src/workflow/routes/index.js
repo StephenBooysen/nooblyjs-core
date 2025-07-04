@@ -36,8 +36,8 @@ module.exports = (options, eventEmitter, workflow) => {
     });
 
     app.get('/api/workflow/status', (req, res) => {
-      eventEmitter.emit('api-working-status', 'working api running');
-      res.status(200).json('running');
+      eventEmitter.emit('api-working-status', 'workflow api running');
+      res.status(200).json('workflow api running');
     });
   }
 };

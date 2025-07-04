@@ -44,7 +44,7 @@ module.exports = (options, eventEmitter, search) => {
 
     app.get('/api/searching/status', (req, res) => {
       eventEmitter.emit('api-searching-status', 'searching api running');
-      res.status(200).json('searching service is running');
+      res.status(200).json('searching api is running');
     });
   }
 };

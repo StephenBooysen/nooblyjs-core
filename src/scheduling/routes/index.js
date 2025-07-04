@@ -31,7 +31,7 @@ module.exports = (options, eventEmitter, scheduler) => {
 
     app.get('/api/scheduling/status', (req, res) => {
       eventEmitter.emit('api-scheduling-status', 'scheduling api running');
-      res.status(200).json('running');
+      res.status(200).json('scheduling api running');
     });
   }
 };

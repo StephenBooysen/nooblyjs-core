@@ -2,6 +2,14 @@ const path = require('path');
 const createWorkflowService = require('../../src/workflow');
 const EventEmitter = require('events');
 
+// Mock worker_threads to prevent actual worker processes
+jest.mock('worker_threads', () => ({
+  Worker: jest.fn().mockImplementation(() => ({
+    on: jest.fn(),
+    terminate: jest.fn(),
+  })),
+}));
+
 describe('WorkflowService', () => {
   const errorStepPath = path.resolve(__dirname, '../mocks/errorStep.js');
 
@@ -20,14 +28,22 @@ describe('WorkflowService', () => {
   let mockStatusCallback;
   let mockEventEmitter;
 
-  const step1Path = path.resolve(__dirname, '../steps/exampleStep1.js');
-  const step2Path = path.resolve(__dirname, '../steps/exampleStep2.js');
+  const step1Path = path.resolve(__dirname, './steps/exampleStep1.js');
+  const step2Path = path.resolve(__dirname, './steps/exampleStep2.js');
 
   beforeEach(() => {
+    jest.clearAllMocks();
     mockEventEmitter = new EventEmitter();
     jest.spyOn(mockEventEmitter, 'emit');
     workflowService = createWorkflowService('default', {}, mockEventEmitter);
     mockStatusCallback = jest.fn();
+  });
+
+  afterEach(() => {
+    // Clean up any resources
+    if (workflowService && workflowService.cleanup) {
+      workflowService.cleanup();
+    }
   });
 
   it('should define a workflow with given steps', () => {

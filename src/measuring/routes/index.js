@@ -23,7 +23,7 @@ module.exports = (options, eventEmitter, measuring) => {
 
     app.get('/api/measuring/status', (req, res) => {
       eventEmitter.emit('api-measuring-status', 'measuring api running');
-      res.status(200).json('running');
+      res.status(200).json('measuring api running');
     });
   }
 };

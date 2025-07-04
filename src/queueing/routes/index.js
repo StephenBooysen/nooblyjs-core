@@ -36,7 +36,7 @@ module.exports = (options, eventEmitter, queue) => {
 
     app.get('/api/queueing/status', (req, res) => {
       eventEmitter.emit('api-queueing-status', 'queueing api running');
-      res.status(200).json('running');
+      res.status(200).json('queueing api running');
     });
   }
 };

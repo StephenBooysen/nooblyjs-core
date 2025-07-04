@@ -29,7 +29,7 @@ class SchedulerProvider {
    * @param {number} intervalSeconds The interval in seconds at which to execute the script.
    * @param {Function=} executionCallback Optional callback function to be called on each execution.
    */
-  start(scriptPath, intervalSeconds, executionCallback) {
+  async start(scriptPath, intervalSeconds, executionCallback) {
     if (this.intervalId_) {
       if (this.eventEmitter_)
         this.eventEmitter_.emit('scheduler:start:error', {
@@ -69,7 +69,7 @@ class SchedulerProvider {
   /**
    * Stops the scheduler.
    */
-  stop() {
+  async stop() {
     if (this.intervalId_) {
       clearInterval(this.intervalId_);
       this.intervalId_ = null;
@@ -84,7 +84,7 @@ class SchedulerProvider {
    * Checks if the scheduler is running.
    * @return {boolean} True if the scheduler is running, false otherwise.
    */
-  isRunning() {
+  async isRunning() {
     return this.intervalId_ !== null;
   }
 }

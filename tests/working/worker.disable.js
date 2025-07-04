@@ -40,7 +40,7 @@ describe('WorkerProvider', () => {
     expect(workerInstance).toBe(anotherInstance);
   });
 
-  it('should start a worker and execute a script', () => {
+  it('should start a worker and execute a script', async () => {
     const mockScriptPath = path.resolve(
       __dirname,
       '../../src/working/exampleTask.js',
@@ -67,13 +67,13 @@ describe('WorkerProvider', () => {
       type: 'start',
       scriptPath: mockScriptPath,
     });
-    expect(workerInstance.getStatus()).toBe('idle'); // Status is updated by message from worker
+    expect(await workerInstance.getStatus()).toBe('idle'); // Status is updated by message from worker
     expect(mockEventEmitter.emit).toHaveBeenCalledWith('worker:start', {
       scriptPath: mockScriptPath,
     });
   });
 
-  it('should report status updates from the worker', () => {
+  it('should report status updates from the worker', async () => {
     const mockScriptPath = path.resolve(
       __dirname,
       '../../src/working/exampleTask.js',
@@ -86,7 +86,7 @@ describe('WorkerProvider', () => {
 
     // Simulate worker sending a running status
     messageHandler({ type: 'status', status: 'running' });
-    expect(workerInstance.getStatus()).toBe('running');
+    expect(await workerInstance.getStatus()).toBe('running');
     expect(mockEventEmitter.emit).toHaveBeenCalledWith('worker:status', {
       status: 'running',
       data: undefined,
@@ -95,7 +95,7 @@ describe('WorkerProvider', () => {
     mockEventEmitter.emit.mockClear();
     // Simulate worker sending a completed status
     messageHandler({ type: 'status', status: 'completed', data: 'task done' });
-    expect(workerInstance.getStatus()).toBe('idle'); // Should be idle after stop
+    expect(await workerInstance.getStatus()).toBe('idle'); // Should be idle after stop
     expect(mockCallback).toHaveBeenCalledWith('completed', 'task done');
     expect(workerInstanceMock.terminate).toHaveBeenCalledTimes(1);
     expect(mockEventEmitter.emit).toHaveBeenCalledWith('worker:status', {
@@ -104,7 +104,7 @@ describe('WorkerProvider', () => {
     });
   });
 
-  it('should handle worker errors', () => {
+  it('should handle worker errors', async () => {
     const mockScriptPath = path.resolve(
       __dirname,
       '../../src/working/exampleTask.js',
@@ -118,7 +118,7 @@ describe('WorkerProvider', () => {
     const error = new Error('Worker failed');
     errorHandler(error);
 
-    expect(workerInstance.getStatus()).toBe('idle'); // Should be idle after stop
+    expect(await workerInstance.getStatus()).toBe('idle'); // Should be idle after stop
     expect(mockCallback).toHaveBeenCalledWith('error', error.message);
     expect(workerInstanceMock.terminate).toHaveBeenCalledTimes(1);
     expect(mockEventEmitter.emit).toHaveBeenCalledWith('worker:error', {
@@ -126,7 +126,7 @@ describe('WorkerProvider', () => {
     });
   });
 
-  it('should handle worker exit with non-zero code', () => {
+  it('should handle worker exit with non-zero code', async () => {
     const mockScriptPath = path.resolve(
       __dirname,
       '../../src/working/exampleTask.js',
@@ -139,7 +139,7 @@ describe('WorkerProvider', () => {
 
     exitHandler(1); // Simulate non-zero exit code
 
-    expect(workerInstance.getStatus()).toBe('error'); // Should be error after non-zero exit
+    expect(await workerInstance.getStatus()).toBe('error'); // Should be error after non-zero exit
     expect(mockCallback).toHaveBeenCalledWith(
       'error',
       'Worker exited with code 1',
@@ -166,7 +166,7 @@ describe('WorkerProvider', () => {
     });
   });
 
-  it('should stop the worker', () => {
+  it('should stop the worker', async () => {
     const mockScriptPath = path.resolve(__dirname, './exampleTask.js');
     workerInstance.start(mockScriptPath);
 
@@ -175,7 +175,7 @@ describe('WorkerProvider', () => {
     workerInstance.stop();
 
     expect(workerInstanceMock.terminate).toHaveBeenCalledTimes(1);
-    expect(workerInstance.getStatus()).toBe('idle');
+    expect(await workerInstance.getStatus()).toBe('idle');
     expect(mockEventEmitter.emit).toHaveBeenCalledWith('worker:stop');
   });
 });

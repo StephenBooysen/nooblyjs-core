@@ -77,12 +77,17 @@ class WorkflowService {
         currentData = await new Promise((resolve, reject) => {
           worker.on('message', (message) => {
             if (message.type === 'result') {
+              worker.terminate();
               resolve(message.data);
             } else if (message.type === 'error') {
+              worker.terminate();
               reject(new Error(message.error));
             }
           });
-          worker.on('error', reject);
+          worker.on('error', (error) => {
+            worker.terminate();
+            reject(error);
+          });
           worker.on('exit', (code) => {
             if (code !== 0) {
               reject(new Error(`Worker stopped with exit code ${code}`));

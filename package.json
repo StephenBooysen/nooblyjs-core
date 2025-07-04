@@ -20,7 +20,9 @@
     ],
     "transform": {
    
-    }
+    },
+    "forceExit": true,
+    "detectOpenHandles": true
   },
   "devDependencies": {
     "@babel/cli": "^7.28.0",

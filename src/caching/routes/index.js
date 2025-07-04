@@ -36,7 +36,7 @@ module.exports = (options, eventEmitter, cache) => {
 
     app.get('/api/caching/status', (req, res) => {
       eventEmitter.emit('api-cache-status', 'caching api running');
-      res.status(200).json('running');
+      res.status(200).json('caching api running');
     });
   }
 };

@@ -10,14 +10,15 @@ const EventEmitter = require('events');
 const mockSet = jest.fn();
 const mockGet = jest.fn();
 const mockDelete = jest.fn();
+const mockCreate = jest.fn(() => ({
+  set: mockSet,
+  get: mockGet,
+  delete: mockDelete,
+}));
 
 jest.mock('memjs', () => ({
   Client: {
-    create: jest.fn(() => ({
-      set: mockSet,
-      get: mockGet,
-      delete: mockDelete,
-    })),
+    create: mockCreate,
   },
 }));
 
@@ -33,7 +34,7 @@ describe('CacheMemcached', () => {
     mockSet.mockClear();
     mockGet.mockClear();
     mockDelete.mockClear();
-    require('memjs').Client.create.mockClear();
+    mockCreate.mockClear();
 
     cacheMemcached = new CacheMemcached(
       { url: mockMemcachedUrl },
@@ -42,7 +43,7 @@ describe('CacheMemcached', () => {
   });
 
   it('should initialize with a valid URL', () => {
-    expect(Client.create).toHaveBeenCalledWith(mockMemcachedUrl);
+    expect(mockCreate).toHaveBeenCalledWith(mockMemcachedUrl);
     expect(cacheMemcached.client_).toEqual(
       require('memjs').Client.create(mockMemcachedUrl),
     );

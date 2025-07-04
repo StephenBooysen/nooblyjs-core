@@ -23,7 +23,7 @@ module.exports = (options, eventEmitter, notifier) => {
 
     app.get('/api/notifying/status', (req, res) => {
       eventEmitter.emit('api-notifying-status', 'notifying api running');
-      res.status(200).json('running');
+      res.status(200).json('notifying api running');
     });
   }
 };

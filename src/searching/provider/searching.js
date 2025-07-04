@@ -77,7 +77,7 @@ class SearchService {
 
       searchInObject(obj);
       if (found) {
-        results.push({ key, obj });
+        results.push(obj);
       }
     }
     if (this.eventEmitter_)

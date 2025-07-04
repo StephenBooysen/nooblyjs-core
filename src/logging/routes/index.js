@@ -23,7 +23,7 @@ module.exports = (options, eventEmitter, logger) => {
 
     app.get('/api/logging/status', (req, res) => {
       eventEmitter.emit('api-logging-status', 'logging api running');
-      res.status(200).json('running');
+      res.status(200).json('logging api running');
     });
   }
 };

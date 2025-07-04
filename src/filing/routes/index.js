@@ -36,7 +36,7 @@ module.exports = (options, eventEmitter, filing) => {
 
     app.get('/api/filing/status', (req, res) => {
       eventEmitter.emit('api-filing-status', 'filing api running');
-      res.status(200).json('running');
+      res.status(200).json('filing api running');
     });
   }
 };

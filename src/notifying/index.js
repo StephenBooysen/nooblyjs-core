@@ -12,7 +12,7 @@ class NotificationService {
    * Creates a new topic if it doesn't exist.
    * @param {string} topicName - The name of the topic.
    */
-  createTopic(topicName) {
+  async createTopic(topicName) {
     if (!this.topics.has(topicName)) {
       this.topics.set(topicName, new Set());
       if (this.eventEmitter_)
@@ -25,7 +25,7 @@ class NotificationService {
    * @param {string} topicName - The name of the topic.
    * @param {function} callback - The callback function to be called when a message is published to the topic.
    */
-  subscribe(topicName, callback) {
+  async subscribe(topicName, callback) {
     if (!this.topics.has(topicName)) {
       this.createTopic(topicName);
     }
@@ -55,7 +55,7 @@ class NotificationService {
    * @param {string} topicName - The name of the topic.
    * @param {*} message - The message to send to subscribers.
    */
-  notify(topicName, message) {
+  async notify(topicName, message) {
     if (this.topics.has(topicName)) {
       this.topics.get(topicName).forEach((callback) => {
         try {

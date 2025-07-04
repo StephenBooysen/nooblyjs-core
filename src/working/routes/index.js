@@ -32,7 +32,7 @@ module.exports = (options, eventEmitter, worker) => {
 
     app.get('/api/working/status', (req, res) => {
       eventEmitter.emit('api-working-status', 'working api running');
-      res.status(200).json('running');
+      res.status(200).json('working api running');
     });
   }
 };

@@ -3,10 +3,13 @@
  */
 
 const EventEmitter = require('events');
-const createLogger = require('../../src/logging');
-const fs = require('fs');
 
-jest.mock('fs');
+jest.mock('fs', () => ({
+  appendFileSync: jest.fn(),
+}));
+
+const fs = require('fs');
+const createLogger = require('../../src/logging');
 
 describe('FileLogger', () => {
   let logger;
@@ -20,15 +23,12 @@ describe('FileLogger', () => {
     jest.clearAllMocks();
   });
 
-  it('should log a message to a file', () => {
+  it('should log a message to a file', async () => {
     const message = 'Test message';
-    logger
-      .log(message)
-      .then(
-        expect(fs.appendFileSync).toHaveBeenCalledWith(
-          filename,
-          message + '\n',
-        ),
-      );
+    await logger.log(message);
+    expect(fs.appendFileSync).toHaveBeenCalledWith(
+      filename,
+      message + '\n',
+    );
   });
 });
