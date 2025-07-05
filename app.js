@@ -72,6 +72,23 @@ measuring.add('example-measure', 200);
 measuring.list('example-measure',new Date('2025-01-01'), new Date('2025-12-31')).then((data) => {console.log('Measure data:', data);});
 measuring.total('example-measure',new Date('2025-01-01'), new Date('2025-12-31')).then((data) => {console.log('Measure data:', data);});
 
+// lets notify
+const notifying = require('./src/notifying')(
+  'memory',
+  { 'express-app': app },
+  eventEmitter,
+);
+console.log(notifying);
+notifying.createTopic('example-topic');
+notifying.subscribe('example-topic', (message) => {
+  console.log('Subsriber 1 Received message on example-topic:', message);
+});
+notifying.subscribe('example-topic', (message) => {
+  console.log('Subscriber 2 Received message on example-topic:', message);
+});
+notifying.notify('example-topic', { text: 'Hello, World!' });
+notifying.notify('example-topic', { text: 'Hello, World 2!' });
+
 // lets work
 const worker = require('./src/working')(
   'memory',
