@@ -25,6 +25,7 @@ function patchEmitter(emitter) {
 const eventEmitter = new EventEmitter();
 patchEmitter(eventEmitter);
 
+
 // lets log
 const log = require('./src/logging')('', { 'express-app': app }, eventEmitter);
 
@@ -36,6 +37,8 @@ const cache = require('./src/caching')(
 );
 cache.put('currentdate', new Date());
 log.log(cache.get('currentdate'));
+
+/*
 
 // lets queue
 const queue = require('./src/queueing')(
@@ -87,6 +90,7 @@ workflow.runWorkflow('example-workflow', {}, () => {
   console.log('Workdflow ended');
 });
 
+*/
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   log.log(`Server is running on port ${PORT}`);
