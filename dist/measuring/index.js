@@ -11,7 +11,7 @@ const Routes = require('./routes');
  * @return {!MeasuringService} A MeasuringService instance.
  */
 function createMeasuringService(type, options, eventEmitter) {
-  const measuring = new MeasuringService(eventEmitter);
+  const measuring = new MeasuringService(options, eventEmitter);
   Routes(options, eventEmitter, measuring);
   return measuring;
 }

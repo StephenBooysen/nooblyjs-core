@@ -388,7 +388,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="caching_index.js.html">caching/index.js</a>, <a href="caching_index.js.html#line16">line 16</a>
+        <a href="caching_index.js.html">caching/index.js</a>, <a href="caching_index.js.html#line17">line 17</a>
     </li></ul></dd>
     
 
@@ -449,7 +449,7 @@
     
 
     
-    <h4 class="name" id="createDataserveService"><span class="type-signature"></span>createDataserveService<span class="signature">(type, options<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; (non-null) {DataRingService}</span></h4>
+    <h4 class="name" id="createDataserveService"><span class="type-signature"></span>createDataserveService<span class="signature">(type, options<span class="signature-attributes">opt</span>, eventEmitter)</span><span class="type-signature"> &rarr; (non-null) {DataRingService}</span></h4>
     
 
     
@@ -519,7 +519,7 @@
 
             
 
-            <td class="description last">The type of data ring provider to use. Valid options are 'memory', 'file', and 'simpledb'.</td>
+            <td class="description last">The type of data serving provider to use. Valid options are 'memory', 'file', and 'simpledb'.</td>
         </tr>
 
     
@@ -553,6 +553,37 @@
             
 
             <td class="description last">The connection options for the chosen provider.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>eventEmitter</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">EventEmitter</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last">An event emitter for handling events.</td>
         </tr>
 
     
@@ -593,7 +624,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="dataserve_index.js.html">dataserve/index.js</a>, <a href="dataserve_index.js.html#line65">line 65</a>
+        <a href="dataserve_index.js.html">dataserve/index.js</a>, <a href="dataserve_index.js.html#line18">line 18</a>
     </li></ul></dd>
     
 
@@ -1853,7 +1884,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="searching_index.js.html">searching/index.js</a>, <a href="searching_index.js.html#line16">line 16</a>
+        <a href="searching_index.js.html">searching/index.js</a>, <a href="searching_index.js.html#line15">line 15</a>
     </li></ul></dd>
     
 
@@ -2959,13 +2990,13 @@
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Cache.html">Cache</a></li><li><a href="CacheMemcached.html">CacheMemcached</a></li><li><a href="CacheRedis.html">CacheRedis</a></li><li><a href="ConsoleLogger.html">ConsoleLogger</a></li><li><a href="FileLogger.html">FileLogger</a></li><li><a href="InMemoryQueue.html">InMemoryQueue</a></li><li><a href="S3FilingProvider.html">S3FilingProvider</a></li><li><a href="SchedulerProvider.html">SchedulerProvider</a></li><li><a href="SimpleDbDataRingProvider.html">SimpleDbDataRingProvider</a></li><li><a href="WorkerProvider.html">WorkerProvider</a></li></ul><h3>Global</h3><ul><li><a href="global.html#createCache">createCache</a></li><li><a href="global.html#createDataserveService">createDataserveService</a></li><li><a href="global.html#createFilingService">createFilingService</a></li><li><a href="global.html#createLogger">createLogger</a></li><li><a href="global.html#createMeasuringService">createMeasuringService</a></li><li><a href="global.html#createNotificationService">createNotificationService</a></li><li><a href="global.html#createQueue">createQueue</a></li><li><a href="global.html#createSearchService">createSearchService</a></li><li><a href="global.html#createWorkflowService">createWorkflowService</a></li><li><a href="global.html#getSchedulerInstance">getSchedulerInstance</a></li><li><a href="global.html#getWorkerInstance">getWorkerInstance</a></li><li><a href="global.html#instance">instance</a></li><li><a href="global.html#resetSchedulerInstance">resetSchedulerInstance</a></li><li><a href="global.html#run">run</a></li><li><a href="global.html#updateStatus">updateStatus</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Cache.html">Cache</a></li><li><a href="CacheMemcached.html">CacheMemcached</a></li><li><a href="CacheRedis.html">CacheRedis</a></li><li><a href="ConsoleLogger.html">ConsoleLogger</a></li><li><a href="DataServeSimpleDBProvider.html">DataServeSimpleDBProvider</a></li><li><a href="FileLogger.html">FileLogger</a></li><li><a href="InMemoryQueue.html">InMemoryQueue</a></li><li><a href="S3FilingProvider.html">S3FilingProvider</a></li><li><a href="SchedulerProvider.html">SchedulerProvider</a></li><li><a href="WorkerProvider.html">WorkerProvider</a></li></ul><h3>Global</h3><ul><li><a href="global.html#createCache">createCache</a></li><li><a href="global.html#createDataserveService">createDataserveService</a></li><li><a href="global.html#createFilingService">createFilingService</a></li><li><a href="global.html#createLogger">createLogger</a></li><li><a href="global.html#createMeasuringService">createMeasuringService</a></li><li><a href="global.html#createNotificationService">createNotificationService</a></li><li><a href="global.html#createQueue">createQueue</a></li><li><a href="global.html#createSearchService">createSearchService</a></li><li><a href="global.html#createWorkflowService">createWorkflowService</a></li><li><a href="global.html#getSchedulerInstance">getSchedulerInstance</a></li><li><a href="global.html#getWorkerInstance">getWorkerInstance</a></li><li><a href="global.html#instance">instance</a></li><li><a href="global.html#resetSchedulerInstance">resetSchedulerInstance</a></li><li><a href="global.html#run">run</a></li><li><a href="global.html#updateStatus">updateStatus</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Fri Jul 04 2025 20:36:34 GMT+0200 (South Africa Standard Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Sat Jul 05 2025 17:32:47 GMT+0000 (Coordinated Universal Time)
 </footer>
 
 <script> prettyPrint(); </script>

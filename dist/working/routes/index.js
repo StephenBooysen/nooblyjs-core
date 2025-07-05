@@ -11,7 +11,8 @@ module.exports = (options, eventEmitter, worker) => {
     const app = options['express-app'];
     app.post('/api/working/run', (req, res) => {
       const {
-        task
+        task,
+        data
       } = req.body;
       if (task) {
         worker.start(task, data => {

@@ -3,8 +3,9 @@
  */
 
 class MeasuringService {
-  constructor(eventEmitter) {
+  constructor(options, eventEmitter) {
     this.metrics = new Map(); // Stores metrics: Map<metricName, Array<{value: number, timestamp: Date}>>
+    this.options = options || {};
     this.eventEmitter_ = eventEmitter;
   }
 
@@ -13,7 +14,7 @@ class MeasuringService {
    * @param {string} metricName - The name of the metric.
    * @param {number} value - The value of the measure.
    */
-  add(metricName, value) {
+  async add(metricName, value) {
     if (!this.metrics.has(metricName)) {
       this.metrics.set(metricName, []);
     }
@@ -30,7 +31,9 @@ class MeasuringService {
    * @param {Date} endDate - The end date of the period (inclusive).
    * @returns {Array<{value: number, timestamp: Date}>} - An array of measures within the period.
    */
-  _filterMeasuresByPeriod(metricName, startDate, endDate) {
+   _filterMeasuresByPeriod(metricName, startDate, endDate) {
+    console.log(startDate);
+    console.log(endDate);   
     const measures = this.metrics.get(metricName);
     if (!measures) {
       return [];
@@ -48,7 +51,7 @@ class MeasuringService {
    * @param {Date} endDate - The end date of the period (inclusive).
    * @returns {Array<{value: number, timestamp: Date}>} - An array of measures.
    */
-  list(metricName, startDate, endDate) {
+  async list(metricName, startDate, endDate) {
     const measures = this._filterMeasuresByPeriod(
       metricName,
       startDate,
@@ -71,7 +74,7 @@ class MeasuringService {
    * @param {Date} endDate - The end date of the period (inclusive).
    * @returns {number} - The total sum of measures.
    */
-  total(metricName, startDate, endDate) {
+  async total(metricName, startDate, endDate) {
     const measures = this._filterMeasuresByPeriod(
       metricName,
       startDate,
@@ -95,7 +98,7 @@ class MeasuringService {
    * @param {Date} endDate - The end date of the period (inclusive).
    * @returns {number} - The average of measures.
    */
-  average(metricName, startDate, endDate) {
+  async average(metricName, startDate, endDate) {
     const measures = this._filterMeasuresByPeriod(
       metricName,
       startDate,

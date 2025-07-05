@@ -1,5 +1,5 @@
 ### Working API Status
-GET http://localhost:3000/api/workflow/status
+GET http://localhost:3000/api/working/status
 
 ### Working API Run
 POST http://localhost:3000/api/working/run

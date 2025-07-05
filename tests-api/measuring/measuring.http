@@ -2,10 +2,21 @@
 GET http://localhost:3000/api/measuring/status
 
 ### Measuring API Measure
-POST http://localhost:3000/api/measuring/measure
+POST http://localhost:3000/api/measuring/add
 Content-Type: application/json
 
 {
   "metric": "testMetric",
   "value": 123
 }
+
+### Get the measurement list
+http://localhost:3000/api/measuring/list/example-measure/2025-01-01%2000:00:01/2025-12-01%2000:00:01/
+
+
+### Get the measurement total
+http://localhost:3000/api/measuring/total/example-measure/2025-01-01%2000:00:01/2025-12-01%2000:00:01/
+
+
+### Get the measurement average
+http://localhost:3000/api/measuring/total/example-measure/2025-01-01%2000:00:01/2025-12-01%2000:00:01/

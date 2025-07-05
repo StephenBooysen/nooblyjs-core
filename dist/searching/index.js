@@ -1,9 +1,7 @@
-"use strict";
-
 /**
  * @fileoverview Factory for the Search service.
  */
-// TODO I broke this so need to fix
+'use strict';
 
 const SearchService = require('./provider/searching.js');
 const Routes = require('./routes');

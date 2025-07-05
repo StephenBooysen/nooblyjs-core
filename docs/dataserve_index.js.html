@@ -31,84 +31,34 @@
  * @fileoverview Factory for creating DataRingService instances.
  */
 
-const InMemoryDataRingProvider = require('./providers/dataserveInMemory');
-const FileDataRingProvider = require('./providers/dataserveFile');
-const SimpleDbDataRingProvider = require('./providers/dataserveSimpleDb');
-
-class DataServeService {
-  constructor(provider, eventEmitter) {
-    if (!provider) {
-      throw new Error('DataRingService requires a provider.');
-    }
-    this.provider = provider;
-    this.eventEmitter_ = eventEmitter;
-  }
-
-  /**
-   * Creates a new data container.
-   * @param {string} containerName - The name of the container.
-   * @returns {Promise&lt;void>} A promise that resolves when the container is created.
-   */
-  async createContainer(containerName) {
-    return this.provider.createContainer(containerName);
-  }
-
-  /**
-   * Adds a JSON object to a specified container.
-   * @param {string} containerName - The name of the container.
-   * @param {object} jsonObject - The JSON object to add.
-   * @returns {Promise&lt;string>} A promise that resolves with the unique key of the added object.
-   */
-  async add(containerName, jsonObject) {
-    return this.provider.add(containerName, jsonObject);
-  }
-
-  /**
-   * Removes a JSON object from a specified container by its key.
-   * @param {string} containerName - The name of the container.
-   * @param {string} objectKey - The key of the JSON object to remove.
-   * @returns {Promise&lt;boolean>} A promise that resolves to true if the object was removed, false otherwise.
-   */
-  async remove(containerName, objectKey) {
-    return this.provider.remove(containerName, objectKey);
-  }
-
-  /**
-   * Finds JSON objects in a specified container that contain the search term.
-   * @param {string} containerName - The name of the container.
-   * @param {string} searchTerm - The term to search for.
-   * @returns {Promise&lt;Array&lt;object>>} A promise that resolves with an array of matching JSON objects.
-   */
-  async find(containerName, searchTerm) {
-    return this.provider.find(containerName, searchTerm);
-  }
-}
+const InMemoryDataRingProvider = require('./providers/dataserve');
+const FileDataRingProvider = require('./providers/dataservefiles');
+const SimpleDbDataRingProvider = require('./providers/dataserveSimpleDB');
+const Routes = require('./routes');
 
 /**
  * Creates a DataRingService instance based on the provided type.
- * @param {string} type The type of data ring provider to use. Valid options are 'memory', 'file', and 'simpledb'.
+ * @param {string} type The type of data serving provider to use. Valid options are 'memory', 'file', and 'simpledb'.
  * @param {Object=} options The connection options for the chosen provider.
+ * @param {EventEmitter} eventEmitter An event emitter for handling events.
  * @return {!DataRingService} A DataRingService instance.
  */
 function createDataserveService(type, options, eventEmitter) {
   let provider;
   switch (type) {
-    case 'memory':
-      provider = new InMemoryDataRingProvider(options, eventEmitter);
-      break;
     case 'file':
-      provider = new FileDataRingProvider(options, eventEmitter);
+      provider = new DataServeFileProvider(options, eventEmitter);
       break;
     case 'simpledb':
-      provider = new SimpleDbDataRingProvider(options, eventEmitter);
+      provider = new DataServeSimpleDBProvider(options, eventEmitter);
       break;
     default:
-      throw new Error(`Unsupported data ring provider type: ${type}`);
+      provider = new DataServeProvider(options, eventEmitter);
+      break;
   }
-  return new DataServeService(provider, eventEmitter);
+  Routes(options, eventEmitter, provider);
+  return provider
 }
-
-module.exports = createDataserveService;
 </code></pre>
         </article>
     </section>
@@ -119,13 +69,13 @@ module.exports = createDataserveService;
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Cache.html">Cache</a></li><li><a href="CacheMemcached.html">CacheMemcached</a></li><li><a href="CacheRedis.html">CacheRedis</a></li><li><a href="ConsoleLogger.html">ConsoleLogger</a></li><li><a href="FileLogger.html">FileLogger</a></li><li><a href="InMemoryQueue.html">InMemoryQueue</a></li><li><a href="S3FilingProvider.html">S3FilingProvider</a></li><li><a href="SchedulerProvider.html">SchedulerProvider</a></li><li><a href="SimpleDbDataRingProvider.html">SimpleDbDataRingProvider</a></li><li><a href="WorkerProvider.html">WorkerProvider</a></li></ul><h3>Global</h3><ul><li><a href="global.html#createCache">createCache</a></li><li><a href="global.html#createDataserveService">createDataserveService</a></li><li><a href="global.html#createFilingService">createFilingService</a></li><li><a href="global.html#createLogger">createLogger</a></li><li><a href="global.html#createMeasuringService">createMeasuringService</a></li><li><a href="global.html#createNotificationService">createNotificationService</a></li><li><a href="global.html#createQueue">createQueue</a></li><li><a href="global.html#createSearchService">createSearchService</a></li><li><a href="global.html#createWorkflowService">createWorkflowService</a></li><li><a href="global.html#getSchedulerInstance">getSchedulerInstance</a></li><li><a href="global.html#getWorkerInstance">getWorkerInstance</a></li><li><a href="global.html#instance">instance</a></li><li><a href="global.html#resetSchedulerInstance">resetSchedulerInstance</a></li><li><a href="global.html#run">run</a></li><li><a href="global.html#updateStatus">updateStatus</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Cache.html">Cache</a></li><li><a href="CacheMemcached.html">CacheMemcached</a></li><li><a href="CacheRedis.html">CacheRedis</a></li><li><a href="ConsoleLogger.html">ConsoleLogger</a></li><li><a href="DataServeSimpleDBProvider.html">DataServeSimpleDBProvider</a></li><li><a href="FileLogger.html">FileLogger</a></li><li><a href="InMemoryQueue.html">InMemoryQueue</a></li><li><a href="S3FilingProvider.html">S3FilingProvider</a></li><li><a href="SchedulerProvider.html">SchedulerProvider</a></li><li><a href="WorkerProvider.html">WorkerProvider</a></li></ul><h3>Global</h3><ul><li><a href="global.html#createCache">createCache</a></li><li><a href="global.html#createDataserveService">createDataserveService</a></li><li><a href="global.html#createFilingService">createFilingService</a></li><li><a href="global.html#createLogger">createLogger</a></li><li><a href="global.html#createMeasuringService">createMeasuringService</a></li><li><a href="global.html#createNotificationService">createNotificationService</a></li><li><a href="global.html#createQueue">createQueue</a></li><li><a href="global.html#createSearchService">createSearchService</a></li><li><a href="global.html#createWorkflowService">createWorkflowService</a></li><li><a href="global.html#getSchedulerInstance">getSchedulerInstance</a></li><li><a href="global.html#getWorkerInstance">getWorkerInstance</a></li><li><a href="global.html#instance">instance</a></li><li><a href="global.html#resetSchedulerInstance">resetSchedulerInstance</a></li><li><a href="global.html#run">run</a></li><li><a href="global.html#updateStatus">updateStatus</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Fri Jul 04 2025 20:36:34 GMT+0200 (South Africa Standard Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Sat Jul 05 2025 17:32:47 GMT+0000 (Coordinated Universal Time)
 </footer>
 
 <script> prettyPrint(); </script>

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Class: S3FilingProvider</title>
+    <title>JSDoc: Class: DataServeSimpleDBProvider</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,7 +17,7 @@
 
 <div id="main">
 
-    <h1 class="page-title">Class: S3FilingProvider</h1>
+    <h1 class="page-title">Class: DataServeSimpleDBProvider</h1>
 
     
 
@@ -28,7 +28,7 @@
 
 <header>
     
-        <h2><span class="attribs"><span class="type-signature"></span></span>S3FilingProvider<span class="signature">(options)</span><span class="type-signature"></span></h2>
+        <h2><span class="attribs"><span class="type-signature"></span></span>DataServeSimpleDBProvider<span class="signature">(options)</span><span class="type-signature"></span></h2>
         
     
 </header>
@@ -41,7 +41,7 @@
     
 
     
-    <h4 class="name" id="S3FilingProvider"><span class="type-signature"></span>new S3FilingProvider<span class="signature">(options)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="DataServeSimpleDBProvider"><span class="type-signature"></span>new DataServeSimpleDBProvider<span class="signature">(options)</span><span class="type-signature"></span></h4>
     
 
     
@@ -49,7 +49,7 @@
 
 
 <div class="description">
-    Initializes the S3 client.
+    Initializes the SimpleDB client.
 </div>
 
 
@@ -101,7 +101,7 @@
 
             
 
-            <td class="description last">The options for the S3 client.
+            <td class="description last">The options for the SimpleDB client.
                 <h6>Properties</h6>
                 
 
@@ -125,37 +125,6 @@
     </thead>
 
     <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>bucketName</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">string</span>
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-
-                
-
-                
-                </td>
-            
-
-            
-
-            <td class="description last">The name of the S3 bucket.</td>
-        </tr>
-
     
 
         <tr>
@@ -298,7 +267,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="filing_providers_filingS3.js.html">filing/providers/filingS3.js</a>, <a href="filing_providers_filingS3.js.html#line16">line 16</a>
+        <a href="dataserve_providers_dataserveSimpleDB.js.html">dataserve/providers/dataserveSimpleDB.js</a>, <a href="dataserve_providers_dataserveSimpleDB.js.html#line16">line 16</a>
     </li></ul></dd>
     
 
@@ -354,7 +323,7 @@
     
 
     
-    <h4 class="name" id="create"><span class="type-signature">(async) </span>create<span class="signature">(filePath, content)</span><span class="type-signature"> &rarr; {Promise.&lt;void>}</span></h4>
+    <h4 class="name" id="add"><span class="type-signature">(async) </span>add<span class="signature">(domainName, jsonObject)</span><span class="type-signature"> &rarr; {Promise.&lt;string>}</span></h4>
     
 
     
@@ -362,7 +331,7 @@
 
 
 <div class="description">
-    Uploads a file to S3.
+    Adds a JSON object to a specified SimpleDB domain.
 </div>
 
 
@@ -398,7 +367,7 @@
 
         <tr>
             
-                <td class="name"><code>filePath</code></td>
+                <td class="name"><code>domainName</code></td>
             
 
             <td class="type">
@@ -414,20 +383,20 @@
 
             
 
-            <td class="description last">The path to the file in the bucket (key).</td>
+            <td class="description last">The name of the domain.</td>
         </tr>
 
     
 
         <tr>
             
-                <td class="name"><code>content</code></td>
+                <td class="name"><code>jsonObject</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">string</span>
+<span class="param-type">object</span>
 
 
             
@@ -437,7 +406,7 @@
 
             
 
-            <td class="description last">The content of the file.</td>
+            <td class="description last">The JSON object to add.</td>
         </tr>
 
     
@@ -478,7 +447,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="filing_providers_filingS3.js.html">filing/providers/filingS3.js</a>, <a href="filing_providers_filingS3.js.html#line39">line 39</a>
+        <a href="dataserve_providers_dataserveSimpleDB.js.html">dataserve/providers/dataserveSimpleDB.js</a>, <a href="dataserve_providers_dataserveSimpleDB.js.html#line50">line 50</a>
     </li></ul></dd>
     
 
@@ -506,471 +475,10 @@
 <h5>Returns:</h5>
 
         
-
-
-<dl>
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type">Promise.&lt;void></span>
-
-
-    </dd>
-</dl>
-
-    
-
-
-
-
-
-        
-            
-
-    
-
-    
-    <h4 class="name" id="delete"><span class="type-signature">(async) </span>delete<span class="signature">(filePath)</span><span class="type-signature"> &rarr; {Promise.&lt;void>}</span></h4>
-    
-
-    
-
-
-
-<div class="description">
-    Deletes a file from S3.
+<div class="param-desc">
+    A promise that resolves with the unique item name.
 </div>
 
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>filePath</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">string</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">The path to the file in the bucket (key).</td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="filing_providers_filingS3.js.html">filing/providers/filingS3.js</a>, <a href="filing_providers_filingS3.js.html#line90">line 90</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-
-
-<dl>
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type">Promise.&lt;void></span>
-
-
-    </dd>
-</dl>
-
-    
-
-
-
-
-
-        
-            
-
-    
-
-    
-    <h4 class="name" id="list"><span class="type-signature">(async) </span>list<span class="signature">(dirPath)</span><span class="type-signature"> &rarr; {Promise.&lt;Array.&lt;string>>}</span></h4>
-    
-
-    
-
-
-
-<div class="description">
-    Lists files in a specified "directory" (prefix) in S3.
-</div>
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>dirPath</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">string</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">The prefix to list objects under.</td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="filing_providers_filingS3.js.html">filing/providers/filingS3.js</a>, <a href="filing_providers_filingS3.js.html#line114">line 114</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-
-
-<dl>
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type">Promise.&lt;Array.&lt;string>></span>
-
-
-    </dd>
-</dl>
-
-    
-
-
-
-
-
-        
-            
-
-    
-
-    
-    <h4 class="name" id="read"><span class="type-signature">(async) </span>read<span class="signature">(filePath)</span><span class="type-signature"> &rarr; {Promise.&lt;string>}</span></h4>
-    
-
-    
-
-
-
-<div class="description">
-    Downloads a file from S3.
-</div>
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>filePath</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">string</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">The path to the file in the bucket (key).</td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="filing_providers_filingS3.js.html">filing/providers/filingS3.js</a>, <a href="filing_providers_filingS3.js.html#line64">line 64</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
 
 
 <dl>
@@ -997,7 +505,7 @@
     
 
     
-    <h4 class="name" id="update"><span class="type-signature">(async) </span>update<span class="signature">(filePath, content)</span><span class="type-signature"> &rarr; {Promise.&lt;void>}</span></h4>
+    <h4 class="name" id="createContainer"><span class="type-signature">(async) </span>createContainer<span class="signature">(domainName)</span><span class="type-signature"> &rarr; {Promise.&lt;void>}</span></h4>
     
 
     
@@ -1005,7 +513,7 @@
 
 
 <div class="description">
-    Updates a file in S3 (same as create, as S3 overwrites).
+    Creates a new SimpleDB domain.
 </div>
 
 
@@ -1041,7 +549,7 @@
 
         <tr>
             
-                <td class="name"><code>filePath</code></td>
+                <td class="name"><code>domainName</code></td>
             
 
             <td class="type">
@@ -1057,30 +565,7 @@
 
             
 
-            <td class="description last">The path to the file in the bucket (key).</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>content</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">string</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">The new content of the file.</td>
+            <td class="description last">The name of the domain (container).</td>
         </tr>
 
     
@@ -1121,7 +606,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="filing_providers_filingS3.js.html">filing/providers/filingS3.js</a>, <a href="filing_providers_filingS3.js.html#line141">line 141</a>
+        <a href="dataserve_providers_dataserveSimpleDB.js.html">dataserve/providers/dataserveSimpleDB.js</a>, <a href="dataserve_providers_dataserveSimpleDB.js.html#line35">line 35</a>
     </li></ul></dd>
     
 
@@ -1149,6 +634,10 @@
 <h5>Returns:</h5>
 
         
+<div class="param-desc">
+    A promise that resolves when the domain is created.
+</div>
+
 
 
 <dl>
@@ -1158,6 +647,371 @@
     <dd>
         
 <span class="param-type">Promise.&lt;void></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="find"><span class="type-signature">(async) </span>find<span class="signature">(domainName, searchTerm)</span><span class="type-signature"> &rarr; {Promise.&lt;Array.&lt;object>>}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Finds JSON objects in a specified SimpleDB domain that contain the search term.
+SimpleDB queries are SQL-like. This implementation performs a basic search.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>domainName</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The name of the domain.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>searchTerm</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The term to search for.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="dataserve_providers_dataserveSimpleDB.js.html">dataserve/providers/dataserveSimpleDB.js</a>, <a href="dataserve_providers_dataserveSimpleDB.js.html#line106">line 106</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    A promise that resolves with an array of matching JSON objects.
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Promise.&lt;Array.&lt;object>></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="remove"><span class="type-signature">(async) </span>remove<span class="signature">(domainName, objectKey)</span><span class="type-signature"> &rarr; {Promise.&lt;boolean>}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Removes a JSON object from a specified SimpleDB domain by its item name.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>domainName</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The name of the domain.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>objectKey</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The item name of the JSON object to remove.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="dataserve_providers_dataserveSimpleDB.js.html">dataserve/providers/dataserveSimpleDB.js</a>, <a href="dataserve_providers_dataserveSimpleDB.js.html#line79">line 79</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    A promise that resolves to true if the object was removed, false otherwise.
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Promise.&lt;boolean></span>
 
 
     </dd>

@@ -17,5 +17,5 @@ GET http://localhost:3000/api/searching/search/user
 
 
 ### Delete a cache record for a key
-DELETE http://localhost:3000/api/searching/delete/34c6f47d-f5c0-4ed4-b209-43d1500a5eee
+DELETE http://localhost:3000/api/searching/delete/44713931-44d6-4e57-b462-923490bb82c8
 

@@ -25,9 +25,11 @@ class WorkerProvider {
   /**
    * Starts the worker thread and executes the provided script.
    * @param {string} scriptPath The absolute path to the script to execute in the worker.
+   * @param {Object} data The data to be passed to the worker thread.
    * @param {Function=} completionCallback Optional callback function to be called on completion.
    */
-  async start(scriptPath, completionCallback) {
+  async start(scriptPath, data,  completionCallback) {
+    
     if (this.worker_) {
       if (this.eventEmitter_)
         this.eventEmitter_.emit('worker:start:error', {
@@ -36,13 +38,14 @@ class WorkerProvider {
         });
       return;
     }
-
     this.completionCallback_ = completionCallback;
+
     this.worker_ = new Worker(
-      path.resolve(__dirname, '../providers/workerScript.js'),
+      path.resolve(__dirname, '../providers/workerScript.js'), data
     );
+
     if (this.eventEmitter_)
-      this.eventEmitter_.emit('worker:start', { scriptPath });
+      this.eventEmitter_.emit('worker:start', { scriptPath , data });
 
     this.worker_.on('message', (message) => {
       if (message.type === 'status') {

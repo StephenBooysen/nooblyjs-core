@@ -22,7 +22,10 @@ Content-Type: application/json
 {
   "name": "myWorkflow",
   "data": {
-    "initialData": "someValue"
+    "initialData": "someValue",
+    "moreData": {
+      "nestedData": "anotherValue"  
+    }
   }
 }
 

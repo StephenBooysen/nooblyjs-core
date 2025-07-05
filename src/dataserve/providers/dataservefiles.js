@@ -1,20 +1,18 @@
-"use strict";
-
 /**
  * @fileoverview File-based DataRing provider.
  */
 
 const fs = require('fs').promises;
 const path = require('path');
-const {
-  v4: uuidv4
-} = require('uuid');
-class FileDataRingProvider {
+const { v4: uuidv4 } = require('uuid');
+
+class DataServeFileProvider {
   constructor(options, eventEmitter) {
     this.baseDir = path.resolve(options.baseDir || './dataserve_data');
     this.containers = new Map(); // Map<containerName, containerFilePath>
     this.eventEmitter_ = eventEmitter;
   }
+
   async _getContainerFilePath(containerName) {
     const containerFilePath = path.join(this.baseDir, `${containerName}.json`);
     if (!this.containers.has(containerName)) {
@@ -27,6 +25,7 @@ class FileDataRingProvider {
     }
     return containerFilePath;
   }
+
   async _readContainerData(containerName) {
     const containerFilePath = await this._getContainerFilePath(containerName);
     try {
@@ -39,13 +38,13 @@ class FileDataRingProvider {
       throw error;
     }
   }
+
   async _writeContainerData(containerName, data) {
     const containerFilePath = await this._getContainerFilePath(containerName);
-    await fs.mkdir(path.dirname(containerFilePath), {
-      recursive: true
-    });
+    await fs.mkdir(path.dirname(containerFilePath), { recursive: true });
     await fs.writeFile(containerFilePath, JSON.stringify(data, null, 2));
   }
+
   async createContainer(containerName) {
     const containerFilePath = path.join(this.baseDir, `${containerName}.json`);
     try {
@@ -56,48 +55,55 @@ class FileDataRingProvider {
         // Container does not exist, create an empty file for it
         await this._writeContainerData(containerName, {});
         this.containers.set(containerName, containerFilePath);
-        if (this.eventEmitter_) this.eventEmitter_.emit('dataserve:createContainer', {
-          containerName
-        });
+        if (this.eventEmitter_)
+          this.eventEmitter_.emit('dataserve:createContainer', {
+            containerName,
+          });
       } else {
         throw error;
       }
     }
   }
+
   async add(containerName, jsonObject) {
     const data = await this._readContainerData(containerName);
     const objectKey = uuidv4();
     data[objectKey] = jsonObject;
     await this._writeContainerData(containerName, data);
-    if (this.eventEmitter_) this.eventEmitter_.emit('dataserve:add', {
-      containerName,
-      objectKey,
-      jsonObject
-    });
+    if (this.eventEmitter_)
+      this.eventEmitter_.emit('dataserve:add', {
+        containerName,
+        objectKey,
+        jsonObject,
+      });
     return objectKey;
   }
+
   async remove(containerName, objectKey) {
     const data = await this._readContainerData(containerName);
     if (data[objectKey]) {
       delete data[objectKey];
       await this._writeContainerData(containerName, data);
-      if (this.eventEmitter_) this.eventEmitter_.emit('dataserve:remove', {
-        containerName,
-        objectKey
-      });
+      if (this.eventEmitter_)
+        this.eventEmitter_.emit('dataserve:remove', {
+          containerName,
+          objectKey,
+        });
       return true;
     }
     return false;
   }
+
   async find(containerName, searchTerm) {
     const data = await this._readContainerData(containerName);
     const results = [];
     const lowerCaseSearchTerm = searchTerm.toLowerCase();
+
     for (const key in data) {
       if (Object.prototype.hasOwnProperty.call(data, key)) {
         const obj = data[key];
         let found = false;
-        const searchInObject = currentObj => {
+        const searchInObject = (currentObj) => {
           for (const prop in currentObj) {
             if (Object.prototype.hasOwnProperty.call(currentObj, prop)) {
               const value = currentObj[prop];
@@ -113,18 +119,21 @@ class FileDataRingProvider {
             }
           }
         };
+
         searchInObject(obj);
         if (found) {
           results.push(obj);
         }
       }
     }
-    if (this.eventEmitter_) this.eventEmitter_.emit('dataserve:find', {
-      containerName,
-      searchTerm,
-      results
-    });
+    if (this.eventEmitter_)
+      this.eventEmitter_.emit('dataserve:find', {
+        containerName,
+        searchTerm,
+        results,
+      });
     return results;
   }
 }
+
 module.exports = FileDataRingProvider;

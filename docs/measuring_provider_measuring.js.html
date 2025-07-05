@@ -31,8 +31,9 @@
  */
 
 class MeasuringService {
-  constructor(eventEmitter) {
+  constructor(options, eventEmitter) {
     this.metrics = new Map(); // Stores metrics: Map&lt;metricName, Array&lt;{value: number, timestamp: Date}>>
+    this.options = options || {};
     this.eventEmitter_ = eventEmitter;
   }
 
@@ -41,7 +42,7 @@ class MeasuringService {
    * @param {string} metricName - The name of the metric.
    * @param {number} value - The value of the measure.
    */
-  add(metricName, value) {
+  async add(metricName, value) {
     if (!this.metrics.has(metricName)) {
       this.metrics.set(metricName, []);
     }
@@ -58,7 +59,9 @@ class MeasuringService {
    * @param {Date} endDate - The end date of the period (inclusive).
    * @returns {Array&lt;{value: number, timestamp: Date}>} - An array of measures within the period.
    */
-  _filterMeasuresByPeriod(metricName, startDate, endDate) {
+   _filterMeasuresByPeriod(metricName, startDate, endDate) {
+    console.log(startDate);
+    console.log(endDate);   
     const measures = this.metrics.get(metricName);
     if (!measures) {
       return [];
@@ -76,7 +79,7 @@ class MeasuringService {
    * @param {Date} endDate - The end date of the period (inclusive).
    * @returns {Array&lt;{value: number, timestamp: Date}>} - An array of measures.
    */
-  list(metricName, startDate, endDate) {
+  async list(metricName, startDate, endDate) {
     const measures = this._filterMeasuresByPeriod(
       metricName,
       startDate,
@@ -99,7 +102,7 @@ class MeasuringService {
    * @param {Date} endDate - The end date of the period (inclusive).
    * @returns {number} - The total sum of measures.
    */
-  total(metricName, startDate, endDate) {
+  async total(metricName, startDate, endDate) {
     const measures = this._filterMeasuresByPeriod(
       metricName,
       startDate,
@@ -123,7 +126,7 @@ class MeasuringService {
    * @param {Date} endDate - The end date of the period (inclusive).
    * @returns {number} - The average of measures.
    */
-  average(metricName, startDate, endDate) {
+  async average(metricName, startDate, endDate) {
     const measures = this._filterMeasuresByPeriod(
       metricName,
       startDate,
@@ -162,13 +165,13 @@ module.exports = MeasuringService;</code></pre>
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Cache.html">Cache</a></li><li><a href="CacheMemcached.html">CacheMemcached</a></li><li><a href="CacheRedis.html">CacheRedis</a></li><li><a href="ConsoleLogger.html">ConsoleLogger</a></li><li><a href="FileLogger.html">FileLogger</a></li><li><a href="InMemoryQueue.html">InMemoryQueue</a></li><li><a href="S3FilingProvider.html">S3FilingProvider</a></li><li><a href="SchedulerProvider.html">SchedulerProvider</a></li><li><a href="SimpleDbDataRingProvider.html">SimpleDbDataRingProvider</a></li><li><a href="WorkerProvider.html">WorkerProvider</a></li></ul><h3>Global</h3><ul><li><a href="global.html#createCache">createCache</a></li><li><a href="global.html#createDataserveService">createDataserveService</a></li><li><a href="global.html#createFilingService">createFilingService</a></li><li><a href="global.html#createLogger">createLogger</a></li><li><a href="global.html#createMeasuringService">createMeasuringService</a></li><li><a href="global.html#createNotificationService">createNotificationService</a></li><li><a href="global.html#createQueue">createQueue</a></li><li><a href="global.html#createSearchService">createSearchService</a></li><li><a href="global.html#createWorkflowService">createWorkflowService</a></li><li><a href="global.html#getSchedulerInstance">getSchedulerInstance</a></li><li><a href="global.html#getWorkerInstance">getWorkerInstance</a></li><li><a href="global.html#instance">instance</a></li><li><a href="global.html#resetSchedulerInstance">resetSchedulerInstance</a></li><li><a href="global.html#run">run</a></li><li><a href="global.html#updateStatus">updateStatus</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Cache.html">Cache</a></li><li><a href="CacheMemcached.html">CacheMemcached</a></li><li><a href="CacheRedis.html">CacheRedis</a></li><li><a href="ConsoleLogger.html">ConsoleLogger</a></li><li><a href="DataServeSimpleDBProvider.html">DataServeSimpleDBProvider</a></li><li><a href="FileLogger.html">FileLogger</a></li><li><a href="InMemoryQueue.html">InMemoryQueue</a></li><li><a href="S3FilingProvider.html">S3FilingProvider</a></li><li><a href="SchedulerProvider.html">SchedulerProvider</a></li><li><a href="WorkerProvider.html">WorkerProvider</a></li></ul><h3>Global</h3><ul><li><a href="global.html#createCache">createCache</a></li><li><a href="global.html#createDataserveService">createDataserveService</a></li><li><a href="global.html#createFilingService">createFilingService</a></li><li><a href="global.html#createLogger">createLogger</a></li><li><a href="global.html#createMeasuringService">createMeasuringService</a></li><li><a href="global.html#createNotificationService">createNotificationService</a></li><li><a href="global.html#createQueue">createQueue</a></li><li><a href="global.html#createSearchService">createSearchService</a></li><li><a href="global.html#createWorkflowService">createWorkflowService</a></li><li><a href="global.html#getSchedulerInstance">getSchedulerInstance</a></li><li><a href="global.html#getWorkerInstance">getWorkerInstance</a></li><li><a href="global.html#instance">instance</a></li><li><a href="global.html#resetSchedulerInstance">resetSchedulerInstance</a></li><li><a href="global.html#run">run</a></li><li><a href="global.html#updateStatus">updateStatus</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Fri Jul 04 2025 20:36:34 GMT+0200 (South Africa Standard Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Sat Jul 05 2025 17:32:47 GMT+0000 (Coordinated Universal Time)
 </footer>
 
 <script> prettyPrint(); </script>

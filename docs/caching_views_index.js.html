@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Source: scheduling/exampleScheduledTask.js</title>
+    <title>JSDoc: Source: caching/views/index.js</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,7 +17,7 @@
 
 <div id="main">
 
-    <h1 class="page-title">Source: scheduling/exampleScheduledTask.js</h1>
+    <h1 class="page-title">Source: caching/views/index.js</h1>
 
     
 
@@ -26,21 +26,20 @@
     
     <section>
         <article>
-            <pre class="prettyprint source linenums"><code>/**
- * @fileoverview An example task to be executed by the scheduler.
- */
+            <pre class="prettyprint source linenums"><code>const express = require('express');
 
 /**
- * Runs the example scheduled task.
- * @return {!Promise&lt;string>} A promise that resolves with a completion message.
+ * Caching site.
+ * @param {object} options - The options object.
+ * @param {object} options.express-app - The Express app instance.
+ * @param {object} cache - The caching provider.
  */
-async function run() {
-  const timestamp = new Date().toISOString();
-  console.log(`Scheduled task executed at: ${timestamp}`);
-  return `Scheduled task completed at: ${timestamp}`;
-}
-
-module.exports = { run };
+module.exports = (options, eventEmitter, cache) => {
+    if (options['express-app']) {
+        console.log(__dirname + '/public');
+        options['express-app'].use('/views/caching/', express.static(__dirname + '/public'))
+    }
+};
 </code></pre>
         </article>
     </section>

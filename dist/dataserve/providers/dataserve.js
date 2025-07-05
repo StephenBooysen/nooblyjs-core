@@ -7,7 +7,7 @@
 const {
   v4: uuidv4
 } = require('uuid');
-class InMemoryDataServeProvider {
+class DataServeProvider {
   constructor(options, eventEmitter) {
     this.containers = new Map(); // Map<containerName, Map<objectKey, object>>
     this.eventEmitter_ = eventEmitter;

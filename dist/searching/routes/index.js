@@ -1,4 +1,7 @@
-"use strict";
+/**
+ * @fileoverview This file defines the routes for the searching API in an Express application.
+ */
+'use strict';
 
 const crypto = require('crypto');
 
