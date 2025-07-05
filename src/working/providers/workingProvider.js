@@ -41,7 +41,7 @@ class WorkerProvider {
     this.completionCallback_ = completionCallback;
 
     this.worker_ = new Worker(
-      path.resolve(__dirname, '../providers/workerScript.js'), data
+      path.resolve(__dirname, './workerScript.js')
     );
 
     if (this.eventEmitter_)

@@ -1,8 +1,10 @@
+"use strict";
+
 /**
  * @fileoverview Provides a singleton scheduler for executing tasks at intervals.
  */
 
-const getWorkerInstance = require('../../working');
+const getWorkerInstance = require('../../working/');
 
 /**
  * Manages scheduling and execution of tasks in a worker thread.
@@ -18,9 +20,9 @@ class SchedulerProvider {
     this.scriptPath_ = '';
     /** @private {Function} */
     this.executionCallback_ = null;
-    /** @private {WorkerProvider} */
-    this.worker_ = getWorkerInstance(this.eventEmitter_);
     this.eventEmitter_ = eventEmitter;
+    /** @private {WorkerProvider} */
+    this.worker_ = getWorkerInstance('memory', options, this.eventEmitter_);
   }
 
   /**
@@ -31,39 +33,34 @@ class SchedulerProvider {
    */
   async start(scriptPath, intervalSeconds, executionCallback) {
     if (this.intervalId_) {
-      if (this.eventEmitter_)
-        this.eventEmitter_.emit('scheduler:start:error', {
-          scriptPath,
-          error: 'Scheduler already running.',
-        });
+      if (this.eventEmitter_) this.eventEmitter_.emit('scheduler:start:error', {
+        scriptPath,
+        error: 'Scheduler already running.'
+      });
       return;
     }
-
     this.scriptPath_ = scriptPath;
     this.executionCallback_ = executionCallback;
-
     const executeTask = () => {
-      this.worker_.start(this.scriptPath_, (status, data) => {
+      this.worker_.start(this.scriptPath_, null, (status, data) => {
         if (this.executionCallback_) {
           this.executionCallback_(status, data);
         }
-        if (this.eventEmitter_)
-          this.eventEmitter_.emit('scheduler:taskExecuted', {
-            scriptPath,
-            status,
-            data,
-          });
+        if (this.eventEmitter_) this.eventEmitter_.emit('scheduler:taskExecuted', {
+          scriptPath,
+          status,
+          data
+        });
       });
     };
 
     // Execute immediately and then at intervals
     executeTask();
     this.intervalId_ = setInterval(executeTask, intervalSeconds * 1000);
-    if (this.eventEmitter_)
-      this.eventEmitter_.emit('scheduler:started', {
-        scriptPath,
-        intervalSeconds,
-      });
+    if (this.eventEmitter_) this.eventEmitter_.emit('scheduler:started', {
+      scriptPath,
+      intervalSeconds
+    });
   }
 
   /**
@@ -88,5 +85,4 @@ class SchedulerProvider {
     return this.intervalId_ !== null;
   }
 }
-
 module.exports = SchedulerProvider;

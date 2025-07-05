@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Source: logging/providers/consoleLogger.js</title>
+    <title>JSDoc: Source: scheduling/providers/scheduling.js</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,7 +17,7 @@
 
 <div id="main">
 
-    <h1 class="page-title">Source: logging/providers/consoleLogger.js</h1>
+    <h1 class="page-title">Source: scheduling/providers/scheduling.js</h1>
 
     
 
@@ -27,34 +27,97 @@
     <section>
         <article>
             <pre class="prettyprint source linenums"><code>/**
- * @fileoverview A console logger implementation.
+ * @fileoverview Provides a singleton scheduler for executing tasks at intervals.
  */
 
-const os = require('os');
+const getWorkerInstance = require('../../working/');
 
 /**
- * A class that implements a console logger.
+ * Manages scheduling and execution of tasks in a worker thread.
  */
-class ConsoleLogger {
+class SchedulerProvider {
+  /**
+   * Initializes the SchedulerProvider.
+   */
   constructor(options, eventEmitter) {
+    /** @private {?NodeJS.Timeout} */
+    this.intervalId_ = null;
+    /** @private {string} */
+    this.scriptPath_ = '';
+    /** @private {Function} */
+    this.executionCallback_ = null;
     this.eventEmitter_ = eventEmitter;
+    /** @private {WorkerProvider} */
+    this.worker_ = getWorkerInstance('memory', options, this.eventEmitter_);
   }
 
   /**
-   * Logs a message to the console.
-   * @param {string} message The message to log.
+   * Starts the scheduler to execute a script at a given interval.
+   * @param {string} scriptPath The absolute path to the Node.js file to execute.
+   * @param {number} intervalSeconds The interval in seconds at which to execute the script.
+   * @param {Function=} executionCallback Optional callback function to be called on each execution.
    */
-  async log(message) {
-    const timestamp = new Date().toISOString();
-    const device = os.hostname();
-    const logMessage = `${timestamp} - ${device} - ${message}`;
-    console.log(logMessage);
+  async start(scriptPath, intervalSeconds, executionCallback) {
+    if (this.intervalId_) {
+      if (this.eventEmitter_)
+        this.eventEmitter_.emit('scheduler:start:error', {
+          scriptPath,
+          error: 'Scheduler already running.',
+        });
+      return;
+    }
+
+    this.scriptPath_ = scriptPath;
+    this.executionCallback_ = executionCallback;
+
+    const executeTask = () => {
+      this.worker_.start(this.scriptPath_, null, (status, data) => {
+        if (this.executionCallback_) {
+          this.executionCallback_(status, data);
+        }
+        if (this.eventEmitter_)
+          this.eventEmitter_.emit('scheduler:taskExecuted', {
+            scriptPath,
+            status,
+            data,
+          });
+      });
+    };
+
+    // Execute immediately and then at intervals
+    executeTask();
+    this.intervalId_ = setInterval(executeTask, intervalSeconds * 1000);
     if (this.eventEmitter_)
-      this.eventEmitter_.emit('log:log', { message: logMessage });
+      this.eventEmitter_.emit('scheduler:started', {
+        scriptPath,
+        intervalSeconds,
+      });
+  }
+
+  /**
+   * Stops the scheduler.
+   */
+  async stop() {
+    if (this.intervalId_) {
+      clearInterval(this.intervalId_);
+      this.intervalId_ = null;
+      this.scriptPath_ = '';
+      this.executionCallback_ = null;
+      this.worker_.stop(); // Ensure the worker is stopped
+      if (this.eventEmitter_) this.eventEmitter_.emit('scheduler:stopped');
+    }
+  }
+
+  /**
+   * Checks if the scheduler is running.
+   * @return {boolean} True if the scheduler is running, false otherwise.
+   */
+  async isRunning() {
+    return this.intervalId_ !== null;
   }
 }
 
-module.exports = ConsoleLogger;
+module.exports = SchedulerProvider;
 </code></pre>
         </article>
     </section>

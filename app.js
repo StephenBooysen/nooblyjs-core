@@ -47,6 +47,16 @@ const queue = require('./src/queueing')(
 queue.enqueue(new Date());
 
 
+const scheduling = require('./src/scheduling')(
+  'memory',
+  { 'express-app': app },
+  eventEmitter,
+);
+scheduling.start('../../../tests/working/exampleTask.js', 5, (status, data) => {
+  console.log('Task executed with status:', status, 'and data:', data);
+});
+
+
 const seaching = require('./src/searching')(
   'memory',
   { 'express-app': app },

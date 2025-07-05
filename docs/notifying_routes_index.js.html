@@ -37,11 +37,50 @@ module.exports = (options, eventEmitter, notifier) => {
   if (options['express-app'] &amp;&amp; notifier) {
     const app = options['express-app'];
 
-    app.post('/api/notifying/send', (req, res) => {
-      const { recipient, message } = req.body;
-      if (recipient &amp;&amp; message) {
+    app.post('/api/notifying/topic', (req, res) => {
+      const { topic } = req.body;
+      if (topic) {
         notifier
-          .send(recipient, message)
+          .createTopic(topic)
+          .then(() => res.status(200).send('OK'))
+          .catch((err) => res.status(500).send(err.message));
+      } else {
+        res.status(400).send('Bad Request: Missing topic');
+      }
+    });
+
+    app.post('/api/notifying/subscribe/topic/:topic', (req, res) => {
+      const topic = req.params.topic;
+      const { callbackUrl } = req.body;
+      if (topic &amp;&amp; callbackUrl) {
+        notifier
+          .subscribe(topic, callbackUrl)
+          .then(() => res.status(200).send('OK'))
+          .catch((err) => res.status(500).send(err.message));
+      } else {
+        res.status(400).send('Bad Request: Missing topic or callback URL');
+      }
+    });
+
+    app.post('/api/notifying/unsubscribe/topic/:topic', (req, res) => {
+      const topic = req.params.topic;
+      const { callbackUrl } = req.body;
+      if (topic &amp;&amp; callbackUrl) {
+        notifier
+          .unsubscribe(topic, callbackUrl)
+          .then(() => res.status(200).send('OK'))
+          .catch((err) => res.status(500).send(err.message));
+      } else {
+        res.status(400).send('Bad Request: Missing topic or callback URL');
+      }
+    });
+
+    app.post('/api/notifying/notify/topic/:topic', (req, res) => {
+      const topic = req.params.topic;
+      const { message } = req.body;
+      if (topic &amp;&amp; message) {
+        notifier
+          .notify(topic, message)
           .then(() => res.status(200).send('OK'))
           .catch((err) => res.status(500).send(err.message));
       } else {
@@ -65,13 +104,13 @@ module.exports = (options, eventEmitter, notifier) => {
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Cache.html">Cache</a></li><li><a href="CacheMemcached.html">CacheMemcached</a></li><li><a href="CacheRedis.html">CacheRedis</a></li><li><a href="ConsoleLogger.html">ConsoleLogger</a></li><li><a href="DataServeSimpleDBProvider.html">DataServeSimpleDBProvider</a></li><li><a href="FileLogger.html">FileLogger</a></li><li><a href="InMemoryQueue.html">InMemoryQueue</a></li><li><a href="S3FilingProvider.html">S3FilingProvider</a></li><li><a href="SchedulerProvider.html">SchedulerProvider</a></li><li><a href="WorkerProvider.html">WorkerProvider</a></li></ul><h3>Global</h3><ul><li><a href="global.html#createCache">createCache</a></li><li><a href="global.html#createDataserveService">createDataserveService</a></li><li><a href="global.html#createFilingService">createFilingService</a></li><li><a href="global.html#createLogger">createLogger</a></li><li><a href="global.html#createMeasuringService">createMeasuringService</a></li><li><a href="global.html#createNotificationService">createNotificationService</a></li><li><a href="global.html#createQueue">createQueue</a></li><li><a href="global.html#createSearchService">createSearchService</a></li><li><a href="global.html#createWorkflowService">createWorkflowService</a></li><li><a href="global.html#getSchedulerInstance">getSchedulerInstance</a></li><li><a href="global.html#getWorkerInstance">getWorkerInstance</a></li><li><a href="global.html#instance">instance</a></li><li><a href="global.html#resetSchedulerInstance">resetSchedulerInstance</a></li><li><a href="global.html#run">run</a></li><li><a href="global.html#updateStatus">updateStatus</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Cache.html">Cache</a></li><li><a href="CacheMemcached.html">CacheMemcached</a></li><li><a href="CacheRedis.html">CacheRedis</a></li><li><a href="ConsoleLogger.html">ConsoleLogger</a></li><li><a href="DataServeSimpleDBProvider.html">DataServeSimpleDBProvider</a></li><li><a href="FileLogger.html">FileLogger</a></li><li><a href="InMemoryQueue.html">InMemoryQueue</a></li><li><a href="S3FilingProvider.html">S3FilingProvider</a></li><li><a href="SchedulerProvider.html">SchedulerProvider</a></li><li><a href="WorkerProvider.html">WorkerProvider</a></li></ul><h3>Global</h3><ul><li><a href="global.html#createCache">createCache</a></li><li><a href="global.html#createDataserveService">createDataserveService</a></li><li><a href="global.html#createFilingService">createFilingService</a></li><li><a href="global.html#createLogger">createLogger</a></li><li><a href="global.html#createMeasuringService">createMeasuringService</a></li><li><a href="global.html#createNotificationService">createNotificationService</a></li><li><a href="global.html#createQueue">createQueue</a></li><li><a href="global.html#createSearchService">createSearchService</a></li><li><a href="global.html#createWorkflowService">createWorkflowService</a></li><li><a href="global.html#getSchedulerInstance">getSchedulerInstance</a></li><li><a href="global.html#getWorkerInstance">getWorkerInstance</a></li><li><a href="global.html#instance">instance</a></li><li><a href="global.html#updateStatus">updateStatus</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Sat Jul 05 2025 17:32:47 GMT+0000 (Coordinated Universal Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Sat Jul 05 2025 21:46:09 GMT+0200 (South Africa Standard Time)
 </footer>
 
 <script> prettyPrint(); </script>
