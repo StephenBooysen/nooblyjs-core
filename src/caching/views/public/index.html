@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>NooblyJS Caching</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body>
+    <div class="container mt-5">
+        <div class="mb-3">
+            <label for="inputBox" class="form-label">Enter Cache Key</label>
+            <input type="text" class="form-control" id="inputBox" placeholder="Type something...">
+        </div>
+        <div class="mb-3">
+            <label for="textArea" class="form-label">Output</label>
+            <textarea class="form-control" id="textArea" rows="5" placeholder="Results will appear here..."></textarea>
+        </div>
+        <button type="button" class="btn btn-primary mb-3" onclick="putCache(inputBox.value, textArea.value)">Store the
+            Cache</button>
+        <button type="button" class="btn btn-primary mb-3"
+            onclick="getCache(inputBox.value).then(data => textArea.value = JSON.stringify(data, null, 2))">Get the
+            Cache</button>
+        <button type="button" class="btn btn-primary mb-3" onclick="deleteCache(inputBox.value)">Delete the
+            Cache</button>
+    </div>
+    <script>
+        const API_BASE = 'http://localhost:3000/api/caching';
+
+        // Check the API Caching status endpoint
+        async function getStatus() {
+            try {
+                const response = await fetch(`${API_BASE}/status`);
+                return await response.json();
+            } catch (err) {
+                console.error('Status error:', err);
+                return null;
+            }
+        }
+
+        // POST a cache record for a key
+        async function putCache(key, data) {
+            try {
+                const response = await fetch(`${API_BASE}/put/${encodeURIComponent(key)}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/text' },
+                    body: JSON.stringify(data)
+                });
+                return await response.text();
+            } catch (err) {
+                console.error('Put error:', err);
+                return null;
+            }
+        }
+
+        // Get a cache record for a key
+        async function getCache(key) {
+            try {
+                const response = await fetch(`${API_BASE}/get/${encodeURIComponent(key)}`);
+                return await response.text();
+            } catch (err) {
+                console.error('Get error:', err);
+                return null;
+            }
+        }
+
+        // Delete a cache record for a key
+        async function deleteCache(key) {
+            try {
+                const response = await fetch(`${API_BASE}/delete/${encodeURIComponent(key)}`, {
+                    method: 'DELETE'
+                });
+                return await response.text();
+            } catch (err) {
+                console.error('Delete error:', err);
+                return null;
+            }
+        }
+
+        console.log('Caching API Base:', API_BASE);
+        getStatus().then(status => console.log('Caching Status:', status));
+
+    </script>
+</body>
+
+</html>
