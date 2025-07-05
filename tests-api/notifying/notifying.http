@@ -1,11 +1,35 @@
 ### Notifying API Status
 GET http://localhost:3000/api/notifying/status
 
-### Notifying API Send
-POST http://localhost:3000/api/notifying/send
+
+### Create Notifying Topic
+POST http://localhost:3000/api/notifying/topic
 Content-Type: application/json
 
 {
-  "recipient": "test@example.com",
+  "topic": "example2-topic"
+}
+
+### Subscribe to Notifying Topic
+POST http://localhost:3000/api/notifying/subscribe/topic/example2-topic
+Content-Type: application/json
+
+{
+  "callbackUrl": "function (message) { console.log('Received message:', message); }"
+}
+
+### Unsubscribe from Notifying Topic
+POST http://localhost:3000/api/notifying/unsubscribe/topic/example2-topic
+Content-Type: application/json
+
+{
+  "callbackUrl": "function (message) { console.log('Received message:', message); }"
+}
+
+### Notifying API Send
+POST http://localhost:3000/api/notifying/notify/topic/example2-topic
+Content-Type: application/json
+
+{
   "message": "Hello from Notifying API"
 }
