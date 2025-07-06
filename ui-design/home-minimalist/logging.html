@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logging Management - Noobly JS Admin</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .admin-container {
+            display: flex;
+            min-height: 100vh;
+            margin-top: 60px;
+        }
+
+        .admin-sidebar {
+            width: 250px;
+            background: var(--secondary-color);
+            border-right: 1px solid var(--border-color);
+            padding: 2rem 0;
+            position: fixed;
+            height: calc(100vh - 60px);
+            overflow-y: auto;
+        }
+
+        .admin-nav {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .admin-nav-item {
+            padding: 0;
+            margin: 0;
+        }
+
+        .admin-nav-link {
+            display: block;
+            padding: 1rem 2rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-weight: 300;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.9rem;
+            border-bottom: 1px solid transparent;
+        }
+
+        .admin-nav-link:hover {
+            color: var(--text-primary);
+            background: var(--primary-color);
+            border-left: 3px solid var(--accent-color);
+        }
+
+        .admin-nav-link.active {
+            color: var(--text-primary);
+            background: var(--primary-color);
+            border-left: 3px solid var(--accent-color);
+        }
+
+        .admin-content {
+            flex: 1;
+            margin-left: 250px;
+            padding: 2rem;
+        }
+
+        .admin-header {
+            margin-bottom: 2rem;
+        }
+
+        .admin-title {
+            font-size: 2rem;
+            font-weight: 200;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .admin-subtitle {
+            color: var(--text-secondary);
+            font-weight: 300;
+        }
+
+        .logging-operations {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .logging-card {
+            background: var(--primary-color);
+            border: 1px solid var(--border-color);
+            padding: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .logging-card:hover {
+            box-shadow: var(--shadow-light);
+        }
+
+        .logging-card h3 {
+            color: var(--text-primary);
+            font-size: 1.2rem;
+            font-weight: 400;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            color: var(--text-primary);
+            font-weight: 400;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.9rem;
+        }
+
+        .form-textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            background: var(--primary-color);
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            font-weight: 300;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .form-textarea:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+
+        .form-button {
+            width: 100%;
+            padding: 0.75rem;
+            background: var(--accent-color);
+            color: var(--primary-color);
+            border: 1px solid var(--accent-color);
+            font-weight: 400;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.9rem;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        .form-button:hover {
+            background: transparent;
+            color: var(--accent-color);
+        }
+
+        .form-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .clear-button {
+            background: transparent;
+            border: 1px solid var(--text-secondary);
+            color: var(--text-secondary);
+            margin-top: 1rem;
+        }
+
+        .clear-button:hover {
+            background: var(--text-secondary);
+            color: var(--primary-color);
+        }
+
+        .result-area {
+            background: var(--secondary-color);
+            border: 1px solid var(--border-color);
+            padding: 1rem;
+            margin-top: 1rem;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-weight: 300;
+            min-height: 60px;
+            white-space: pre-wrap;
+        }
+
+        .result-success {
+            color: #28a745;
+            background: #f8f9fa;
+        }
+
+        .result-error {
+            color: #dc3545;
+            background: #f8f9fa;
+        }
+
+        .log-display {
+            background: var(--secondary-color);
+            border: 1px solid var(--border-color);
+            padding: 1rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            color: var(--text-primary);
+            min-height: 400px;
+            max-height: 600px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .log-entry {
+            margin-bottom: 0.5rem;
+            padding: 0.5rem;
+            border-left: 2px solid var(--accent-color);
+            background: var(--primary-color);
+        }
+
+        .log-timestamp {
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .log-message {
+            color: var(--text-primary);
+            font-weight: 300;
+        }
+
+        .log-level {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 0.25rem;
+            border-radius: 2px;
+        }
+
+        .log-level-info {
+            background: #17a2b8;
+            color: white;
+        }
+
+        .log-level-warning {
+            background: #ffc107;
+            color: #212529;
+        }
+
+        .log-level-error {
+            background: #dc3545;
+            color: white;
+        }
+
+        .log-level-debug {
+            background: #6c757d;
+            color: white;
+        }
+
+        .log-controls {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .log-control-button {
+            padding: 0.5rem 1rem;
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.8rem;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        .log-control-button:hover {
+            background: var(--accent-color);
+            color: var(--primary-color);
+            border-color: var(--accent-color);
+        }
+
+        .log-control-button.active {
+            background: var(--accent-color);
+            color: var(--primary-color);
+            border-color: var(--accent-color);
+        }
+
+        @media (max-width: 768px) {
+            .admin-sidebar {
+                width: 200px;
+            }
+            
+            .admin-content {
+                margin-left: 200px;
+                padding: 1rem;
+            }
+            
+            .logging-operations {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .admin-sidebar {
+                width: 100%;
+                position: relative;
+                height: auto;
+            }
+            
+            .admin-content {
+                margin-left: 0;
+            }
+            
+            .admin-container {
+                flex-direction: column;
+            }
+            
+            .log-controls {
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header" id="header">
+        <div class="header-container">
+            <a href="index.html" class="logo">
+                <div class="logo-icon">N</div>
+                <span>Noobly JS Admin</span>
+            </a>
+            
+            <nav class="nav-menu">
+                <a href="index.html" class="nav-link">Home</a>
+                <a href="documentation.html" class="nav-link">Documentation</a>
+                <a href="contact.html" class="nav-link">Contact</a>
+                <a href="cache.html" class="nav-link active">Admin</a>
+            </nav>
+            
+            <button class="mobile-menu-toggle" id="mobileMenuToggle">
+                ☰
+            </button>
+        </div>
+        
+        <div class="mobile-menu" id="mobileMenu">
+            <nav class="mobile-nav-menu">
+                <a href="index.html" class="mobile-nav-link">Home</a>
+                <a href="documentation.html" class="mobile-nav-link">Documentation</a>
+                <a href="contact.html" class="mobile-nav-link">Contact</a>
+                <a href="cache.html" class="mobile-nav-link">Admin</a>
+            </nav>
+        </div>
+    </header>
+
+    <div class="admin-container">
+        <!-- Sidebar Navigation -->
+        <aside class="admin-sidebar">
+            <nav class="admin-nav">
+                <div class="admin-nav-item">
+                    <a href="cache.html" class="admin-nav-link">Caching</a>
+                </div>
+                <div class="admin-nav-item">
+                    <a href="data.html" class="admin-nav-link">Data</a>
+                </div>
+                <div class="admin-nav-item">
+                    <a href="#" class="admin-nav-link">Filing</a>
+                </div>
+                <div class="admin-nav-item">
+                    <a href="logging.html" class="admin-nav-link active">Logging</a>
+                </div>
+                <div class="admin-nav-item">
+                    <a href="measuring.html" class="admin-nav-link">Measuring</a>
+                </div>
+                <div class="admin-nav-item">
+                    <a href="notifying.html" class="admin-nav-link">Notifying</a>
+                </div>
+                <div class="admin-nav-item">
+                    <a href="queueing.html" class="admin-nav-link">Queueing</a>
+                </div>
+                <div class="admin-nav-item">
+                    <a href="scheduling.html" class="admin-nav-link">Scheduling</a>
+                </div>
+                <div class="admin-nav-item">
+                    <a href="searching.html" class="admin-nav-link">Searching</a>
+                </div>
+                <div class="admin-nav-item">
+                    <a href="workflow.html" class="admin-nav-link">Workflow</a>
+                </div>
+                <div class="admin-nav-item">
+                    <a href="working.html" class="admin-nav-link">Working</a>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="admin-content">
+            <div class="admin-header">
+                <h1 class="admin-title">Logging Management</h1>
+                <p class="admin-subtitle">Log and monitor application messages</p>
+            </div>
+
+            <div class="logging-operations">
+                <!-- Log Entry -->
+                <div class="logging-card">
+                    <h3>Add Log Entry</h3>
+                    <form id="logForm">
+                        <div class="form-group">
+                            <label for="logMessage" class="form-label">Log Message</label>
+                            <textarea id="logMessage" name="message" class="form-textarea" placeholder="Enter your log message here..." required></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="logLevel" class="form-label">Log Level</label>
+                            <select id="logLevel" name="level" class="form-input">
+                                <option value="info">Info</option>
+                                <option value="warning">Warning</option>
+                                <option value="error">Error</option>
+                                <option value="debug">Debug</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="form-button">Add Log Entry</button>
+                    </form>
+                    <div id="logResult" class="result-area"></div>
+                </div>
+
+                <!-- Log Display Controls -->
+                <div class="logging-card">
+                    <h3>Log Display</h3>
+                    <div class="log-controls">
+                        <button class="log-control-button active" data-level="all">All</button>
+                        <button class="log-control-button" data-level="info">Info</button>
+                        <button class="log-control-button" data-level="warning">Warning</button>
+                        <button class="log-control-button" data-level="error">Error</button>
+                        <button class="log-control-button" data-level="debug">Debug</button>
+                    </div>
+                    <button class="form-button clear-button" id="clearLogs">Clear All Logs</button>
+                    <div id="logCount" class="result-area"></div>
+                </div>
+            </div>
+
+            <!-- Log Display -->
+            <div class="logging-card">
+                <h3>Log Entries</h3>
+                <div id="logDisplay" class="log-display"></div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Mobile menu toggle
+        const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+        const mobileMenu = document.getElementById('mobileMenu');
+
+        mobileMenuToggle.addEventListener('click', () => {
+            mobileMenu.classList.toggle('active');
+            mobileMenuToggle.textContent = mobileMenu.classList.contains('active') ? '✕' : '☰';
+        });
+
+        // Close mobile menu when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!mobileMenuToggle.contains(e.target) && !mobileMenu.contains(e.target)) {
+                mobileMenu.classList.remove('active');
+                mobileMenuToggle.textContent = '☰';
+            }
+        });
+
+        // Header scroll effect
+        window.addEventListener('scroll', () => {
+            const header = document.getElementById('header');
+            if (window.scrollY > 50) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
+        });
+
+        // Logging functionality
+        let logEntries = [];
+        let currentFilter = 'all';
+
+        // Add log entry
+        document.getElementById('logForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const message = document.getElementById('logMessage').value.trim();
+            const level = document.getElementById('logLevel').value;
+            const resultDiv = document.getElementById('logResult');
+            
+            if (!message) {
+                resultDiv.textContent = 'Error: Log message is required.';
+                resultDiv.className = 'result-area result-error';
+                return;
+            }
+            
+            try {
+                const logEntry = {
+                    id: Date.now(),
+                    timestamp: new Date().toISOString(),
+                    level: level,
+                    message: message
+                };
+                
+                logEntries.unshift(logEntry);
+                
+                resultDiv.textContent = `Success: ${level.toUpperCase()} log entry added.`;
+                resultDiv.className = 'result-area result-success';
+                
+                // Clear form
+                document.getElementById('logMessage').value = '';
+                
+                // Update display
+                updateLogDisplay();
+                updateLogCount();
+                
+            } catch (error) {
+                resultDiv.textContent = `Error: Failed to add log entry. ${error.message}`;
+                resultDiv.className = 'result-area result-error';
+            }
+        });
+
+        // Filter buttons
+        document.querySelectorAll('.log-control-button').forEach(button => {
+            button.addEventListener('click', function() {
+                document.querySelectorAll('.log-control-button').forEach(btn => btn.classList.remove('active'));
+                this.classList.add('active');
+                currentFilter = this.dataset.level;
+                updateLogDisplay();
+            });
+        });
+
+        // Clear logs
+        document.getElementById('clearLogs').addEventListener('click', function() {
+            if (confirm('Are you sure you want to clear all logs?')) {
+                logEntries = [];
+                updateLogDisplay();
+                updateLogCount();
+                
+                const resultDiv = document.getElementById('logResult');
+                resultDiv.textContent = 'Success: All logs cleared.';
+                resultDiv.className = 'result-area result-success';
+            }
+        });
+
+        // Update log display
+        function updateLogDisplay() {
+            const logDisplay = document.getElementById('logDisplay');
+            
+            let filteredEntries = logEntries;
+            if (currentFilter !== 'all') {
+                filteredEntries = logEntries.filter(entry => entry.level === currentFilter);
+            }
+            
+            if (filteredEntries.length === 0) {
+                logDisplay.innerHTML = '<div style="text-align: center; color: var(--text-secondary); padding: 2rem;">No log entries to display.</div>';
+                return;
+            }
+            
+            const logHtml = filteredEntries.map(entry => {
+                const timestamp = new Date(entry.timestamp).toLocaleString();
+                return `
+                    <div class="log-entry">
+                        <div class="log-level log-level-${entry.level}">${entry.level}</div>
+                        <div class="log-timestamp">${timestamp}</div>
+                        <div class="log-message">${entry.message}</div>
+                    </div>
+                `;
+            }).join('');
+            
+            logDisplay.innerHTML = logHtml;
+        }
+
+        // Update log count
+        function updateLogCount() {
+            const logCount = document.getElementById('logCount');
+            const totalLogs = logEntries.length;
+            const levelCounts = {
+                info: logEntries.filter(e => e.level === 'info').length,
+                warning: logEntries.filter(e => e.level === 'warning').length,
+                error: logEntries.filter(e => e.level === 'error').length,
+                debug: logEntries.filter(e => e.level === 'debug').length
+            };
+            
+            logCount.textContent = `Total: ${totalLogs} | Info: ${levelCounts.info} | Warning: ${levelCounts.warning} | Error: ${levelCounts.error} | Debug: ${levelCounts.debug}`;
+            logCount.className = 'result-area';
+        }
+
+        // Initialize display
+        updateLogDisplay();
+        updateLogCount();
+    </script>
+</body>
+</html>
