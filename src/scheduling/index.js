@@ -18,9 +18,13 @@ let instance = null;
 function getSchedulerInstance(type, options, eventEmitter) {
   if (!instance) {
     instance = new SchedulerProvider(options, eventEmitter);
+    Routes(options, eventEmitter, instance);
   }
-  Routes(options, eventEmitter, instance);
   return instance;
 }
+
+getSchedulerInstance._reset = () => {
+  instance = null;
+};
 
 module.exports = getSchedulerInstance;

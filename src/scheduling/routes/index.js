@@ -13,7 +13,7 @@ module.exports = (options, eventEmitter, scheduler) => {
       const { task, cron } = req.body;
       if (task && cron) {
         scheduler
-          .schedule(task, cron)
+          .start(task, cron)
           .then(() => res.status(200).send('OK'))
           .catch((err) => res.status(500).send(err.message));
       } else {

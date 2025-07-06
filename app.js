@@ -52,8 +52,11 @@ const scheduling = require('./src/scheduling')(
   { 'express-app': app },
   eventEmitter,
 );
-scheduling.start('../../../tests/working/exampleTask.js', 5, (status, data) => {
-  console.log('Task executed with status:', status, 'and data:', data);
+scheduling.start('Schedule task 1', '../../../tests/working/exampleTask.js', 5, (status, data) => {
+  console.log('Schedule task 1 executed with status:', status, 'and data:', data);
+});
+scheduling.start('Schedule task 2', '../../../tests/working/exampleTask.js', 5, (status, data) => {
+  console.log('Schedule task 2 executed with status:', status, 'and data:', data);
 });
 
 
@@ -106,9 +109,8 @@ const worker = require('./src/working')(
   eventEmitter,
 );
 worker.start('../../../tests/working/exampleTask.js',  () => {
-  console.log('Example task ended');
+  console.log('Worker  task ended');
 });
-
 
 // lets workflow
 const workflow = require('./src/workflow')(
