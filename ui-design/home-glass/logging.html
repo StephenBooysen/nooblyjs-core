@@ -6,79 +6,6 @@
     <title>Logging Management - Noobly JS Admin</title>
     <link rel="stylesheet" href="styles.css">
     <style>
-        .admin-container {
-            display: flex;
-            min-height: 100vh;
-            margin-top: 60px;
-        }
-
-        .admin-sidebar {
-            width: 250px;
-            background: var(--secondary-color);
-            border-right: 1px solid var(--border-color);
-            padding: 2rem 0;
-            position: fixed;
-            height: calc(100vh - 60px);
-            overflow-y: auto;
-        }
-
-        .admin-nav {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        .admin-nav-item {
-            padding: 0;
-            margin: 0;
-        }
-
-        .admin-nav-link {
-            display: block;
-            padding: 1rem 2rem;
-            color: var(--text-secondary);
-            text-decoration: none;
-            transition: all 0.3s ease;
-            font-weight: 300;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-size: 0.9rem;
-            border-bottom: 1px solid transparent;
-        }
-
-        .admin-nav-link:hover {
-            color: var(--text-primary);
-            background: var(--primary-color);
-            border-left: 3px solid var(--accent-color);
-        }
-
-        .admin-nav-link.active {
-            color: var(--text-primary);
-            background: var(--primary-color);
-            border-left: 3px solid var(--accent-color);
-        }
-
-        .admin-content {
-            flex: 1;
-            margin-left: 250px;
-            padding: 2rem;
-        }
-
-        .admin-header {
-            margin-bottom: 2rem;
-        }
-
-        .admin-title {
-            font-size: 2rem;
-            font-weight: 200;
-            color: var(--text-primary);
-            margin-bottom: 0.5rem;
-        }
-
-        .admin-subtitle {
-            color: var(--text-secondary);
-            font-weight: 300;
-        }
 
         .logging-operations {
             display: grid;
@@ -87,83 +14,6 @@
             margin-bottom: 2rem;
         }
 
-        .logging-card {
-            background: var(--primary-color);
-            border: 1px solid var(--border-color);
-            padding: 2rem;
-            transition: all 0.3s ease;
-        }
-
-        .logging-card:hover {
-            box-shadow: var(--shadow-light);
-        }
-
-        .logging-card h3 {
-            color: var(--text-primary);
-            font-size: 1.2rem;
-            font-weight: 400;
-            margin-bottom: 1rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-
-        .form-label {
-            display: block;
-            color: var(--text-primary);
-            font-weight: 400;
-            margin-bottom: 0.5rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-size: 0.9rem;
-        }
-
-        .form-textarea {
-            width: 100%;
-            padding: 0.75rem;
-            border: 1px solid var(--border-color);
-            background: var(--primary-color);
-            color: var(--text-primary);
-            font-size: 1rem;
-            transition: all 0.3s ease;
-            font-weight: 300;
-            font-family: 'Helvetica Neue', Arial, sans-serif;
-            min-height: 120px;
-            resize: vertical;
-        }
-
-        .form-textarea:focus {
-            outline: none;
-            border-color: var(--accent-color);
-        }
-
-        .form-button {
-            width: 100%;
-            padding: 0.75rem;
-            background: var(--accent-color);
-            color: var(--primary-color);
-            border: 1px solid var(--accent-color);
-            font-weight: 400;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-size: 0.9rem;
-            font-family: 'Helvetica Neue', Arial, sans-serif;
-        }
-
-        .form-button:hover {
-            background: transparent;
-            color: var(--accent-color);
-        }
-
-        .form-button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
 
         .clear-button {
             background: transparent;
@@ -177,27 +27,6 @@
             color: var(--primary-color);
         }
 
-        .result-area {
-            background: var(--secondary-color);
-            border: 1px solid var(--border-color);
-            padding: 1rem;
-            margin-top: 1rem;
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-            font-weight: 300;
-            min-height: 60px;
-            white-space: pre-wrap;
-        }
-
-        .result-success {
-            color: #28a745;
-            background: #f8f9fa;
-        }
-
-        .result-error {
-            color: #dc3545;
-            background: #f8f9fa;
-        }
 
         .log-display {
             background: var(--secondary-color);
@@ -293,35 +122,12 @@
         }
 
         @media (max-width: 768px) {
-            .admin-sidebar {
-                width: 200px;
-            }
-            
-            .admin-content {
-                margin-left: 200px;
-                padding: 1rem;
-            }
-            
             .logging-operations {
                 grid-template-columns: 1fr;
             }
         }
 
         @media (max-width: 600px) {
-            .admin-sidebar {
-                width: 100%;
-                position: relative;
-                height: auto;
-            }
-            
-            .admin-content {
-                margin-left: 0;
-            }
-            
-            .admin-container {
-                flex-direction: column;
-            }
-            
             .log-controls {
                 flex-wrap: wrap;
             }
@@ -408,29 +214,29 @@
 
             <div class="logging-operations">
                 <!-- Log Entry -->
-                <div class="logging-card">
+                <div class="admin-card">
                     <h3>Add Log Entry</h3>
                     <form id="logForm">
-                        <div class="form-group">
-                            <label for="logMessage" class="form-label">Log Message</label>
-                            <textarea id="logMessage" name="message" class="form-textarea" placeholder="Enter your log message here..." required></textarea>
+                        <div class="admin-form-group">
+                            <label for="logMessage" class="admin-form-label">Log Message</label>
+                            <textarea id="logMessage" name="message" class="admin-form-textarea" placeholder="Enter your log message here..." required></textarea>
                         </div>
-                        <div class="form-group">
-                            <label for="logLevel" class="form-label">Log Level</label>
-                            <select id="logLevel" name="level" class="form-input">
+                        <div class="admin-form-group">
+                            <label for="logLevel" class="admin-form-label">Log Level</label>
+                            <select id="logLevel" name="level" class="admin-form-input">
                                 <option value="info">Info</option>
                                 <option value="warning">Warning</option>
                                 <option value="error">Error</option>
                                 <option value="debug">Debug</option>
                             </select>
                         </div>
-                        <button type="submit" class="form-button">Add Log Entry</button>
+                        <button type="submit" class="admin-form-button">Add Log Entry</button>
                     </form>
-                    <div id="logResult" class="result-area"></div>
+                    <div id="logResult" class="admin-result-area"></div>
                 </div>
 
                 <!-- Log Display Controls -->
-                <div class="logging-card">
+                <div class="admin-card">
                     <h3>Log Display</h3>
                     <div class="log-controls">
                         <button class="log-control-button active" data-level="all">All</button>
@@ -439,13 +245,13 @@
                         <button class="log-control-button" data-level="error">Error</button>
                         <button class="log-control-button" data-level="debug">Debug</button>
                     </div>
-                    <button class="form-button clear-button" id="clearLogs">Clear All Logs</button>
-                    <div id="logCount" class="result-area"></div>
+                    <button class="admin-form-button clear-button" id="clearLogs">Clear All Logs</button>
+                    <div id="logCount" class="admin-result-area"></div>
                 </div>
             </div>
 
             <!-- Log Display -->
-            <div class="logging-card">
+            <div class="admin-card">
                 <h3>Log Entries</h3>
                 <div id="logDisplay" class="log-display"></div>
             </div>
@@ -494,7 +300,7 @@
             
             if (!message) {
                 resultDiv.textContent = 'Error: Log message is required.';
-                resultDiv.className = 'result-area result-error';
+                resultDiv.className = 'admin-result-area admin-result-error';
                 return;
             }
             
@@ -509,7 +315,7 @@
                 logEntries.unshift(logEntry);
                 
                 resultDiv.textContent = `Success: ${level.toUpperCase()} log entry added.`;
-                resultDiv.className = 'result-area result-success';
+                resultDiv.className = 'admin-result-area admin-result-success';
                 
                 // Clear form
                 document.getElementById('logMessage').value = '';
@@ -520,7 +326,7 @@
                 
             } catch (error) {
                 resultDiv.textContent = `Error: Failed to add log entry. ${error.message}`;
-                resultDiv.className = 'result-area result-error';
+                resultDiv.className = 'admin-result-area admin-result-error';
             }
         });
 
@@ -543,7 +349,7 @@
                 
                 const resultDiv = document.getElementById('logResult');
                 resultDiv.textContent = 'Success: All logs cleared.';
-                resultDiv.className = 'result-area result-success';
+                resultDiv.className = 'admin-result-area admin-result-success';
             }
         });
 
@@ -587,7 +393,7 @@
             };
             
             logCount.textContent = `Total: ${totalLogs} | Info: ${levelCounts.info} | Warning: ${levelCounts.warning} | Error: ${levelCounts.error} | Debug: ${levelCounts.debug}`;
-            logCount.className = 'result-area';
+            logCount.className = 'admin-result-area';
         }
 
         // Initialize display

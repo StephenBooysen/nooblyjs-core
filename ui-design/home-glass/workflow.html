@@ -6,79 +6,6 @@
     <title>Workflow Management - Noobly JS Admin</title>
     <link rel="stylesheet" href="styles.css">
     <style>
-        .admin-container {
-            display: flex;
-            min-height: 100vh;
-            margin-top: 60px;
-        }
-
-        .admin-sidebar {
-            width: 250px;
-            background: var(--secondary-color);
-            border-right: 1px solid var(--border-color);
-            padding: 2rem 0;
-            position: fixed;
-            height: calc(100vh - 60px);
-            overflow-y: auto;
-        }
-
-        .admin-nav {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        .admin-nav-item {
-            padding: 0;
-            margin: 0;
-        }
-
-        .admin-nav-link {
-            display: block;
-            padding: 1rem 2rem;
-            color: var(--text-secondary);
-            text-decoration: none;
-            transition: all 0.3s ease;
-            font-weight: 300;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-size: 0.9rem;
-            border-bottom: 1px solid transparent;
-        }
-
-        .admin-nav-link:hover {
-            color: var(--text-primary);
-            background: var(--primary-color);
-            border-left: 3px solid var(--accent-color);
-        }
-
-        .admin-nav-link.active {
-            color: var(--text-primary);
-            background: var(--primary-color);
-            border-left: 3px solid var(--accent-color);
-        }
-
-        .admin-content {
-            flex: 1;
-            margin-left: 250px;
-            padding: 2rem;
-        }
-
-        .admin-header {
-            margin-bottom: 2rem;
-        }
-
-        .admin-title {
-            font-size: 2rem;
-            font-weight: 200;
-            color: var(--text-primary);
-            margin-bottom: 0.5rem;
-        }
-
-        .admin-subtitle {
-            color: var(--text-secondary);
-            font-weight: 300;
-        }
 
         .workflow-operations {
             display: grid;
@@ -87,139 +14,6 @@
             margin-bottom: 2rem;
         }
 
-        .workflow-card {
-            background: var(--primary-color);
-            border: 1px solid var(--border-color);
-            padding: 2rem;
-            transition: all 0.3s ease;
-        }
-
-        .workflow-card:hover {
-            box-shadow: var(--shadow-light);
-        }
-
-        .workflow-card h3 {
-            color: var(--text-primary);
-            font-size: 1.2rem;
-            font-weight: 400;
-            margin-bottom: 1rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-
-        .form-label {
-            display: block;
-            color: var(--text-primary);
-            font-weight: 400;
-            margin-bottom: 0.5rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-size: 0.9rem;
-        }
-
-        .form-input {
-            width: 100%;
-            padding: 0.75rem;
-            border: 1px solid var(--border-color);
-            background: var(--primary-color);
-            color: var(--text-primary);
-            font-size: 1rem;
-            transition: all 0.3s ease;
-            font-weight: 300;
-            font-family: 'Helvetica Neue', Arial, sans-serif;
-        }
-
-        .form-input:focus {
-            outline: none;
-            border-color: var(--accent-color);
-        }
-
-        .form-select {
-            width: 100%;
-            padding: 0.75rem;
-            border: 1px solid var(--border-color);
-            background: var(--primary-color);
-            color: var(--text-primary);
-            font-size: 1rem;
-            transition: all 0.3s ease;
-            font-weight: 300;
-            font-family: 'Helvetica Neue', Arial, sans-serif;
-        }
-
-        .form-select:focus {
-            outline: none;
-            border-color: var(--accent-color);
-        }
-
-        .form-textarea {
-            width: 100%;
-            padding: 0.75rem;
-            border: 1px solid var(--border-color);
-            background: var(--primary-color);
-            color: var(--text-primary);
-            font-size: 1rem;
-            transition: all 0.3s ease;
-            font-weight: 300;
-            font-family: 'Helvetica Neue', Arial, sans-serif;
-            min-height: 120px;
-            resize: vertical;
-        }
-
-        .form-textarea:focus {
-            outline: none;
-            border-color: var(--accent-color);
-        }
-
-        .form-button {
-            width: 100%;
-            padding: 0.75rem;
-            background: var(--accent-color);
-            color: var(--primary-color);
-            border: 1px solid var(--accent-color);
-            font-weight: 400;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-size: 0.9rem;
-            font-family: 'Helvetica Neue', Arial, sans-serif;
-        }
-
-        .form-button:hover {
-            background: transparent;
-            color: var(--accent-color);
-        }
-
-        .form-button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .result-area {
-            background: var(--secondary-color);
-            border: 1px solid var(--border-color);
-            padding: 1rem;
-            margin-top: 1rem;
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-            font-weight: 300;
-            min-height: 60px;
-            white-space: pre-wrap;
-        }
-
-        .result-success {
-            color: #28a745;
-            background: #f8f9fa;
-        }
-
-        .result-error {
-            color: #dc3545;
-            background: #f8f9fa;
-        }
 
         .filenames-input {
             background: var(--secondary-color);
@@ -413,15 +207,6 @@
         }
 
         @media (max-width: 768px) {
-            .admin-sidebar {
-                width: 200px;
-            }
-            
-            .admin-content {
-                margin-left: 200px;
-                padding: 1rem;
-            }
-            
             .workflow-operations {
                 grid-template-columns: 1fr;
             }
@@ -434,20 +219,6 @@
         }
 
         @media (max-width: 600px) {
-            .admin-sidebar {
-                width: 100%;
-                position: relative;
-                height: auto;
-            }
-            
-            .admin-content {
-                margin-left: 0;
-            }
-            
-            .admin-container {
-                flex-direction: column;
-            }
-            
             .workflow-actions {
                 flex-wrap: wrap;
             }
@@ -534,48 +305,48 @@
 
             <div class="workflow-operations">
                 <!-- Create Workflow -->
-                <div class="workflow-card">
+                <div class="admin-card">
                     <h3>Create Workflow</h3>
                     <form id="workflowForm">
-                        <div class="form-group">
-                            <label for="workflowName" class="form-label">Workflow Name</label>
-                            <input type="text" id="workflowName" name="name" class="form-input" placeholder="Enter workflow name" required>
+                        <div class="admin-form-group">
+                            <label for="workflowName" class="admin-form-label">Workflow Name</label>
+                            <input type="text" id="workflowName" name="name" class="admin-form-input" placeholder="Enter workflow name" required>
                         </div>
-                        <div class="form-group">
-                            <label for="workflowFilenames" class="form-label">Filenames (Step Files)</label>
-                            <textarea id="workflowFilenames" name="filenames" class="form-textarea" placeholder="Enter filenames, one per line" required></textarea>
+                        <div class="admin-form-group">
+                            <label for="workflowFilenames" class="admin-form-label">Filenames (Step Files)</label>
+                            <textarea id="workflowFilenames" name="filenames" class="admin-form-textarea" placeholder="Enter filenames, one per line" required></textarea>
                             <div class="filenames-input">
                                 Enter each filename on a separate line. These files will be executed in order as workflow steps.
                             </div>
                         </div>
-                        <button type="submit" class="form-button">Create Workflow</button>
+                        <button type="submit" class="admin-form-button">Create Workflow</button>
                     </form>
-                    <div id="workflowResult" class="result-area"></div>
+                    <div id="workflowResult" class="admin-result-area"></div>
                 </div>
 
                 <!-- Execute Workflow -->
-                <div class="workflow-card">
+                <div class="admin-card">
                     <h3>Execute Workflow</h3>
                     <form id="executeForm">
-                        <div class="form-group">
-                            <label for="executeWorkflow" class="form-label">Workflow Name</label>
-                            <select id="executeWorkflow" name="workflow" class="form-select" required>
+                        <div class="admin-form-group">
+                            <label for="executeWorkflow" class="admin-form-label">Workflow Name</label>
+                            <select id="executeWorkflow" name="workflow" class="admin-form-select" required>
                                 <option value="">Select a workflow</option>
                             </select>
                         </div>
-                        <div class="form-group">
-                            <label for="executeJson" class="form-label">Input JSON</label>
-                            <textarea id="executeJson" name="json" class="form-textarea" placeholder="Enter JSON input data" required></textarea>
+                        <div class="admin-form-group">
+                            <label for="executeJson" class="admin-form-label">Input JSON</label>
+                            <textarea id="executeJson" name="json" class="admin-form-textarea" placeholder="Enter JSON input data" required></textarea>
                         </div>
-                        <button type="submit" class="form-button">Start Workflow</button>
+                        <button type="submit" class="admin-form-button">Start Workflow</button>
                     </form>
-                    <div id="executeResult" class="result-area"></div>
+                    <div id="executeResult" class="admin-result-area"></div>
                     <div id="executionLog" class="execution-log" style="display: none;"></div>
                 </div>
             </div>
 
             <!-- Workflow Statistics -->
-            <div class="workflow-card">
+            <div class="admin-card">
                 <h3>Workflow Overview</h3>
                 <div class="stats-display">
                     <div class="stat-card">
@@ -598,7 +369,7 @@
             </div>
 
             <!-- Workflows Display -->
-            <div class="workflow-card">
+            <div class="admin-card">
                 <h3>Workflow Definitions</h3>
                 <div id="workflowsDisplay" class="workflows-display"></div>
             </div>
@@ -656,14 +427,14 @@
             
             if (!name || !filenamesText) {
                 resultDiv.textContent = 'Error: Both workflow name and filenames are required.';
-                resultDiv.className = 'result-area result-error';
+                resultDiv.className = 'admin-result-area admin-result-error';
                 return;
             }
             
             // Check for duplicate names
             if (workflows.some(w => w.name === name)) {
                 resultDiv.textContent = `Error: Workflow "${name}" already exists.`;
-                resultDiv.className = 'result-area result-error';
+                resultDiv.className = 'admin-result-area admin-result-error';
                 return;
             }
             
@@ -674,7 +445,7 @@
                 
                 if (filenames.length === 0) {
                     resultDiv.textContent = 'Error: At least one filename is required.';
-                    resultDiv.className = 'result-area result-error';
+                    resultDiv.className = 'admin-result-area admin-result-error';
                     return;
                 }
                 
@@ -689,7 +460,7 @@
                 workflows.push(workflow);
                 
                 resultDiv.textContent = `Success: Workflow "${name}" created with ${filenames.length} steps.`;
-                resultDiv.className = 'result-area result-success';
+                resultDiv.className = 'admin-result-area admin-result-success';
                 
                 // Clear form
                 document.getElementById('workflowName').value = '';
@@ -702,7 +473,7 @@
                 
             } catch (error) {
                 resultDiv.textContent = `Error: Failed to create workflow. ${error.message}`;
-                resultDiv.className = 'result-area result-error';
+                resultDiv.className = 'admin-result-area admin-result-error';
             }
         });
 
@@ -717,7 +488,7 @@
             
             if (!workflowName || !jsonString) {
                 resultDiv.textContent = 'Error: Both workflow name and JSON input are required.';
-                resultDiv.className = 'result-area result-error';
+                resultDiv.className = 'admin-result-area admin-result-error';
                 logDiv.style.display = 'none';
                 return;
             }
@@ -728,7 +499,7 @@
                 
                 if (!workflow) {
                     resultDiv.textContent = `Error: Workflow "${workflowName}" not found.`;
-                    resultDiv.className = 'result-area result-error';
+                    resultDiv.className = 'admin-result-area admin-result-error';
                     logDiv.style.display = 'none';
                     return;
                 }
@@ -753,7 +524,7 @@
                 workflow.executions++;
                 
                 resultDiv.textContent = `Success: Workflow "${workflowName}" started.`;
-                resultDiv.className = 'result-area result-success';
+                resultDiv.className = 'admin-result-area admin-result-success';
                 
                 // Show execution log
                 logDiv.style.display = 'block';
@@ -768,7 +539,7 @@
                 
             } catch (error) {
                 resultDiv.textContent = `Error: ${error.message}`;
-                resultDiv.className = 'result-area result-error';
+                resultDiv.className = 'admin-result-area admin-result-error';
                 logDiv.style.display = 'none';
             }
         });

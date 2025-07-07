@@ -6,80 +6,6 @@
     <title>Cache Management - Noobly JS Admin</title>
     <link rel="stylesheet" href="styles.css">
     <style>
-        .admin-container {
-            display: flex;
-            min-height: 100vh;
-            margin-top: 70px;
-        }
-
-        .admin-sidebar {
-            width: 250px;
-            background: var(--secondary-color);
-            border-right: 1px solid var(--border-color);
-            padding: 2rem 0;
-            position: fixed;
-            height: calc(100vh - 60px);
-            overflow-y: auto;
-        }
-
-        .admin-nav {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        .admin-nav-item {
-            padding: 0;
-            margin: 0;
-        }
-
-        .admin-nav-link {
-            display: block;
-            padding: 1rem 2rem;
-            color: var(--text-secondary);
-            text-decoration: none;
-            transition: all 0.3s ease;
-            font-weight: 300;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-size: 0.9rem;
-            border-bottom: 1px solid transparent;
-        }
-
-        .admin-nav-link:hover {
-            color: var(--text-primary);
-            background: var(--primary-color);
-            border-left: 3px solid var(--accent-color);
-        }
-
-        .admin-nav-link.active {
-            color: var(--text-primary);
-            background: var(--primary-color);
-            border-left: 3px solid var(--accent-color);
-        }
-
-        .admin-content {
-            flex: 1;
-            margin-left: 250px;
-            padding: 2rem;
-        }
-
-        .admin-header {
-            margin-bottom: 2rem;
-        }
-
-        .admin-title {
-            font-size: 2rem;
-            font-weight: 200;
-            color: var(--text-primary);
-            margin-bottom: 0.5rem;
-        }
-
-        .admin-subtitle {
-            color: var(--text-secondary);
-            font-weight: 300;
-        }
-
         .cache-operations {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -87,18 +13,7 @@
             margin-bottom: 2rem;
         }
 
-        .cache-card {
-            background: var(--primary-color);
-            border: 1px solid var(--border-color);
-            padding: 2rem;
-            transition: all 0.3s ease;
-        }
-
-        .cache-card:hover {
-            box-shadow: var(--shadow-light);
-        }
-
-        .cache-card h3 {
+        .admin-card h3 {
             color: var(--text-primary);
             font-size: 1.2rem;
             font-weight: 400;
@@ -107,131 +22,9 @@
             letter-spacing: 1px;
         }
 
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-
-        .form-label {
-            display: block;
-            color: var(--text-primary);
-            font-weight: 400;
-            margin-bottom: 0.5rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-size: 0.9rem;
-        }
-
-        .form-input {
-            width: 100%;
-            padding: 0.75rem;
-            border: 1px solid var(--border-color);
-            background: var(--primary-color);
-            color: var(--text-primary);
-            font-size: 1rem;
-            transition: all 0.3s ease;
-            font-weight: 300;
-            font-family: 'Helvetica Neue', Arial, sans-serif;
-        }
-
-        .form-input:focus {
-            outline: none;
-            border-color: var(--accent-color);
-        }
-
-        .form-textarea {
-            width: 100%;
-            padding: 0.75rem;
-            border: 1px solid var(--border-color);
-            background: var(--primary-color);
-            color: var(--text-primary);
-            font-size: 1rem;
-            transition: all 0.3s ease;
-            font-weight: 300;
-            font-family: 'Helvetica Neue', Arial, sans-serif;
-            min-height: 120px;
-            resize: vertical;
-        }
-
-        .form-textarea:focus {
-            outline: none;
-            border-color: var(--accent-color);
-        }
-
-        .form-button {
-            width: 100%;
-            padding: 0.75rem;
-            background: var(--accent-color);
-            color: var(--primary-color);
-            border: 1px solid var(--accent-color);
-            font-weight: 400;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-size: 0.9rem;
-            font-family: 'Helvetica Neue', Arial, sans-serif;
-        }
-
-        .form-button:hover {
-            background: transparent;
-            color: var(--accent-color);
-        }
-
-        .form-button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .result-area {
-            background: var(--secondary-color);
-            border: 1px solid var(--border-color);
-            padding: 1rem;
-            margin-top: 1rem;
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-            font-weight: 300;
-            min-height: 60px;
-            white-space: pre-wrap;
-        }
-
-        .result-success {
-            color: #28a745;
-            background: #f8f9fa;
-        }
-
-        .result-error {
-            color: #dc3545;
-            background: #f8f9fa;
-        }
-
         @media (max-width: 768px) {
-            .admin-sidebar {
-                width: 200px;
-            }
-            
-            .admin-content {
-                margin-left: 200px;
-                padding: 1rem;
-            }
-            
             .cache-operations {
                 grid-template-columns: 1fr;
-            }
-        }
-
-        @media (max-width: 600px) {
-            .admin-sidebar {
-                width: 100%;
-                position: relative;
-                height: auto;
-            }
-            
-            .admin-content {
-                margin-left: 0;
-            }
-            
-            .admin-container {
-                flex-direction: column;
             }
         }
     </style>
@@ -316,50 +109,50 @@
 
             <div class="cache-operations">
                 <!-- Save Cache -->
-                <div class="cache-card">
+                <div class="admin-card">
                     <h3>Save Cache</h3>
                     <form id="saveForm">
-                        <div class="form-group">
-                            <label for="saveKey" class="form-label">Key</label>
-                            <input type="text" id="saveKey" name="key" class="form-input" placeholder="Enter cache key" required>
+                        <div class="admin-form-group">
+                            <label for="saveKey" class="admin-form-label">Key</label>
+                            <input type="text" id="saveKey" name="key" class="admin-form-input" placeholder="Enter cache key" required>
                         </div>
-                        <div class="form-group">
-                            <label for="saveValue" class="form-label">Value</label>
-                            <textarea id="saveValue" name="value" class="form-textarea" placeholder="Enter cache value" required></textarea>
+                        <div class="admin-form-group">
+                            <label for="saveValue" class="admin-form-label">Value</label>
+                            <textarea id="saveValue" name="value" class="admin-form-textarea" placeholder="Enter cache value" required></textarea>
                         </div>
-                        <button type="submit" class="form-button">Save Cache</button>
+                        <button type="submit" class="admin-form-button">Save Cache</button>
                     </form>
-                    <div id="saveResult" class="result-area"></div>
+                    <div id="saveResult" class="admin-result-area"></div>
                 </div>
 
                 <!-- Recall Cache -->
-                <div class="cache-card">
+                <div class="admin-card">
                     <h3>Recall Cache</h3>
                     <form id="recallForm">
-                        <div class="form-group">
-                            <label for="recallKey" class="form-label">Key</label>
-                            <input type="text" id="recallKey" name="key" class="form-input" placeholder="Enter cache key" required>
+                        <div class="admin-form-group">
+                            <label for="recallKey" class="admin-form-label">Key</label>
+                            <input type="text" id="recallKey" name="key" class="admin-form-input" placeholder="Enter cache key" required>
                         </div>
-                        <button type="submit" class="form-button">Recall Cache</button>
+                        <button type="submit" class="admin-form-button">Recall Cache</button>
                     </form>
-                    <div class="form-group">
-                        <label for="recallValue" class="form-label">Retrieved Value</label>
-                        <textarea id="recallValue" class="form-textarea" placeholder="Retrieved value will appear here" readonly></textarea>
+                    <div class="admin-form-group">
+                        <label for="recallValue" class="admin-form-label">Retrieved Value</label>
+                        <textarea id="recallValue" class="admin-form-textarea" placeholder="Retrieved value will appear here" readonly></textarea>
                     </div>
-                    <div id="recallResult" class="result-area"></div>
+                    <div id="recallResult" class="admin-result-area"></div>
                 </div>
 
                 <!-- Delete Cache -->
-                <div class="cache-card">
+                <div class="admin-card">
                     <h3>Delete Cache</h3>
                     <form id="deleteForm">
-                        <div class="form-group">
-                            <label for="deleteKey" class="form-label">Key</label>
-                            <input type="text" id="deleteKey" name="key" class="form-input" placeholder="Enter cache key" required>
+                        <div class="admin-form-group">
+                            <label for="deleteKey" class="admin-form-label">Key</label>
+                            <input type="text" id="deleteKey" name="key" class="admin-form-input" placeholder="Enter cache key" required>
                         </div>
-                        <button type="submit" class="form-button">Delete Cache</button>
+                        <button type="submit" class="admin-form-button">Delete Cache</button>
                     </form>
-                    <div id="deleteResult" class="result-area"></div>
+                    <div id="deleteResult" class="admin-result-area"></div>
                 </div>
             </div>
         </main>
@@ -406,21 +199,21 @@
             
             if (!key || !value) {
                 resultDiv.textContent = 'Error: Both key and value are required.';
-                resultDiv.className = 'result-area result-error';
+                resultDiv.className = 'admin-result-area admin-result-error';
                 return;
             }
             
             try {
                 cacheStorage.set(key, value);
                 resultDiv.textContent = `Success: Cache saved for key "${key}".`;
-                resultDiv.className = 'result-area result-success';
+                resultDiv.className = 'admin-result-area admin-result-success';
                 
                 // Clear form
                 document.getElementById('saveKey').value = '';
                 document.getElementById('saveValue').value = '';
             } catch (error) {
                 resultDiv.textContent = `Error: Failed to save cache. ${error.message}`;
-                resultDiv.className = 'result-area result-error';
+                resultDiv.className = 'admin-result-area admin-result-error';
             }
         });
 
@@ -434,7 +227,7 @@
             
             if (!key) {
                 resultDiv.textContent = 'Error: Key is required.';
-                resultDiv.className = 'result-area result-error';
+                resultDiv.className = 'admin-result-area admin-result-error';
                 valueTextarea.value = '';
                 return;
             }
@@ -444,16 +237,16 @@
                     const value = cacheStorage.get(key);
                     valueTextarea.value = value;
                     resultDiv.textContent = `Success: Cache retrieved for key "${key}".`;
-                    resultDiv.className = 'result-area result-success';
+                    resultDiv.className = 'admin-result-area admin-result-success';
                 } else {
                     valueTextarea.value = '';
                     resultDiv.textContent = `Error: No cache found for key "${key}".`;
-                    resultDiv.className = 'result-area result-error';
+                    resultDiv.className = 'admin-result-area admin-result-error';
                 }
             } catch (error) {
                 valueTextarea.value = '';
                 resultDiv.textContent = `Error: Failed to retrieve cache. ${error.message}`;
-                resultDiv.className = 'result-area result-error';
+                resultDiv.className = 'admin-result-area admin-result-error';
             }
         });
 
@@ -466,7 +259,7 @@
             
             if (!key) {
                 resultDiv.textContent = 'Error: Key is required.';
-                resultDiv.className = 'result-area result-error';
+                resultDiv.className = 'admin-result-area admin-result-error';
                 return;
             }
             
@@ -474,17 +267,17 @@
                 if (cacheStorage.has(key)) {
                     cacheStorage.delete(key);
                     resultDiv.textContent = `Success: Cache deleted for key "${key}".`;
-                    resultDiv.className = 'result-area result-success';
+                    resultDiv.className = 'admin-result-area admin-result-success';
                     
                     // Clear form
                     document.getElementById('deleteKey').value = '';
                 } else {
                     resultDiv.textContent = `Error: No cache found for key "${key}".`;
-                    resultDiv.className = 'result-area result-error';
+                    resultDiv.className = 'admin-result-area admin-result-error';
                 }
             } catch (error) {
                 resultDiv.textContent = `Error: Failed to delete cache. ${error.message}`;
-                resultDiv.className = 'result-area result-error';
+                resultDiv.className = 'admin-result-area admin-result-error';
             }
         });
     </script>

@@ -6,79 +6,6 @@
     <title>Measuring Management - Noobly JS Admin</title>
     <link rel="stylesheet" href="styles.css">
     <style>
-        .admin-container {
-            display: flex;
-            min-height: 100vh;
-            margin-top: 60px;
-        }
-
-        .admin-sidebar {
-            width: 250px;
-            background: var(--secondary-color);
-            border-right: 1px solid var(--border-color);
-            padding: 2rem 0;
-            position: fixed;
-            height: calc(100vh - 60px);
-            overflow-y: auto;
-        }
-
-        .admin-nav {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        .admin-nav-item {
-            padding: 0;
-            margin: 0;
-        }
-
-        .admin-nav-link {
-            display: block;
-            padding: 1rem 2rem;
-            color: var(--text-secondary);
-            text-decoration: none;
-            transition: all 0.3s ease;
-            font-weight: 300;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-size: 0.9rem;
-            border-bottom: 1px solid transparent;
-        }
-
-        .admin-nav-link:hover {
-            color: var(--text-primary);
-            background: var(--primary-color);
-            border-left: 3px solid var(--accent-color);
-        }
-
-        .admin-nav-link.active {
-            color: var(--text-primary);
-            background: var(--primary-color);
-            border-left: 3px solid var(--accent-color);
-        }
-
-        .admin-content {
-            flex: 1;
-            margin-left: 250px;
-            padding: 2rem;
-        }
-
-        .admin-header {
-            margin-bottom: 2rem;
-        }
-
-        .admin-title {
-            font-size: 2rem;
-            font-weight: 200;
-            color: var(--text-primary);
-            margin-bottom: 0.5rem;
-        }
-
-        .admin-subtitle {
-            color: var(--text-secondary);
-            font-weight: 300;
-        }
 
         .measuring-operations {
             display: grid;
@@ -87,122 +14,6 @@
             margin-bottom: 2rem;
         }
 
-        .measuring-card {
-            background: var(--primary-color);
-            border: 1px solid var(--border-color);
-            padding: 2rem;
-            transition: all 0.3s ease;
-        }
-
-        .measuring-card:hover {
-            box-shadow: var(--shadow-light);
-        }
-
-        .measuring-card h3 {
-            color: var(--text-primary);
-            font-size: 1.2rem;
-            font-weight: 400;
-            margin-bottom: 1rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-
-        .form-label {
-            display: block;
-            color: var(--text-primary);
-            font-weight: 400;
-            margin-bottom: 0.5rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-size: 0.9rem;
-        }
-
-        .form-input {
-            width: 100%;
-            padding: 0.75rem;
-            border: 1px solid var(--border-color);
-            background: var(--primary-color);
-            color: var(--text-primary);
-            font-size: 1rem;
-            transition: all 0.3s ease;
-            font-weight: 300;
-            font-family: 'Helvetica Neue', Arial, sans-serif;
-        }
-
-        .form-input:focus {
-            outline: none;
-            border-color: var(--accent-color);
-        }
-
-        .form-textarea {
-            width: 100%;
-            padding: 0.75rem;
-            border: 1px solid var(--border-color);
-            background: var(--primary-color);
-            color: var(--text-primary);
-            font-size: 1rem;
-            transition: all 0.3s ease;
-            font-weight: 300;
-            font-family: 'Helvetica Neue', Arial, sans-serif;
-            min-height: 120px;
-            resize: vertical;
-        }
-
-        .form-textarea:focus {
-            outline: none;
-            border-color: var(--accent-color);
-        }
-
-        .form-button {
-            width: 100%;
-            padding: 0.75rem;
-            background: var(--accent-color);
-            color: var(--primary-color);
-            border: 1px solid var(--accent-color);
-            font-weight: 400;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-size: 0.9rem;
-            font-family: 'Helvetica Neue', Arial, sans-serif;
-        }
-
-        .form-button:hover {
-            background: transparent;
-            color: var(--accent-color);
-        }
-
-        .form-button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .result-area {
-            background: var(--secondary-color);
-            border: 1px solid var(--border-color);
-            padding: 1rem;
-            margin-top: 1rem;
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-            font-weight: 300;
-            min-height: 60px;
-            white-space: pre-wrap;
-        }
-
-        .result-success {
-            color: #28a745;
-            background: #f8f9fa;
-        }
-
-        .result-error {
-            color: #dc3545;
-            background: #f8f9fa;
-        }
 
         .date-inputs {
             display: grid;
@@ -277,15 +88,6 @@
         }
 
         @media (max-width: 768px) {
-            .admin-sidebar {
-                width: 200px;
-            }
-            
-            .admin-content {
-                margin-left: 200px;
-                padding: 1rem;
-            }
-            
             .measuring-operations {
                 grid-template-columns: 1fr;
             }
@@ -296,22 +98,6 @@
             
             .stats-display {
                 grid-template-columns: 1fr;
-            }
-        }
-
-        @media (max-width: 600px) {
-            .admin-sidebar {
-                width: 100%;
-                position: relative;
-                height: auto;
-            }
-            
-            .admin-content {
-                margin-left: 0;
-            }
-            
-            .admin-container {
-                flex-direction: column;
             }
         }
     </style>
@@ -396,45 +182,45 @@
 
             <div class="measuring-operations">
                 <!-- Save Metric -->
-                <div class="measuring-card">
+                <div class="admin-card">
                     <h3>Save Metric</h3>
                     <form id="saveForm">
-                        <div class="form-group">
-                            <label for="metricName" class="form-label">Metric Name</label>
-                            <input type="text" id="metricName" name="name" class="form-input" placeholder="Enter metric name" required>
+                        <div class="admin-form-group">
+                            <label for="metricName" class="admin-form-label">Metric Name</label>
+                            <input type="text" id="metricName" name="name" class="admin-form-input" placeholder="Enter metric name" required>
                         </div>
-                        <div class="form-group">
-                            <label for="metricValue" class="form-label">Value</label>
-                            <input type="number" id="metricValue" name="value" class="form-input" placeholder="Enter numeric value" step="any" required>
+                        <div class="admin-form-group">
+                            <label for="metricValue" class="admin-form-label">Value</label>
+                            <input type="number" id="metricValue" name="value" class="admin-form-input" placeholder="Enter numeric value" step="any" required>
                         </div>
-                        <button type="submit" class="form-button">Save Metric</button>
+                        <button type="submit" class="admin-form-button">Save Metric</button>
                     </form>
-                    <div id="saveResult" class="result-area"></div>
+                    <div id="saveResult" class="admin-result-area"></div>
                 </div>
 
                 <!-- Retrieve Metrics -->
-                <div class="measuring-card">
+                <div class="admin-card">
                     <h3>Retrieve Metrics</h3>
                     <form id="retrieveForm">
-                        <div class="form-group">
-                            <label for="retrieveMetric" class="form-label">Metric Name</label>
-                            <input type="text" id="retrieveMetric" name="metric" class="form-input" placeholder="Enter metric name" required>
+                        <div class="admin-form-group">
+                            <label for="retrieveMetric" class="admin-form-label">Metric Name</label>
+                            <input type="text" id="retrieveMetric" name="metric" class="admin-form-input" placeholder="Enter metric name" required>
                         </div>
-                        <div class="form-group">
-                            <label class="form-label">Date Range</label>
+                        <div class="admin-form-group">
+                            <label class="admin-form-label">Date Range</label>
                             <div class="date-inputs">
-                                <input type="date" id="startDate" name="startDate" class="form-input" required>
-                                <input type="date" id="endDate" name="endDate" class="form-input" required>
+                                <input type="date" id="startDate" name="startDate" class="admin-form-input" required>
+                                <input type="date" id="endDate" name="endDate" class="admin-form-input" required>
                             </div>
                         </div>
-                        <button type="submit" class="form-button">Retrieve Metrics</button>
+                        <button type="submit" class="admin-form-button">Retrieve Metrics</button>
                     </form>
-                    <div id="retrieveResult" class="result-area"></div>
+                    <div id="retrieveResult" class="admin-result-area"></div>
                 </div>
             </div>
 
             <!-- Results Display -->
-            <div class="measuring-card">
+            <div class="admin-card">
                 <h3>Metric Results</h3>
                 <div class="stats-display">
                     <div class="stat-card">
@@ -446,8 +232,8 @@
                         <div id="averageValue" class="stat-value">0</div>
                     </div>
                 </div>
-                <div class="form-group">
-                    <label class="form-label">Entries</label>
+                <div class="admin-form-group">
+                    <label class="admin-form-label">Entries</label>
                     <div id="entriesDisplay" class="entries-display"></div>
                 </div>
             </div>
@@ -495,7 +281,7 @@
             
             if (!name || isNaN(value)) {
                 resultDiv.textContent = 'Error: Both metric name and valid numeric value are required.';
-                resultDiv.className = 'result-area result-error';
+                resultDiv.className = 'admin-result-area admin-result-error';
                 return;
             }
             
@@ -514,7 +300,7 @@
                 metricStorage.get(name).push(metricEntry);
                 
                 resultDiv.textContent = `Success: Metric "${name}" saved with value ${value}.`;
-                resultDiv.className = 'result-area result-success';
+                resultDiv.className = 'admin-result-area admin-result-success';
                 
                 // Clear form
                 document.getElementById('metricName').value = '';
@@ -522,7 +308,7 @@
                 
             } catch (error) {
                 resultDiv.textContent = `Error: Failed to save metric. ${error.message}`;
-                resultDiv.className = 'result-area result-error';
+                resultDiv.className = 'admin-result-area admin-result-error';
             }
         });
 
@@ -537,14 +323,14 @@
             
             if (!metricName || !startDate || !endDate) {
                 resultDiv.textContent = 'Error: Metric name and date range are required.';
-                resultDiv.className = 'result-area result-error';
+                resultDiv.className = 'admin-result-area admin-result-error';
                 clearResults();
                 return;
             }
             
             if (startDate > endDate) {
                 resultDiv.textContent = 'Error: Start date must be before or equal to end date.';
-                resultDiv.className = 'result-area result-error';
+                resultDiv.className = 'admin-result-area admin-result-error';
                 clearResults();
                 return;
             }
@@ -552,7 +338,7 @@
             try {
                 if (!metricStorage.has(metricName)) {
                     resultDiv.textContent = `Error: Metric "${metricName}" not found.`;
-                    resultDiv.className = 'result-area result-error';
+                    resultDiv.className = 'admin-result-area admin-result-error';
                     clearResults();
                     return;
                 }
@@ -564,7 +350,7 @@
                 
                 if (filteredEntries.length === 0) {
                     resultDiv.textContent = `No entries found for "${metricName}" between ${startDate} and ${endDate}.`;
-                    resultDiv.className = 'result-area result-error';
+                    resultDiv.className = 'admin-result-area admin-result-error';
                     clearResults();
                     return;
                 }
@@ -577,11 +363,11 @@
                 displayResults(filteredEntries, total, average);
                 
                 resultDiv.textContent = `Success: Found ${filteredEntries.length} entries for "${metricName}".`;
-                resultDiv.className = 'result-area result-success';
+                resultDiv.className = 'admin-result-area admin-result-success';
                 
             } catch (error) {
                 resultDiv.textContent = `Error: Failed to retrieve metrics. ${error.message}`;
-                resultDiv.className = 'result-area result-error';
+                resultDiv.className = 'admin-result-area admin-result-error';
                 clearResults();
             }
         });

@@ -6,79 +6,6 @@
     <title>Searching Management - Noobly JS Admin</title>
     <link rel="stylesheet" href="styles.css">
     <style>
-        .admin-container {
-            display: flex;
-            min-height: 100vh;
-            margin-top: 60px;
-        }
-
-        .admin-sidebar {
-            width: 250px;
-            background: var(--secondary-color);
-            border-right: 1px solid var(--border-color);
-            padding: 2rem 0;
-            position: fixed;
-            height: calc(100vh - 60px);
-            overflow-y: auto;
-        }
-
-        .admin-nav {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        .admin-nav-item {
-            padding: 0;
-            margin: 0;
-        }
-
-        .admin-nav-link {
-            display: block;
-            padding: 1rem 2rem;
-            color: var(--text-secondary);
-            text-decoration: none;
-            transition: all 0.3s ease;
-            font-weight: 300;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-size: 0.9rem;
-            border-bottom: 1px solid transparent;
-        }
-
-        .admin-nav-link:hover {
-            color: var(--text-primary);
-            background: var(--primary-color);
-            border-left: 3px solid var(--accent-color);
-        }
-
-        .admin-nav-link.active {
-            color: var(--text-primary);
-            background: var(--primary-color);
-            border-left: 3px solid var(--accent-color);
-        }
-
-        .admin-content {
-            flex: 1;
-            margin-left: 250px;
-            padding: 2rem;
-        }
-
-        .admin-header {
-            margin-bottom: 2rem;
-        }
-
-        .admin-title {
-            font-size: 2rem;
-            font-weight: 200;
-            color: var(--text-primary);
-            margin-bottom: 0.5rem;
-        }
-
-        .admin-subtitle {
-            color: var(--text-secondary);
-            font-weight: 300;
-        }
 
         .searching-operations {
             display: grid;
@@ -87,129 +14,14 @@
             margin-bottom: 2rem;
         }
 
-        .searching-card {
-            background: var(--primary-color);
-            border: 1px solid var(--border-color);
-            padding: 2rem;
-            transition: all 0.3s ease;
-        }
-
-        .searching-card:hover {
-            box-shadow: var(--shadow-light);
-        }
-
-        .searching-card h3 {
-            color: var(--text-primary);
-            font-size: 1.2rem;
-            font-weight: 400;
-            margin-bottom: 1rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-
-        .form-label {
-            display: block;
-            color: var(--text-primary);
-            font-weight: 400;
-            margin-bottom: 0.5rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-size: 0.9rem;
-        }
-
-        .form-input {
-            width: 100%;
-            padding: 0.75rem;
-            border: 1px solid var(--border-color);
-            background: var(--primary-color);
-            color: var(--text-primary);
-            font-size: 1rem;
-            transition: all 0.3s ease;
-            font-weight: 300;
-            font-family: 'Helvetica Neue', Arial, sans-serif;
-        }
-
-        .form-input:focus {
-            outline: none;
-            border-color: var(--accent-color);
-        }
-
-        .form-textarea {
-            width: 100%;
-            padding: 0.75rem;
-            border: 1px solid var(--border-color);
-            background: var(--primary-color);
-            color: var(--text-primary);
-            font-size: 1rem;
-            transition: all 0.3s ease;
-            font-weight: 300;
-            font-family: 'Helvetica Neue', Arial, sans-serif;
-            min-height: 150px;
-            resize: vertical;
-        }
-
-        .form-textarea:focus {
-            outline: none;
-            border-color: var(--accent-color);
-        }
-
-        .form-button {
-            width: 100%;
-            padding: 0.75rem;
-            background: var(--accent-color);
-            color: var(--primary-color);
-            border: 1px solid var(--accent-color);
-            font-weight: 400;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-size: 0.9rem;
-            font-family: 'Helvetica Neue', Arial, sans-serif;
-        }
-
-        .form-button:hover {
-            background: transparent;
-            color: var(--accent-color);
-        }
-
-        .form-button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .result-area {
-            background: var(--secondary-color);
-            border: 1px solid var(--border-color);
-            padding: 1rem;
-            margin-top: 1rem;
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-            font-weight: 300;
-            min-height: 60px;
-            white-space: pre-wrap;
-        }
-
-        .result-success {
-            color: #28a745;
-            background: #f8f9fa;
-        }
-
-        .result-error {
-            color: #dc3545;
-            background: #f8f9fa;
-        }
 
         .search-results {
-            background: var(--secondary-color);
-            border: 1px solid var(--border-color);
-            padding: 1rem;
+            background: var(--bg-secondary);
+            border: 2px solid var(--light-gray);
+            border-radius: var(--border-radius-medium);
+            padding: var(--spacing-md);
             font-family: 'Courier New', monospace;
-            font-size: 0.9rem;
+            font-size: var(--font-size-sm);
             color: var(--text-primary);
             min-height: 200px;
             max-height: 400px;
@@ -219,11 +31,12 @@
         }
 
         .search-result-item {
-            background: var(--primary-color);
-            border: 1px solid var(--border-color);
-            padding: 1rem;
-            margin-bottom: 1rem;
-            border-left: 3px solid var(--accent-color);
+            background: var(--white);
+            border: 2px solid var(--light-gray);
+            border-radius: var(--border-radius-medium);
+            padding: var(--spacing-md);
+            margin-bottom: var(--spacing-md);
+            border-left: 4px solid var(--primary-blue);
         }
 
         .search-result-item:last-child {
@@ -251,10 +64,10 @@
         .search-result-data {
             color: var(--text-primary);
             font-family: 'Courier New', monospace;
-            font-size: 0.8rem;
-            background: var(--secondary-color);
-            padding: 0.5rem;
-            border-radius: 2px;
+            font-size: var(--font-size-xs);
+            background: var(--bg-secondary);
+            padding: var(--spacing-sm);
+            border-radius: var(--border-radius-small);
             overflow-x: auto;
         }
 
@@ -266,9 +79,10 @@
         }
 
         .stat-card {
-            background: var(--secondary-color);
-            border: 1px solid var(--border-color);
-            padding: 1rem;
+            background: var(--bg-secondary);
+            border: 2px solid var(--light-gray);
+            border-radius: var(--border-radius-medium);
+            padding: var(--spacing-md);
             text-align: center;
         }
 
@@ -293,44 +107,40 @@
         }
 
         .control-button {
-            padding: 0.5rem 1rem;
-            background: transparent;
-            border: 1px solid var(--border-color);
-            color: var(--text-secondary);
+            padding: var(--spacing-sm) var(--spacing-md);
+            background: var(--white);
+            border: 2px solid var(--medium-gray);
+            border-radius: var(--border-radius-medium);
+            color: var(--text-primary);
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all var(--transition-standard);
             text-transform: uppercase;
-            letter-spacing: 1px;
-            font-size: 0.8rem;
-            font-family: 'Helvetica Neue', Arial, sans-serif;
+            letter-spacing: 0.5px;
+            font-size: var(--font-size-xs);
+            font-family: var(--font-family-base);
+            font-weight: 600;
         }
 
         .control-button:hover {
-            background: var(--accent-color);
-            color: var(--primary-color);
-            border-color: var(--accent-color);
+            background: var(--primary-blue);
+            color: var(--white);
+            border-color: var(--primary-blue);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-medium);
         }
 
         .control-button.danger {
-            border-color: #dc3545;
-            color: #dc3545;
+            border-color: var(--danger-color);
+            color: var(--danger-color);
         }
 
         .control-button.danger:hover {
-            background: #dc3545;
-            color: var(--primary-color);
+            background: var(--danger-color);
+            color: var(--white);
+            border-color: var(--danger-color);
         }
 
         @media (max-width: 768px) {
-            .admin-sidebar {
-                width: 200px;
-            }
-            
-            .admin-content {
-                margin-left: 200px;
-                padding: 1rem;
-            }
-            
             .searching-operations {
                 grid-template-columns: 1fr;
             }
@@ -341,20 +151,6 @@
         }
 
         @media (max-width: 600px) {
-            .admin-sidebar {
-                width: 100%;
-                position: relative;
-                height: auto;
-            }
-            
-            .admin-content {
-                margin-left: 0;
-            }
-            
-            .admin-container {
-                flex-direction: column;
-            }
-            
             .search-result-header {
                 flex-direction: column;
                 align-items: flex-start;
@@ -443,47 +239,47 @@
 
             <div class="searching-operations">
                 <!-- Add to Search Index -->
-                <div class="searching-card">
+                <div class="admin-card">
                     <h3>Add to Index</h3>
                     <form id="indexForm">
-                        <div class="form-group">
-                            <label for="indexJson" class="form-label">JSON Data</label>
-                            <textarea id="indexJson" name="json" class="form-textarea" placeholder="Enter JSON data to index" required></textarea>
+                        <div class="admin-form-group">
+                            <label for="indexJson" class="admin-form-label">JSON Data</label>
+                            <textarea id="indexJson" name="json" class="admin-form-textarea" placeholder="Enter JSON data to index" required></textarea>
                         </div>
-                        <button type="submit" class="form-button">Add to Index</button>
+                        <button type="submit" class="admin-form-button">Add to Index</button>
                     </form>
-                    <div id="indexResult" class="result-area"></div>
+                    <div id="indexResult" class="admin-result-area"></div>
                 </div>
 
                 <!-- Search Index -->
-                <div class="searching-card">
+                <div class="admin-card">
                     <h3>Search Index</h3>
                     <form id="searchForm">
-                        <div class="form-group">
-                            <label for="searchTerm" class="form-label">Search Term</label>
-                            <input type="text" id="searchTerm" name="term" class="form-input" placeholder="Enter search term" required>
+                        <div class="admin-form-group">
+                            <label for="searchTerm" class="admin-form-label">Search Term</label>
+                            <input type="text" id="searchTerm" name="term" class="admin-form-input" placeholder="Enter search term" required>
                         </div>
-                        <button type="submit" class="form-button">Search</button>
+                        <button type="submit" class="admin-form-button">Search</button>
                     </form>
-                    <div id="searchResult" class="result-area"></div>
+                    <div id="searchResult" class="admin-result-area"></div>
                 </div>
 
                 <!-- Delete from Index -->
-                <div class="searching-card">
+                <div class="admin-card">
                     <h3>Delete from Index</h3>
                     <form id="deleteForm">
-                        <div class="form-group">
-                            <label for="deleteKey" class="form-label">Document Key</label>
-                            <input type="text" id="deleteKey" name="key" class="form-input" placeholder="Enter document key" required>
+                        <div class="admin-form-group">
+                            <label for="deleteKey" class="admin-form-label">Document Key</label>
+                            <input type="text" id="deleteKey" name="key" class="admin-form-input" placeholder="Enter document key" required>
                         </div>
-                        <button type="submit" class="form-button">Delete Document</button>
+                        <button type="submit" class="admin-form-button">Delete Document</button>
                     </form>
-                    <div id="deleteResult" class="result-area"></div>
+                    <div id="deleteResult" class="admin-result-area"></div>
                 </div>
             </div>
 
             <!-- Search Results and Statistics -->
-            <div class="searching-card">
+            <div class="admin-card">
                 <h3>Search Results</h3>
                 <div class="stats-display">
                     <div class="stat-card">
@@ -580,7 +376,7 @@
             
             if (!jsonString) {
                 resultDiv.textContent = 'Error: JSON data is required.';
-                resultDiv.className = 'result-area result-error';
+                resultDiv.className = 'admin-result-area admin-result-error';
                 return;
             }
             
@@ -597,7 +393,7 @@
                 searchIndex.set(key, document);
                 
                 resultDiv.textContent = `Success: Document added to index with key "${key}".`;
-                resultDiv.className = 'result-area result-success';
+                resultDiv.className = 'admin-result-area admin-result-success';
                 
                 // Clear form
                 document.getElementById('indexJson').value = '';
@@ -607,7 +403,7 @@
                 
             } catch (error) {
                 resultDiv.textContent = `Error: ${error.message}`;
-                resultDiv.className = 'result-area result-error';
+                resultDiv.className = 'admin-result-area admin-result-error';
             }
         });
 
@@ -620,7 +416,7 @@
             
             if (!term) {
                 resultDiv.textContent = 'Error: Search term is required.';
-                resultDiv.className = 'result-area result-error';
+                resultDiv.className = 'admin-result-area admin-result-error';
                 clearSearchResults();
                 return;
             }
@@ -650,11 +446,11 @@
                 updateStats();
                 
                 resultDiv.textContent = `Success: Found ${results.length} result(s) for "${term}".`;
-                resultDiv.className = 'result-area result-success';
+                resultDiv.className = 'admin-result-area admin-result-success';
                 
             } catch (error) {
                 resultDiv.textContent = `Error: ${error.message}`;
-                resultDiv.className = 'result-area result-error';
+                resultDiv.className = 'admin-result-area admin-result-error';
                 clearSearchResults();
             }
         });
@@ -668,7 +464,7 @@
             
             if (!key) {
                 resultDiv.textContent = 'Error: Document key is required.';
-                resultDiv.className = 'result-area result-error';
+                resultDiv.className = 'admin-result-area admin-result-error';
                 return;
             }
             
@@ -676,7 +472,7 @@
                 if (searchIndex.has(key)) {
                     searchIndex.delete(key);
                     resultDiv.textContent = `Success: Document with key "${key}" deleted from index.`;
-                    resultDiv.className = 'result-area result-success';
+                    resultDiv.className = 'admin-result-area admin-result-success';
                     
                     // Clear form
                     document.getElementById('deleteKey').value = '';
@@ -686,11 +482,11 @@
                     clearSearchResults();
                 } else {
                     resultDiv.textContent = `Error: Document with key "${key}" not found in index.`;
-                    resultDiv.className = 'result-area result-error';
+                    resultDiv.className = 'admin-result-area admin-result-error';
                 }
             } catch (error) {
                 resultDiv.textContent = `Error: ${error.message}`;
-                resultDiv.className = 'result-area result-error';
+                resultDiv.className = 'admin-result-area admin-result-error';
             }
         });
 
@@ -717,7 +513,7 @@
                 
                 const resultDiv = document.getElementById('searchResult');
                 resultDiv.textContent = 'Success: Search index cleared.';
-                resultDiv.className = 'result-area result-success';
+                resultDiv.className = 'admin-result-area admin-result-success';
             }
         });
 

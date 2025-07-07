@@ -6,80 +6,6 @@
     <title>Notifying Management - Noobly JS Admin</title>
     <link rel="stylesheet" href="styles.css">
     <style>
-        .admin-container {
-            display: flex;
-            min-height: 100vh;
-            margin-top: 60px;
-        }
-
-        .admin-sidebar {
-            width: 250px;
-            background: var(--secondary-color);
-            border-right: 1px solid var(--border-color);
-            padding: 2rem 0;
-            position: fixed;
-            height: calc(100vh - 60px);
-            overflow-y: auto;
-        }
-
-        .admin-nav {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        .admin-nav-item {
-            padding: 0;
-            margin: 0;
-        }
-
-        .admin-nav-link {
-            display: block;
-            padding: 1rem 2rem;
-            color: var(--text-secondary);
-            text-decoration: none;
-            transition: all 0.3s ease;
-            font-weight: 300;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-size: 0.9rem;
-            border-bottom: 1px solid transparent;
-        }
-
-        .admin-nav-link:hover {
-            color: var(--text-primary);
-            background: var(--primary-color);
-            border-left: 3px solid var(--accent-color);
-        }
-
-        .admin-nav-link.active {
-            color: var(--text-primary);
-            background: var(--primary-color);
-            border-left: 3px solid var(--accent-color);
-        }
-
-        .admin-content {
-            flex: 1;
-            margin-left: 250px;
-            padding: 2rem;
-        }
-
-        .admin-header {
-            margin-bottom: 2rem;
-        }
-
-        .admin-title {
-            font-size: 2rem;
-            font-weight: 200;
-            color: var(--text-primary);
-            margin-bottom: 0.5rem;
-        }
-
-        .admin-subtitle {
-            color: var(--text-secondary);
-            font-weight: 300;
-        }
-
         .notifying-operations {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -87,138 +13,13 @@
             margin-bottom: 2rem;
         }
 
-        .notifying-card {
-            background: var(--primary-color);
-            border: 1px solid var(--border-color);
-            padding: 2rem;
-            transition: all 0.3s ease;
-        }
-
-        .notifying-card:hover {
-            box-shadow: var(--shadow-light);
-        }
-
-        .notifying-card h3 {
+        .admin-card h3 {
             color: var(--text-primary);
             font-size: 1.2rem;
             font-weight: 400;
             margin-bottom: 1rem;
             text-transform: uppercase;
             letter-spacing: 1px;
-        }
-
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-
-        .form-label {
-            display: block;
-            color: var(--text-primary);
-            font-weight: 400;
-            margin-bottom: 0.5rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-size: 0.9rem;
-        }
-
-        .form-input {
-            width: 100%;
-            padding: 0.75rem;
-            border: 1px solid var(--border-color);
-            background: var(--primary-color);
-            color: var(--text-primary);
-            font-size: 1rem;
-            transition: all 0.3s ease;
-            font-weight: 300;
-            font-family: 'Helvetica Neue', Arial, sans-serif;
-        }
-
-        .form-input:focus {
-            outline: none;
-            border-color: var(--accent-color);
-        }
-
-        .form-select {
-            width: 100%;
-            padding: 0.75rem;
-            border: 1px solid var(--border-color);
-            background: var(--primary-color);
-            color: var(--text-primary);
-            font-size: 1rem;
-            transition: all 0.3s ease;
-            font-weight: 300;
-            font-family: 'Helvetica Neue', Arial, sans-serif;
-        }
-
-        .form-select:focus {
-            outline: none;
-            border-color: var(--accent-color);
-        }
-
-        .form-textarea {
-            width: 100%;
-            padding: 0.75rem;
-            border: 1px solid var(--border-color);
-            background: var(--primary-color);
-            color: var(--text-primary);
-            font-size: 1rem;
-            transition: all 0.3s ease;
-            font-weight: 300;
-            font-family: 'Helvetica Neue', Arial, sans-serif;
-            min-height: 120px;
-            resize: vertical;
-        }
-
-        .form-textarea:focus {
-            outline: none;
-            border-color: var(--accent-color);
-        }
-
-        .form-button {
-            width: 100%;
-            padding: 0.75rem;
-            background: var(--accent-color);
-            color: var(--primary-color);
-            border: 1px solid var(--accent-color);
-            font-weight: 400;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-size: 0.9rem;
-            font-family: 'Helvetica Neue', Arial, sans-serif;
-        }
-
-        .form-button:hover {
-            background: transparent;
-            color: var(--accent-color);
-        }
-
-        .form-button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .result-area {
-            background: var(--secondary-color);
-            border: 1px solid var(--border-color);
-            padding: 1rem;
-            margin-top: 1rem;
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-            font-weight: 300;
-            min-height: 60px;
-            white-space: pre-wrap;
-        }
-
-        .result-success {
-            color: #28a745;
-            background: #f8f9fa;
-        }
-
-        .result-error {
-            color: #dc3545;
-            background: #f8f9fa;
         }
 
         .topics-display {
@@ -315,35 +116,12 @@
         }
 
         @media (max-width: 768px) {
-            .admin-sidebar {
-                width: 200px;
-            }
-            
-            .admin-content {
-                margin-left: 200px;
-                padding: 1rem;
-            }
-            
             .notifying-operations {
                 grid-template-columns: 1fr;
             }
         }
 
         @media (max-width: 600px) {
-            .admin-sidebar {
-                width: 100%;
-                position: relative;
-                height: auto;
-            }
-            
-            .admin-content {
-                margin-left: 0;
-            }
-            
-            .admin-container {
-                flex-direction: column;
-            }
-            
             .message-header {
                 flex-direction: column;
                 align-items: flex-start;
@@ -432,53 +210,53 @@
 
             <div class="notifying-operations">
                 <!-- Create Topic -->
-                <div class="notifying-card">
+                <div class="admin-card">
                     <h3>Create Topic</h3>
                     <form id="topicForm">
-                        <div class="form-group">
-                            <label for="topicName" class="form-label">Topic Name</label>
-                            <input type="text" id="topicName" name="topic" class="form-input" placeholder="Enter topic name" required>
+                        <div class="admin-form-group">
+                            <label for="topicName" class="admin-form-label">Topic Name</label>
+                            <input type="text" id="topicName" name="topic" class="admin-form-input" placeholder="Enter topic name" required>
                         </div>
-                        <button type="submit" class="form-button">Create Topic</button>
+                        <button type="submit" class="admin-form-button">Create Topic</button>
                     </form>
-                    <div id="topicResult" class="result-area"></div>
-                    <div class="form-group">
-                        <label class="form-label">Available Topics</label>
+                    <div id="topicResult" class="admin-result-area"></div>
+                    <div class="admin-form-group">
+                        <label class="admin-form-label">Available Topics</label>
                         <div id="topicsDisplay" class="topics-display"></div>
                     </div>
                 </div>
 
                 <!-- Publish Message -->
-                <div class="notifying-card">
+                <div class="admin-card">
                     <h3>Publish Message</h3>
                     <form id="publishForm">
-                        <div class="form-group">
-                            <label for="publishTopic" class="form-label">Topic</label>
-                            <select id="publishTopic" name="topic" class="form-select" required>
+                        <div class="admin-form-group">
+                            <label for="publishTopic" class="admin-form-label">Topic</label>
+                            <select id="publishTopic" name="topic" class="admin-form-select" required>
                                 <option value="">Select a topic</option>
                             </select>
                         </div>
-                        <div class="form-group">
-                            <label for="publishMessage" class="form-label">Message</label>
-                            <textarea id="publishMessage" name="message" class="form-textarea" placeholder="Enter your message" required></textarea>
+                        <div class="admin-form-group">
+                            <label for="publishMessage" class="admin-form-label">Message</label>
+                            <textarea id="publishMessage" name="message" class="admin-form-textarea" placeholder="Enter your message" required></textarea>
                         </div>
-                        <button type="submit" class="form-button">Publish Message</button>
+                        <button type="submit" class="admin-form-button">Publish Message</button>
                     </form>
-                    <div id="publishResult" class="result-area"></div>
+                    <div id="publishResult" class="admin-result-area"></div>
                 </div>
             </div>
 
             <!-- Messages Display -->
-            <div class="notifying-card">
+            <div class="admin-card">
                 <h3>Published Messages</h3>
                 <div style="display: flex; gap: 1rem; align-items: center; margin-bottom: 1rem;">
-                    <div class="form-group" style="flex: 1; margin-bottom: 0;">
-                        <label for="filterTopic" class="form-label">Filter by Topic</label>
-                        <select id="filterTopic" name="filter" class="form-select">
+                    <div class="admin-form-group" style="flex: 1; margin-bottom: 0;">
+                        <label for="filterTopic" class="admin-form-label">Filter by Topic</label>
+                        <select id="filterTopic" name="filter" class="admin-form-select">
                             <option value="">All Topics</option>
                         </select>
                     </div>
-                    <button class="form-button clear-button" id="clearMessages" style="width: auto; padding: 0.5rem 1rem;">Clear All</button>
+                    <button class="admin-form-button clear-button" id="clearMessages" style="width: auto; padding: 0.5rem 1rem;">Clear All</button>
                 </div>
                 <div id="messagesDisplay" class="messages-display"></div>
             </div>
@@ -526,13 +304,13 @@
             
             if (!topicName) {
                 resultDiv.textContent = 'Error: Topic name is required.';
-                resultDiv.className = 'result-area result-error';
+                resultDiv.className = 'admin-result-area admin-result-error';
                 return;
             }
             
             if (topics.has(topicName)) {
                 resultDiv.textContent = `Error: Topic "${topicName}" already exists.`;
-                resultDiv.className = 'result-area result-error';
+                resultDiv.className = 'admin-result-area admin-result-error';
                 return;
             }
             
@@ -540,7 +318,7 @@
                 topics.add(topicName);
                 
                 resultDiv.textContent = `Success: Topic "${topicName}" created.`;
-                resultDiv.className = 'result-area result-success';
+                resultDiv.className = 'admin-result-area admin-result-success';
                 
                 // Clear form
                 document.getElementById('topicName').value = '';
@@ -551,7 +329,7 @@
                 
             } catch (error) {
                 resultDiv.textContent = `Error: Failed to create topic. ${error.message}`;
-                resultDiv.className = 'result-area result-error';
+                resultDiv.className = 'admin-result-area admin-result-error';
             }
         });
 
@@ -565,7 +343,7 @@
             
             if (!topic || !message) {
                 resultDiv.textContent = 'Error: Both topic and message are required.';
-                resultDiv.className = 'result-area result-error';
+                resultDiv.className = 'admin-result-area admin-result-error';
                 return;
             }
             
@@ -580,7 +358,7 @@
                 messages.unshift(messageEntry);
                 
                 resultDiv.textContent = `Success: Message published to topic "${topic}".`;
-                resultDiv.className = 'result-area result-success';
+                resultDiv.className = 'admin-result-area admin-result-success';
                 
                 // Clear form
                 document.getElementById('publishMessage').value = '';
@@ -590,7 +368,7 @@
                 
             } catch (error) {
                 resultDiv.textContent = `Error: Failed to publish message. ${error.message}`;
-                resultDiv.className = 'result-area result-error';
+                resultDiv.className = 'admin-result-area admin-result-error';
             }
         });
 
@@ -607,7 +385,7 @@
                 
                 const resultDiv = document.getElementById('publishResult');
                 resultDiv.textContent = 'Success: All messages cleared.';
-                resultDiv.className = 'result-area result-success';
+                resultDiv.className = 'admin-result-area admin-result-success';
             }
         });
 

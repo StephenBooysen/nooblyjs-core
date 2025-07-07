@@ -6,208 +6,20 @@
     <title>Data Management - Noobly JS Admin</title>
     <link rel="stylesheet" href="styles.css">
     <style>
-        .admin-container {
-            display: flex;
-            min-height: 100vh;
-            margin-top: 60px;
-        }
-
-        .admin-sidebar {
-            width: 250px;
-            background: var(--secondary-color);
-            border-right: 1px solid var(--border-color);
-            padding: 2rem 0;
-            position: fixed;
-            height: calc(100vh - 60px);
-            overflow-y: auto;
-        }
-
-        .admin-nav {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        .admin-nav-item {
-            padding: 0;
-            margin: 0;
-        }
-
-        .admin-nav-link {
-            display: block;
-            padding: 1rem 2rem;
-            color: var(--text-secondary);
-            text-decoration: none;
-            transition: all 0.3s ease;
-            font-weight: 300;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-size: 0.9rem;
-            border-bottom: 1px solid transparent;
-        }
-
-        .admin-nav-link:hover {
-            color: var(--text-primary);
-            background: var(--primary-color);
-            border-left: 3px solid var(--accent-color);
-        }
-
-        .admin-nav-link.active {
-            color: var(--text-primary);
-            background: var(--primary-color);
-            border-left: 3px solid var(--accent-color);
-        }
-
-        .admin-content {
-            flex: 1;
-            margin-left: 250px;
-            padding: 2rem;
-        }
-
-        .admin-header {
-            margin-bottom: 2rem;
-        }
-
-        .admin-title {
-            font-size: 2rem;
-            font-weight: 200;
-            color: var(--text-primary);
-            margin-bottom: 0.5rem;
-        }
-
-        .admin-subtitle {
-            color: var(--text-secondary);
-            font-weight: 300;
-        }
 
         .data-operations {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 2rem;
-            margin-bottom: 2rem;
+            gap: var(--spacing-xl);
+            margin-bottom: var(--spacing-xl);
         }
 
-        .data-card {
-            background: var(--primary-color);
-            border: 1px solid var(--border-color);
-            padding: 2rem;
-            transition: all 0.3s ease;
-        }
-
-        .data-card:hover {
-            box-shadow: var(--shadow-light);
-        }
-
-        .data-card h3 {
-            color: var(--text-primary);
-            font-size: 1.2rem;
-            font-weight: 400;
-            margin-bottom: 1rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-
-        .form-label {
-            display: block;
-            color: var(--text-primary);
-            font-weight: 400;
-            margin-bottom: 0.5rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-size: 0.9rem;
-        }
-
-        .form-input {
-            width: 100%;
-            padding: 0.75rem;
-            border: 1px solid var(--border-color);
-            background: var(--primary-color);
-            color: var(--text-primary);
-            font-size: 1rem;
-            transition: all 0.3s ease;
-            font-weight: 300;
-            font-family: 'Helvetica Neue', Arial, sans-serif;
-        }
-
-        .form-input:focus {
-            outline: none;
-            border-color: var(--accent-color);
-        }
-
-        .form-textarea {
-            width: 100%;
-            padding: 0.75rem;
-            border: 1px solid var(--border-color);
-            background: var(--primary-color);
-            color: var(--text-primary);
-            font-size: 1rem;
-            transition: all 0.3s ease;
-            font-weight: 300;
-            font-family: 'Helvetica Neue', Arial, sans-serif;
-            min-height: 150px;
-            resize: vertical;
-        }
-
-        .form-textarea:focus {
-            outline: none;
-            border-color: var(--accent-color);
-        }
-
-        .form-button {
-            width: 100%;
-            padding: 0.75rem;
-            background: var(--accent-color);
-            color: var(--primary-color);
-            border: 1px solid var(--accent-color);
-            font-weight: 400;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-size: 0.9rem;
-            font-family: 'Helvetica Neue', Arial, sans-serif;
-        }
-
-        .form-button:hover {
-            background: transparent;
-            color: var(--accent-color);
-        }
-
-        .form-button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .result-area {
-            background: var(--secondary-color);
-            border: 1px solid var(--border-color);
-            padding: 1rem;
-            margin-top: 1rem;
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-            font-weight: 300;
-            min-height: 60px;
-            white-space: pre-wrap;
-        }
-
-        .result-success {
-            color: #28a745;
-            background: #f8f9fa;
-        }
-
-        .result-error {
-            color: #dc3545;
-            background: #f8f9fa;
-        }
 
         .json-display {
-            background: var(--secondary-color);
-            border: 1px solid var(--border-color);
-            padding: 1rem;
+            background: var(--bg-secondary);
+            border: 2px solid var(--light-gray);
+            border-radius: var(--border-radius-medium);
+            padding: var(--spacing-md);
             font-family: 'Courier New', monospace;
             font-size: 0.9rem;
             color: var(--text-primary);
@@ -217,33 +29,8 @@
         }
 
         @media (max-width: 768px) {
-            .admin-sidebar {
-                width: 200px;
-            }
-            
-            .admin-content {
-                margin-left: 200px;
-                padding: 1rem;
-            }
-            
             .data-operations {
                 grid-template-columns: 1fr;
-            }
-        }
-
-        @media (max-width: 600px) {
-            .admin-sidebar {
-                width: 100%;
-                position: relative;
-                height: auto;
-            }
-            
-            .admin-content {
-                margin-left: 0;
-            }
-            
-            .admin-container {
-                flex-direction: column;
             }
         }
     </style>
@@ -328,58 +115,58 @@
 
             <div class="data-operations">
                 <!-- Save Data -->
-                <div class="data-card">
+                <div class="admin-card">
                     <h3>Save Data</h3>
                     <form id="saveForm">
-                        <div class="form-group">
-                            <label for="saveContainer" class="form-label">Container Name</label>
-                            <input type="text" id="saveContainer" name="container" class="form-input" placeholder="Enter container name" required>
+                        <div class="admin-form-group">
+                            <label for="saveContainer" class="admin-form-label">Container Name</label>
+                            <input type="text" id="saveContainer" name="container" class="admin-form-input" placeholder="Enter container name" required>
                         </div>
-                        <div class="form-group">
-                            <label for="saveJson" class="form-label">JSON Data</label>
-                            <textarea id="saveJson" name="json" class="form-textarea" placeholder="Enter JSON data" required></textarea>
+                        <div class="admin-form-group">
+                            <label for="saveJson" class="admin-form-label">JSON Data</label>
+                            <textarea id="saveJson" name="json" class="admin-form-textarea" placeholder="Enter JSON data" required></textarea>
                         </div>
-                        <button type="submit" class="form-button">Save Data</button>
+                        <button type="submit" class="admin-form-button">Save Data</button>
                     </form>
-                    <div id="saveResult" class="result-area"></div>
+                    <div id="saveResult" class="admin-result-area"></div>
                 </div>
 
                 <!-- Search Data -->
-                <div class="data-card">
+                <div class="admin-card">
                     <h3>Search Data</h3>
                     <form id="searchForm">
-                        <div class="form-group">
-                            <label for="searchTable" class="form-label">Table Name</label>
-                            <input type="text" id="searchTable" name="table" class="form-input" placeholder="Enter table name" required>
+                        <div class="admin-form-group">
+                            <label for="searchTable" class="admin-form-label">Table Name</label>
+                            <input type="text" id="searchTable" name="table" class="admin-form-input" placeholder="Enter table name" required>
                         </div>
-                        <div class="form-group">
-                            <label for="searchTerm" class="form-label">Search Term</label>
-                            <input type="text" id="searchTerm" name="term" class="form-input" placeholder="Enter search term" required>
+                        <div class="admin-form-group">
+                            <label for="searchTerm" class="admin-form-label">Search Term</label>
+                            <input type="text" id="searchTerm" name="term" class="admin-form-input" placeholder="Enter search term" required>
                         </div>
-                        <button type="submit" class="form-button">Search Data</button>
+                        <button type="submit" class="admin-form-button">Search Data</button>
                     </form>
-                    <div class="form-group">
-                        <label for="searchResults" class="form-label">Search Results</label>
+                    <div class="admin-form-group">
+                        <label for="searchResults" class="admin-form-label">Search Results</label>
                         <div id="searchResults" class="json-display"></div>
                     </div>
-                    <div id="searchResult" class="result-area"></div>
+                    <div id="searchResult" class="admin-result-area"></div>
                 </div>
 
                 <!-- Delete Data -->
-                <div class="data-card">
+                <div class="admin-card">
                     <h3>Delete Data</h3>
                     <form id="deleteForm">
-                        <div class="form-group">
-                            <label for="deleteContainer" class="form-label">Container Name</label>
-                            <input type="text" id="deleteContainer" name="container" class="form-input" placeholder="Enter container name" required>
+                        <div class="admin-form-group">
+                            <label for="deleteContainer" class="admin-form-label">Container Name</label>
+                            <input type="text" id="deleteContainer" name="container" class="admin-form-input" placeholder="Enter container name" required>
                         </div>
-                        <div class="form-group">
-                            <label for="deleteKey" class="form-label">Key</label>
-                            <input type="text" id="deleteKey" name="key" class="form-input" placeholder="Enter key to delete" required>
+                        <div class="admin-form-group">
+                            <label for="deleteKey" class="admin-form-label">Key</label>
+                            <input type="text" id="deleteKey" name="key" class="admin-form-input" placeholder="Enter key to delete" required>
                         </div>
-                        <button type="submit" class="form-button">Delete Data</button>
+                        <button type="submit" class="admin-form-button">Delete Data</button>
                     </form>
-                    <div id="deleteResult" class="result-area"></div>
+                    <div id="deleteResult" class="admin-result-area"></div>
                 </div>
             </div>
         </main>
@@ -440,7 +227,7 @@
             
             if (!container || !jsonString) {
                 resultDiv.textContent = 'Error: Both container name and JSON data are required.';
-                resultDiv.className = 'result-area result-error';
+                resultDiv.className = 'admin-result-area admin-result-error';
                 return;
             }
             
@@ -458,14 +245,14 @@
                 containerData.set(key, jsonData);
                 
                 resultDiv.textContent = `Success: Data saved to container "${container}" with key "${key}".`;
-                resultDiv.className = 'result-area result-success';
+                resultDiv.className = 'admin-result-area admin-result-success';
                 
                 // Clear form
                 document.getElementById('saveContainer').value = '';
                 document.getElementById('saveJson').value = '';
             } catch (error) {
                 resultDiv.textContent = `Error: ${error.message}`;
-                resultDiv.className = 'result-area result-error';
+                resultDiv.className = 'admin-result-area admin-result-error';
             }
         });
 
@@ -480,7 +267,7 @@
             
             if (!table || !term) {
                 resultDiv.textContent = 'Error: Both table name and search term are required.';
-                resultDiv.className = 'result-area result-error';
+                resultDiv.className = 'admin-result-area admin-result-error';
                 resultsDiv.textContent = '';
                 return;
             }
@@ -488,7 +275,7 @@
             try {
                 if (!dataStorage.has(table)) {
                     resultDiv.textContent = `Error: Table "${table}" not found.`;
-                    resultDiv.className = 'result-area result-error';
+                    resultDiv.className = 'admin-result-area admin-result-error';
                     resultsDiv.textContent = '';
                     return;
                 }
@@ -510,16 +297,16 @@
                 if (searchResults.length > 0) {
                     resultsDiv.textContent = formatJson(searchResults);
                     resultDiv.textContent = `Success: Found ${searchResults.length} result(s) for "${term}" in table "${table}".`;
-                    resultDiv.className = 'result-area result-success';
+                    resultDiv.className = 'admin-result-area admin-result-success';
                 } else {
                     resultsDiv.textContent = '';
                     resultDiv.textContent = `No results found for "${term}" in table "${table}".`;
-                    resultDiv.className = 'result-area result-error';
+                    resultDiv.className = 'admin-result-area admin-result-error';
                 }
             } catch (error) {
                 resultsDiv.textContent = '';
                 resultDiv.textContent = `Error: ${error.message}`;
-                resultDiv.className = 'result-area result-error';
+                resultDiv.className = 'admin-result-area admin-result-error';
             }
         });
 
@@ -533,14 +320,14 @@
             
             if (!container || !key) {
                 resultDiv.textContent = 'Error: Both container name and key are required.';
-                resultDiv.className = 'result-area result-error';
+                resultDiv.className = 'admin-result-area admin-result-error';
                 return;
             }
             
             try {
                 if (!dataStorage.has(container)) {
                     resultDiv.textContent = `Error: Container "${container}" not found.`;
-                    resultDiv.className = 'result-area result-error';
+                    resultDiv.className = 'admin-result-area admin-result-error';
                     return;
                 }
                 
@@ -549,18 +336,18 @@
                 if (containerData.has(key)) {
                     containerData.delete(key);
                     resultDiv.textContent = `Success: Data deleted from container "${container}" with key "${key}".`;
-                    resultDiv.className = 'result-area result-success';
+                    resultDiv.className = 'admin-result-area admin-result-success';
                     
                     // Clear form
                     document.getElementById('deleteContainer').value = '';
                     document.getElementById('deleteKey').value = '';
                 } else {
                     resultDiv.textContent = `Error: Key "${key}" not found in container "${container}".`;
-                    resultDiv.className = 'result-area result-error';
+                    resultDiv.className = 'admin-result-area admin-result-error';
                 }
             } catch (error) {
                 resultDiv.textContent = `Error: ${error.message}`;
-                resultDiv.className = 'result-area result-error';
+                resultDiv.className = 'admin-result-area admin-result-error';
             }
         });
     </script>
