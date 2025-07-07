@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Queueing Management - Noobly JS Admin</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .admin-container {
+            display: flex;
+            min-height: 100vh;
+            margin-top: 64px;
+            background: var(--background-color);
+        }
+
+        .admin-sidebar {
+            width: 280px;
+            background: var(--surface-color);
+            border-right: 1px solid var(--divider-color);
+            padding: 24px 0;
+            position: fixed;
+            height: calc(100vh - 64px);
+            overflow-y: auto;
+            box-shadow: var(--elevation-1);
+        }
+
+        .admin-nav {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .admin-nav-item {
+            padding: 0;
+            margin: 0 16px;
+        }
+
+        .admin-nav-link {
+            display: block;
+            padding: 12px 16px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-weight: 500;
+            font-size: 0.875rem;
+            border-radius: 12px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .admin-nav-link::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: currentColor;
+            opacity: 0;
+            transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .admin-nav-link:hover::before {
+            opacity: 0.08;
+        }
+
+        .admin-nav-link:hover {
+            color: var(--primary-color);
+        }
+
+        .admin-nav-link.active {
+            color: var(--primary-color);
+            background: var(--surface-tint);
+        }
+
+        .admin-nav-link.active::before {
+            opacity: 0.12;
+        }
+
+        .admin-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 32px;
+        }
+
+        .admin-header {
+            margin-bottom: 32px;
+        }
+
+        .admin-title {
+            font-size: 2rem;
+            font-weight: 400;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            line-height: 2.5rem;
+        }
+
+        .admin-subtitle {
+            color: var(--text-secondary);
+            font-weight: 400;
+            font-size: 1rem;
+            line-height: 1.5rem;
+        }
+
+        .queueing-operations {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        .queueing-card {
+            background: var(--surface-color);
+            border-radius: 12px;
+            padding: 24px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: var(--elevation-1);
+        }
+
+        .queueing-card:hover {
+            box-shadow: var(--elevation-2);
+        }
+
+        .queueing-card h3 {
+            color: var(--text-primary);
+            font-size: 1.375rem;
+            font-weight: 400;
+            margin-bottom: 24px;
+            line-height: 1.75rem;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            color: var(--text-primary);
+            font-weight: 500;
+            margin-bottom: 8px;
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--outline-color);
+            border-radius: 8px;
+            background: var(--surface-color);
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px var(--surface-tint);
+        }
+
+        .form-input::placeholder {
+            color: var(--text-hint);
+        }
+
+        .form-select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--outline-color);
+            border-radius: 8px;
+            background: var(--surface-color);
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        .form-select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px var(--surface-tint);
+        }
+
+        .form-textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--outline-color);
+            border-radius: 8px;
+            background: var(--surface-color);
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .form-textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px var(--surface-tint);
+        }
+
+        .form-textarea::placeholder {
+            color: var(--text-hint);
+        }
+
+        .form-button {
+            width: 100%;
+            padding: 10px 24px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            text-transform: uppercase;
+            letter-spacing: 1.25px;
+            font-size: 0.875rem;
+            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            min-height: 40px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: var(--elevation-1);
+        }
+
+        .form-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: white;
+            opacity: 0;
+            transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .form-button:hover::before {
+            opacity: 0.08;
+        }
+
+        .form-button:hover {
+            box-shadow: var(--elevation-2);
+        }
+
+        .form-button:active {
+            box-shadow: var(--elevation-1);
+        }
+
+        .form-button:active::before {
+            opacity: 0.12;
+        }
+
+        .form-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .result-area {
+            background: var(--surface-variant);
+            border: 1px solid var(--divider-color);
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 16px;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            font-weight: 400;
+            min-height: 60px;
+            white-space: pre-wrap;
+            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        .result-success {
+            color: var(--success-color);
+            background: rgba(56, 142, 60, 0.08);
+            border-color: rgba(56, 142, 60, 0.2);
+        }
+
+        .result-error {
+            color: var(--error-color);
+            background: rgba(211, 47, 47, 0.08);
+            border-color: rgba(211, 47, 47, 0.2);
+        }
+
+        .queue-display {
+            background: var(--surface-variant);
+            border: 1px solid var(--divider-color);
+            border-radius: 8px;
+            padding: 16px;
+            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            font-size: 0.875rem;
+            color: var(--text-primary);
+            min-height: 200px;
+            max-height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .queue-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            border: 1px solid var(--divider-color);
+            border-radius: 8px;
+            background: var(--surface-color);
+            margin-bottom: 8px;
+            border-left: 4px solid var(--primary-color);
+            box-shadow: var(--elevation-1);
+        }
+
+        .queue-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .queue-value {
+            color: var(--text-primary);
+            font-weight: 400;
+            flex: 1;
+            margin-right: 16px;
+        }
+
+        .queue-timestamp {
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+        }
+
+        .queue-position {
+            color: var(--primary-color);
+            font-size: 0.75rem;
+            font-weight: 500;
+            margin-right: 16px;
+        }
+
+        .queue-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .stat-card {
+            background: var(--surface-color);
+            border: 1px solid var(--divider-color);
+            border-radius: 8px;
+            padding: 16px;
+            text-align: center;
+            box-shadow: var(--elevation-1);
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            color: var(--text-primary);
+            font-size: 1.5rem;
+            font-weight: 400;
+        }
+
+        .queue-controls {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .control-button {
+            padding: 8px 16px;
+            background: transparent;
+            border: 1px solid var(--outline-color);
+            border-radius: 20px;
+            color: var(--primary-color);
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.75rem;
+            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            font-weight: 500;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .control-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: currentColor;
+            opacity: 0;
+            transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .control-button:hover::before {
+            opacity: 0.08;
+        }
+
+        .control-button:hover {
+            background: var(--surface-tint);
+            border-color: var(--primary-color);
+        }
+
+        .control-button.danger {
+            border-color: var(--error-color);
+            color: var(--error-color);
+        }
+
+        .control-button.danger:hover {
+            background: rgba(211, 47, 47, 0.08);
+            border-color: var(--error-color);
+        }
+
+        @media (max-width: 768px) {
+            .admin-sidebar {
+                width: 240px;
+            }
+            
+            .admin-content {
+                margin-left: 240px;
+                padding: 24px 16px;
+            }
+            
+            .queueing-operations {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+            
+            .queue-controls {
+                flex-wrap: wrap;
+            }
+            
+            .queue-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .admin-sidebar {
+                width: 100%;
+                position: relative;
+                height: auto;
+                box-shadow: none;
+                border-right: none;
+                border-bottom: 1px solid var(--divider-color);
+            }
+            
+            .admin-content {
+                margin-left: 0;
+                padding: 16px;
+            }
+            
+            .admin-container {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header" id="header">
+        <div class="header-container">
+            <a href="index.html" class="logo">
+                <div class="logo-icon">N</div>
+                <span>Noobly JS Admin</span>
+            </a>
+            
+            <nav class="nav-menu">
+                <a href="index.html" class="nav-link">Home</a>
+                <a href="documentation.html" class="nav-link">Documentation</a>
+                <a href="contact.html" class="nav-link">Contact</a>
+                <a href="cache.html" class="nav-link active">Admin</a>
+            </nav>
+            
+            <button class="mobile-menu-toggle" id="mobileMenuToggle">
+                ☰
+            </button>admin/cache.html
+        </div>
+        
+        <div class="mobile-menu" id="mobileMenu">
+            <nav class="mobile-nav-menu">
+                <a href="index.html" class="mobile-nav-link">Home</a>
+                <a href="documentation.html" class="mobile-nav-link">Documentation</a>
+                <a href="contact.html" class="mobile-nav-link">Contact</a>
+                <a href="cache.html" class="mobile-nav-link">Admin</a>
+            </nav>
+        </div>
+    </header>
+
+    <div class="admin-container">
+        <!-- Sidebar Navigation -->
+        <aside class="admin-sidebar">
+            <nav class="admin-nav">
+                <div class="admin-nav-item">
+                    <a href="cache.html" class="admin-nav-link">Caching</a>
+                </div>
+                <div class="admin-nav-item">
+                    <a href="data.html" class="admin-nav-link">Data</a>
+                </div>
+                <div class="admin-nav-item">
+                    <a href="#" class="admin-nav-link">Filing</a>
+                </div>
+                <div class="admin-nav-item">
+                    <a href="logging.html" class="admin-nav-link">Logging</a>
+                </div>
+                <div class="admin-nav-item">
+                    <a href="measuring.html" class="admin-nav-link">Measuring</a>
+                </div>
+                <div class="admin-nav-item">
+                    <a href="notifying.html" class="admin-nav-link">Notifying</a>
+                </div>
+                <div class="admin-nav-item">
+                    <a href="queueing.html" class="admin-nav-link active">Queueing</a>
+                </div>
+                <div class="admin-nav-item">
+                    <a href="scheduling.html" class="admin-nav-link">Scheduling</a>
+                </div>
+                <div class="admin-nav-item">
+                    <a href="searching.html" class="admin-nav-link">Searching</a>
+                </div>
+                <div class="admin-nav-item">
+                    <a href="workflow.html" class="admin-nav-link">Workflow</a>
+                </div>
+                <div class="admin-nav-item">
+                    <a href="working.html" class="admin-nav-link">Working</a>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="admin-content">
+            <div class="admin-header">
+                <h1 class="admin-title">Queueing Management</h1>
+                <p class="admin-subtitle">Manage queues and process items</p>
+            </div>
+
+            <div class="queueing-operations">
+                <!-- Add to Queue -->
+                <div class="queueing-card">
+                    <h3>Add to Queue</h3>
+                    <form id="enqueueForm">
+                        <div class="form-group">
+                            <label for="queueName" class="form-label">Queue Name</label>
+                            <input type="text" id="queueName" name="queue" class="form-input" placeholder="Enter queue name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="queueValue" class="form-label">Value</label>
+                            <textarea id="queueValue" name="value" class="form-textarea" placeholder="Enter value to queue" required></textarea>
+                        </div>
+                        <button type="submit" class="form-button">Add to Queue</button>
+                    </form>
+                    <div id="enqueueResult" class="result-area"></div>
+                </div>
+
+                <!-- Retrieve from Queue -->
+                <div class="queueing-card">
+                    <h3>Retrieve Queue</h3>
+                    <form id="retrieveForm">
+                        <div class="form-group">
+                            <label for="retrieveQueue" class="form-label">Queue Name</label>
+                            <select id="retrieveQueue" name="queue" class="form-select" required>
+                                <option value="">Select a queue</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="form-button">View Queue</button>
+                    </form>
+                    <div id="retrieveResult" class="result-area"></div>
+                </div>
+            </div>
+
+            <!-- Queue Display -->
+            <div class="queueing-card">
+                <h3>Queue Contents</h3>
+                <div class="queue-stats">
+                    <div class="stat-card">
+                        <div class="stat-label">Total Queues</div>
+                        <div id="totalQueues" class="stat-value">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Current Queue</div>
+                        <div id="currentQueue" class="stat-value">-</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Queue Size</div>
+                        <div id="queueSize" class="stat-value">0</div>
+                    </div>
+                </div>
+                <div class="queue-controls">
+                    <button class="control-button" id="dequeueBtn">Dequeue Item</button>
+                    <button class="control-button" id="peekBtn">Peek First</button>
+                    <button class="control-button danger" id="clearQueueBtn">Clear Queue</button>
+                </div>
+                <div id="queueDisplay" class="queue-display"></div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Mobile menu toggle
+        const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+        const mobileMenu = document.getElementById('mobileMenu');
+
+        mobileMenuToggle.addEventListener('click', () => {
+            mobileMenu.classList.toggle('active');
+            mobileMenuToggle.textContent = mobileMenu.classList.contains('active') ? '✕' : '☰';
+        });
+
+        // Close mobile menu when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!mobileMenuToggle.contains(e.target) && !mobileMenu.contains(e.target)) {
+                mobileMenu.classList.remove('active');
+                mobileMenuToggle.textContent = '☰';
+            }
+        });
+
+        // Header scroll effect
+        window.addEventListener('scroll', () => {
+            const header = document.getElementById('header');
+            if (window.scrollY > 50) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
+        });
+
+        // Queue storage
+        const queues = new Map();
+        let currentSelectedQueue = null;
+
+        // Add to Queue Form
+        document.getElementById('enqueueForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const queueName = document.getElementById('queueName').value.trim();
+            const value = document.getElementById('queueValue').value.trim();
+            const resultDiv = document.getElementById('enqueueResult');
+            
+            if (!queueName || !value) {
+                resultDiv.textContent = 'Error: Both queue name and value are required.';
+                resultDiv.className = 'result-area result-error';
+                return;
+            }
+            
+            try {
+                if (!queues.has(queueName)) {
+                    queues.set(queueName, []);
+                }
+                
+                const queueItem = {
+                    value: value,
+                    timestamp: new Date().toISOString(),
+                    id: Date.now()
+                };
+                
+                queues.get(queueName).push(queueItem);
+                
+                resultDiv.textContent = `Success: Added item to queue "${queueName}".`;
+                resultDiv.className = 'result-area result-success';
+                
+                // Clear form
+                document.getElementById('queueName').value = '';
+                document.getElementById('queueValue').value = '';
+                
+                // Update displays
+                updateQueueSelect();
+                updateStats();
+                if (currentSelectedQueue === queueName) {
+                    updateQueueDisplay();
+                }
+                
+            } catch (error) {
+                resultDiv.textContent = `Error: Failed to add to queue. ${error.message}`;
+                resultDiv.className = 'result-area result-error';
+            }
+        });
+
+        // Retrieve Queue Form
+        document.getElementById('retrieveForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const queueName = document.getElementById('retrieveQueue').value;
+            const resultDiv = document.getElementById('retrieveResult');
+            
+            if (!queueName) {
+                resultDiv.textContent = 'Error: Queue name is required.';
+                resultDiv.className = 'result-area result-error';
+                clearQueueDisplay();
+                return;
+            }
+            
+            try {
+                if (!queues.has(queueName)) {
+                    resultDiv.textContent = `Error: Queue "${queueName}" not found.`;
+                    resultDiv.className = 'result-area result-error';
+                    clearQueueDisplay();
+                    return;
+                }
+                
+                currentSelectedQueue = queueName;
+                updateQueueDisplay();
+                updateStats();
+                
+                const queueLength = queues.get(queueName).length;
+                resultDiv.textContent = `Success: Displaying queue "${queueName}" with ${queueLength} items.`;
+                resultDiv.className = 'result-area result-success';
+                
+            } catch (error) {
+                resultDiv.textContent = `Error: Failed to retrieve queue. ${error.message}`;
+                resultDiv.className = 'result-area result-error';
+                clearQueueDisplay();
+            }
+        });
+
+        // Queue control buttons
+        document.getElementById('dequeueBtn').addEventListener('click', function() {
+            if (!currentSelectedQueue || !queues.has(currentSelectedQueue)) {
+                alert('Please select a queue first.');
+                return;
+            }
+            
+            const queue = queues.get(currentSelectedQueue);
+            if (queue.length === 0) {
+                alert('Queue is empty.');
+                return;
+            }
+            
+            const dequeuedItem = queue.shift();
+            updateQueueDisplay();
+            updateStats();
+            
+            alert(`Dequeued: ${dequeuedItem.value}`);
+        });
+
+        document.getElementById('peekBtn').addEventListener('click', function() {
+            if (!currentSelectedQueue || !queues.has(currentSelectedQueue)) {
+                alert('Please select a queue first.');
+                return;
+            }
+            
+            const queue = queues.get(currentSelectedQueue);
+            if (queue.length === 0) {
+                alert('Queue is empty.');
+                return;
+            }
+            
+            const firstItem = queue[0];
+            alert(`First item: ${firstItem.value}`);
+        });
+
+        document.getElementById('clearQueueBtn').addEventListener('click', function() {
+            if (!currentSelectedQueue || !queues.has(currentSelectedQueue)) {
+                alert('Please select a queue first.');
+                return;
+            }
+            
+            if (confirm(`Are you sure you want to clear queue "${currentSelectedQueue}"?`)) {
+                queues.get(currentSelectedQueue).length = 0;
+                updateQueueDisplay();
+                updateStats();
+                alert('Queue cleared.');
+            }
+        });
+
+        // Update queue select dropdown
+        function updateQueueSelect() {
+            const select = document.getElementById('retrieveQueue');
+            
+            // Save current selection
+            const currentValue = select.value;
+            
+            // Clear and rebuild options
+            select.innerHTML = '<option value="">Select a queue</option>';
+            
+            Array.from(queues.keys()).forEach(queueName => {
+                const option = document.createElement('option');
+                option.value = queueName;
+                option.textContent = queueName;
+                select.appendChild(option);
+            });
+            
+            // Restore selection if still valid
+            if (currentValue && queues.has(currentValue)) {
+                select.value = currentValue;
+            }
+        }
+
+        // Update queue display
+        function updateQueueDisplay() {
+            const queueDisplay = document.getElementById('queueDisplay');
+            
+            if (!currentSelectedQueue || !queues.has(currentSelectedQueue)) {
+                queueDisplay.innerHTML = '<div style="text-align: center; color: var(--text-secondary); padding: 2rem;">No queue selected.</div>';
+                return;
+            }
+            
+            const queue = queues.get(currentSelectedQueue);
+            
+            if (queue.length === 0) {
+                queueDisplay.innerHTML = '<div style="text-align: center; color: var(--text-secondary); padding: 2rem;">Queue is empty.</div>';
+                return;
+            }
+            
+            const queueHtml = queue.map((item, index) => {
+                const timestamp = new Date(item.timestamp).toLocaleString();
+                return `
+                    <div class="queue-item">
+                        <div class="queue-position">#${index + 1}</div>
+                        <div class="queue-value">${item.value}</div>
+                        <div class="queue-timestamp">${timestamp}</div>
+                    </div>
+                `;
+            }).join('');
+            
+            queueDisplay.innerHTML = queueHtml;
+        }
+
+        // Clear queue display
+        function clearQueueDisplay() {
+            currentSelectedQueue = null;
+            document.getElementById('queueDisplay').innerHTML = '<div style="text-align: center; color: var(--text-secondary); padding: 2rem;">No queue selected.</div>';
+            updateStats();
+        }
+
+        // Update statistics
+        function updateStats() {
+            document.getElementById('totalQueues').textContent = queues.size;
+            document.getElementById('currentQueue').textContent = currentSelectedQueue || '-';
+            
+            let queueSize = 0;
+            if (currentSelectedQueue && queues.has(currentSelectedQueue)) {
+                queueSize = queues.get(currentSelectedQueue).length;
+            }
+            document.getElementById('queueSize').textContent = queueSize;
+        }
+
+        // Initialize displays
+        updateQueueSelect();
+        updateStats();
+        updateQueueDisplay();
+    </script>
+</body>
+</html>

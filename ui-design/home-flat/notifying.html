@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notifying Management - Noobly JS Admin</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .admin-container {
+            display: flex;
+            min-height: 100vh;
+            margin-top: 60px;
+        }
+
+        .admin-sidebar {
+            width: 250px;
+            background: var(--secondary-color);
+            border-right: 1px solid var(--border-color);
+            padding: 2rem 0;
+            position: fixed;
+            height: calc(100vh - 60px);
+            overflow-y: auto;
+        }
+
+        .admin-nav {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .admin-nav-item {
+            padding: 0;
+            margin: 0;
+        }
+
+        .admin-nav-link {
+            display: block;
+            padding: 1rem 2rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-weight: 300;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.9rem;
+            border-bottom: 1px solid transparent;
+        }
+
+        .admin-nav-link:hover {
+            color: var(--text-primary);
+            background: var(--primary-color);
+            border-left: 3px solid var(--accent-color);
+        }
+
+        .admin-nav-link.active {
+            color: var(--text-primary);
+            background: var(--primary-color);
+            border-left: 3px solid var(--accent-color);
+        }
+
+        .admin-content {
+            flex: 1;
+            margin-left: 250px;
+            padding: 2rem;
+        }
+
+        .admin-header {
+            margin-bottom: 2rem;
+        }
+
+        .admin-title {
+            font-size: 2rem;
+            font-weight: 200;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .admin-subtitle {
+            color: var(--text-secondary);
+            font-weight: 300;
+        }
+
+        .notifying-operations {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .notifying-card {
+            background: var(--primary-color);
+            border: 1px solid var(--border-color);
+            padding: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .notifying-card:hover {
+            box-shadow: var(--shadow-light);
+        }
+
+        .notifying-card h3 {
+            color: var(--text-primary);
+            font-size: 1.2rem;
+            font-weight: 400;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            color: var(--text-primary);
+            font-weight: 400;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.9rem;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            background: var(--primary-color);
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            font-weight: 300;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+
+        .form-select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            background: var(--primary-color);
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            font-weight: 300;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        .form-select:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+
+        .form-textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            background: var(--primary-color);
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            font-weight: 300;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .form-textarea:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+
+        .form-button {
+            width: 100%;
+            padding: 0.75rem;
+            background: var(--accent-color);
+            color: var(--primary-color);
+            border: 1px solid var(--accent-color);
+            font-weight: 400;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.9rem;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        .form-button:hover {
+            background: transparent;
+            color: var(--accent-color);
+        }
+
+        .form-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .result-area {
+            background: var(--secondary-color);
+            border: 1px solid var(--border-color);
+            padding: 1rem;
+            margin-top: 1rem;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-weight: 300;
+            min-height: 60px;
+            white-space: pre-wrap;
+        }
+
+        .result-success {
+            color: #28a745;
+            background: #f8f9fa;
+        }
+
+        .result-error {
+            color: #dc3545;
+            background: #f8f9fa;
+        }
+
+        .topics-display {
+            background: var(--secondary-color);
+            border: 1px solid var(--border-color);
+            padding: 1rem;
+            margin-top: 1rem;
+            min-height: 120px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .topic-item {
+            background: var(--primary-color);
+            border: 1px solid var(--border-color);
+            padding: 0.5rem 1rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .topic-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .topic-name {
+            color: var(--text-primary);
+            font-weight: 400;
+        }
+
+        .topic-count {
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+        }
+
+        .messages-display {
+            background: var(--secondary-color);
+            border: 1px solid var(--border-color);
+            padding: 1rem;
+            min-height: 300px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .message-item {
+            background: var(--primary-color);
+            border: 1px solid var(--border-color);
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-left: 3px solid var(--accent-color);
+        }
+
+        .message-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .message-topic {
+            color: var(--accent-color);
+            font-weight: 400;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.8rem;
+        }
+
+        .message-timestamp {
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+        }
+
+        .message-content {
+            color: var(--text-primary);
+            font-weight: 300;
+            line-height: 1.6;
+        }
+
+        .clear-button {
+            background: transparent;
+            border: 1px solid var(--text-secondary);
+            color: var(--text-secondary);
+            margin-top: 1rem;
+        }
+
+        .clear-button:hover {
+            background: var(--text-secondary);
+            color: var(--primary-color);
+        }
+
+        @media (max-width: 768px) {
+            .admin-sidebar {
+                width: 200px;
+            }
+            
+            .admin-content {
+                margin-left: 200px;
+                padding: 1rem;
+            }
+            
+            .notifying-operations {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .admin-sidebar {
+                width: 100%;
+                position: relative;
+                height: auto;
+            }
+            
+            .admin-content {
+                margin-left: 0;
+            }
+            
+            .admin-container {
+                flex-direction: column;
+            }
+            
+            .message-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.25rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header" id="header">
+        <div class="header-container">
+            <a href="index.html" class="logo">
+                <div class="logo-icon">N</div>
+                <span>Noobly JS Admin</span>
+            </a>
+            
+            <nav class="nav-menu">
+                <a href="index.html" class="nav-link">Home</a>
+                <a href="documentation.html" class="nav-link">Documentation</a>
+                <a href="contact.html" class="nav-link">Contact</a>
+                <a href="cache.html" class="nav-link active">Admin</a>
+            </nav>
+            
+            <button class="mobile-menu-toggle" id="mobileMenuToggle">
+                ☰
+            </button>
+        </div>
+        
+        <div class="mobile-menu" id="mobileMenu">
+            <nav class="mobile-nav-menu">
+                <a href="index.html" class="mobile-nav-link">Home</a>
+                <a href="documentation.html" class="mobile-nav-link">Documentation</a>
+                <a href="contact.html" class="mobile-nav-link">Contact</a>
+                <a href="cache.html" class="mobile-nav-link">Admin</a>
+            </nav>
+        </div>
+    </header>
+
+    <div class="admin-container">
+        <!-- Sidebar Navigation -->
+        <aside class="admin-sidebar">
+            <nav class="admin-nav">
+                <div class="admin-nav-item">
+                    <a href="cache.html" class="admin-nav-link">Caching</a>
+                </div>
+                <div class="admin-nav-item">
+                    <a href="data.html" class="admin-nav-link">Data</a>
+                </div>
+                <div class="admin-nav-item">
+                    <a href="#" class="admin-nav-link">Filing</a>
+                </div>
+                <div class="admin-nav-item">
+                    <a href="logging.html" class="admin-nav-link">Logging</a>
+                </div>
+                <div class="admin-nav-item">
+                    <a href="measuring.html" class="admin-nav-link">Measuring</a>
+                </div>
+                <div class="admin-nav-item">
+                    <a href="notifying.html" class="admin-nav-link active">Notifying</a>
+                </div>
+                <div class="admin-nav-item">
+                    <a href="queueing.html" class="admin-nav-link">Queueing</a>
+                </div>
+                <div class="admin-nav-item">
+                    <a href="scheduling.html" class="admin-nav-link">Scheduling</a>
+                </div>
+                <div class="admin-nav-item">
+                    <a href="searching.html" class="admin-nav-link">Searching</a>
+                </div>
+                <div class="admin-nav-item">
+                    <a href="workflow.html" class="admin-nav-link">Workflow</a>
+                </div>
+                <div class="admin-nav-item">
+                    <a href="working.html" class="admin-nav-link">Working</a>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="admin-content">
+            <div class="admin-header">
+                <h1 class="admin-title">Notifying Management</h1>
+                <p class="admin-subtitle">Manage topics and publish notifications</p>
+            </div>
+
+            <div class="notifying-operations">
+                <!-- Create Topic -->
+                <div class="notifying-card">
+                    <h3>Create Topic</h3>
+                    <form id="topicForm">
+                        <div class="form-group">
+                            <label for="topicName" class="form-label">Topic Name</label>
+                            <input type="text" id="topicName" name="topic" class="form-input" placeholder="Enter topic name" required>
+                        </div>
+                        <button type="submit" class="form-button">Create Topic</button>
+                    </form>
+                    <div id="topicResult" class="result-area"></div>
+                    <div class="form-group">
+                        <label class="form-label">Available Topics</label>
+                        <div id="topicsDisplay" class="topics-display"></div>
+                    </div>
+                </div>
+
+                <!-- Publish Message -->
+                <div class="notifying-card">
+                    <h3>Publish Message</h3>
+                    <form id="publishForm">
+                        <div class="form-group">
+                            <label for="publishTopic" class="form-label">Topic</label>
+                            <select id="publishTopic" name="topic" class="form-select" required>
+                                <option value="">Select a topic</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="publishMessage" class="form-label">Message</label>
+                            <textarea id="publishMessage" name="message" class="form-textarea" placeholder="Enter your message" required></textarea>
+                        </div>
+                        <button type="submit" class="form-button">Publish Message</button>
+                    </form>
+                    <div id="publishResult" class="result-area"></div>
+                </div>
+            </div>
+
+            <!-- Messages Display -->
+            <div class="notifying-card">
+                <h3>Published Messages</h3>
+                <div style="display: flex; gap: 1rem; align-items: center; margin-bottom: 1rem;">
+                    <div class="form-group" style="flex: 1; margin-bottom: 0;">
+                        <label for="filterTopic" class="form-label">Filter by Topic</label>
+                        <select id="filterTopic" name="filter" class="form-select">
+                            <option value="">All Topics</option>
+                        </select>
+                    </div>
+                    <button class="form-button clear-button" id="clearMessages" style="width: auto; padding: 0.5rem 1rem;">Clear All</button>
+                </div>
+                <div id="messagesDisplay" class="messages-display"></div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Mobile menu toggle
+        const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+        const mobileMenu = document.getElementById('mobileMenu');
+
+        mobileMenuToggle.addEventListener('click', () => {
+            mobileMenu.classList.toggle('active');
+            mobileMenuToggle.textContent = mobileMenu.classList.contains('active') ? '✕' : '☰';
+        });
+
+        // Close mobile menu when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!mobileMenuToggle.contains(e.target) && !mobileMenu.contains(e.target)) {
+                mobileMenu.classList.remove('active');
+                mobileMenuToggle.textContent = '☰';
+            }
+        });
+
+        // Header scroll effect
+        window.addEventListener('scroll', () => {
+            const header = document.getElementById('header');
+            if (window.scrollY > 50) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
+        });
+
+        // Notification storage
+        const topics = new Set();
+        const messages = [];
+
+        // Create Topic Form
+        document.getElementById('topicForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const topicName = document.getElementById('topicName').value.trim();
+            const resultDiv = document.getElementById('topicResult');
+            
+            if (!topicName) {
+                resultDiv.textContent = 'Error: Topic name is required.';
+                resultDiv.className = 'result-area result-error';
+                return;
+            }
+            
+            if (topics.has(topicName)) {
+                resultDiv.textContent = `Error: Topic "${topicName}" already exists.`;
+                resultDiv.className = 'result-area result-error';
+                return;
+            }
+            
+            try {
+                topics.add(topicName);
+                
+                resultDiv.textContent = `Success: Topic "${topicName}" created.`;
+                resultDiv.className = 'result-area result-success';
+                
+                // Clear form
+                document.getElementById('topicName').value = '';
+                
+                // Update displays
+                updateTopicsDisplay();
+                updateTopicSelects();
+                
+            } catch (error) {
+                resultDiv.textContent = `Error: Failed to create topic. ${error.message}`;
+                resultDiv.className = 'result-area result-error';
+            }
+        });
+
+        // Publish Message Form
+        document.getElementById('publishForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const topic = document.getElementById('publishTopic').value;
+            const message = document.getElementById('publishMessage').value.trim();
+            const resultDiv = document.getElementById('publishResult');
+            
+            if (!topic || !message) {
+                resultDiv.textContent = 'Error: Both topic and message are required.';
+                resultDiv.className = 'result-area result-error';
+                return;
+            }
+            
+            try {
+                const messageEntry = {
+                    id: Date.now(),
+                    topic: topic,
+                    message: message,
+                    timestamp: new Date().toISOString()
+                };
+                
+                messages.unshift(messageEntry);
+                
+                resultDiv.textContent = `Success: Message published to topic "${topic}".`;
+                resultDiv.className = 'result-area result-success';
+                
+                // Clear form
+                document.getElementById('publishMessage').value = '';
+                
+                // Update displays
+                updateMessagesDisplay();
+                
+            } catch (error) {
+                resultDiv.textContent = `Error: Failed to publish message. ${error.message}`;
+                resultDiv.className = 'result-area result-error';
+            }
+        });
+
+        // Filter messages
+        document.getElementById('filterTopic').addEventListener('change', function() {
+            updateMessagesDisplay();
+        });
+
+        // Clear messages
+        document.getElementById('clearMessages').addEventListener('click', function() {
+            if (confirm('Are you sure you want to clear all messages?')) {
+                messages.length = 0;
+                updateMessagesDisplay();
+                
+                const resultDiv = document.getElementById('publishResult');
+                resultDiv.textContent = 'Success: All messages cleared.';
+                resultDiv.className = 'result-area result-success';
+            }
+        });
+
+        // Update topics display
+        function updateTopicsDisplay() {
+            const topicsDisplay = document.getElementById('topicsDisplay');
+            
+            if (topics.size === 0) {
+                topicsDisplay.innerHTML = '<div style="text-align: center; color: var(--text-secondary); padding: 1rem;">No topics created yet.</div>';
+                return;
+            }
+            
+            const topicsHtml = Array.from(topics).map(topic => {
+                const messageCount = messages.filter(m => m.topic === topic).length;
+                return `
+                    <div class="topic-item">
+                        <div class="topic-name">${topic}</div>
+                        <div class="topic-count">${messageCount} messages</div>
+                    </div>
+                `;
+            }).join('');
+            
+            topicsDisplay.innerHTML = topicsHtml;
+        }
+
+        // Update topic selects
+        function updateTopicSelects() {
+            const publishSelect = document.getElementById('publishTopic');
+            const filterSelect = document.getElementById('filterTopic');
+            
+            // Clear existing options (except first)
+            publishSelect.innerHTML = '<option value="">Select a topic</option>';
+            filterSelect.innerHTML = '<option value="">All Topics</option>';
+            
+            // Add topic options
+            Array.from(topics).forEach(topic => {
+                const publishOption = document.createElement('option');
+                publishOption.value = topic;
+                publishOption.textContent = topic;
+                publishSelect.appendChild(publishOption);
+                
+                const filterOption = document.createElement('option');
+                filterOption.value = topic;
+                filterOption.textContent = topic;
+                filterSelect.appendChild(filterOption);
+            });
+        }
+
+        // Update messages display
+        function updateMessagesDisplay() {
+            const messagesDisplay = document.getElementById('messagesDisplay');
+            const filterTopic = document.getElementById('filterTopic').value;
+            
+            let filteredMessages = messages;
+            if (filterTopic) {
+                filteredMessages = messages.filter(m => m.topic === filterTopic);
+            }
+            
+            if (filteredMessages.length === 0) {
+                messagesDisplay.innerHTML = '<div style="text-align: center; color: var(--text-secondary); padding: 2rem;">No messages to display.</div>';
+                return;
+            }
+            
+            const messagesHtml = filteredMessages.map(message => {
+                const timestamp = new Date(message.timestamp).toLocaleString();
+                return `
+                    <div class="message-item">
+                        <div class="message-header">
+                            <div class="message-topic">${message.topic}</div>
+                            <div class="message-timestamp">${timestamp}</div>
+                        </div>
+                        <div class="message-content">${message.message}</div>
+                    </div>
+                `;
+            }).join('');
+            
+            messagesDisplay.innerHTML = messagesHtml;
+        }
+
+        // Initialize displays
+        updateTopicsDisplay();
+        updateTopicSelects();
+        updateMessagesDisplay();
+    </script>
+</body>
+</html>
