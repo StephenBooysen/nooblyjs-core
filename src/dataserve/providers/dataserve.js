@@ -1,15 +1,39 @@
 /**
- * @fileoverview In-memory DataRing provider.
+ * @fileoverview In-memory DataServe provider for storing and searching JSON objects
+ * with container-based organization and event emission support.
+ * @author NooblyJS Team
+ * @version 1.0.14
+ * @since 1.0.0
  */
+
+'use strict';
 
 const { v4: uuidv4 } = require('uuid');
 
+/**
+ * A class that implements an in-memory data storage provider.
+ * Provides methods for creating containers and storing, retrieving, and searching JSON objects.
+ * @class
+ */
 class InMemoryDataServeProvider {
+  /**
+   * Initializes the in-memory data storage provider.
+   * @param {Object=} options Configuration options (unused in this implementation).
+   * @param {EventEmitter=} eventEmitter Optional event emitter for data operations.
+   */
   constructor(options, eventEmitter) {
+    /** @private @const {!Map<string, !Map<string, !Object>>} */
     this.containers = new Map(); // Map<containerName, Map<objectKey, object>>
+    /** @private @const {EventEmitter} */
     this.eventEmitter_ = eventEmitter;
   }
 
+  /**
+   * Creates a new container for storing JSON objects.
+   * @param {string} containerName The name of the container to create.
+   * @return {Promise<void>} A promise that resolves when the container is created.
+   * @throws {Error} When a container with the same name already exists.
+   */
   async createContainer(containerName) {
     if (this.containers.has(containerName)) {
       throw new Error(`Container '${containerName}' already exists.`);
@@ -19,6 +43,13 @@ class InMemoryDataServeProvider {
       this.eventEmitter_.emit('dataserve:createContainer', { containerName });
   }
 
+  /**
+   * Adds a JSON object to the specified container.
+   * @param {string} containerName The name of the container to add the object to.
+   * @param {!Object} jsonObject The JSON object to store.
+   * @return {Promise<string>} A promise that resolves to the unique key for the stored object.
+   * @throws {Error} When the specified container does not exist.
+   */
   async add(containerName, jsonObject) {
     if (!this.containers.has(containerName)) {
       throw new Error(`Container '${containerName}' does not exist.`);
@@ -34,6 +65,12 @@ class InMemoryDataServeProvider {
     return objectKey;
   }
 
+  /**
+   * Removes a JSON object from the specified container.
+   * @param {string} containerName The name of the container to remove the object from.
+   * @param {string} objectKey The unique key of the object to remove.
+   * @return {Promise<boolean>} A promise that resolves to true if the object was removed, false otherwise.
+   */
   async remove(containerName, objectKey) {
     if (!this.containers.has(containerName)) {
       return false;
@@ -44,6 +81,13 @@ class InMemoryDataServeProvider {
     return removed;
   }
 
+  /**
+   * Finds JSON objects in the specified container that contain the search term.
+   * Performs a recursive search through all string values in the objects.
+   * @param {string} containerName The name of the container to search in.
+   * @param {string} searchTerm The term to search for (case-insensitive).
+   * @return {Promise<Array<{key: string, obj: !Object}>>} A promise that resolves to an array of matching objects with their keys.
+   */
   async find(containerName, searchTerm) {
     if (!this.containers.has(containerName)) {
       if (this.eventEmitter_)

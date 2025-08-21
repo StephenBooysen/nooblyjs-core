@@ -1,17 +1,30 @@
 /**
- * @fileoverview AWS SimpleDB DataRing provider.
+ * @fileoverview AWS SimpleDB DataServe provider for cloud-based storage of JSON objects
+ * using Amazon SimpleDB with domain-based organization.
+ * @author NooblyJS Team
+ * @version 1.0.14
+ * @since 1.0.0
  */
+
+'use strict';
 
 const AWS = require('aws-sdk');
 const { v4: uuidv4 } = require('uuid');
 
+/**
+ * A class that implements an AWS SimpleDB-based data storage provider.
+ * Stores JSON objects in AWS SimpleDB using domains as containers.
+ * @class
+ */
 class SimpleDbDataRingProvider {
   /**
-   * Initializes the SimpleDB client.
+   * Initializes the SimpleDB client with AWS credentials and configuration.
    * @param {Object} options The options for the SimpleDB client.
    * @param {string} options.region The AWS region.
-   * @param {string} [options.accessKeyId] The AWS access key ID. (Optional, will use environment variables if not provided)
-   * @param {string} [options.secretAccessKey] The AWS secret access key. (Optional, will use environment variables if not provided)
+   * @param {string=} options.accessKeyId The AWS access key ID. (Optional, will use environment variables if not provided)
+   * @param {string=} options.secretAccessKey The AWS secret access key. (Optional, will use environment variables if not provided)
+   * @param {EventEmitter=} eventEmitter Optional event emitter for data operations.
+   * @throws {Error} When required region option is not provided.
    */
   constructor(options, eventEmitter) {
     if (!options || !options.region) {
@@ -23,7 +36,9 @@ class SimpleDbDataRingProvider {
       accessKeyId: options.accessKeyId,
       secretAccessKey: options.secretAccessKey,
     });
+    /** @private @const {AWS.SimpleDB} */
     this.sdb = new AWS.SimpleDB();
+    /** @private @const {EventEmitter} */
     this.eventEmitter_ = eventEmitter;
   }
 

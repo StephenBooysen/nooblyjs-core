@@ -1,16 +1,26 @@
 /**
- * @fileoverview A Redis-backed cache implementation.
+ * @fileoverview A Redis-backed cache implementation providing distributed caching
+ * functionality with analytics tracking for cache operations.
+ * @author NooblyJS Team
+ * @version 1.0.14
+ * @since 1.0.0
  */
+
+'use strict';
 
 const Redis = require('ioredis');
 
 /**
- * A class that implements a Redis-backed cache.
+ * A class that implements a Redis-backed cache with analytics tracking.
+ * Provides distributed caching using Redis as the backend store.
+ * @class
  */
 class CacheRedis {
   /**
-   * Initializes the Redis client.
+   * Initializes the Redis client with connection options and analytics.
    * @param {Object=} options The connection options for the Redis client.
+   * @param {EventEmitter=} eventEmitter Optional event emitter for cache events.
+   * @throws {Error} When Redis connection fails.
    */
   constructor(options, eventEmitter) {
     /** @private @const {!Redis} */
@@ -64,10 +74,10 @@ class CacheRedis {
    */
   getAnalytics() {
     const analytics = Array.from(this.analytics_.values());
-    return analytics.map(entry => ({
+    return analytics.map((entry) => ({
       key: entry.key,
       hits: entry.hits,
-      lastHit: entry.lastHit.toISOString()
+      lastHit: entry.lastHit.toISOString(),
     }));
   }
 
@@ -78,7 +88,7 @@ class CacheRedis {
    */
   trackOperation_(key) {
     const now = new Date();
-    
+
     if (this.analytics_.has(key)) {
       // Update existing entry
       const entry = this.analytics_.get(key);
@@ -89,14 +99,14 @@ class CacheRedis {
       const entry = {
         key: key,
         hits: 1,
-        lastHit: now
+        lastHit: now,
       };
-      
+
       // If we're at capacity, remove the least recently used entry
       if (this.analytics_.size >= this.maxAnalyticsEntries_) {
         this.removeLeastRecentlyUsed_();
       }
-      
+
       this.analytics_.set(key, entry);
     }
   }
@@ -108,14 +118,14 @@ class CacheRedis {
   removeLeastRecentlyUsed_() {
     let oldestKey = null;
     let oldestTime = null;
-    
+
     for (const [key, entry] of this.analytics_) {
       if (!oldestTime || entry.lastHit < oldestTime) {
         oldestTime = entry.lastHit;
         oldestKey = key;
       }
     }
-    
+
     if (oldestKey) {
       this.analytics_.delete(oldestKey);
     }

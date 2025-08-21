@@ -1,16 +1,48 @@
+/**
+ * @fileoverview Unit tests for the search service functionality.
+ * 
+ * This test suite covers the search service provider, testing JSON object
+ * indexing, searching, and management. Tests verify proper data storage,
+ * search functionality across nested objects, and event emission.
+ * 
+ * @author NooblyJS Team
+ * @version 1.0.14
+ * @since 1.0.0
+ */
+
+'use strict';
+
 const createSearchService = require('../../../src/searching');
 const EventEmitter = require('events');
 
+/**
+ * Test suite for search service operations.
+ * 
+ * Tests the search service functionality including object indexing,
+ * search operations, key management, and error handling.
+ */
 describe('SearchService', () => {
+  /** @type {Object} Search service instance for testing */
   let searchService;
+  /** @type {EventEmitter} Mock event emitter for testing search events */
   let mockEventEmitter;
 
+  /**
+   * Set up test environment before each test case.
+   * Creates a fresh search service instance and event emitter spy.
+   */
   beforeEach(() => {
     mockEventEmitter = new EventEmitter();
     jest.spyOn(mockEventEmitter, 'emit');
     searchService = createSearchService('default', {}, mockEventEmitter);
   });
 
+  /**
+   * Test adding JSON objects with unique keys.
+   * 
+   * Verifies that objects can be added with unique keys and that
+   * duplicate key attempts are properly handled with error events.
+   */
   it('should add a JSON object with a unique key', async () => {
     const key1 = 'key1';
     const obj1 = { id: 1, name: 'Test Object 1' };
@@ -32,6 +64,12 @@ describe('SearchService', () => {
     });
   });
 
+  /**
+   * Test removing JSON objects by key.
+   * 
+   * Verifies that objects can be removed by their keys and that
+   * removal of non-existent keys is handled gracefully.
+   */
   it('should remove a JSON object by its key', async () => {
     const key1 = 'key1';
     const obj1 = { id: 1, name: 'Test Object 1' };
@@ -59,6 +97,12 @@ describe('SearchService', () => {
     });
   });
 
+  /**
+   * Test case-insensitive search across all string values.
+   * 
+   * Verifies that search works across all string values in objects,
+   * including nested objects, with case-insensitive matching.
+   */
   it('should search for a term across all string values (case-insensitive)', async () => {
     const obj1 = { id: 1, name: 'Apple', description: 'A red fruit.' };
     const obj2 = { id: 2, name: 'Banana', description: 'A yellow fruit.' };
@@ -136,6 +180,12 @@ describe('SearchService', () => {
     });
   });
 
+  /**
+   * Test search behavior with empty index.
+   * 
+   * Verifies that searching returns empty results when no objects
+   * have been added to the search index.
+   */
   it('should return an empty array if no objects are added', async () => {
     mockEventEmitter.emit.mockClear();
     const results = await searchService.search('anything');
@@ -146,6 +196,12 @@ describe('SearchService', () => {
     });
   });
 
+  /**
+   * Test search behavior with empty search term.
+   * 
+   * Verifies that empty search terms return no results and are
+   * handled gracefully without errors.
+   */
   it('should handle empty search term', async () => {
     const obj1 = { id: 1, name: 'Test Object 1' };
     await searchService.add('obj1', obj1);

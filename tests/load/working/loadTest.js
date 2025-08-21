@@ -1,7 +1,32 @@
+/**
+ * @fileoverview Load test for worker service performance.
+ * 
+ * This load test measures the performance of worker task execution including
+ * worker spawning, task processing, and status reporting. Tests help evaluate
+ * worker throughput and task execution performance under high concurrency.
+ * 
+ * @author NooblyJS Team
+ * @version 1.0.14
+ * @since 1.0.0
+ */
+
+'use strict';
+
 const getWorkerInstance = require('../../../src/working');
 const EventEmitter = require('events');
 const path = require('path');
 
+/**
+ * Executes load test for worker service performance.
+ * 
+ * Creates mock worker scripts and runs worker task executions to measure
+ * performance characteristics of worker processing under high load.
+ * 
+ * @async
+ * @function runWorkingLoadTest
+ * @param {number} iterations - Number of worker task executions to perform
+ * @returns {Promise<Object>} Test results including service, iterations, and duration
+ */
 async function runWorkingLoadTest(iterations) {
   const eventEmitter = new EventEmitter();
   const worker = getWorkerInstance('default', {}, eventEmitter);

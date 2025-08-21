@@ -1,3 +1,17 @@
+/**
+ * @fileoverview Load test runner for all NooblyJS services.
+ * 
+ * This script orchestrates load testing across all NooblyJS service providers,
+ * running performance tests on caching, data serving, filing, logging, measuring,
+ * notifications, queueing, scheduling, searching, workflow, and worker services.
+ * 
+ * @author NooblyJS Team
+ * @version 1.0.14
+ * @since 1.0.0
+ */
+
+'use strict';
+
 const runCachingLoadTest = require('./caching/loadTest');
 const runDataserveLoadTest = require('./dataserve/loadTest');
 const runFilingLoadTest = require('./filing/loadTest');
@@ -10,8 +24,21 @@ const runSearchingLoadTest = require('./searching/loadTest');
 const runWorkflowLoadTest = require('./workflow/loadTest');
 const runWorkingLoadTest = require('./working/loadTest');
 
+/**
+ * Runs comprehensive load tests across all NooblyJS services.
+ * 
+ * Executes performance tests for each service provider with configurable
+ * iteration counts. Tests multiple provider types where applicable and
+ * aggregates results for performance analysis.
+ * 
+ * @async
+ * @function runAllLoadTests
+ * @returns {Promise<void>} Promise that resolves when all tests complete
+ */
 async function runAllLoadTests() {
+  /** @type {number} Number of iterations for each load test */
   const iterations = 100; // Adjust as needed
+  /** @type {Array<Object>} Array to store test results */
   const results = [];
 
   console.log('\n--- Running Load Tests ---');
@@ -49,6 +76,7 @@ async function runAllLoadTests() {
   });
 }
 
+// Execute all load tests and handle any errors
 runAllLoadTests().catch((error) => {
   console.error('Load test failed:', error);
   process.exit(1);

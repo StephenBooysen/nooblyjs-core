@@ -1,51 +1,84 @@
+/**
+ * @fileoverview Sample application demonstrating NooblyJS Core services.
+ * This file serves as a comprehensive example of how to use all available
+ * services in the NooblyJS Core framework.
+ * 
+ * @author NooblyJS Team
+ * @version 1.0.14
+ * @since 1.0.0
+ */
+
+'use strict';
+
 const path = require('path');
 const express = require('express');
 const bodyParser = require('body-parser');
+const {v4: uuidv4} = require('uuid');
 const serviceRegistry = require('./index');
 
+/** @type {express.Application} Express application instance */
 const app = express();
 app.use(bodyParser.json());
 
-// Initialize the service registry with the Express app
+/**
+ * Initialize the service registry with the Express app.
+ * This sets up all services and their REST endpoints.
+ */
 serviceRegistry.initialize(app);
 
-// Get services from the registry
+/**
+ * Initialize core services from the registry.
+ * Each service is configured with appropriate providers.
+ */
 const log = serviceRegistry.logger('console');
 const cache = serviceRegistry.cache('memory');
 const dataserve = serviceRegistry.dataServe('memory');
 const filing = serviceRegistry.filing('local');
 const queue = serviceRegistry.queue('memory');
 
-// Test the services
+/**
+ * Demonstrate basic service operations.
+ * Test caching, logging, and queueing functionality.
+ */
 cache.put('currentdate', new Date());
 log.info(cache.get('currentdate'));
 queue.enqueue(new Date());
 
+/**
+ * Demonstrate scheduling service.
+ * Schedule a task to run with a 5-second delay.
+ */
 const scheduling = serviceRegistry.scheduling('memory');
 scheduling.start(
   'Schedule task 1',
   '../../../tests/unit/working/exampleTask.js',
-   {"message": "Life is fine"},
+  {'message': 'Life is fine'},
   5,
   (status, data) => {
     console.log(
       'Schedule task 1 executed with status:',
       status,
       'and data:',
-      data,
+      data
     );
-  },
+  }
 );
 
+/**
+ * Demonstrate searching service.
+ * Add sample users and perform a search operation.
+ */
 const searching = serviceRegistry.searching('memory');
-const { v4: uuidv4 } = require('uuid');
-searching.add(uuidv4(), { name: 'Jill', role: 'user', dob: '2025-02-01' });
-searching.add(uuidv4(), { name: 'Frank', role: 'user', dob: '2025-03-01' });
-searching.add(uuidv4(), { name: 'Bill', role: 'user', dob: '2025-04-01' });
-searching.add(uuidv4(), { name: 'Ted', role: 'user', dob: '2025-05-01' });
+searching.add(uuidv4(), {name: 'Jill', role: 'user', dob: '2025-02-01'});
+searching.add(uuidv4(), {name: 'Frank', role: 'user', dob: '2025-03-01'});
+searching.add(uuidv4(), {name: 'Bill', role: 'user', dob: '2025-04-01'});
+searching.add(uuidv4(), {name: 'Ted', role: 'user', dob: '2025-05-01'});
 searching.search('user');
 
-// lets measure
+/**
+ * Demonstrate measuring service.
+ * Add sample measurements and retrieve aggregated data.
+ */
 const measuring = serviceRegistry.measuring('memory');
 console.log(measuring);
 measuring.add('example-measure', 300);
@@ -62,27 +95,35 @@ measuring
     console.log('Measure data:', data);
   });
 
-// lets notify
+/**
+ * Demonstrate notifying service.
+ * Create a topic, add subscribers, and send notifications.
+ */
 const notifying = serviceRegistry.notifying('memory');
 console.log(notifying);
 notifying.createTopic('example-topic');
 notifying.subscribe('example-topic', (message) => {
-  console.log('Subsriber 1 Received message on example-topic:', message);
+  console.log('Subscriber 1 Received message on example-topic:', message);
 });
 notifying.subscribe('example-topic', (message) => {
   console.log('Subscriber 2 Received message on example-topic:', message);
 });
-notifying.notify('example-topic', { text: 'Hello, World!' });
-notifying.notify('example-topic', { text: 'Hello, World 2!' });
+notifying.notify('example-topic', {text: 'Hello, World!'});
+notifying.notify('example-topic', {text: 'Hello, World 2!'});
 
-/* lets work
-const worker = serviceRegistry.working('memory');
+/**
+ * Demonstrate working service (commented out).
+ * This shows how to start background worker tasks.
+ */
+/* const worker = serviceRegistry.working('memory');
 worker.start('../../../tests/working/exampleTask.js', () => {
-  console.log('Worker  task ended');
-});
-*/
+  console.log('Worker task ended');
+}); */
 
-// lets workflow
+/**
+ * Demonstrate workflow service.
+ * Define a multi-step workflow and execute it.
+ */
 const workflow = serviceRegistry.workflow('memory');
 const steps = [
   path.resolve(__dirname, './tests/unit/workflow/steps/exampleStep1.js'),
@@ -90,19 +131,22 @@ const steps = [
 ];
 workflow.defineWorkflow('example-workflow', steps);
 workflow.runWorkflow('example-workflow', {}, () => {
-  console.log('Workdflow ended');
+  console.log('Workflow ended');
 });
 
-app.use('/', express.static(__dirname + '/ui-design/home-glass'));
-app.use('/flat', express.static(__dirname + '/ui-design/home-flat'));
-app.use('/material', express.static(__dirname + '/ui-design/home-material'));
-app.use(
-  '/minimalist',
-  express.static(__dirname + '/ui-design/home-minimalist'),
-);
-app.use('/shadcn', express.static(__dirname + '/ui-design/home-shadcn'));
+/**
+ * Configure static file serving for multiple UI themes.
+ * Each theme provides a different visual design for the web interface.
+ */
+app.use('/', express.static(__dirname + '/site'));
 
+/** @type {number} Server port number */
 const PORT = process.env.PORT || 3000;
+
+/**
+ * Start the Express server.
+ * All services will be available via REST APIs and web interface.
+ */
 app.listen(PORT, () => {
   log.info(`Server is running on port ${PORT}`);
 });

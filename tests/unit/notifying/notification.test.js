@@ -1,12 +1,41 @@
+/**
+ * @fileoverview Unit tests for the notification service functionality.
+ * 
+ * This test suite covers the notification service provider, testing
+ * topic creation, subscription management, message publishing, and
+ * error handling. Tests verify proper event emission and subscriber
+ * callback execution.
+ * 
+ * @author NooblyJS Team
+ * @version 1.0.14
+ * @since 1.0.0
+ */
+
+'use strict';
+
 const createNotificationService = require('../../../src/notifying');
 const EventEmitter = require('events');
 
+/**
+ * Test suite for notification service operations.
+ * 
+ * Tests the notification service functionality including topic management,
+ * subscription handling, message publishing, and error scenarios.
+ */
 describe('NotificationService', () => {
+  /** @type {Object} Notification service instance for testing */
   let notificationService;
+  /** @type {jest.Mock} First mock callback for testing subscriptions */
   let mockCallback1;
+  /** @type {jest.Mock} Second mock callback for testing subscriptions */
   let mockCallback2;
+  /** @type {EventEmitter} Mock event emitter for testing notification events */
   let mockEventEmitter;
 
+  /**
+   * Set up test environment before each test case.
+   * Creates a fresh notification service instance and mock callbacks.
+   */
   beforeEach(() => {
     mockEventEmitter = new EventEmitter();
     jest.spyOn(mockEventEmitter, 'emit');
@@ -19,6 +48,12 @@ describe('NotificationService', () => {
     mockCallback2 = jest.fn();
   });
 
+  /**
+   * Test topic creation functionality.
+   * 
+   * Verifies that topics can be created and are properly initialized
+   * with empty subscriber sets.
+   */
   it('should create a topic if it does not exist', () => {
     const topicName = 'testTopic';
     notificationService.createTopic(topicName);
@@ -30,6 +65,12 @@ describe('NotificationService', () => {
     );
   });
 
+  /**
+   * Test subscription to topics.
+   * 
+   * Verifies that callbacks can be subscribed to topics and that
+   * topics are automatically created if they don't exist.
+   */
   it('should allow subscribers to subscribe to a topic', () => {
     const topicName = 'shippingAlerts';
     notificationService.subscribe(topicName, mockCallback1);
@@ -43,6 +84,12 @@ describe('NotificationService', () => {
     );
   });
 
+  /**
+   * Test notification delivery to all subscribers.
+   * 
+   * Verifies that all subscribed callbacks are invoked when a
+   * notification is published to a topic.
+   */
   it('should call all subscribed callbacks when a notification is sent', () => {
     const topicName = 'shippingAlerts';
     const message = 'Your order has shipped!';
@@ -63,6 +110,12 @@ describe('NotificationService', () => {
     });
   });
 
+  /**
+   * Test unsubscription functionality.
+   * 
+   * Verifies that unsubscribed callbacks are not invoked when
+   * notifications are sent to a topic.
+   */
   it('should not notify unsubscribed callbacks', () => {
     const topicName = 'shippingAlerts';
     const message = 'Your order has shipped!';
@@ -87,6 +140,12 @@ describe('NotificationService', () => {
     });
   });
 
+  /**
+   * Test notification to non-existent topics.
+   * 
+   * Verifies that publishing to non-existent topics does not
+   * throw errors and handles gracefully.
+   */
   it('should not throw an error if notifying a non-existent topic', () => {
     const topicName = 'nonExistentTopic';
     const message = 'Test message';
@@ -98,6 +157,12 @@ describe('NotificationService', () => {
     );
   });
 
+  /**
+   * Test unsubscription from non-existent topics.
+   * 
+   * Verifies that unsubscribing from non-existent topics returns
+   * false and handles gracefully without errors.
+   */
   it('should not throw an error if unsubscribing from a non-existent topic', () => {
     const topicName = 'nonExistentTopic';
 
@@ -110,6 +175,12 @@ describe('NotificationService', () => {
     );
   });
 
+  /**
+   * Test error handling in subscriber callbacks.
+   * 
+   * Verifies that errors in subscriber callbacks are caught and logged
+   * without preventing other callbacks from executing.
+   */
   it('should handle errors in subscriber callbacks gracefully', () => {
     const topicName = 'errorTopic';
     const errorMessage = 'Callback error';

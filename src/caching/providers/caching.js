@@ -1,13 +1,23 @@
 /**
- * @fileoverview A simple in-memory cache implementation.
+ * @fileoverview A simple in-memory cache implementation providing basic caching
+ * functionality with analytics tracking for cache operations.
+ * @author NooblyJS Team
+ * @version 1.0.14
+ * @since 1.0.0
  */
 
+'use strict';
+
 /**
- * A class that implements a simple in-memory cache.
+ * A class that implements a simple in-memory cache with analytics tracking.
+ * Provides methods for storing, retrieving, and deleting cached values.
+ * @class
  */
 class Cache {
   /**
-   * Initializes the cache.
+   * Initializes the cache with empty storage and analytics.
+   * @param {Object=} options Configuration options (unused in this implementation).
+   * @param {EventEmitter=} eventEmitter Optional event emitter for cache events.
    */
   constructor(options, eventEmitter) {
     /** @private @const {!Object<string, *>} */
@@ -23,6 +33,7 @@ class Cache {
    * Adds a value to the cache.
    * @param {string} key The key to store the value under.
    * @param {*} value The value to store.
+   * @return {Promise<void>} A promise that resolves when the value is stored.
    */
   async put(key, value) {
     this.cache_[key] = value;
@@ -34,7 +45,7 @@ class Cache {
   /**
    * Retrieves a value from the cache.
    * @param {string} key The key to retrieve the value for.
-   * @return {*} The cached value, or undefined if the key is not found.
+   * @return {Promise<*>} A promise that resolves to the cached value, or undefined if not found.
    */
   async get(key) {
     const value = this.cache_[key];
@@ -47,6 +58,7 @@ class Cache {
   /**
    * Deletes a value from the cache.
    * @param {string} key The key to delete.
+   * @return {Promise<void>} A promise that resolves when the key is deleted.
    */
   async delete(key) {
     delete this.cache_[key];
@@ -55,14 +67,14 @@ class Cache {
 
   /**
    * Gets analytics data for cache operations.
-   * @return {Array<{key: string, hits: number, lastHit: string}>} Analytics data.
+   * @return {Array<{key: string, hits: number, lastHit: string}>} Array of analytics data with key, hits, and last hit timestamp.
    */
   getAnalytics() {
     const analytics = Array.from(this.analytics_.values());
-    return analytics.map(entry => ({
+    return analytics.map((entry) => ({
       key: entry.key,
       hits: entry.hits,
-      lastHit: entry.lastHit.toISOString()
+      lastHit: entry.lastHit.toISOString(),
     }));
   }
 
@@ -73,7 +85,7 @@ class Cache {
    */
   trackOperation_(key) {
     const now = new Date();
-    
+
     if (this.analytics_.has(key)) {
       // Update existing entry
       const entry = this.analytics_.get(key);
@@ -84,14 +96,14 @@ class Cache {
       const entry = {
         key: key,
         hits: 1,
-        lastHit: now
+        lastHit: now,
       };
-      
+
       // If we're at capacity, remove the least recently used entry
       if (this.analytics_.size >= this.maxAnalyticsEntries_) {
         this.removeLeastRecentlyUsed_();
       }
-      
+
       this.analytics_.set(key, entry);
     }
   }
@@ -103,14 +115,14 @@ class Cache {
   removeLeastRecentlyUsed_() {
     let oldestKey = null;
     let oldestTime = null;
-    
+
     for (const [key, entry] of this.analytics_) {
       if (!oldestTime || entry.lastHit < oldestTime) {
         oldestTime = entry.lastHit;
         oldestKey = key;
       }
     }
-    
+
     if (oldestKey) {
       this.analytics_.delete(oldestKey);
     }

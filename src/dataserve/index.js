@@ -1,7 +1,14 @@
 /**
- * @fileoverview DataRing service for managing multiple data containers.
- * @fileoverview Factory for creating DataRingService instances.
+ * @fileoverview DataServe Service Factory
+ * Factory module for creating data service instances with multiple provider support.
+ * Supports in-memory, file-based, and SimpleDB backends with routing and views.
+ * 
+ * @author NooblyJS Team
+ * @version 1.0.14
+ * @since 1.0.0
  */
+
+'use strict';
 
 const InMemoryDataServeProvider = require('./providers/dataserve');
 const FileDataRingProvider = require('./providers/dataservefiles');
@@ -10,14 +17,17 @@ const Routes = require('./routes');
 const Views = require('./views');
 
 /**
- * Creates a DataRingService instance based on the provided type.
- * @param {string} type The type of data serving provider to use. Valid options are 'memory', 'file', and 'simpledb'.
- * @param {Object=} options The connection options for the chosen provider.
- * @param {EventEmitter} eventEmitter An event emitter for handling events.
- * @return {!DataRingService} A DataRingService instance.
+ * Creates a data service instance with the specified provider.
+ * Automatically configures routes and views for the data service.
+ * @param {string} type - The data provider type ('memory', 'file', 'simpledb')
+ * @param {Object} options - Provider-specific configuration options
+ * @param {EventEmitter} eventEmitter - Global event emitter for inter-service communication
+ * @return {InMemoryDataServeProvider|FileDataRingProvider|SimpleDbDataRingProvider} Data service instance with specified provider
  */
 function createDataserveService(type, options, eventEmitter) {
   let provider;
+  
+  // Create data service instance based on provider type
   switch (type) {
     case 'file':
       provider = new FileDataRingProvider(options, eventEmitter);
@@ -25,12 +35,16 @@ function createDataserveService(type, options, eventEmitter) {
     case 'simpledb':
       provider = new SimpleDbDataRingProvider(options, eventEmitter);
       break;
+    case 'memory':
     default:
       provider = new InMemoryDataServeProvider(options, eventEmitter);
       break;
   }
+  
+  // Initialize routes and views for the data service
   Routes(options, eventEmitter, provider);
   Views(options, eventEmitter, provider);
+  
   return provider;
 }
 

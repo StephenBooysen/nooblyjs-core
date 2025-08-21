@@ -1,6 +1,34 @@
+/**
+ * @fileoverview Load test for dataserve service performance.
+ * 
+ * This load test measures the performance of data serving operations including
+ * container creation, data addition, and search operations across different
+ * dataserve providers (memory, file, SimpleDB). Tests help evaluate data
+ * handling performance and scalability.
+ * 
+ * @author NooblyJS Team
+ * @version 1.0.14
+ * @since 1.0.0
+ */
+
+'use strict';
+
 const createDataserveService = require('../../../src/dataserve');
 const EventEmitter = require('events');
 
+/**
+ * Executes load test for dataserve service performance.
+ * 
+ * Runs a series of data operations including container creation, data addition,
+ * and search operations to measure performance characteristics under load.
+ * 
+ * @async
+ * @function runDataserveLoadTest
+ * @param {number} iterations - Number of data operations to perform
+ * @param {string} [dataserveType='memory'] - Type of dataserve provider to test
+ * @param {Object} [options={}] - Configuration options for the dataserve provider
+ * @returns {Promise<Object>} Test results including service, type, iterations, and duration
+ */
 async function runDataserveLoadTest(
   iterations,
   dataserveType = 'memory',

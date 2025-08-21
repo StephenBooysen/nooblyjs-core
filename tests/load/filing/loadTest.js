@@ -1,8 +1,35 @@
+/**
+ * @fileoverview Load test for filing service performance.
+ * 
+ * This load test measures the performance of file operations including
+ * file creation, reading, and deletion across different filing providers
+ * (local, FTP, S3). Tests help evaluate file I/O performance and scalability.
+ * 
+ * @author NooblyJS Team
+ * @version 1.0.14
+ * @since 1.0.0
+ */
+
+'use strict';
+
 const createFilingService = require('../../../src/filing');
 const EventEmitter = require('events');
 const path = require('path');
 const fs = require('fs').promises;
 
+/**
+ * Executes load test for filing service performance.
+ * 
+ * Runs a series of file operations including creation and reading to measure
+ * performance characteristics of different filing providers under load.
+ * 
+ * @async
+ * @function runFilingLoadTest
+ * @param {number} iterations - Number of file operations to perform
+ * @param {string} [filingType='local'] - Type of filing provider to test
+ * @param {Object} [options={}] - Configuration options for the filing provider
+ * @returns {Promise<Object>} Test results including service, type, iterations, and duration
+ */
 async function runFilingLoadTest(
   iterations,
   filingType = 'local',

@@ -1,23 +1,37 @@
 /**
- * @fileoverview Factory for the Search service.
+ * @fileoverview Search Service Factory
+ * Factory module for creating search service instances.
+ * Provides full-text search, indexing, and query capabilities.
+ * 
+ * @author NooblyJS Team
+ * @version 1.0.14
+ * @since 1.0.0
  */
+
 'use strict';
 const SearchService = require('./provider/searching.js');
 const Routes = require('./routes');
 const Views = require('./views');
 
 /**
- * Creates a SearchService instance.
- * @param {string} type. The type of search service to return
- * @param {object} options. The options object send to the underlying providers
- * @param {EventEmitter=} eventEmitter Optional EventEmitter instance for event bubbling.
- * @return {!SearchService} A SearchService instance.
+ * Creates a search service instance with indexing and query capabilities.
+ * Automatically configures routes and views for the search service.
+ * @param {string} type - The search service type
+ * @param {Object} options - Configuration options for the search service
+ * @param {EventEmitter} eventEmitter - Global event emitter for inter-service communication
+ * @return {SearchService} Search service instance for indexing and querying
  */
 function createSearchService(type, options, eventEmitter) {
-  eventEmitter.emit('Search Service Intantiated', {});
+  // Emit service instantiation event
+  eventEmitter.emit('Search Service Instantiated', {});
+  
+  // Create search service instance
   const searching = new SearchService(options, eventEmitter);
+  
+  // Initialize routes and views for the search service
   Routes(options, eventEmitter, searching);
   Views(options, eventEmitter, searching);
+  
   return searching;
 }
 

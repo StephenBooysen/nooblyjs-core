@@ -1,6 +1,31 @@
+/**
+ * @fileoverview Load test for notification service performance.
+ * 
+ * This load test measures the performance of notification operations including
+ * topic management, subscription handling, and message publishing. Tests help
+ * evaluate notification throughput and subscriber callback execution performance.
+ * 
+ * @author NooblyJS Team
+ * @version 1.0.14
+ * @since 1.0.0
+ */
+
+'use strict';
+
 const createNotificationService = require('../../../src/notifying');
 const EventEmitter = require('events');
 
+/**
+ * Executes load test for notification service performance.
+ * 
+ * Runs a series of notification publish operations to measure performance
+ * characteristics of the notification system under high-volume scenarios.
+ * 
+ * @async
+ * @function runNotifyingLoadTest
+ * @param {number} iterations - Number of notification operations to perform
+ * @returns {Promise<Object>} Test results including service, iterations, and duration
+ */
 async function runNotifyingLoadTest(iterations) {
   const eventEmitter = new EventEmitter();
   const notificationService = createNotificationService(

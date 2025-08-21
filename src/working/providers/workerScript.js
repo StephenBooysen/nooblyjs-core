@@ -1,11 +1,20 @@
 /**
- * @fileoverview Worker thread script for executing user-defined tasks.
+ * @fileoverview Worker thread script for executing user-defined tasks
+ * with status tracking and message-based communication with the parent thread.
+ * @author NooblyJS Team
+ * @version 1.0.14
+ * @since 1.0.0
  */
+
+'use strict';
 
 const { parentPort } = require('worker_threads');
 
+/** @type {?string} */
 let userScriptPath = null;
+/** @type {?Object} */
 let userScript = null;
+/** @type {string} */
 let status = 'idle'; // idle, running, completed, error
 
 /**
@@ -18,9 +27,13 @@ function updateStatus(newStatus, data) {
   parentPort.postMessage({ type: 'status', status: newStatus, data: data });
 }
 
+/**
+ * Handles incoming messages from the parent thread.
+ * Supports 'start' and 'getStatus' message types.
+ */
 parentPort.on('message', async (message) => {
-  if (message == null){
-    return
+  if (message === null) {
+    return;
   }
   if (message.type === 'start' && message.scriptPath) {
     userScriptPath = message.scriptPath;

@@ -1,6 +1,15 @@
 /**
- * @fileoverview Singleton factory for the WorkerProvider.
+ * @fileoverview Working Service Factory
+ * Singleton factory module for creating worker service instances.
+ * Provides background task execution, worker thread management, and job processing.
+ *
+ * @author NooblyJS Team
+ * @version 1.0.14
+ * @since 1.0.0
  */
+
+'use strict';
+
 // TODO - we need to work on how data is passed to the script
 
 const WorkerProvider = require('./providers/workingProvider');
@@ -11,18 +20,23 @@ const Views = require('./views');
 let instance = null;
 
 /**
- * Creates a queue instance based on the provided type.
- * @param {string} type The type of queue to create. Valid options are 'memory'.
- * @param {Object} options The options for the queue.
- * @param {EventEmitter} eventEmitter The eventEmitter for the queue.
- * @return {Object} A worker instance.
+ * Returns the singleton instance of the worker service.
+ * Automatically configures routes and views for the working service.
+ * @param {string} type - The worker service type
+ * @param {Object} options - Configuration options for the worker service
+ * @param {EventEmitter} eventEmitter - Global event emitter for inter-service communication
+ * @return {WorkerProvider} The singleton worker service instance
  */
 function getWorkerInstance(type, options, eventEmitter) {
+  // Create singleton instance if it doesn't exist
   if (!instance) {
     instance = new WorkerProvider(options, eventEmitter);
+
+    // Initialize routes and views for the working service
     Routes(options, eventEmitter, instance);
     Views(options, eventEmitter, instance);
   }
+
   return instance;
 }
 

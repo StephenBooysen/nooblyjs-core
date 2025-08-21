@@ -1,7 +1,32 @@
+/**
+ * @fileoverview Load test for scheduling service performance.
+ * 
+ * This load test measures the performance of task scheduling and execution
+ * operations. Tests help evaluate scheduler throughput and task execution
+ * performance under high-volume scenarios.
+ * 
+ * @author NooblyJS Team
+ * @version 1.0.14
+ * @since 1.0.0
+ */
+
+'use strict';
+
 const getSchedulerInstance = require('../../../src/scheduling');
 const EventEmitter = require('events');
 const path = require('path');
 
+/**
+ * Executes load test for scheduling service performance.
+ * 
+ * Runs a series of scheduled task executions to measure performance
+ * characteristics of the scheduler under high-frequency task execution.
+ * 
+ * @async
+ * @function runSchedulingLoadTest
+ * @param {number} iterations - Number of task executions to perform
+ * @returns {Promise<Object>} Test results including service, iterations, and duration
+ */
 async function runSchedulingLoadTest(iterations) {
   const eventEmitter = new EventEmitter();
   const scheduler = getSchedulerInstance('default', {}, eventEmitter);

@@ -1,24 +1,35 @@
 /**
- * @fileoverview Provides a singleton worker thread for executing tasks.
+ * @fileoverview Provides a singleton worker thread for executing tasks
+ * with lifecycle management, status tracking, and event emission support.
+ * @author NooblyJS Team
+ * @version 1.0.14
+ * @since 1.0.0
  */
+
+'use strict';
 
 const { Worker } = require('worker_threads');
 const path = require('path');
 
 /**
- * Manages a single worker thread for executing tasks.
+ * A class that manages a single worker thread for executing tasks.
+ * Provides methods for starting, stopping, and monitoring worker status.
+ * @class
  */
 class WorkerProvider {
   /**
-   * Initializes the WorkerProvider.
+   * Initializes the WorkerProvider with worker thread management.
+   * @param {Object=} options Configuration options for the worker.
+   * @param {EventEmitter=} eventEmitter Optional event emitter for worker events.
    */
   constructor(options, eventEmitter) {
-    /** @private {Worker} */
+    /** @private {?Worker} */
     this.worker_ = null;
     /** @private {string} */
     this.status_ = 'idle';
-    /** @private {Function} */
+    /** @private {?Function} */
     this.completionCallback_ = null;
+    /** @private @const {EventEmitter} */
     this.eventEmitter_ = eventEmitter;
   }
 
@@ -27,9 +38,10 @@ class WorkerProvider {
    * @param {string} scriptPath The absolute path to the script to execute in the worker.
    * @param {Object} data The data to be passed to the worker thread.
    * @param {Function=} completionCallback Optional callback function to be called on completion.
+   * @return {Promise<void>} A promise that resolves when the worker is started.
+   * @throws {Error} When a worker is already running.
    */
   async start(scriptPath, data, completionCallback) {
-    
     if (this.worker_) {
       if (this.eventEmitter_)
         this.eventEmitter_.emit('worker:start:error', {
@@ -40,9 +52,7 @@ class WorkerProvider {
     }
     this.completionCallback_ = completionCallback;
 
-    this.worker_ = new Worker(
-      path.resolve(__dirname, './workerScript.js')
-    );
+    this.worker_ = new Worker(path.resolve(__dirname, './workerScript.js'));
 
     if (this.eventEmitter_)
       this.eventEmitter_.emit('worker:start', { scriptPath , data });
@@ -96,11 +106,16 @@ class WorkerProvider {
 
     // send the data to the worker
     //this.worker_.postMessage(data);
-    this.worker_.postMessage({ type: 'start', scriptPath: scriptPath, data: data });
+    this.worker_.postMessage({
+      type: 'start',
+      scriptPath: scriptPath,
+      data: data,
+    });
   }
 
   /**
-   * Stops the worker thread.
+   * Stops the worker thread and resets the status.
+   * @return {Promise<void>} A promise that resolves when the worker is stopped.
    */
   async stop() {
     if (this.worker_) {
@@ -113,7 +128,7 @@ class WorkerProvider {
 
   /**
    * Gets the current status of the worker.
-   * @return {string} The current status of the worker.
+   * @return {Promise<string>} A promise that resolves to the current status of the worker.
    */
   async getStatus() {
     return this.status_;

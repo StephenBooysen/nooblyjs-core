@@ -1,6 +1,31 @@
+/**
+ * @fileoverview Load test for queueing service performance.
+ * 
+ * This load test measures the performance of queue operations including
+ * enqueue and dequeue operations. Tests help evaluate queue throughput
+ * and identify performance characteristics under high-volume scenarios.
+ * 
+ * @author NooblyJS Team
+ * @version 1.0.14
+ * @since 1.0.0
+ */
+
+'use strict';
+
 const createQueue = require('../../../src/queueing');
 const EventEmitter = require('events');
 
+/**
+ * Executes load test for queueing service performance.
+ * 
+ * Runs a series of enqueue and dequeue operations to measure performance
+ * characteristics of the queue system under high-volume scenarios.
+ * 
+ * @async
+ * @function runQueueingLoadTest
+ * @param {number} iterations - Number of queue operations to perform
+ * @returns {Promise<Object>} Test results including service, iterations, and duration
+ */
 async function runQueueingLoadTest(iterations) {
   const eventEmitter = new EventEmitter();
   const queue = createQueue('memory', {}, eventEmitter);

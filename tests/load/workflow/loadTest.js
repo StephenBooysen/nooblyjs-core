@@ -1,7 +1,32 @@
+/**
+ * @fileoverview Load test for workflow service performance.
+ * 
+ * This load test measures the performance of workflow execution including
+ * workflow definition, step execution, and data flow management. Tests help
+ * evaluate workflow throughput and step execution performance.
+ * 
+ * @author NooblyJS Team
+ * @version 1.0.14
+ * @since 1.0.0
+ */
+
+'use strict';
+
 const createWorkflowService = require('../../../src/workflow');
 const EventEmitter = require('events');
 const path = require('path');
 
+/**
+ * Executes load test for workflow service performance.
+ * 
+ * Creates mock workflow steps and runs workflow executions to measure
+ * performance characteristics of workflow processing under load.
+ * 
+ * @async
+ * @function runWorkflowLoadTest
+ * @param {number} iterations - Number of workflow executions to perform
+ * @returns {Promise<Object>} Test results including service, iterations, and duration
+ */
 async function runWorkflowLoadTest(iterations) {
   const eventEmitter = new EventEmitter();
   const workflowService = createWorkflowService('default', {}, eventEmitter);

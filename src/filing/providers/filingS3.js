@@ -1,17 +1,30 @@
 /**
- * @fileoverview AWS S3 filing provider.
+ * @fileoverview AWS S3 filing provider for cloud-based file operations
+ * using Amazon S3 with bucket-based organization and event emission support.
+ * @author NooblyJS Team
+ * @version 1.0.14
+ * @since 1.0.0
  */
+
+'use strict';
 
 const AWS = require('aws-sdk');
 
+/**
+ * A class that implements an AWS S3-based file storage provider.
+ * Provides methods for creating, reading, updating, deleting, and listing files in S3.
+ * @class
+ */
 class S3FilingProvider {
   /**
-   * Initializes the S3 client.
+   * Initializes the S3 client with AWS credentials and bucket configuration.
    * @param {Object} options The options for the S3 client.
    * @param {string} options.bucketName The name of the S3 bucket.
    * @param {string} options.region The AWS region.
-   * @param {string} [options.accessKeyId] The AWS access key ID. (Optional, will use environment variables if not provided)
-   * @param {string} [options.secretAccessKey] The AWS secret access key. (Optional, will use environment variables if not provided)
+   * @param {string=} options.accessKeyId The AWS access key ID. (Optional, will use environment variables if not provided)
+   * @param {string=} options.secretAccessKey The AWS secret access key. (Optional, will use environment variables if not provided)
+   * @param {EventEmitter=} eventEmitter Optional event emitter for file operations.
+   * @throws {Error} When required bucketName or region options are not provided.
    */
   constructor(options, eventEmitter) {
     if (!options || !options.bucketName || !options.region) {
@@ -20,13 +33,16 @@ class S3FilingProvider {
       );
     }
 
+    /** @private @const {string} */
     this.bucketName = options.bucketName;
     AWS.config.update({
       region: options.region,
       accessKeyId: options.accessKeyId,
       secretAccessKey: options.secretAccessKey,
     });
+    /** @private @const {AWS.S3} */
     this.s3 = new AWS.S3();
+    /** @private @const {EventEmitter} */
     this.eventEmitter_ = eventEmitter;
   }
 
