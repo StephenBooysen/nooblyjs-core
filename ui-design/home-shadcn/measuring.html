@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Measuring Service - Noobly JS</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header" id="header">
+        <div class="header-container">
+            <a href="index.html" class="logo">
+                <div class="logo-icon">NJS</div>
+                <span>Noobly JS</span>
+            </a>
+            
+            <nav class="nav-menu">
+                <a href="index.html" class="nav-link">Home</a>
+                <a href="documentation.html" class="nav-link">Documentation</a>
+                <a href="contact.html" class="nav-link">Contact</a>
+                <a href="measuring.html" class="nav-link active">Services</a>
+            </nav>
+            
+            <button class="mobile-menu-toggle" id="mobileMenuToggle">☰</button>
+        </div>
+        
+        <div class="mobile-menu" id="mobileMenu">
+            <nav class="mobile-nav-menu">
+                <a href="index.html" class="mobile-nav-link">Home</a>
+                <a href="documentation.html" class="mobile-nav-link">Documentation</a>
+                <a href="contact.html" class="mobile-nav-link">Contact</a>
+                <a href="measuring.html" class="mobile-nav-link">Services</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Service Hero Section -->
+    <section class="service-hero">
+        <div class="service-content">
+            <div class="badge badge-secondary" style="margin-bottom: 1rem;">📊 Analytics</div>
+            <h1 class="service-title">Measuring Service</h1>
+            <p class="service-description">Real-time metrics collection and analysis for performance insights and system optimization with comprehensive monitoring capabilities.</p>
+            
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 2rem;">
+                <a href="#operations" class="btn btn-primary">Try Operations</a>
+                <a href="documentation.html" class="btn btn-outline">View Documentation</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Service Navigation -->
+    <div class="container" style="padding: 2rem;">
+        <div class="card" style="margin-bottom: 2rem;">
+            <div class="card-content">
+                <h3 style="margin-bottom: 1rem;">Available Services</h3>
+                <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                    <a href="cache.html" class="badge badge-outline">Caching</a>
+                    <a href="data.html" class="badge badge-outline">Data Storage</a>
+                    <a href="logging.html" class="badge badge-outline">Logging</a>
+                    <a href="measuring.html" class="badge badge-default">Measuring</a>
+                    <a href="notifying.html" class="badge badge-outline">Notifying</a>
+                    <a href="queueing.html" class="badge badge-outline">Queueing</a>
+                    <a href="scheduling.html" class="badge badge-outline">Scheduling</a>
+                    <a href="searching.html" class="badge badge-outline">Searching</a>
+                    <a href="workflow.html" class="badge badge-outline">Workflow</a>
+                    <a href="working.html" class="badge badge-outline">Working</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Features Section -->
+    <section style="padding: 2rem 0;">
+        <div class="container">
+            <div class="service-grid">
+                <div class="service-card card">
+                    <div class="card-content">
+                        <h3>⏱️ Performance Metrics</h3>
+                        <p>Track response times, throughput, and latency for optimal application performance monitoring.</p>
+                    </div>
+                </div>
+                
+                <div class="service-card card">
+                    <div class="card-content">
+                        <h3>📈 Custom Counters</h3>
+                        <p>Create and manage custom counters for business metrics and application-specific measurements.</p>
+                    </div>
+                </div>
+                
+                <div class="service-card card">
+                    <div class="card-content">
+                        <h3>📊 Real-time Analytics</h3>
+                        <p>Live dashboard with real-time metrics aggregation and historical trend analysis capabilities.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Operations Section -->
+    <section id="operations" style="padding: 2rem 0; background-color: hsl(var(--muted) / 0.3);">
+        <div class="container">
+            <div style="text-align: center; margin-bottom: 3rem;">
+                <h2 style="font-size: 2rem; font-weight: 700; margin-bottom: 1rem;">Metrics Operations</h2>
+                <p style="color: hsl(var(--muted-foreground));">Test metrics collection and view real-time analytics</p>
+            </div>
+            
+            <div class="service-grid">
+                <!-- Record Metric -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>📊 Record Metric</h3>
+                    </div>
+                    <div class="card-content">
+                        <form id="metricForm">
+                            <div style="margin-bottom: 1rem;">
+                                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Metric Name</label>
+                                <input type="text" id="metricName" placeholder="e.g., api_requests, user_logins" required 
+                                       style="width: 100%; padding: 0.75rem; border: 1px solid hsl(var(--border)); border-radius: calc(var(--radius)); background: hsl(var(--background)); color: hsl(var(--foreground));">
+                            </div>
+                            <div style="margin-bottom: 1rem;">
+                                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Value</label>
+                                <input type="number" id="metricValue" placeholder="1" required step="0.01"
+                                       style="width: 100%; padding: 0.75rem; border: 1px solid hsl(var(--border)); border-radius: calc(var(--radius)); background: hsl(var(--background)); color: hsl(var(--foreground));">
+                            </div>
+                            <button type="submit" class="btn btn-primary" style="width: 100%;">Record Metric</button>
+                        </form>
+                        <div id="metricResult" style="margin-top: 1rem; padding: 0.75rem; border-radius: calc(var(--radius)); display: none;"></div>
+                    </div>
+                </div>
+
+                <!-- Current Metrics -->
+                <div class="card" style="grid-column: span 2;">
+                    <div class="card-header">
+                        <h3>📈 Current Metrics</h3>
+                        <button id="refreshMetrics" class="btn btn-outline btn-sm" style="margin-left: auto;">Refresh</button>
+                    </div>
+                    <div class="card-content">
+                        <div id="metricsDisplay" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+                            <div class="stat-card card" style="text-align: center;">
+                                <span class="stat-number" style="display: block; font-size: 1.5rem; font-weight: 700; color: hsl(var(--primary));">0</span>
+                                <span class="stat-label" style="color: hsl(var(--muted-foreground));">Total Requests</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Metrics Table -->
+            <div class="card" style="margin-top: 2rem;">
+                <div class="card-header">
+                    <h3>📋 Metrics History</h3>
+                    <button id="clearMetrics" class="btn btn-outline btn-sm" style="margin-left: auto;">Clear All</button>
+                </div>
+                <div class="card-content">
+                    <div style="overflow-x: auto;">
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <thead>
+                                <tr style="border-bottom: 1px solid hsl(var(--border));">
+                                    <th style="text-align: left; padding: 0.75rem;">Timestamp</th>
+                                    <th style="text-align: left; padding: 0.75rem;">Metric Name</th>
+                                    <th style="text-align: right; padding: 0.75rem;">Value</th>
+                                </tr>
+                            </thead>
+                            <tbody id="metricsTable">
+                                <tr>
+                                    <td colspan="3" style="text-align: center; padding: 2rem; color: hsl(var(--muted-foreground));">No metrics recorded yet</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Code Example Section -->
+    <section style="padding: 2rem 0;">
+        <div class="container">
+            <div class="card">
+                <div class="card-header">
+                    <h3>💻 Code Example</h3>
+                </div>
+                <div class="card-content">
+                    <div class="code-block">
+// Initialize measuring service
+const measuring = require('./src/measuring/index');
+const express = require('express');
+const EventEmitter = require('events');
+
+const app = express();
+const eventEmitter = new EventEmitter();
+
+// Create metrics instance
+const metrics = measuring('measuring', {
+    'express-app': app
+}, eventEmitter);
+
+// Record a counter metric
+await metrics.increment('api_requests');
+
+// Record a gauge metric
+await metrics.gauge('memory_usage', 1024);
+
+// Record timing metric
+const start = Date.now();
+// ... do some work ...
+await metrics.timing('operation_duration', Date.now() - start);
+
+// Get metric values
+const requestCount = await metrics.get('api_requests');
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-bottom">
+                <div class="footer-bottom-left">
+                    <a href="index.html" class="footer-logo">
+                        <div class="footer-logo-icon">NJS</div>
+                        <span>Noobly JS</span>
+                    </a>
+                    <span class="footer-copyright">© 2024 Noobly JS. All rights reserved.</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Mobile menu toggle
+        const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+        const mobileMenu = document.getElementById('mobileMenu');
+
+        mobileMenuToggle.addEventListener('click', () => {
+            mobileMenu.classList.toggle('active');
+            mobileMenuToggle.textContent = mobileMenu.classList.contains('active') ? '✕' : '☰';
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!mobileMenuToggle.contains(e.target) && !mobileMenu.contains(e.target)) {
+                mobileMenu.classList.remove('active');
+                mobileMenuToggle.textContent = '☰';
+            }
+        });
+
+        // Metrics operations
+        const metrics = new Map();
+        const metricsHistory = [];
+
+        function showResult(elementId, message, isSuccess = true) {
+            const resultDiv = document.getElementById(elementId);
+            resultDiv.textContent = message;
+            resultDiv.style.display = 'block';
+            resultDiv.style.backgroundColor = isSuccess ? 'hsl(var(--primary) / 0.1)' : 'hsl(var(--destructive) / 0.1)';
+            resultDiv.style.color = isSuccess ? 'hsl(var(--primary))' : 'hsl(var(--destructive))';
+            resultDiv.style.border = `1px solid ${isSuccess ? 'hsl(var(--primary) / 0.3)' : 'hsl(var(--destructive) / 0.3)'}`;
+            
+            setTimeout(() => {
+                resultDiv.style.display = 'none';
+            }, 3000);
+        }
+
+        function recordMetric(name, value) {
+            const timestamp = new Date().toISOString();
+            
+            // Update current metrics
+            if (metrics.has(name)) {
+                metrics.set(name, metrics.get(name) + value);
+            } else {
+                metrics.set(name, value);
+            }
+            
+            // Add to history
+            metricsHistory.unshift({ timestamp, name, value });
+            
+            if (metricsHistory.length > 50) {
+                metricsHistory.pop(); // Keep only last 50 entries
+            }
+            
+            updateMetricsDisplay();
+            updateMetricsTable();
+        }
+
+        function updateMetricsDisplay() {
+            const metricsDisplay = document.getElementById('metricsDisplay');
+            
+            if (metrics.size === 0) {
+                metricsDisplay.innerHTML = '<div style="grid-column: span 3; text-align: center; color: hsl(var(--muted-foreground)); padding: 2rem;">No metrics recorded yet</div>';
+                return;
+            }
+            
+            const metricsHtml = Array.from(metrics.entries()).map(([name, value]) => {
+                return `<div class="stat-card card" style="text-align: center; padding: 1rem;">
+                    <span class="stat-number" style="display: block; font-size: 1.5rem; font-weight: 700; color: hsl(var(--primary));">${value}</span>
+                    <span class="stat-label" style="color: hsl(var(--muted-foreground)); font-size: 0.875rem;">${name}</span>
+                </div>`;
+            }).join('');
+            
+            metricsDisplay.innerHTML = metricsHtml;
+        }
+
+        function updateMetricsTable() {
+            const tbody = document.getElementById('metricsTable');
+            
+            if (metricsHistory.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="3" style="text-align: center; padding: 2rem; color: hsl(var(--muted-foreground));">No metrics recorded yet</td></tr>';
+                return;
+            }
+            
+            const tableHtml = metricsHistory.map(metric => {
+                const time = new Date(metric.timestamp).toLocaleString();
+                return `<tr style="border-bottom: 1px solid hsl(var(--border) / 0.5);">
+                    <td style="padding: 0.75rem; color: hsl(var(--muted-foreground)); font-size: 0.875rem;">${time}</td>
+                    <td style="padding: 0.75rem; color: hsl(var(--foreground));">${metric.name}</td>
+                    <td style="padding: 0.75rem; text-align: right; color: hsl(var(--primary)); font-weight: 600;">+${metric.value}</td>
+                </tr>`;
+            }).join('');
+            
+            tbody.innerHTML = tableHtml;
+        }
+
+        // Metric Form
+        document.getElementById('metricForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('metricName').value.trim();
+            const value = parseFloat(document.getElementById('metricValue').value) || 1;
+            
+            if (!name) {
+                showResult('metricResult', 'Error: Metric name is required.', false);
+                return;
+            }
+            
+            recordMetric(name, value);
+            showResult('metricResult', `✅ Metric "${name}" recorded with value: ${value}`);
+            
+            document.getElementById('metricName').value = '';
+            document.getElementById('metricValue').value = '';
+        });
+
+        // Refresh Metrics
+        document.getElementById('refreshMetrics').addEventListener('click', function() {
+            updateMetricsDisplay();
+            updateMetricsTable();
+        });
+
+        // Clear Metrics
+        document.getElementById('clearMetrics').addEventListener('click', function() {
+            metrics.clear();
+            metricsHistory.length = 0;
+            updateMetricsDisplay();
+            updateMetricsTable();
+        });
+
+        // Card hover effects
+        document.querySelectorAll('.card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-2px)';
+                this.style.transition = 'all 0.3s ease';
+            });
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+            });
+        });
+
+        // Add some sample metrics on page load
+        setTimeout(() => {
+            recordMetric('api_requests', 1);
+            recordMetric('user_logins', 1);
+            recordMetric('page_views', 5);
+        }, 500);
+    </script>
+</body>
+</html>

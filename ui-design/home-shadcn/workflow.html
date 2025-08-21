@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Workflow Service - Noobly JS</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header class="header" id="header">
+        <div class="header-container">
+            <a href="index.html" class="logo">
+                <div class="logo-icon">NJS</div>
+                <span>Noobly JS</span>
+            </a>
+            <nav class="nav-menu">
+                <a href="index.html" class="nav-link">Home</a>
+                <a href="documentation.html" class="nav-link">Documentation</a>
+                <a href="contact.html" class="nav-link">Contact</a>
+                <a href="workflow.html" class="nav-link active">Services</a>
+            </nav>
+            <button class="mobile-menu-toggle" id="mobileMenuToggle">☰</button>
+        </div>
+    </header>
+
+    <section class="service-hero">
+        <div class="service-content">
+            <div class="badge badge-default" style="margin-bottom: 1rem;">🔄 Orchestration</div>
+            <h1 class="service-title">Workflow Service</h1>
+            <p class="service-description">Step-based workflow orchestration for complex business processes and automation workflows.</p>
+        </div>
+    </section>
+
+    <section id="operations" style="padding: 2rem 0; background-color: hsl(var(--muted) / 0.3);">
+        <div class="container">
+            <div class="service-grid">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>▶️ Execute Workflow</h3>
+                    </div>
+                    <div class="card-content">
+                        <form id="workflowForm">
+                            <select id="workflowType" style="width: 100%; padding: 0.75rem; border: 1px solid hsl(var(--border)); border-radius: calc(var(--radius)); background: hsl(var(--background)); color: hsl(var(--foreground)); margin-bottom: 1rem;">
+                                <option value="user-onboarding">User Onboarding</option>
+                                <option value="data-processing">Data Processing</option>
+                                <option value="email-campaign">Email Campaign</option>
+                            </select>
+                            <button type="submit" class="btn btn-primary" style="width: 100%;">Start Workflow</button>
+                        </form>
+                        <div id="workflowStatus" style="margin-top: 1rem;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-bottom">
+                <div class="footer-bottom-left">
+                    <a href="index.html" class="footer-logo">
+                        <div class="footer-logo-icon">NJS</div>
+                        <span>Noobly JS</span>
+                    </a>
+                    <span class="footer-copyright">© 2024 Noobly JS. All rights reserved.</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        document.getElementById('workflowForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const type = document.getElementById('workflowType').value;
+            const statusDiv = document.getElementById('workflowStatus');
+            
+            statusDiv.innerHTML = `<div class="card" style="padding: 1rem; background: hsl(var(--primary) / 0.1); border-color: hsl(var(--primary) / 0.3);">
+                <h4>✅ Workflow Started</h4>
+                <p style="margin: 0; color: hsl(var(--muted-foreground));">Executing ${type} workflow...</p>
+            </div>`;
+        });
+    </script>
+</body>
+</html>

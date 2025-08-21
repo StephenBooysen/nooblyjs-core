@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scheduling Service - Noobly JS</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header class="header" id="header">
+        <div class="header-container">
+            <a href="index.html" class="logo">
+                <div class="logo-icon">NJS</div>
+                <span>Noobly JS</span>
+            </a>
+            <nav class="nav-menu">
+                <a href="index.html" class="nav-link">Home</a>
+                <a href="documentation.html" class="nav-link">Documentation</a>
+                <a href="contact.html" class="nav-link">Contact</a>
+                <a href="scheduling.html" class="nav-link active">Services</a>
+            </nav>
+            <button class="mobile-menu-toggle" id="mobileMenuToggle">☰</button>
+        </div>
+        <div class="mobile-menu" id="mobileMenu">
+            <nav class="mobile-nav-menu">
+                <a href="index.html" class="mobile-nav-link">Home</a>
+                <a href="documentation.html" class="mobile-nav-link">Documentation</a>
+                <a href="contact.html" class="mobile-nav-link">Contact</a>
+                <a href="scheduling.html" class="mobile-nav-link">Services</a>
+            </nav>
+        </div>
+    </header>
+
+    <section class="service-hero">
+        <div class="service-content">
+            <div class="badge badge-secondary" style="margin-bottom: 1rem;">⏰ Automation</div>
+            <h1 class="service-title">Scheduling Service</h1>
+            <p class="service-description">Cron-like task scheduling for automated processes and recurring operations with flexible timing options.</p>
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 2rem;">
+                <a href="#operations" class="btn btn-primary">Try Operations</a>
+                <a href="documentation.html" class="btn btn-outline">View Documentation</a>
+            </div>
+        </div>
+    </section>
+
+    <section id="operations" style="padding: 2rem 0; background-color: hsl(var(--muted) / 0.3);">
+        <div class="container">
+            <div style="text-align: center; margin-bottom: 3rem;">
+                <h2 style="font-size: 2rem; font-weight: 700; margin-bottom: 1rem;">Schedule Operations</h2>
+                <p style="color: hsl(var(--muted-foreground));">Create and manage scheduled tasks</p>
+            </div>
+            
+            <div class="service-grid">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>📅 Create Schedule</h3>
+                    </div>
+                    <div class="card-content">
+                        <form id="scheduleForm">
+                            <div style="margin-bottom: 1rem;">
+                                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Task Name</label>
+                                <input type="text" id="taskName" placeholder="e.g., backup-database, send-reports" required 
+                                       style="width: 100%; padding: 0.75rem; border: 1px solid hsl(var(--border)); border-radius: calc(var(--radius)); background: hsl(var(--background)); color: hsl(var(--foreground));">
+                            </div>
+                            <div style="margin-bottom: 1rem;">
+                                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Schedule Type</label>
+                                <select id="scheduleType" style="width: 100%; padding: 0.75rem; border: 1px solid hsl(var(--border)); border-radius: calc(var(--radius)); background: hsl(var(--background)); color: hsl(var(--foreground));">
+                                    <option value="interval">Interval</option>
+                                    <option value="cron">Cron Expression</option>
+                                    <option value="daily">Daily</option>
+                                    <option value="weekly">Weekly</option>
+                                </select>
+                            </div>
+                            <div style="margin-bottom: 1rem;">
+                                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Schedule Value</label>
+                                <input type="text" id="scheduleValue" placeholder="e.g., 30 (seconds), 0 0 * * * (cron)" required 
+                                       style="width: 100%; padding: 0.75rem; border: 1px solid hsl(var(--border)); border-radius: calc(var(--radius)); background: hsl(var(--background)); color: hsl(var(--foreground));">
+                            </div>
+                            <button type="submit" class="btn btn-primary" style="width: 100%;">Create Schedule</button>
+                        </form>
+                        <div id="scheduleResult" style="margin-top: 1rem; padding: 0.75rem; border-radius: calc(var(--radius)); display: none;"></div>
+                    </div>
+                </div>
+
+                <div class="card" style="grid-column: span 2;">
+                    <div class="card-header">
+                        <h3>📋 Active Schedules</h3>
+                        <button id="clearSchedules" class="btn btn-outline btn-sm">Clear All</button>
+                    </div>
+                    <div class="card-content">
+                        <div id="schedulesList" style="max-height: 300px; overflow-y: auto;">
+                            <div style="text-align: center; color: hsl(var(--muted-foreground)); padding: 2rem;">No active schedules</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card" style="margin-top: 2rem;">
+                <div class="card-header">
+                    <h3>📊 Execution Log</h3>
+                    <button id="clearLog" class="btn btn-outline btn-sm">Clear Log</button>
+                </div>
+                <div class="card-content">
+                    <div id="executionLog" style="max-height: 200px; overflow-y: auto; background: hsl(var(--muted) / 0.5); border: 1px solid hsl(var(--border)); border-radius: calc(var(--radius)); padding: 1rem; font-family: monospace; font-size: 0.875rem;">
+                        <div style="color: hsl(var(--muted-foreground));">Task executions will appear here...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-bottom">
+                <div class="footer-bottom-left">
+                    <a href="index.html" class="footer-logo">
+                        <div class="footer-logo-icon">NJS</div>
+                        <span>Noobly JS</span>
+                    </a>
+                    <span class="footer-copyright">© 2024 Noobly JS. All rights reserved.</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+        const mobileMenu = document.getElementById('mobileMenu');
+
+        mobileMenuToggle.addEventListener('click', () => {
+            mobileMenu.classList.toggle('active');
+            mobileMenuToggle.textContent = mobileMenu.classList.contains('active') ? '✕' : '☰';
+        });
+
+        const schedules = [];
+        const executionLog = [];
+        let scheduleIdCounter = 1;
+
+        function showResult(elementId, message, isSuccess = true) {
+            const resultDiv = document.getElementById(elementId);
+            resultDiv.textContent = message;
+            resultDiv.style.display = 'block';
+            resultDiv.style.backgroundColor = isSuccess ? 'hsl(var(--primary) / 0.1)' : 'hsl(var(--destructive) / 0.1)';
+            resultDiv.style.color = isSuccess ? 'hsl(var(--primary))' : 'hsl(var(--destructive))';
+            setTimeout(() => resultDiv.style.display = 'none', 3000);
+        }
+
+        function updateSchedulesDisplay() {
+            const schedulesList = document.getElementById('schedulesList');
+            
+            if (schedules.length === 0) {
+                schedulesList.innerHTML = '<div style="text-align: center; color: hsl(var(--muted-foreground)); padding: 2rem;">No active schedules</div>';
+                return;
+            }
+
+            const schedulesHtml = schedules.map(schedule => {
+                const nextRun = new Date(Date.now() + Math.random() * 3600000).toLocaleString();
+                const statusColor = schedule.active ? '#10B981' : '#6B7280';
+                
+                return `<div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; margin-bottom: 0.75rem; border: 1px solid hsl(var(--border)); border-radius: calc(var(--radius)); background: hsl(var(--background));">
+                    <div>
+                        <div style="font-weight: 600; margin-bottom: 0.25rem;">${schedule.name}</div>
+                        <div style="font-size: 0.875rem; color: hsl(var(--muted-foreground));">
+                            ${schedule.type}: ${schedule.value} | Next: ${nextRun}
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <div style="width: 8px; height: 8px; border-radius: 50%; background: ${statusColor};"></div>
+                        <button onclick="toggleSchedule(${schedule.id})" class="btn btn-outline btn-sm">
+                            ${schedule.active ? 'Pause' : 'Resume'}
+                        </button>
+                        <button onclick="deleteSchedule(${schedule.id})" class="btn btn-outline btn-sm" style="color: hsl(var(--destructive));">Delete</button>
+                    </div>
+                </div>`;
+            }).join('');
+
+            schedulesList.innerHTML = schedulesHtml;
+        }
+
+        function addToExecutionLog(message) {
+            const timestamp = new Date().toLocaleTimeString();
+            executionLog.unshift(`[${timestamp}] ${message}`);
+            
+            if (executionLog.length > 50) {
+                executionLog.pop();
+            }
+            
+            updateExecutionLog();
+        }
+
+        function updateExecutionLog() {
+            const logDiv = document.getElementById('executionLog');
+            
+            if (executionLog.length === 0) {
+                logDiv.innerHTML = '<div style="color: hsl(var(--muted-foreground));">Task executions will appear here...</div>';
+                return;
+            }
+            
+            const logHtml = executionLog.map(entry => 
+                `<div style="margin-bottom: 0.25rem; color: hsl(var(--foreground));">${entry}</div>`
+            ).join('');
+            
+            logDiv.innerHTML = logHtml;
+        }
+
+        window.toggleSchedule = function(id) {
+            const schedule = schedules.find(s => s.id === id);
+            if (schedule) {
+                schedule.active = !schedule.active;
+                updateSchedulesDisplay();
+                addToExecutionLog(`Schedule "${schedule.name}" ${schedule.active ? 'resumed' : 'paused'}`);
+            }
+        };
+
+        window.deleteSchedule = function(id) {
+            const index = schedules.findIndex(s => s.id === id);
+            if (index !== -1) {
+                const schedule = schedules[index];
+                schedules.splice(index, 1);
+                updateSchedulesDisplay();
+                addToExecutionLog(`Schedule "${schedule.name}" deleted`);
+            }
+        };
+
+        document.getElementById('scheduleForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('taskName').value.trim();
+            const type = document.getElementById('scheduleType').value;
+            const value = document.getElementById('scheduleValue').value.trim();
+            
+            if (!name || !value) {
+                showResult('scheduleResult', 'Error: All fields are required.', false);
+                return;
+            }
+            
+            const schedule = {
+                id: scheduleIdCounter++,
+                name,
+                type,
+                value,
+                active: true,
+                created: new Date().toISOString()
+            };
+
+            schedules.push(schedule);
+            updateSchedulesDisplay();
+            addToExecutionLog(`Created schedule "${name}" (${type}: ${value})`);
+            showResult('scheduleResult', `✅ Schedule "${name}" created successfully`);
+            
+            document.getElementById('taskName').value = '';
+            document.getElementById('scheduleValue').value = '';
+        });
+
+        document.getElementById('clearSchedules').addEventListener('click', function() {
+            schedules.length = 0;
+            updateSchedulesDisplay();
+            addToExecutionLog('All schedules cleared');
+        });
+
+        document.getElementById('clearLog').addEventListener('click', function() {
+            executionLog.length = 0;
+            updateExecutionLog();
+        });
+
+        // Simulate task executions
+        setInterval(() => {
+            const activeSchedules = schedules.filter(s => s.active);
+            if (activeSchedules.length > 0) {
+                const randomSchedule = activeSchedules[Math.floor(Math.random() * activeSchedules.length)];
+                addToExecutionLog(`Executed task: ${randomSchedule.name}`);
+            }
+        }, 5000);
+
+        // Add sample schedules
+        setTimeout(() => {
+            schedules.push({ 
+                id: scheduleIdCounter++, 
+                name: 'daily-backup', 
+                type: 'cron', 
+                value: '0 2 * * *', 
+                active: true,
+                created: new Date().toISOString()
+            });
+            schedules.push({ 
+                id: scheduleIdCounter++, 
+                name: 'health-check', 
+                type: 'interval', 
+                value: '30', 
+                active: true,
+                created: new Date().toISOString()
+            });
+            updateSchedulesDisplay();
+            addToExecutionLog('Scheduling service initialized with sample tasks');
+        }, 500);
+    </script>
+</body>
+</html>

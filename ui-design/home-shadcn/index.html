@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Noobly JS - Not Just Another Accelerator Framework</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header" id="header">
+        <div class="header-container">
+            <a href="index.html" class="logo">
+                <div class="logo-icon">NJS</div>
+                <span>Noobly JS</span>
+            </a>
+            
+            <nav class="nav-menu">
+                <a href="index.html" class="nav-link active">Home</a>
+                <a href="documentation.html" class="nav-link">Documentation</a>
+                <a href="contact.html" class="nav-link">Contact</a>
+                <a href="cache.html" class="btn btn-primary btn-ghost">Get Started</a>
+            </nav>
+            
+            <button class="mobile-menu-toggle" id="mobileMenuToggle">
+                ☰
+            </button>
+        </div>
+        
+        <div class="mobile-menu" id="mobileMenu">
+            <nav class="mobile-nav-menu">
+                <a href="index.html" class="mobile-nav-link">Home</a>
+                <a href="documentation.html" class="mobile-nav-link">Documentation</a>
+                <a href="contact.html" class="mobile-nav-link">Contact</a>
+                <a href="cache.html" class="btn btn-primary">Get Started</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <h1>Noobly JS</h1>
+            <p class="subtitle">Not Just Another Accelerator Framework</p>
+            
+            <div class="hero-buttons">
+                <a href="documentation.html" class="btn btn-primary btn-lg">Get Started</a>
+                <a href="contact.html" class="btn btn-outline btn-lg">Learn More</a>
+            </div>
+            
+            <div class="features">
+                <div class="feature card">
+                    <div class="card-content">
+                        <div class="feature-icon">🚀</div>
+                        <h3>Fast & Lightweight</h3>
+                        <p>Built for performance with minimal overhead and maximum efficiency. Experience lightning-fast development cycles.</p>
+                    </div>
+                </div>
+                <div class="feature card">
+                    <div class="card-content">
+                        <div class="feature-icon">🔧</div>
+                        <h3>Modular Architecture</h3>
+                        <p>Use only what you need with our flexible, plugin-based system. Build exactly what your project requires.</p>
+                    </div>
+                </div>
+                <div class="feature card">
+                    <div class="card-content">
+                        <div class="feature-icon">💡</div>
+                        <h3>Developer First</h3>
+                        <p>Intuitive APIs and excellent documentation for a smooth development experience. Built by developers, for developers.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="stats-section">
+        <div class="stats-container">
+            <div class="stat-card card">
+                <span class="stat-number">50+</span>
+                <span class="stat-label">Built-in Modules</span>
+            </div>
+            <div class="stat-card card">
+                <span class="stat-number">99.9%</span>
+                <span class="stat-label">Uptime</span>
+            </div>
+            <div class="stat-card card">
+                <span class="stat-number">10x</span>
+                <span class="stat-label">Faster Development</span>
+            </div>
+            <div class="stat-card card">
+                <span class="stat-number">24/7</span>
+                <span class="stat-label">Support</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services Section -->
+    <section class="services-section" style="padding: 4rem 0;">
+        <div class="container">
+            <div style="text-align: center; margin-bottom: 3rem;">
+                <h2 style="font-size: 2.5rem; font-weight: 700; margin-bottom: 1rem; color: hsl(var(--foreground));">Core Services</h2>
+                <p style="font-size: 1.25rem; color: hsl(var(--muted-foreground));">Explore our comprehensive suite of backend services</p>
+            </div>
+            
+            <div class="service-grid">
+                <div class="service-card card">
+                    <div class="card-content">
+                        <div class="badge badge-default" style="margin-bottom: 1rem;">⚡ Performance</div>
+                        <h3><a href="cache.html" style="text-decoration: none; color: hsl(var(--foreground));">Caching Service</a></h3>
+                        <p>High-performance caching with Redis, Memcached, and in-memory providers for lightning-fast data access.</p>
+                    </div>
+                </div>
+                
+                <div class="service-card card">
+                    <div class="card-content">
+                        <div class="badge badge-secondary" style="margin-bottom: 1rem;">🗄️ Storage</div>
+                        <h3><a href="data.html" style="text-decoration: none; color: hsl(var(--foreground));">Data Service</a></h3>
+                        <p>Flexible data storage solutions with SimpleDB and file-based providers for all your data needs.</p>
+                    </div>
+                </div>
+                
+                <div class="service-card card">
+                    <div class="card-content">
+                        <div class="badge badge-outline" style="margin-bottom: 1rem;">📁 Files</div>
+                        <h3><a href="filing.html" style="text-decoration: none; color: hsl(var(--foreground));">Filing Service</a></h3>
+                        <p>Comprehensive file management with local, FTP, and S3 storage options for secure file handling.</p>
+                    </div>
+                </div>
+                
+                <div class="service-card card">
+                    <div class="card-content">
+                        <div class="badge badge-default" style="margin-bottom: 1rem;">📝 Monitoring</div>
+                        <h3><a href="logging.html" style="text-decoration: none; color: hsl(var(--foreground));">Logging Service</a></h3>
+                        <p>Advanced logging capabilities with console and file outputs for comprehensive application monitoring.</p>
+                    </div>
+                </div>
+                
+                <div class="service-card card">
+                    <div class="card-content">
+                        <div class="badge badge-secondary" style="margin-bottom: 1rem;">📊 Analytics</div>
+                        <h3><a href="measuring.html" style="text-decoration: none; color: hsl(var(--foreground));">Measuring Service</a></h3>
+                        <p>Real-time metrics collection and analysis for performance insights and system optimization.</p>
+                    </div>
+                </div>
+                
+                <div class="service-card card">
+                    <div class="card-content">
+                        <div class="badge badge-outline" style="margin-bottom: 1rem;">🔔 Communication</div>
+                        <h3><a href="notifying.html" style="text-decoration: none; color: hsl(var(--foreground));">Notifying Service</a></h3>
+                        <p>Robust notification system with pub/sub messaging for real-time communication across services.</p>
+                    </div>
+                </div>
+                
+                <div class="service-card card">
+                    <div class="card-content">
+                        <div class="badge badge-default" style="margin-bottom: 1rem;">⏳ Processing</div>
+                        <h3><a href="queueing.html" style="text-decoration: none; color: hsl(var(--foreground));">Queueing Service</a></h3>
+                        <p>Efficient task queueing with in-memory processing for handling background operations.</p>
+                    </div>
+                </div>
+                
+                <div class="service-card card">
+                    <div class="card-content">
+                        <div class="badge badge-secondary" style="margin-bottom: 1rem;">⏰ Automation</div>
+                        <h3><a href="scheduling.html" style="text-decoration: none; color: hsl(var(--foreground));">Scheduling Service</a></h3>
+                        <p>Cron-like task scheduling for automated processes and recurring operations.</p>
+                    </div>
+                </div>
+                
+                <div class="service-card card">
+                    <div class="card-content">
+                        <div class="badge badge-outline" style="margin-bottom: 1rem;">🔍 Discovery</div>
+                        <h3><a href="searching.html" style="text-decoration: none; color: hsl(var(--foreground));">Searching Service</a></h3>
+                        <p>Powerful search functionality with in-memory indexing for fast data retrieval and filtering.</p>
+                    </div>
+                </div>
+                
+                <div class="service-card card">
+                    <div class="card-content">
+                        <div class="badge badge-default" style="margin-bottom: 1rem;">🔄 Orchestration</div>
+                        <h3><a href="workflow.html" style="text-decoration: none; color: hsl(var(--foreground));">Workflow Service</a></h3>
+                        <p>Step-based workflow orchestration for complex business processes and automation.</p>
+                    </div>
+                </div>
+                
+                <div class="service-card card">
+                    <div class="card-content">
+                        <div class="badge badge-secondary" style="margin-bottom: 1rem;">⚙️ Execution</div>
+                        <h3><a href="working.html" style="text-decoration: none; color: hsl(var(--foreground));">Working Service</a></h3>
+                        <p>Background task execution engine for processing intensive operations asynchronously.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonial Section -->
+    <section class="testimonial-section">
+        <div class="container">
+            <div class="testimonial-card card">
+                <div class="card-content">
+                    <p class="testimonial-text">
+                        "Noobly JS has revolutionized our development process. What used to take weeks now takes days. 
+                        The framework's intuitive design and powerful features make it an indispensable tool for any serious developer."
+                    </p>
+                    <p class="testimonial-author">— Sarah Chen, Lead Developer at TechCorp</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>About Noobly JS</h3>
+                    <p>Not just another accelerator framework. Noobly JS is designed to empower developers with powerful tools and intuitive APIs for building modern web applications.</p>
+                    <div class="tech-stack">
+                        <span class="tech-badge badge badge-outline">Node.js</span>
+                        <span class="tech-badge badge badge-outline">Express</span>
+                        <span class="tech-badge badge badge-outline">TypeScript</span>
+                        <span class="tech-badge badge badge-outline">Redis</span>
+                        <span class="tech-badge badge badge-outline">PostgreSQL</span>
+                    </div>
+                </div>
+                
+                <div class="footer-section">
+                    <h3>Quick Links</h3>
+                    <ul class="footer-links">
+                        <li><a href="index.html" class="footer-link">Home</a></li>
+                        <li><a href="documentation.html" class="footer-link">Documentation</a></li>
+                        <li><a href="contact.html" class="footer-link">Contact</a></li>
+                        <li><a href="#" class="footer-link">API Reference</a></li>
+                        <li><a href="#" class="footer-link">Examples</a></li>
+                        <li><a href="#" class="footer-link">GitHub</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-section">
+                    <h3>Resources</h3>
+                    <ul class="footer-links">
+                        <li><a href="#" class="footer-link">Getting Started</a></li>
+                        <li><a href="#" class="footer-link">Tutorials</a></li>
+                        <li><a href="#" class="footer-link">Community</a></li>
+                        <li><a href="#" class="footer-link">Blog</a></li>
+                        <li><a href="#" class="footer-link">Changelog</a></li>
+                        <li><a href="#" class="footer-link">Support</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-section">
+                    <h3>Stay Updated</h3>
+                    <p>Subscribe to our newsletter for the latest updates and features.</p>
+                    <div class="newsletter-form">
+                        <input type="email" placeholder="Enter your email" class="newsletter-input">
+                        <button class="newsletter-btn">Subscribe</button>
+                    </div>
+                    <div class="social-links">
+                        <a href="#" class="social-link">📧</a>
+                        <a href="#" class="social-link">📱</a>
+                        <a href="#" class="social-link">🐙</a>
+                        <a href="#" class="social-link">💬</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <div class="footer-bottom-left">
+                    <a href="index.html" class="footer-logo">
+                        <div class="footer-logo-icon">NJS</div>
+                        <span>Noobly JS</span>
+                    </a>
+                    <span class="footer-copyright">© 2024 Noobly JS. All rights reserved.</span>
+                </div>
+                
+                <div class="footer-bottom-right">
+                    <a href="#" class="footer-bottom-link">Privacy Policy</a>
+                    <a href="#" class="footer-bottom-link">Terms of Service</a>
+                    <a href="#" class="footer-bottom-link">License</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Header scroll effect
+        window.addEventListener('scroll', () => {
+            const header = document.getElementById('header');
+            if (window.scrollY > 50) {
+                header.style.backgroundColor = 'hsl(var(--background) / 0.8)';
+                header.style.backdropFilter = 'blur(12px)';
+            } else {
+                header.style.backgroundColor = 'hsl(var(--background) / 0.95)';
+                header.style.backdropFilter = 'blur(8px)';
+            }
+        });
+
+        // Mobile menu toggle
+        const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+        const mobileMenu = document.getElementById('mobileMenu');
+
+        mobileMenuToggle.addEventListener('click', () => {
+            mobileMenu.classList.toggle('active');
+            mobileMenuToggle.textContent = mobileMenu.classList.contains('active') ? '✕' : '☰';
+        });
+
+        // Close mobile menu when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!mobileMenuToggle.contains(e.target) && !mobileMenu.contains(e.target)) {
+                mobileMenu.classList.remove('active');
+                mobileMenuToggle.textContent = '☰';
+            }
+        });
+
+        // Newsletter subscription
+        document.querySelector('.newsletter-btn').addEventListener('click', function(e) {
+            e.preventDefault();
+            const email = document.querySelector('.newsletter-input').value;
+            if (email) {
+                alert('Thank you for subscribing! (This is a demo)');
+                document.querySelector('.newsletter-input').value = '';
+            } else {
+                alert('Please enter a valid email address.');
+            }
+        });
+
+        // Enhanced hover effects for cards
+        document.querySelectorAll('.card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-4px)';
+                this.style.transition = 'all 0.3s ease';
+            });
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+            });
+        });
+
+        // Counter animation for stats
+        function animateCounters() {
+            const counters = document.querySelectorAll('.stat-number');
+            
+            counters.forEach(counter => {
+                const target = counter.textContent;
+                const numericValue = parseFloat(target.replace(/[^\d.]/g, ''));
+                const suffix = target.replace(/[\d.]/g, '');
+                let current = 0;
+                
+                const increment = numericValue / 50;
+                const timer = setInterval(() => {
+                    current += increment;
+                    if (current >= numericValue) {
+                        current = numericValue;
+                        clearInterval(timer);
+                    }
+                    
+                    if (suffix.includes('%')) {
+                        counter.textContent = current.toFixed(1) + '%';
+                    } else if (suffix.includes('x')) {
+                        counter.textContent = Math.floor(current) + 'x';
+                    } else if (suffix.includes('/')) {
+                        counter.textContent = current.toFixed(0) + '/7';
+                    } else {
+                        counter.textContent = Math.floor(current) + '+';
+                    }
+                }, 30);
+            });
+        }
+
+        // Trigger counter animation when stats section comes into view
+        const statsSection = document.querySelector('.stats-section');
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    animateCounters();
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.5 });
+
+        observer.observe(statsSection);
+
+        // Add entrance animations
+        const animateOnScroll = () => {
+            const elements = document.querySelectorAll('.feature, .stat-card, .service-card, .testimonial-card');
+            elements.forEach(element => {
+                const elementTop = element.getBoundingClientRect().top;
+                const elementVisible = 150;
+                
+                if (elementTop < window.innerHeight - elementVisible) {
+                    element.classList.add('animate-slide-up');
+                }
+            });
+        };
+
+        window.addEventListener('scroll', animateOnScroll);
+        animateOnScroll(); // Run on page load
+
+        // Theme toggle functionality (optional)
+        function toggleTheme() {
+            document.body.classList.toggle('dark');
+            localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
+        }
+
+        // Load saved theme
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark') {
+            document.body.classList.add('dark');
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documentation - Noobly JS</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header" id="header">
+        <div class="header-container">
+            <a href="index.html" class="logo">
+                <div class="logo-icon">NJS</div>
+                <span>Noobly JS</span>
+            </a>
+            
+            <nav class="nav-menu">
+                <a href="index.html" class="nav-link">Home</a>
+                <a href="documentation.html" class="nav-link active">Documentation</a>
+                <a href="contact.html" class="nav-link">Contact</a>
+                <a href="cache.html" class="btn btn-primary btn-ghost">Get Started</a>
+            </nav>
+            
+            <button class="mobile-menu-toggle" id="mobileMenuToggle">☰</button>
+        </div>
+        
+        <div class="mobile-menu" id="mobileMenu">
+            <nav class="mobile-nav-menu">
+                <a href="index.html" class="mobile-nav-link">Home</a>
+                <a href="documentation.html" class="mobile-nav-link">Documentation</a>
+                <a href="contact.html" class="mobile-nav-link">Contact</a>
+                <a href="cache.html" class="btn btn-primary">Get Started</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Documentation Hero Section -->
+    <section class="service-hero">
+        <div class="service-content">
+            <div class="badge badge-default" style="margin-bottom: 1rem;">📚 Documentation</div>
+            <h1 class="service-title">Documentation</h1>
+            <p class="service-description">Comprehensive documentation and guides for getting started with Noobly JS framework and all its services.</p>
+            
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 2rem;">
+                <a href="#quick-start" class="btn btn-primary">Quick Start</a>
+                <a href="#api-reference" class="btn btn-outline">API Reference</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Quick Start Section -->
+    <section id="quick-start" style="padding: 2rem 0;">
+        <div class="container">
+            <div style="text-align: center; margin-bottom: 3rem;">
+                <h2 style="font-size: 2.5rem; font-weight: 700; margin-bottom: 1rem;">Quick Start Guide</h2>
+                <p style="font-size: 1.25rem; color: hsl(var(--muted-foreground));">Get up and running with Noobly JS in minutes</p>
+            </div>
+
+            <div class="service-grid">
+                <div class="service-card card">
+                    <div class="card-content">
+                        <h3>1. Installation</h3>
+                        <p style="margin-bottom: 1rem;">Install Noobly JS using npm:</p>
+                        <div class="code-block">npm install noobly-core</div>
+                    </div>
+                </div>
+
+                <div class="service-card card">
+                    <div class="card-content">
+                        <h3>2. Basic Setup</h3>
+                        <p style="margin-bottom: 1rem;">Create your main application file:</p>
+                        <div class="code-block">const noobly = require('noobly-core');
+const app = noobly.create();</div>
+                    </div>
+                </div>
+
+                <div class="service-card card">
+                    <div class="card-content">
+                        <h3>3. Start Building</h3>
+                        <p style="margin-bottom: 1rem;">Add services and start your server:</p>
+                        <div class="code-block">app.addService('cache');
+app.listen(3000);</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services Documentation -->
+    <section style="padding: 2rem 0; background-color: hsl(var(--muted) / 0.3);">
+        <div class="container">
+            <div style="text-align: center; margin-bottom: 3rem;">
+                <h2 style="font-size: 2.5rem; font-weight: 700; margin-bottom: 1rem;">Available Services</h2>
+                <p style="font-size: 1.25rem; color: hsl(var(--muted-foreground));">Explore our comprehensive service ecosystem</p>
+            </div>
+
+            <div class="service-grid">
+                <div class="service-card card">
+                    <div class="card-content">
+                        <div class="badge badge-default" style="margin-bottom: 1rem;">⚡ Performance</div>
+                        <h3><a href="cache.html" style="text-decoration: none; color: hsl(var(--foreground));">Caching Service</a></h3>
+                        <p>High-performance caching with Redis, Memcached, and in-memory providers.</p>
+                        <div class="code-block" style="margin-top: 1rem; font-size: 0.75rem;">
+const cache = app.service('cache');
+await cache.set('key', 'value');
+                        </div>
+                    </div>
+                </div>
+
+                <div class="service-card card">
+                    <div class="card-content">
+                        <div class="badge badge-secondary" style="margin-bottom: 1rem;">🗄️ Storage</div>
+                        <h3><a href="data.html" style="text-decoration: none; color: hsl(var(--foreground));">Data Service</a></h3>
+                        <p>Flexible data storage with SimpleDB and file-based providers.</p>
+                        <div class="code-block" style="margin-top: 1rem; font-size: 0.75rem;">
+const data = app.service('data');
+await data.store('user:1', userData);
+                        </div>
+                    </div>
+                </div>
+
+                <div class="service-card card">
+                    <div class="card-content">
+                        <div class="badge badge-outline" style="margin-bottom: 1rem;">📝 Monitoring</div>
+                        <h3><a href="logging.html" style="text-decoration: none; color: hsl(var(--foreground));">Logging Service</a></h3>
+                        <p>Advanced logging with console and file outputs.</p>
+                        <div class="code-block" style="margin-top: 1rem; font-size: 0.75rem;">
+const logger = app.service('logging');
+logger.info('Application started');
+                        </div>
+                    </div>
+                </div>
+
+                <div class="service-card card">
+                    <div class="card-content">
+                        <div class="badge badge-default" style="margin-bottom: 1rem;">📊 Analytics</div>
+                        <h3><a href="measuring.html" style="text-decoration: none; color: hsl(var(--foreground));">Measuring Service</a></h3>
+                        <p>Real-time metrics collection and analysis.</p>
+                        <div class="code-block" style="margin-top: 1rem; font-size: 0.75rem;">
+const metrics = app.service('measuring');
+metrics.increment('api_calls');
+                        </div>
+                    </div>
+                </div>
+
+                <div class="service-card card">
+                    <div class="card-content">
+                        <div class="badge badge-secondary" style="margin-bottom: 1rem;">🔔 Communication</div>
+                        <h3><a href="notifying.html" style="text-decoration: none; color: hsl(var(--foreground));">Notifying Service</a></h3>
+                        <p>Pub/sub messaging for real-time communication.</p>
+                        <div class="code-block" style="margin-top: 1rem; font-size: 0.75rem;">
+const notify = app.service('notifying');
+notify.publish('channel', message);
+                        </div>
+                    </div>
+                </div>
+
+                <div class="service-card card">
+                    <div class="card-content">
+                        <div class="badge badge-outline" style="margin-bottom: 1rem;">⏳ Processing</div>
+                        <h3><a href="queueing.html" style="text-decoration: none; color: hsl(var(--foreground));">Queueing Service</a></h3>
+                        <p>Efficient task queueing for background operations.</p>
+                        <div class="code-block" style="margin-top: 1rem; font-size: 0.75rem;">
+const queue = app.service('queueing');
+queue.add('task', taskData);
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="text-align: center; margin-top: 2rem;">
+                <a href="cache.html" class="btn btn-primary">Explore All Services</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- API Reference Section -->
+    <section id="api-reference" style="padding: 2rem 0;">
+        <div class="container">
+            <div style="text-align: center; margin-bottom: 3rem;">
+                <h2 style="font-size: 2.5rem; font-weight: 700; margin-bottom: 1rem;">API Reference</h2>
+                <p style="font-size: 1.25rem; color: hsl(var(--muted-foreground));">Complete API documentation for all services</p>
+            </div>
+
+            <div class="card">
+                <div class="card-content">
+                    <h3>Core Framework Methods</h3>
+                    <div class="code-block">
+// Initialize Noobly JS application
+const app = noobly.create(options);
+
+// Add a service
+app.addService(serviceName, provider, options);
+
+// Get a service instance
+const service = app.service(serviceName);
+
+// Start the server
+app.listen(port, callback);
+
+// Graceful shutdown
+app.shutdown();
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top: 2rem;">
+                <div class="service-grid">
+                    <div class="card">
+                        <div class="card-content">
+                            <h4>Configuration</h4>
+                            <p style="color: hsl(var(--muted-foreground)); margin-bottom: 1rem;">Service configuration options and examples.</p>
+                            <a href="#" class="btn btn-outline btn-sm">View Config Docs</a>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-content">
+                            <h4>Examples</h4>
+                            <p style="color: hsl(var(--muted-foreground)); margin-bottom: 1rem;">Real-world usage examples and tutorials.</p>
+                            <a href="#" class="btn btn-outline btn-sm">View Examples</a>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-content">
+                            <h4>Best Practices</h4>
+                            <p style="color: hsl(var(--muted-foreground)); margin-bottom: 1rem;">Recommended patterns and best practices.</p>
+                            <a href="#" class="btn btn-outline btn-sm">View Guide</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Documentation</h3>
+                    <p>Comprehensive guides and API reference for building applications with Noobly JS framework.</p>
+                </div>
+                
+                <div class="footer-section">
+                    <h3>Quick Links</h3>
+                    <ul class="footer-links">
+                        <li><a href="index.html" class="footer-link">Home</a></li>
+                        <li><a href="documentation.html" class="footer-link">Documentation</a></li>
+                        <li><a href="contact.html" class="footer-link">Contact</a></li>
+                        <li><a href="cache.html" class="footer-link">Services</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-section">
+                    <h3>Resources</h3>
+                    <ul class="footer-links">
+                        <li><a href="#quick-start" class="footer-link">Quick Start</a></li>
+                        <li><a href="#api-reference" class="footer-link">API Reference</a></li>
+                        <li><a href="#" class="footer-link">Examples</a></li>
+                        <li><a href="#" class="footer-link">Best Practices</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <div class="footer-bottom-left">
+                    <a href="index.html" class="footer-logo">
+                        <div class="footer-logo-icon">NJS</div>
+                        <span>Noobly JS</span>
+                    </a>
+                    <span class="footer-copyright">© 2024 Noobly JS. All rights reserved.</span>
+                </div>
+                
+                <div class="footer-bottom-right">
+                    <a href="#" class="footer-bottom-link">Privacy Policy</a>
+                    <a href="#" class="footer-bottom-link">Terms of Service</a>
+                    <a href="#" class="footer-bottom-link">License</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Mobile menu toggle
+        const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+        const mobileMenu = document.getElementById('mobileMenu');
+
+        mobileMenuToggle.addEventListener('click', () => {
+            mobileMenu.classList.toggle('active');
+            mobileMenuToggle.textContent = mobileMenu.classList.contains('active') ? '✕' : '☰';
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!mobileMenuToggle.contains(e.target) && !mobileMenu.contains(e.target)) {
+                mobileMenu.classList.remove('active');
+                mobileMenuToggle.textContent = '☰';
+            }
+        });
+
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Card hover effects
+        document.querySelectorAll('.card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-2px)';
+                this.style.transition = 'all 0.3s ease';
+            });
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+            });
+        });
+    </script>
+</body>
+</html>

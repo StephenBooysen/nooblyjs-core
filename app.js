@@ -103,12 +103,22 @@ workflow.runWorkflow('example-workflow', {}, () => {
   console.log('Workdflow ended');
 });
 
-app.use('/', express.static(__dirname + '/ui-design/home-glass'));
-app.use('/flat', express.static(__dirname + '/ui-design/home-flat'));
-app.use('/material', express.static(__dirname + '/ui-design/home-material'));
+app.use(
+  '/',
+  express.static(__dirname + '/ui-design/home-glass'));
+app.use(
+  '/flat',
+  express.static(__dirname + '/ui-design/home-flat'));
+app.use(
+  '/material',
+  express.static(__dirname + '/ui-design/home-material'));
 app.use(
   '/minimalist',
   express.static(__dirname + '/ui-design/home-minimalist'),
+);
+app.use(
+  '/shadcn',
+  express.static(__dirname + '/ui-design/home-shadcn'),
 );
 
 const PORT = process.env.PORT || 3000;

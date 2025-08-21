@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact - Noobly JS</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header" id="header">
+        <div class="header-container">
+            <a href="index.html" class="logo">
+                <div class="logo-icon">NJS</div>
+                <span>Noobly JS</span>
+            </a>
+            
+            <nav class="nav-menu">
+                <a href="index.html" class="nav-link">Home</a>
+                <a href="documentation.html" class="nav-link">Documentation</a>
+                <a href="contact.html" class="nav-link active">Contact</a>
+                <a href="cache.html" class="btn btn-primary btn-ghost">Get Started</a>
+            </nav>
+            
+            <button class="mobile-menu-toggle" id="mobileMenuToggle">☰</button>
+        </div>
+        
+        <div class="mobile-menu" id="mobileMenu">
+            <nav class="mobile-nav-menu">
+                <a href="index.html" class="mobile-nav-link">Home</a>
+                <a href="documentation.html" class="mobile-nav-link">Documentation</a>
+                <a href="contact.html" class="mobile-nav-link">Contact</a>
+                <a href="cache.html" class="btn btn-primary">Get Started</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Contact Hero Section -->
+    <section class="service-hero">
+        <div class="service-content">
+            <div class="badge badge-default" style="margin-bottom: 1rem;">💬 Contact</div>
+            <h1 class="service-title">Get in Touch</h1>
+            <p class="service-description">Have questions about Noobly JS? Need support or want to contribute? We'd love to hear from you.</p>
+        </div>
+    </section>
+
+    <!-- Contact Methods Section -->
+    <section style="padding: 2rem 0;">
+        <div class="container">
+            <div class="service-grid">
+                <div class="service-card card">
+                    <div class="card-content" style="text-align: center;">
+                        <div style="font-size: 3rem; margin-bottom: 1rem;">📧</div>
+                        <h3>Email Support</h3>
+                        <p style="color: hsl(var(--muted-foreground)); margin-bottom: 1rem;">Get help with technical questions and support issues</p>
+                        <a href="mailto:support@nooblyjs.com" class="btn btn-outline">support@nooblyjs.com</a>
+                    </div>
+                </div>
+
+                <div class="service-card card">
+                    <div class="card-content" style="text-align: center;">
+                        <div style="font-size: 3rem; margin-bottom: 1rem;">🐙</div>
+                        <h3>GitHub</h3>
+                        <p style="color: hsl(var(--muted-foreground)); margin-bottom: 1rem;">Report bugs, request features, or contribute to the project</p>
+                        <a href="#" class="btn btn-outline">View Repository</a>
+                    </div>
+                </div>
+
+                <div class="service-card card">
+                    <div class="card-content" style="text-align: center;">
+                        <div style="font-size: 3rem; margin-bottom: 1rem;">💬</div>
+                        <h3>Community</h3>
+                        <p style="color: hsl(var(--muted-foreground)); margin-bottom: 1rem;">Join our Discord server for real-time discussions</p>
+                        <a href="#" class="btn btn-outline">Join Discord</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Form Section -->
+    <section style="padding: 2rem 0; background-color: hsl(var(--muted) / 0.3);">
+        <div class="container">
+            <div style="max-width: 600px; margin: 0 auto;">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 style="text-align: center; margin-bottom: 0.5rem;">Send us a Message</h2>
+                        <p style="text-align: center; color: hsl(var(--muted-foreground)); margin: 0;">We'll get back to you as soon as possible</p>
+                    </div>
+                    <div class="card-content">
+                        <form id="contactForm">
+                            <div style="margin-bottom: 1rem;">
+                                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Name</label>
+                                <input type="text" id="contactName" placeholder="Your full name" required 
+                                       style="width: 100%; padding: 0.75rem; border: 1px solid hsl(var(--border)); border-radius: calc(var(--radius)); background: hsl(var(--background)); color: hsl(var(--foreground));">
+                            </div>
+
+                            <div style="margin-bottom: 1rem;">
+                                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Email</label>
+                                <input type="email" id="contactEmail" placeholder="your.email@example.com" required 
+                                       style="width: 100%; padding: 0.75rem; border: 1px solid hsl(var(--border)); border-radius: calc(var(--radius)); background: hsl(var(--background)); color: hsl(var(--foreground));">
+                            </div>
+
+                            <div style="margin-bottom: 1rem;">
+                                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Subject</label>
+                                <select id="contactSubject" required 
+                                        style="width: 100%; padding: 0.75rem; border: 1px solid hsl(var(--border)); border-radius: calc(var(--radius)); background: hsl(var(--background)); color: hsl(var(--foreground));">
+                                    <option value="">Select a topic</option>
+                                    <option value="general">General Question</option>
+                                    <option value="technical">Technical Support</option>
+                                    <option value="feature">Feature Request</option>
+                                    <option value="bug">Bug Report</option>
+                                    <option value="business">Business Inquiry</option>
+                                </select>
+                            </div>
+
+                            <div style="margin-bottom: 1rem;">
+                                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Message</label>
+                                <textarea id="contactMessage" placeholder="Tell us how we can help you..." required rows="6"
+                                          style="width: 100%; padding: 0.75rem; border: 1px solid hsl(var(--border)); border-radius: calc(var(--radius)); background: hsl(var(--background)); color: hsl(var(--foreground)); resize: vertical;"></textarea>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary" style="width: 100%;">Send Message</button>
+                        </form>
+                        
+                        <div id="contactResult" style="margin-top: 1rem; padding: 0.75rem; border-radius: calc(var(--radius)); display: none;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section style="padding: 2rem 0;">
+        <div class="container">
+            <div style="text-align: center; margin-bottom: 3rem;">
+                <h2 style="font-size: 2.5rem; font-weight: 700; margin-bottom: 1rem;">Frequently Asked Questions</h2>
+                <p style="font-size: 1.25rem; color: hsl(var(--muted-foreground));">Common questions about Noobly JS</p>
+            </div>
+
+            <div style="max-width: 800px; margin: 0 auto;">
+                <div class="card" style="margin-bottom: 1rem;">
+                    <div class="card-content">
+                        <h4 style="margin-bottom: 0.5rem;">What is Noobly JS?</h4>
+                        <p style="color: hsl(var(--muted-foreground)); margin: 0;">Noobly JS is a modular Node.js backend framework that provides pluggable core services for building scalable web applications quickly and efficiently.</p>
+                    </div>
+                </div>
+
+                <div class="card" style="margin-bottom: 1rem;">
+                    <div class="card-content">
+                        <h4 style="margin-bottom: 0.5rem;">Is Noobly JS free to use?</h4>
+                        <p style="color: hsl(var(--muted-foreground)); margin: 0;">Yes, Noobly JS is open-source and free to use for both personal and commercial projects. Check our license for more details.</p>
+                    </div>
+                </div>
+
+                <div class="card" style="margin-bottom: 1rem;">
+                    <div class="card-content">
+                        <h4 style="margin-bottom: 0.5rem;">How do I get started?</h4>
+                        <p style="color: hsl(var(--muted-foreground)); margin: 0;">Check out our <a href="documentation.html" style="color: hsl(var(--primary)); text-decoration: none;">documentation</a> for a comprehensive quick start guide and examples.</p>
+                    </div>
+                </div>
+
+                <div class="card" style="margin-bottom: 1rem;">
+                    <div class="card-content">
+                        <h4 style="margin-bottom: 0.5rem;">Can I contribute to the project?</h4>
+                        <p style="color: hsl(var(--muted-foreground)); margin: 0;">Absolutely! We welcome contributions. Visit our GitHub repository to see how you can help improve Noobly JS.</p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-content">
+                        <h4 style="margin-bottom: 0.5rem;">Do you offer commercial support?</h4>
+                        <p style="color: hsl(var(--muted-foreground)); margin: 0;">Yes, we offer commercial support and consulting services. Contact us at <a href="mailto:business@nooblyjs.com" style="color: hsl(var(--primary)); text-decoration: none;">business@nooblyjs.com</a> for more information.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Contact Information</h3>
+                    <p>Get in touch with our team for support, questions, or business inquiries.</p>
+                    <div style="margin-top: 1rem;">
+                        <p style="margin-bottom: 0.5rem;"><strong>Email:</strong> support@nooblyjs.com</p>
+                        <p style="margin-bottom: 0.5rem;"><strong>Business:</strong> business@nooblyjs.com</p>
+                        <p style="margin: 0;"><strong>Response Time:</strong> Within 24 hours</p>
+                    </div>
+                </div>
+                
+                <div class="footer-section">
+                    <h3>Quick Links</h3>
+                    <ul class="footer-links">
+                        <li><a href="index.html" class="footer-link">Home</a></li>
+                        <li><a href="documentation.html" class="footer-link">Documentation</a></li>
+                        <li><a href="contact.html" class="footer-link">Contact</a></li>
+                        <li><a href="cache.html" class="footer-link">Services</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-section">
+                    <h3>Community</h3>
+                    <ul class="footer-links">
+                        <li><a href="#" class="footer-link">GitHub</a></li>
+                        <li><a href="#" class="footer-link">Discord</a></li>
+                        <li><a href="#" class="footer-link">Twitter</a></li>
+                        <li><a href="#" class="footer-link">Blog</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <div class="footer-bottom-left">
+                    <a href="index.html" class="footer-logo">
+                        <div class="footer-logo-icon">NJS</div>
+                        <span>Noobly JS</span>
+                    </a>
+                    <span class="footer-copyright">© 2024 Noobly JS. All rights reserved.</span>
+                </div>
+                
+                <div class="footer-bottom-right">
+                    <a href="#" class="footer-bottom-link">Privacy Policy</a>
+                    <a href="#" class="footer-bottom-link">Terms of Service</a>
+                    <a href="#" class="footer-bottom-link">License</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Mobile menu toggle
+        const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+        const mobileMenu = document.getElementById('mobileMenu');
+
+        mobileMenuToggle.addEventListener('click', () => {
+            mobileMenu.classList.toggle('active');
+            mobileMenuToggle.textContent = mobileMenu.classList.contains('active') ? '✕' : '☰';
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!mobileMenuToggle.contains(e.target) && !mobileMenu.contains(e.target)) {
+                mobileMenu.classList.remove('active');
+                mobileMenuToggle.textContent = '☰';
+            }
+        });
+
+        // Contact form handling
+        function showResult(message, isSuccess = true) {
+            const resultDiv = document.getElementById('contactResult');
+            resultDiv.textContent = message;
+            resultDiv.style.display = 'block';
+            resultDiv.style.backgroundColor = isSuccess ? 'hsl(var(--primary) / 0.1)' : 'hsl(var(--destructive) / 0.1)';
+            resultDiv.style.color = isSuccess ? 'hsl(var(--primary))' : 'hsl(var(--destructive))';
+            resultDiv.style.border = `1px solid ${isSuccess ? 'hsl(var(--primary) / 0.3)' : 'hsl(var(--destructive) / 0.3)'}`;
+            
+            setTimeout(() => {
+                resultDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        document.getElementById('contactForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('contactName').value.trim();
+            const email = document.getElementById('contactEmail').value.trim();
+            const subject = document.getElementById('contactSubject').value;
+            const message = document.getElementById('contactMessage').value.trim();
+            
+            if (!name || !email || !subject || !message) {
+                showResult('Please fill in all required fields.', false);
+                return;
+            }
+            
+            // Email validation
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                showResult('Please enter a valid email address.', false);
+                return;
+            }
+            
+            // Simulate form submission
+            showResult('✅ Thank you! Your message has been sent successfully. We\'ll get back to you within 24 hours.');
+            
+            // Clear form
+            document.getElementById('contactForm').reset();
+        });
+
+        // Card hover effects
+        document.querySelectorAll('.card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-2px)';
+                this.style.transition = 'all 0.3s ease';
+            });
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+            });
+        });
+    </script>
+</body>
+</html>
