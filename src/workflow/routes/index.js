@@ -9,7 +9,7 @@ module.exports = (options, eventEmitter, workflow) => {
   if (options['express-app'] && workflow) {
     const app = options['express-app'];
 
-    app.post('/api/workflow/defineworkflow', (req, res) => {
+    app.post('/services/workflow/api/defineworkflow', (req, res) => {
       const { name, steps } = req.body;
       if (name) {
         workflow
@@ -21,7 +21,7 @@ module.exports = (options, eventEmitter, workflow) => {
       }
     });
 
-    app.post('/api/workflow/start', (req, res) => {
+    app.post('/services/workflow/api/start', (req, res) => {
       const { name, data } = req.body;
       if (name) {
         workflow
@@ -35,7 +35,7 @@ module.exports = (options, eventEmitter, workflow) => {
       }
     });
 
-    app.get('/api/workflow/status', (req, res) => {
+    app.get('/services/workflow/api/status', (req, res) => {
       eventEmitter.emit('api-working-status', 'workflow api running');
       res.status(200).json('workflow api running');
     });

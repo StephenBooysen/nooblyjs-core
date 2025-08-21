@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cache Management - Noobly JS Admin</title>
+    <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@4.15.5/swagger-ui.css">
+    <style>
+        /* Material Design Theme Variables */
+        :root {
+            --primary-color: #1976d2;
+            --primary-light: #42a5f5;
+            --primary-dark: #1565c0;
+            --secondary-color: #dc004e;
+            --surface-color: #ffffff;
+            --surface-variant: #f5f5f5;
+            --background-color: #fafafa;
+            --error-color: #d32f2f;
+            --success-color: #388e3c;
+            --text-primary: #212121;
+            --text-secondary: #757575;
+            --border-color: #e0e0e0;
+            --shadow-1: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+            --shadow-2: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
+            --shadow-3: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 280px;
+            background: var(--surface-color);
+            box-shadow: var(--shadow-2);
+            padding: 24px 0;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .logo {
+            padding: 0 24px 32px;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 24px;
+        }
+
+        .logo h1 {
+            font-size: 24px;
+            font-weight: 500;
+            color: var(--primary-color);
+        }
+
+        .logo .subtitle {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        .nav-item {
+            display: block;
+            padding: 16px 24px;
+            color: var(--text-primary);
+            text-decoration: none;
+            transition: all 0.2s ease;
+            border-left: 4px solid transparent;
+        }
+
+        .nav-item:hover {
+            background-color: var(--surface-variant);
+            color: var(--primary-color);
+        }
+
+        .nav-item.active {
+            background-color: var(--primary-light);
+            color: white;
+            border-left-color: var(--primary-dark);
+        }
+
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 32px;
+        }
+
+        .page-header {
+            margin-bottom: 32px;
+        }
+
+        .page-title {
+            font-size: 32px;
+            font-weight: 400;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .page-subtitle {
+            font-size: 16px;
+            color: var(--text-secondary);
+        }
+
+        .card {
+            background: var(--surface-color);
+            border-radius: 8px;
+            box-shadow: var(--shadow-1);
+            margin-bottom: 24px;
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 24px;
+            border-bottom: 1px solid var(--border-color);
+            background: var(--surface-variant);
+        }
+
+        .card-title {
+            font-size: 20px;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .card-subtitle {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .card-content {
+            padding: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 16px;
+            transition: all 0.2s ease;
+            background: var(--surface-color);
+            color: var(--text-primary);
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.2);
+        }
+
+        .form-textarea {
+            min-height: 120px;
+            resize: vertical;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            min-width: 64px;
+            justify-content: center;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+            box-shadow: var(--shadow-1);
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            box-shadow: var(--shadow-2);
+        }
+
+        .btn-secondary {
+            background: var(--surface-variant);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border-color);
+        }
+
+        .btn-success {
+            background: var(--success-color);
+            color: white;
+        }
+
+        .btn-error {
+            background: var(--error-color);
+            color: white;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .alert {
+            padding: 16px;
+            border-radius: 4px;
+            margin-bottom: 24px;
+            display: none;
+        }
+
+        .alert.show {
+            display: block;
+        }
+
+        .alert-success {
+            background: rgba(56, 142, 60, 0.1);
+            border: 1px solid var(--success-color);
+            color: var(--success-color);
+        }
+
+        .alert-error {
+            background: rgba(211, 47, 47, 0.1);
+            border: 1px solid var(--error-color);
+            color: var(--error-color);
+        }
+
+        .helper-text {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        .json-valid {
+            border-color: var(--success-color) !important;
+        }
+
+        .json-invalid {
+            border-color: var(--error-color) !important;
+        }
+
+        .validation-message {
+            font-size: 12px;
+            margin-top: 4px;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        .validation-success {
+            background: rgba(56, 142, 60, 0.1);
+            color: var(--success-color);
+        }
+
+        .validation-error {
+            background: rgba(211, 47, 47, 0.1);
+            color: var(--error-color);
+        }
+
+        .response-container {
+            margin-top: 24px;
+            padding: 16px;
+            background: var(--surface-variant);
+            border-radius: 4px;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .response-title {
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
+        .response-content {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 14px;
+            color: var(--text-secondary);
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        /* Analytics Table Styles */
+        .analytics-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 16px;
+            font-size: 14px;
+        }
+
+        .analytics-table th,
+        .analytics-table td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .analytics-table th {
+            background: var(--surface-variant);
+            font-weight: 500;
+            color: var(--text-primary);
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+            transition: background-color 0.2s;
+        }
+
+        .analytics-table th:hover {
+            background: rgba(25, 118, 210, 0.08);
+        }
+
+        .analytics-table th.sortable::after {
+            content: '↕';
+            position: absolute;
+            right: 8px;
+            color: var(--text-secondary);
+            font-size: 12px;
+        }
+
+        .analytics-table th.sort-asc::after {
+            content: '↑';
+            color: var(--primary-color);
+        }
+
+        .analytics-table th.sort-desc::after {
+            content: '↓';
+            color: var(--primary-color);
+        }
+
+        .analytics-table tbody tr:hover {
+            background: var(--surface-variant);
+        }
+
+        .analytics-table td {
+            color: var(--text-primary);
+        }
+
+        .analytics-table .key-cell {
+            font-family: monospace;
+            font-weight: 500;
+        }
+
+        .analytics-table .hits-cell {
+            text-align: center;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .analytics-table .date-cell {
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+
+        .analytics-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .analytics-refresh {
+            padding: 8px 16px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+            box-shadow: var(--shadow-1);
+        }
+
+        .analytics-refresh:hover {
+            box-shadow: var(--shadow-2);
+        }
+
+        .analytics-info {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .no-data {
+            text-align: center;
+            color: var(--text-secondary);
+            font-style: italic;
+            padding: 32px;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 16px;
+            }
+
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+
+            .btn-group {
+                flex-direction: column;
+            }
+        }
+
+        .swagger-ui {
+            font-family: inherit;
+        }
+
+        .swagger-ui .topbar {
+            display: none;
+        }
+
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <nav class="sidebar">
+            <div class="logo">
+                <h1>Noobly JS</h1>
+                <div class="subtitle">Cache Management</div>
+            </div>
+            <a href="/services/caching/" class="nav-item active">Cache Management</a>
+            <a href="/services/dataserve/" class="nav-item">Data Serve</a>
+            <a href="/services/filing/" class="nav-item">File Management</a>
+            <a href="/services/logging/" class="nav-item">Logging</a>
+            <a href="/services/measuring/" class="nav-item">Measuring</a>
+            <a href="/services/notifying/" class="nav-item">Notifications</a>
+            <a href="/services/queueing/" class="nav-item">Queue Management</a>
+            <a href="/services/scheduling/" class="nav-item">Scheduling</a>
+            <a href="/services/searching/" class="nav-item">Search</a>
+            <a href="/services/working/" class="nav-item">Background Tasks</a>
+            <a href="/services/workflow/" class="nav-item">Workflows</a>
+        </nav>
+
+        <main class="main-content">
+            <div class="page-header">
+                <h1 class="page-title">Cache Management</h1>
+                <p class="page-subtitle">Manage cache keys and values with fast retrieval operations</p>
+            </div>
+
+            <div class="alert alert-success" id="successAlert">
+                <strong>Success!</strong> <span id="successMessage"></span>
+            </div>
+
+            <div class="alert alert-error" id="errorAlert">
+                <strong>Error!</strong> <span id="errorMessage"></span>
+            </div>
+
+            <!-- Store Cache Form -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Store Cache</h2>
+                    <p class="card-subtitle">Save a value to cache with the specified key</p>
+                </div>
+                <div class="card-content">
+                    <form id="putForm">
+                        <div class="form-group">
+                            <label class="form-label" for="putKey">Key</label>
+                            <input type="text" id="putKey" class="form-input" placeholder="Enter cache key" required>
+                            <div class="helper-text">Unique identifier for the cached data</div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="putValue">Value (JSON)</label>
+                            <textarea id="putValue" class="form-input form-textarea" placeholder='{"name": "John Doe", "email": "john@example.com"}' required></textarea>
+                            <div id="putValidation" class="validation-message" style="display: none;"></div>
+                            <div class="helper-text">Enter valid JSON data</div>
+                        </div>
+                        <div class="btn-group">
+                            <button type="submit" class="btn btn-primary">Store Cache</button>
+                            <button type="button" class="btn btn-secondary" onclick="formatJSON('putValue')">Format JSON</button>
+                            <button type="button" class="btn btn-secondary" onclick="loadExample('putValue')">Load Example</button>
+                        </div>
+                    </form>
+                    <div id="putResponse" class="response-container" style="display: none;">
+                        <div class="response-title">Response:</div>
+                        <div id="putResponseContent" class="response-content"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Retrieve Cache Form -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Retrieve Cache</h2>
+                    <p class="card-subtitle">Get cached data by key</p>
+                </div>
+                <div class="card-content">
+                    <form id="getForm">
+                        <div class="form-group">
+                            <label class="form-label" for="getKey">Key</label>
+                            <input type="text" id="getKey" class="form-input" placeholder="Enter cache key to retrieve" required>
+                            <div class="helper-text">Key of the cached data to retrieve</div>
+                        </div>
+                        <div class="btn-group">
+                            <button type="submit" class="btn btn-primary">Retrieve Cache</button>
+                        </div>
+                    </form>
+                    <div id="getResponse" class="response-container" style="display: none;">
+                        <div class="response-title">Retrieved Data:</div>
+                        <div id="getResponseContent" class="response-content"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Delete Cache Form -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Delete Cache</h2>
+                    <p class="card-subtitle">Remove cached data by key</p>
+                </div>
+                <div class="card-content">
+                    <form id="deleteForm">
+                        <div class="form-group">
+                            <label class="form-label" for="deleteKey">Key</label>
+                            <input type="text" id="deleteKey" class="form-input" placeholder="Enter cache key to delete" required>
+                            <div class="helper-text">Key of the cached data to remove</div>
+                        </div>
+                        <div class="btn-group">
+                            <button type="submit" class="btn btn-error">Delete Cache</button>
+                        </div>
+                    </form>
+                    <div id="deleteResponse" class="response-container" style="display: none;">
+                        <div class="response-title">Response:</div>
+                        <div id="deleteResponseContent" class="response-content"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Service Status -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Service Status</h2>
+                    <p class="card-subtitle">Check cache service status</p>
+                </div>
+                <div class="card-content">
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-secondary" onclick="checkStatus()">Check Status</button>
+                    </div>
+                    <div id="statusResponse" class="response-container" style="display: none;">
+                        <div class="response-title">Service Status:</div>
+                        <div id="statusResponseContent" class="response-content"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cache Analytics -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Cache Analytics</h2>
+                    <p class="card-subtitle">View cache usage statistics and most accessed keys</p>
+                </div>
+                <div class="card-content">
+                    <div class="analytics-controls">
+                        <div class="analytics-info">
+                            <span id="analyticsCount">Loading...</span> entries tracked
+                        </div>
+                        <button class="analytics-refresh" onclick="loadAnalytics()">
+                            Refresh Data
+                        </button>
+                    </div>
+                    <table class="analytics-table">
+                        <thead>
+                            <tr>
+                                <th class="sortable" data-column="key" onclick="sortTable('key')">
+                                    Cache Key
+                                </th>
+                                <th class="sortable" data-column="hits" onclick="sortTable('hits')">
+                                    Hits
+                                </th>
+                                <th class="sortable" data-column="lastHit" onclick="sortTable('lastHit')">
+                                    Last Hit
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody id="analyticsTableBody">
+                            <tr>
+                                <td colspan="3" class="no-data">Loading analytics data...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- API Documentation -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">API Documentation</h2>
+                    <p class="card-subtitle">Interactive API documentation for Cache service</p>
+                </div>
+                <div class="card-content">
+                    <div id="swagger-ui"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://unpkg.com/swagger-ui-dist@4.15.5/swagger-ui-bundle.js"></script>
+    <script>
+        // JSON validation
+        function validateJSON(elementId) {
+            const element = document.getElementById(elementId);
+            const validation = document.getElementById(elementId.replace('Value', 'Validation'));
+            const value = element.value.trim();
+            
+            if (!value) {
+                element.classList.remove('json-valid', 'json-invalid');
+                validation.style.display = 'none';
+                return true;
+            }
+            
+            try {
+                JSON.parse(value);
+                element.classList.remove('json-invalid');
+                element.classList.add('json-valid');
+                validation.textContent = '✓ Valid JSON';
+                validation.className = 'validation-message validation-success';
+                validation.style.display = 'block';
+                return true;
+            } catch (e) {
+                element.classList.remove('json-valid');
+                element.classList.add('json-invalid');
+                validation.textContent = '✗ Invalid JSON: ' + e.message;
+                validation.className = 'validation-message validation-error';
+                validation.style.display = 'block';
+                return false;
+            }
+        }
+
+        // Real-time validation
+        document.getElementById('putValue').addEventListener('input', () => validateJSON('putValue'));
+
+        // Format JSON
+        function formatJSON(elementId) {
+            const element = document.getElementById(elementId);
+            try {
+                const parsed = JSON.parse(element.value);
+                element.value = JSON.stringify(parsed, null, 2);
+                validateJSON(elementId);
+            } catch (e) {
+                showAlert('Invalid JSON cannot be formatted', 'error');
+            }
+        }
+
+        // Load example
+        function loadExample(elementId) {
+            const examples = {
+                putValue: {
+                    "name": "John Doe",
+                    "email": "john@example.com",
+                    "preferences": {
+                        "theme": "dark",
+                        "notifications": true
+                    },
+                    "lastLogin": "2024-01-01T00:00:00Z"
+                }
+            };
+            
+            if (examples[elementId]) {
+                document.getElementById(elementId).value = JSON.stringify(examples[elementId], null, 2);
+                validateJSON(elementId);
+            }
+        }
+
+        // Utility functions
+        function showAlert(message, type = 'success') {
+            const alertElement = document.getElementById(type + 'Alert');
+            const messageElement = document.getElementById(type + 'Message');
+            messageElement.textContent = message;
+            alertElement.classList.add('show');
+            setTimeout(() => alertElement.classList.remove('show'), 5000);
+        }
+
+        function showResponse(containerId, contentId, data) {
+            const container = document.getElementById(containerId);
+            const content = document.getElementById(contentId);
+            content.textContent = typeof data === 'object' ? JSON.stringify(data, null, 2) : data;
+            container.style.display = 'block';
+        }
+
+        function setLoading(formId, isLoading) {
+            const form = document.getElementById(formId);
+            if (isLoading) {
+                form.classList.add('loading');
+            } else {
+                form.classList.remove('loading');
+            }
+        }
+
+        // API functions
+        async function makeRequest(url, method = 'GET', body = null) {
+            const options = {
+                method,
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            };
+            
+            if (body) {
+                options.body = JSON.stringify(body);
+            }
+            
+            const response = await fetch(url, options);
+            const contentType = response.headers.get('content-type');
+            
+            if (contentType && contentType.includes('application/json')) {
+                return await response.json();
+            } else {
+                return await response.text();
+            }
+        }
+
+        // Form handlers
+        document.getElementById('putForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const key = document.getElementById('putKey').value;
+            const value = document.getElementById('putValue').value;
+            
+            if (!validateJSON('putValue')) {
+                showAlert('Please enter valid JSON before storing cache', 'error');
+                return;
+            }
+            
+            try {
+                setLoading('putForm', true);
+                const parsedValue = JSON.parse(value);
+                const result = await makeRequest(`/services/caching/api/put/${encodeURIComponent(key)}`, 'POST', parsedValue);
+                showResponse('putResponse', 'putResponseContent', result);
+                showAlert(`Cache stored successfully with key: ${key}`);
+            } catch (error) {
+                showAlert('Error storing cache: ' + error.message, 'error');
+                showResponse('putResponse', 'putResponseContent', 'Error: ' + error.message);
+            } finally {
+                setLoading('putForm', false);
+            }
+        });
+
+        document.getElementById('getForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const key = document.getElementById('getKey').value;
+            
+            try {
+                setLoading('getForm', true);
+                const result = await makeRequest(`/services/caching/api/get/${encodeURIComponent(key)}`);
+                showResponse('getResponse', 'getResponseContent', result);
+                showAlert(`Cache retrieved successfully for key: ${key}`);
+            } catch (error) {
+                showAlert('Error retrieving cache: ' + error.message, 'error');
+                showResponse('getResponse', 'getResponseContent', 'Error: ' + error.message);
+            } finally {
+                setLoading('getForm', false);
+            }
+        });
+
+        document.getElementById('deleteForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const key = document.getElementById('deleteKey').value;
+            
+            if (!confirm(`Are you sure you want to delete cache with key: ${key}?`)) {
+                return;
+            }
+            
+            try {
+                setLoading('deleteForm', true);
+                const result = await makeRequest(`/services/caching/api/delete/${encodeURIComponent(key)}`, 'DELETE');
+                showResponse('deleteResponse', 'deleteResponseContent', result);
+                showAlert(`Cache deleted successfully for key: ${key}`);
+                loadAnalytics(); // Refresh analytics after deletion
+            } catch (error) {
+                showAlert('Error deleting cache: ' + error.message, 'error');
+                showResponse('deleteResponse', 'deleteResponseContent', 'Error: ' + error.message);
+            } finally {
+                setLoading('deleteForm', false);
+            }
+        });
+
+        async function checkStatus() {
+            try {
+                const result = await makeRequest('/services/caching/api/status');
+                showResponse('statusResponse', 'statusResponseContent', result);
+                showAlert('Status checked successfully');
+            } catch (error) {
+                showAlert('Error checking status: ' + error.message, 'error');
+                showResponse('statusResponse', 'statusResponseContent', 'Error: ' + error.message);
+            }
+        }
+
+        // Analytics functionality
+        let analyticsData = [];
+        let currentSort = { column: 'hits', direction: 'desc' };
+
+        async function loadAnalytics() {
+            try {
+                const response = await fetch('/services/caching/api/list');
+                const result = await response.json();
+                
+                if (result.success) {
+                    analyticsData = result.data;
+                    updateAnalyticsTable();
+                    document.getElementById('analyticsCount').textContent = result.total || analyticsData.length;
+                } else {
+                    showAnalyticsError(result.error || 'Failed to load analytics data');
+                }
+            } catch (error) {
+                showAnalyticsError('Network error: ' + error.message);
+            }
+        }
+
+        function updateAnalyticsTable() {
+            const tbody = document.getElementById('analyticsTableBody');
+            
+            if (!analyticsData || analyticsData.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="3" class="no-data">No cache operations recorded yet. Start using the cache to see analytics data here.</td></tr>';
+                return;
+            }
+
+            // Sort data
+            const sortedData = [...analyticsData].sort((a, b) => {
+                let valueA, valueB;
+                
+                switch (currentSort.column) {
+                    case 'key':
+                        valueA = a.key.toLowerCase();
+                        valueB = b.key.toLowerCase();
+                        break;
+                    case 'hits':
+                        valueA = a.hits;
+                        valueB = b.hits;
+                        break;
+                    case 'lastHit':
+                        valueA = new Date(a.lastHit);
+                        valueB = new Date(b.lastHit);
+                        break;
+                    default:
+                        return 0;
+                }
+
+                if (currentSort.direction === 'asc') {
+                    return valueA < valueB ? -1 : valueA > valueB ? 1 : 0;
+                } else {
+                    return valueA > valueB ? -1 : valueA < valueB ? 1 : 0;
+                }
+            });
+
+            // Generate table rows
+            tbody.innerHTML = sortedData.map(entry => `
+                <tr>
+                    <td class="key-cell">${escapeHtml(entry.key)}</td>
+                    <td class="hits-cell">${entry.hits}</td>
+                    <td class="date-cell">${formatDate(entry.lastHit)}</td>
+                </tr>
+            `).join('');
+
+            // Update sort indicators
+            updateSortIndicators();
+        }
+
+        function sortTable(column) {
+            if (currentSort.column === column) {
+                currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+            } else {
+                currentSort.column = column;
+                currentSort.direction = column === 'hits' ? 'desc' : 'asc';
+            }
+            updateAnalyticsTable();
+        }
+
+        function updateSortIndicators() {
+            document.querySelectorAll('.analytics-table th').forEach(th => {
+                th.classList.remove('sort-asc', 'sort-desc');
+            });
+
+            const currentTh = document.querySelector(`[data-column="${currentSort.column}"]`);
+            if (currentTh) {
+                currentTh.classList.add(`sort-${currentSort.direction}`);
+            }
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffMs = now - date;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMs / 3600000);
+            const diffDays = Math.floor(diffMs / 86400000);
+
+            if (diffMins < 1) return 'Just now';
+            if (diffMins < 60) return `${diffMins}m ago`;
+            if (diffHours < 24) return `${diffHours}h ago`;
+            if (diffDays < 7) return `${diffDays}d ago`;
+            
+            return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function showAnalyticsError(message) {
+            const tbody = document.getElementById('analyticsTableBody');
+            tbody.innerHTML = `<tr><td colspan="3" class="no-data" style="color: var(--error-color);">Error: ${escapeHtml(message)}</td></tr>`;
+            document.getElementById('analyticsCount').textContent = '0';
+        }
+
+        // Load analytics on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            loadAnalytics();
+            setInterval(loadAnalytics, 30000);
+        });
+
+        // Swagger UI setup
+        const spec = {
+            openapi: '3.0.0',
+            info: {
+                title: 'Cache API',
+                description: 'REST API for cache management operations',
+                version: '1.0.0'
+            },
+            servers: [
+                { url: '/services/caching/api', description: 'Cache API' }
+            ],
+            paths: {
+                '/put/{key}': {
+                    post: {
+                        summary: 'Store cache',
+                        description: 'Store data in cache with the specified key',
+                        parameters: [
+                            {
+                                name: 'key',
+                                in: 'path',
+                                required: true,
+                                schema: { type: 'string' },
+                                description: 'The cache key'
+                            }
+                        ],
+                        requestBody: {
+                            required: true,
+                            content: {
+                                'application/json': {
+                                    schema: { type: 'object' },
+                                    example: { "name": "John Doe", "email": "john@example.com" }
+                                }
+                            }
+                        },
+                        responses: {
+                            '200': {
+                                description: 'Cache stored successfully',
+                                content: {
+                                    'text/plain': { schema: { type: 'string', example: 'OK' } }
+                                }
+                            },
+                            '500': {
+                                description: 'Server error',
+                                content: {
+                                    'text/plain': { schema: { type: 'string' } }
+                                }
+                            }
+                        }
+                    }
+                },
+                '/get/{key}': {
+                    get: {
+                        summary: 'Retrieve cache',
+                        description: 'Retrieve cached data by key',
+                        parameters: [
+                            {
+                                name: 'key',
+                                in: 'path',
+                                required: true,
+                                schema: { type: 'string' },
+                                description: 'The cache key'
+                            }
+                        ],
+                        responses: {
+                            '200': {
+                                description: 'Cache retrieved successfully',
+                                content: {
+                                    'application/json': {
+                                        schema: { type: 'object' },
+                                        example: { "name": "John Doe", "email": "john@example.com" }
+                                    }
+                                }
+                            },
+                            '500': {
+                                description: 'Server error',
+                                content: {
+                                    'text/plain': { schema: { type: 'string' } }
+                                }
+                            }
+                        }
+                    }
+                },
+                '/delete/{key}': {
+                    delete: {
+                        summary: 'Delete cache',
+                        description: 'Delete cached data by key',
+                        parameters: [
+                            {
+                                name: 'key',
+                                in: 'path',
+                                required: true,
+                                schema: { type: 'string' },
+                                description: 'The cache key'
+                            }
+                        ],
+                        responses: {
+                            '200': {
+                                description: 'Cache deleted successfully',
+                                content: {
+                                    'text/plain': { schema: { type: 'string', example: 'OK' } }
+                                }
+                            },
+                            '500': {
+                                description: 'Server error',
+                                content: {
+                                    'text/plain': { schema: { type: 'string' } }
+                                }
+                            }
+                        }
+                    }
+                },
+                '/status': {
+                    get: {
+                        summary: 'Service status',
+                        description: 'Check if the cache service is running',
+                        responses: {
+                            '200': {
+                                description: 'Service is running',
+                                content: {
+                                    'application/json': {
+                                        schema: { type: 'string', example: 'caching api running' }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        };
+
+        SwaggerUIBundle({
+            url: '',
+            spec: spec,
+            dom_id: '#swagger-ui',
+            presets: [
+                SwaggerUIBundle.presets.apis,
+                SwaggerUIBundle.presets.standalone
+            ],
+            layout: "BaseLayout",
+            deepLinking: true,
+            showExtensions: true,
+            showCommonExtensions: true
+        });
+    </script>
+</body>
+</html>

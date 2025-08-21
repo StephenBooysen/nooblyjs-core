@@ -4,6 +4,7 @@
 
 const SchedulerProvider = require('./providers/scheduling');
 const Routes = require('./routes');
+const Views = require('./views');
 
 /** @type {SchedulerProvider} */
 let instance = null;
@@ -19,6 +20,7 @@ function getSchedulerInstance(type, options, eventEmitter) {
   if (!instance) {
     instance = new SchedulerProvider(options, eventEmitter);
     Routes(options, eventEmitter, instance);
+    Views(options, eventEmitter, instance);
   }
   return instance;
 }

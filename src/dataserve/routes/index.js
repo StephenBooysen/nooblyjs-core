@@ -9,7 +9,7 @@ module.exports = (options, eventEmitter, dataserve) => {
   if (options['express-app'] && dataserve) {
     const app = options['express-app'];
 
-    app.post('/api/dataserve/put/:key', (req, res) => {
+    app.post('/services/dataserve/api/put/:key', (req, res) => {
       const key = req.params.key;
       const value = req.body;
       dataserve
@@ -18,7 +18,7 @@ module.exports = (options, eventEmitter, dataserve) => {
         .catch((err) => res.status(500).send(err.message));
     });
 
-    app.get('/api/dataserve/get/:key', (req, res) => {
+    app.get('/services/dataserve/api/get/:key', (req, res) => {
       const key = req.params.key;
       dataserve
         .get(key)
@@ -26,7 +26,7 @@ module.exports = (options, eventEmitter, dataserve) => {
         .catch((err) => res.status(500).send(err.message));
     });
 
-    app.delete('/api/dataserve/delete/:key', (req, res) => {
+    app.delete('/services/dataserve/api/delete/:key', (req, res) => {
       const key = req.params.key;
       dataserve
         .delete(key)
@@ -34,9 +34,9 @@ module.exports = (options, eventEmitter, dataserve) => {
         .catch((err) => res.status(500).send(err.message));
     });
 
-    app.get('/api/dataserve/status', (req, res) => {
+    app.get('/services/dataserve/api/status', (req, res) => {
       eventEmitter.emit('api-dataserve-status', 'dataserve api running');
-      res.status(200).json('running');
+      res.status(200).json('dataserve api running');
     });
   }
 };

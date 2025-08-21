@@ -9,7 +9,7 @@ module.exports = (options, eventEmitter, worker) => {
   if (options['express-app'] && worker) {
     const app = options['express-app'];
 
-    app.post('/api/working/run', (req, res) => {
+    app.post('/services/working/api/run', (req, res) => {
       const { task, data } = req.body;
       if (task) {
         worker
@@ -23,14 +23,14 @@ module.exports = (options, eventEmitter, worker) => {
       }
     });
 
-    app.get('/api/working/stop', (req, res) => {
+    app.get('/services/working/api/stop', (req, res) => {
       worker
         .stop()
         .then((result) => res.status(200).json(result))
         .catch((err) => res.status(500).send(err.message));
     });
 
-    app.get('/api/working/status', (req, res) => {
+    app.get('/services/working/api/status', (req, res) => {
       eventEmitter.emit('api-working-status', 'working api running');
       res.status(200).json('working api running');
     });

@@ -3,10 +3,11 @@
  * @fileoverview Factory for creating DataRingService instances.
  */
 
-const InMemoryDataRingProvider = require('./providers/dataserve');
+const InMemoryDataServeProvider = require('./providers/dataserve');
 const FileDataRingProvider = require('./providers/dataservefiles');
 const SimpleDbDataRingProvider = require('./providers/dataserveSimpleDB');
 const Routes = require('./routes');
+const Views = require('./views');
 
 /**
  * Creates a DataRingService instance based on the provided type.
@@ -19,15 +20,18 @@ function createDataserveService(type, options, eventEmitter) {
   let provider;
   switch (type) {
     case 'file':
-      provider = new DataServeFileProvider(options, eventEmitter);
+      provider = new FileDataRingProvider(options, eventEmitter);
       break;
     case 'simpledb':
-      provider = new DataServeSimpleDBProvider(options, eventEmitter);
+      provider = new SimpleDbDataRingProvider(options, eventEmitter);
       break;
     default:
-      provider = new DataServeProvider(options, eventEmitter);
+      provider = new InMemoryDataServeProvider(options, eventEmitter);
       break;
   }
   Routes(options, eventEmitter, provider);
-  return provider
+  Views(options, eventEmitter, provider);
+  return provider;
 }
+
+module.exports = createDataserveService;

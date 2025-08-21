@@ -8,7 +8,7 @@ module.exports = (options, eventEmitter, queue) => {
   if (options['express-app'] && queue) {
     const app = options['express-app'];
 
-    app.post('/api/queueing/enqueue', (req, res) => {
+    app.post('/services/queueing/api/enqueue', (req, res) => {
       const { task } = req.body;
       if (task) {
         queue
@@ -20,21 +20,21 @@ module.exports = (options, eventEmitter, queue) => {
       }
     });
 
-    app.get('/api/queueing/dequeue', (req, res) => {
+    app.get('/services/queueing/api/dequeue', (req, res) => {
       queue
         .dequeue()
         .then((task) => res.status(200).json(task))
         .catch((err) => res.status(500).send(err.message));
     });
 
-    app.get('/api/queueing/size', (req, res) => {
+    app.get('/services/queueing/api/size', (req, res) => {
       queue
         .size()
         .then((size) => res.status(200).json(size))
         .catch((err) => res.status(500).send(err.message));
     });
 
-    app.get('/api/queueing/status', (req, res) => {
+    app.get('/services/queueing/api/status', (req, res) => {
       eventEmitter.emit('api-queueing-status', 'queueing api running');
       res.status(200).json('queueing api running');
     });

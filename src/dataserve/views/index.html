@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Serve Management - Noobly JS Admin</title>
+    <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@4.15.5/swagger-ui.css">
+    <style>
+        /* Material Design Theme Variables */
+        :root {
+            --primary-color: #1976d2;
+            --primary-light: #42a5f5;
+            --primary-dark: #1565c0;
+            --secondary-color: #dc004e;
+            --surface-color: #ffffff;
+            --surface-variant: #f5f5f5;
+            --background-color: #fafafa;
+            --error-color: #d32f2f;
+            --success-color: #388e3c;
+            --text-primary: #212121;
+            --text-secondary: #757575;
+            --border-color: #e0e0e0;
+            --shadow-1: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+            --shadow-2: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
+            --shadow-3: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 280px;
+            background: var(--surface-color);
+            box-shadow: var(--shadow-2);
+            padding: 24px 0;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .logo {
+            padding: 0 24px 32px;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 24px;
+        }
+
+        .logo h1 {
+            font-size: 24px;
+            font-weight: 500;
+            color: var(--primary-color);
+        }
+
+        .logo .subtitle {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        .nav-item {
+            display: block;
+            padding: 16px 24px;
+            color: var(--text-primary);
+            text-decoration: none;
+            transition: all 0.2s ease;
+            border-left: 4px solid transparent;
+        }
+
+        .nav-item:hover {
+            background-color: var(--surface-variant);
+            color: var(--primary-color);
+        }
+
+        .nav-item.active {
+            background-color: var(--primary-light);
+            color: white;
+            border-left-color: var(--primary-dark);
+        }
+
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 32px;
+        }
+
+        .page-header {
+            margin-bottom: 32px;
+        }
+
+        .page-title {
+            font-size: 32px;
+            font-weight: 400;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .page-subtitle {
+            font-size: 16px;
+            color: var(--text-secondary);
+        }
+
+        .card {
+            background: var(--surface-color);
+            border-radius: 8px;
+            box-shadow: var(--shadow-1);
+            margin-bottom: 24px;
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 24px;
+            border-bottom: 1px solid var(--border-color);
+            background: var(--surface-variant);
+        }
+
+        .card-title {
+            font-size: 20px;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .card-subtitle {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .card-content {
+            padding: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 16px;
+            transition: all 0.2s ease;
+            background: var(--surface-color);
+            color: var(--text-primary);
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.2);
+        }
+
+        .form-textarea {
+            min-height: 120px;
+            resize: vertical;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            min-width: 64px;
+            justify-content: center;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+            box-shadow: var(--shadow-1);
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            box-shadow: var(--shadow-2);
+        }
+
+        .btn-secondary {
+            background: var(--surface-variant);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border-color);
+        }
+
+        .btn-success {
+            background: var(--success-color);
+            color: white;
+        }
+
+        .btn-error {
+            background: var(--error-color);
+            color: white;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .alert {
+            padding: 16px;
+            border-radius: 4px;
+            margin-bottom: 24px;
+            display: none;
+        }
+
+        .alert.show {
+            display: block;
+        }
+
+        .alert-success {
+            background: rgba(56, 142, 60, 0.1);
+            border: 1px solid var(--success-color);
+            color: var(--success-color);
+        }
+
+        .alert-error {
+            background: rgba(211, 47, 47, 0.1);
+            border: 1px solid var(--error-color);
+            color: var(--error-color);
+        }
+
+        .helper-text {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        .json-valid {
+            border-color: var(--success-color) !important;
+        }
+
+        .json-invalid {
+            border-color: var(--error-color) !important;
+        }
+
+        .validation-message {
+            font-size: 12px;
+            margin-top: 4px;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        .validation-success {
+            background: rgba(56, 142, 60, 0.1);
+            color: var(--success-color);
+        }
+
+        .validation-error {
+            background: rgba(211, 47, 47, 0.1);
+            color: var(--error-color);
+        }
+
+        .response-container {
+            margin-top: 24px;
+            padding: 16px;
+            background: var(--surface-variant);
+            border-radius: 4px;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .response-title {
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
+        .response-content {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 14px;
+            color: var(--text-secondary);
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 16px;
+            }
+
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+
+            .btn-group {
+                flex-direction: column;
+            }
+        }
+
+        .swagger-ui {
+            font-family: inherit;
+        }
+
+        .swagger-ui .topbar {
+            display: none;
+        }
+
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <nav class="sidebar">
+            <div class="logo">
+                <h1>Noobly JS</h1>
+                <div class="subtitle">Data Serve Management</div>
+            </div>
+            <a href="/services/caching/" class="nav-item">Cache Management</a>
+            <a href="/services/dataserve/" class="nav-item active">Data Serve</a>
+            <a href="/services/filing/" class="nav-item">File Management</a>
+            <a href="/services/logging/" class="nav-item">Logging</a>
+            <a href="/services/measuring/" class="nav-item">Measuring</a>
+            <a href="/services/notifying/" class="nav-item">Notifications</a>
+            <a href="/services/queueing/" class="nav-item">Queue Management</a>
+            <a href="/services/scheduling/" class="nav-item">Scheduling</a>
+            <a href="/services/searching/" class="nav-item">Search</a>
+            <a href="/services/working/" class="nav-item">Background Tasks</a>
+            <a href="/services/workflow/" class="nav-item">Workflows</a>
+        </nav>
+
+        <main class="main-content">
+            <div class="page-header">
+                <h1 class="page-title">Data Serve Management</h1>
+                <p class="page-subtitle">Store and retrieve data using key-value operations</p>
+            </div>
+
+            <div class="alert alert-success" id="successAlert">
+                <strong>Success!</strong> <span id="successMessage"></span>
+            </div>
+
+            <div class="alert alert-error" id="errorAlert">
+                <strong>Error!</strong> <span id="errorMessage"></span>
+            </div>
+
+            <!-- Store Data Form -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Store Data</h2>
+                    <p class="card-subtitle">Add a new data entry to the store</p>
+                </div>
+                <div class="card-content">
+                    <form id="putForm">
+                        <div class="form-group">
+                            <label class="form-label" for="putKey">Key</label>
+                            <input type="text" id="putKey" class="form-input" placeholder="Enter data key" required>
+                            <div class="helper-text">Unique identifier for the data entry</div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="putValue">Value (JSON)</label>
+                            <textarea id="putValue" class="form-input form-textarea" placeholder='{"message": "Hello World", "timestamp": "2024-01-01"}' required></textarea>
+                            <div id="putValidation" class="validation-message" style="display: none;"></div>
+                            <div class="helper-text">Enter valid JSON data</div>
+                        </div>
+                        <div class="btn-group">
+                            <button type="submit" class="btn btn-primary">Store Data</button>
+                            <button type="button" class="btn btn-secondary" onclick="formatJSON('putValue')">Format JSON</button>
+                            <button type="button" class="btn btn-secondary" onclick="loadExample('putValue')">Load Example</button>
+                        </div>
+                    </form>
+                    <div id="putResponse" class="response-container" style="display: none;">
+                        <div class="response-title">Response:</div>
+                        <div id="putResponseContent" class="response-content"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Retrieve Data Form -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Retrieve Data</h2>
+                    <p class="card-subtitle">Get data by key from the store</p>
+                </div>
+                <div class="card-content">
+                    <form id="getForm">
+                        <div class="form-group">
+                            <label class="form-label" for="getKey">Key</label>
+                            <input type="text" id="getKey" class="form-input" placeholder="Enter data key to retrieve" required>
+                            <div class="helper-text">Key of the data entry to retrieve</div>
+                        </div>
+                        <div class="btn-group">
+                            <button type="submit" class="btn btn-primary">Retrieve Data</button>
+                        </div>
+                    </form>
+                    <div id="getResponse" class="response-container" style="display: none;">
+                        <div class="response-title">Retrieved Data:</div>
+                        <div id="getResponseContent" class="response-content"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Delete Data Form -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Delete Data</h2>
+                    <p class="card-subtitle">Remove data entry from the store</p>
+                </div>
+                <div class="card-content">
+                    <form id="deleteForm">
+                        <div class="form-group">
+                            <label class="form-label" for="deleteKey">Key</label>
+                            <input type="text" id="deleteKey" class="form-input" placeholder="Enter data key to delete" required>
+                            <div class="helper-text">Key of the data entry to remove</div>
+                        </div>
+                        <div class="btn-group">
+                            <button type="submit" class="btn btn-error">Delete Data</button>
+                        </div>
+                    </form>
+                    <div id="deleteResponse" class="response-container" style="display: none;">
+                        <div class="response-title">Response:</div>
+                        <div id="deleteResponseContent" class="response-content"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Status Check -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Service Status</h2>
+                    <p class="card-subtitle">Check data serve service status</p>
+                </div>
+                <div class="card-content">
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-secondary" onclick="checkStatus()">Check Status</button>
+                    </div>
+                    <div id="statusResponse" class="response-container" style="display: none;">
+                        <div class="response-title">Service Status:</div>
+                        <div id="statusResponseContent" class="response-content"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- API Documentation -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">API Documentation</h2>
+                    <p class="card-subtitle">Interactive API documentation for Data Serve service</p>
+                </div>
+                <div class="card-content">
+                    <div id="swagger-ui"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://unpkg.com/swagger-ui-dist@4.15.5/swagger-ui-bundle.js"></script>
+    <script>
+        // JSON validation
+        function validateJSON(elementId) {
+            const element = document.getElementById(elementId);
+            const validation = document.getElementById(elementId.replace('Value', 'Validation'));
+            const value = element.value.trim();
+            
+            if (!value) {
+                element.classList.remove('json-valid', 'json-invalid');
+                validation.style.display = 'none';
+                return true;
+            }
+            
+            try {
+                JSON.parse(value);
+                element.classList.remove('json-invalid');
+                element.classList.add('json-valid');
+                validation.textContent = '✓ Valid JSON';
+                validation.className = 'validation-message validation-success';
+                validation.style.display = 'block';
+                return true;
+            } catch (e) {
+                element.classList.remove('json-valid');
+                element.classList.add('json-invalid');
+                validation.textContent = '✗ Invalid JSON: ' + e.message;
+                validation.className = 'validation-message validation-error';
+                validation.style.display = 'block';
+                return false;
+            }
+        }
+
+        // Real-time validation
+        document.getElementById('putValue').addEventListener('input', () => validateJSON('putValue'));
+
+        // Format JSON
+        function formatJSON(elementId) {
+            const element = document.getElementById(elementId);
+            try {
+                const parsed = JSON.parse(element.value);
+                element.value = JSON.stringify(parsed, null, 2);
+                validateJSON(elementId);
+            } catch (e) {
+                showAlert('Invalid JSON cannot be formatted', 'error');
+            }
+        }
+
+        // Load example
+        function loadExample(elementId) {
+            const examples = {
+                putValue: {
+                    "name": "John Doe",
+                    "email": "john@example.com",
+                    "metadata": {
+                        "created": "2024-01-01T00:00:00Z",
+                        "tags": ["user", "active"]
+                    }
+                }
+            };
+            
+            if (examples[elementId]) {
+                document.getElementById(elementId).value = JSON.stringify(examples[elementId], null, 2);
+                validateJSON(elementId);
+            }
+        }
+
+        // Utility functions
+        function showAlert(message, type = 'success') {
+            const alertElement = document.getElementById(type + 'Alert');
+            const messageElement = document.getElementById(type + 'Message');
+            messageElement.textContent = message;
+            alertElement.classList.add('show');
+            setTimeout(() => alertElement.classList.remove('show'), 5000);
+        }
+
+        function showResponse(containerId, contentId, data) {
+            const container = document.getElementById(containerId);
+            const content = document.getElementById(contentId);
+            content.textContent = typeof data === 'object' ? JSON.stringify(data, null, 2) : data;
+            container.style.display = 'block';
+        }
+
+        function setLoading(formId, isLoading) {
+            const form = document.getElementById(formId);
+            if (isLoading) {
+                form.classList.add('loading');
+            } else {
+                form.classList.remove('loading');
+            }
+        }
+
+        // API functions
+        async function makeRequest(url, method = 'GET', body = null) {
+            const options = {
+                method,
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            };
+            
+            if (body) {
+                options.body = JSON.stringify(body);
+            }
+            
+            const response = await fetch(url, options);
+            const contentType = response.headers.get('content-type');
+            
+            if (contentType && contentType.includes('application/json')) {
+                return await response.json();
+            } else {
+                return await response.text();
+            }
+        }
+
+        // Form handlers
+        document.getElementById('putForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const key = document.getElementById('putKey').value;
+            const value = document.getElementById('putValue').value;
+            
+            if (!validateJSON('putValue')) {
+                showAlert('Please enter valid JSON before storing data', 'error');
+                return;
+            }
+            
+            try {
+                setLoading('putForm', true);
+                const parsedValue = JSON.parse(value);
+                const result = await makeRequest(`/services/dataserve/api/put/${encodeURIComponent(key)}`, 'POST', parsedValue);
+                showResponse('putResponse', 'putResponseContent', result);
+                showAlert(`Data stored successfully with key: ${key}`);
+            } catch (error) {
+                showAlert('Error storing data: ' + error.message, 'error');
+                showResponse('putResponse', 'putResponseContent', 'Error: ' + error.message);
+            } finally {
+                setLoading('putForm', false);
+            }
+        });
+
+        document.getElementById('getForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const key = document.getElementById('getKey').value;
+            
+            try {
+                setLoading('getForm', true);
+                const result = await makeRequest(`/services/dataserve/api/get/${encodeURIComponent(key)}`);
+                showResponse('getResponse', 'getResponseContent', result);
+                showAlert(`Data retrieved successfully for key: ${key}`);
+            } catch (error) {
+                showAlert('Error retrieving data: ' + error.message, 'error');
+                showResponse('getResponse', 'getResponseContent', 'Error: ' + error.message);
+            } finally {
+                setLoading('getForm', false);
+            }
+        });
+
+        document.getElementById('deleteForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const key = document.getElementById('deleteKey').value;
+            
+            if (!confirm(`Are you sure you want to delete data with key: ${key}?`)) {
+                return;
+            }
+            
+            try {
+                setLoading('deleteForm', true);
+                const result = await makeRequest(`/services/dataserve/api/delete/${encodeURIComponent(key)}`, 'DELETE');
+                showResponse('deleteResponse', 'deleteResponseContent', result);
+                showAlert(`Data deleted successfully for key: ${key}`);
+            } catch (error) {
+                showAlert('Error deleting data: ' + error.message, 'error');
+                showResponse('deleteResponse', 'deleteResponseContent', 'Error: ' + error.message);
+            } finally {
+                setLoading('deleteForm', false);
+            }
+        });
+
+        async function checkStatus() {
+            try {
+                const result = await makeRequest('/services/dataserve/api/status');
+                showResponse('statusResponse', 'statusResponseContent', result);
+                showAlert('Status checked successfully');
+            } catch (error) {
+                showAlert('Error checking status: ' + error.message, 'error');
+                showResponse('statusResponse', 'statusResponseContent', 'Error: ' + error.message);
+            }
+        }
+
+        // Swagger UI setup
+        const spec = {
+            openapi: '3.0.0',
+            info: {
+                title: 'Data Serve API',
+                description: 'REST API for data storage and retrieval operations',
+                version: '1.0.0'
+            },
+            servers: [
+                { url: '/services/dataserve/api', description: 'Data Serve API' }
+            ],
+            paths: {
+                '/put/{key}': {
+                    post: {
+                        summary: 'Store data',
+                        description: 'Store data with the specified key',
+                        parameters: [
+                            {
+                                name: 'key',
+                                in: 'path',
+                                required: true,
+                                schema: { type: 'string' },
+                                description: 'The key to store the data under'
+                            }
+                        ],
+                        requestBody: {
+                            required: true,
+                            content: {
+                                'application/json': {
+                                    schema: { type: 'object' },
+                                    example: { "message": "Hello World", "timestamp": "2024-01-01" }
+                                }
+                            }
+                        },
+                        responses: {
+                            '200': {
+                                description: 'Data stored successfully',
+                                content: {
+                                    'text/plain': { schema: { type: 'string', example: 'OK' } }
+                                }
+                            },
+                            '500': {
+                                description: 'Server error',
+                                content: {
+                                    'text/plain': { schema: { type: 'string' } }
+                                }
+                            }
+                        }
+                    }
+                },
+                '/get/{key}': {
+                    get: {
+                        summary: 'Retrieve data',
+                        description: 'Retrieve data by key',
+                        parameters: [
+                            {
+                                name: 'key',
+                                in: 'path',
+                                required: true,
+                                schema: { type: 'string' },
+                                description: 'The key to retrieve data for'
+                            }
+                        ],
+                        responses: {
+                            '200': {
+                                description: 'Data retrieved successfully',
+                                content: {
+                                    'application/json': {
+                                        schema: { type: 'object' },
+                                        example: { "message": "Hello World", "timestamp": "2024-01-01" }
+                                    }
+                                }
+                            },
+                            '500': {
+                                description: 'Server error',
+                                content: {
+                                    'text/plain': { schema: { type: 'string' } }
+                                }
+                            }
+                        }
+                    }
+                },
+                '/delete/{key}': {
+                    delete: {
+                        summary: 'Delete data',
+                        description: 'Delete data by key',
+                        parameters: [
+                            {
+                                name: 'key',
+                                in: 'path',
+                                required: true,
+                                schema: { type: 'string' },
+                                description: 'The key to delete data for'
+                            }
+                        ],
+                        responses: {
+                            '200': {
+                                description: 'Data deleted successfully',
+                                content: {
+                                    'text/plain': { schema: { type: 'string', example: 'OK' } }
+                                }
+                            },
+                            '500': {
+                                description: 'Server error',
+                                content: {
+                                    'text/plain': { schema: { type: 'string' } }
+                                }
+                            }
+                        }
+                    }
+                },
+                '/status': {
+                    get: {
+                        summary: 'Service status',
+                        description: 'Check if the data serve service is running',
+                        responses: {
+                            '200': {
+                                description: 'Service is running',
+                                content: {
+                                    'application/json': {
+                                        schema: { type: 'string', example: 'dataserve api running' }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        };
+
+        SwaggerUIBundle({
+            url: '',
+            spec: spec,
+            dom_id: '#swagger-ui',
+            presets: [
+                SwaggerUIBundle.presets.apis,
+                SwaggerUIBundle.presets.standalone
+            ],
+            layout: "BaseLayout",
+            deepLinking: true,
+            showExtensions: true,
+            showCommonExtensions: true
+        });
+    </script>
+</body>
+</html>

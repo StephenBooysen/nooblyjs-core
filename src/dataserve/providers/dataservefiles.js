@@ -6,7 +6,7 @@ const fs = require('fs').promises;
 const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 
-class DataServeFileProvider {
+class FileDataRingProvider {
   constructor(options, eventEmitter) {
     this.baseDir = path.resolve(options.baseDir || './dataserve_data');
     this.containers = new Map(); // Map<containerName, containerFilePath>

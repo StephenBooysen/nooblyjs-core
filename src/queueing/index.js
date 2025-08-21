@@ -4,6 +4,7 @@
 
 const InMemoryQueue = require('./providers/InMemoryQueue');
 const Routes = require('./routes');
+const Views = require('./views');
 
 /**
  * Creates a queue instance based on the provided type.
@@ -15,6 +16,7 @@ function createQueue(type, options, eventEmitter) {
   if (type === 'memory') {
     const queue = new InMemoryQueue(options, eventEmitter);
     Routes(options, eventEmitter, queue);
+    Views(options, eventEmitter, queue);
     return queue;
   } else {
     throw new Error('Unsupported queue type: ' + type);

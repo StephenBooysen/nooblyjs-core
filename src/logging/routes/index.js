@@ -9,7 +9,7 @@ module.exports = (options, eventEmitter, logger) => {
   if (options['express-app'] && logger) {
     const app = options['express-app'];
 
-    app.post('/api/logging/log', (req, res) => {
+    app.post('/services/logging/api/log', (req, res) => {
       const message = req.body;
       if (message) {
         logger
@@ -21,7 +21,7 @@ module.exports = (options, eventEmitter, logger) => {
       }
     });
 
-    app.get('/api/logging/status', (req, res) => {
+    app.get('/services/logging/api/status', (req, res) => {
       eventEmitter.emit('api-logging-status', 'logging api running');
       res.status(200).json('logging api running');
     });

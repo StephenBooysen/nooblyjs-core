@@ -15,7 +15,7 @@ module.exports = (options, eventEmitter, search) => {
   if (options['express-app'] && search) {
     const app = options['express-app'];
 
-    app.post('/api/searching/add/', (req, res) => {
+    app.post('/services/searching/api/add/', (req, res) => {
       const key = crypto.randomUUID();
       const value = req.body;
       if (search.add(key, value)) {
@@ -25,7 +25,7 @@ module.exports = (options, eventEmitter, search) => {
       }
     });
 
-    app.delete('/api/searching/delete/:key', (req, res) => {
+    app.delete('/services/searching/api/delete/:key', (req, res) => {
       const key = req.params.key;
       if (search.remove(key)) {
         res.status(200).send('OK');
@@ -34,7 +34,7 @@ module.exports = (options, eventEmitter, search) => {
       }
     });
 
-    app.get('/api/searching/search/:term', (req, res) => {
+    app.get('/services/searching/api/search/:term', (req, res) => {
       const term = req.params.term;
       if (term) {
         search
@@ -46,7 +46,7 @@ module.exports = (options, eventEmitter, search) => {
       }
     });
 
-    app.get('/api/searching/status', (req, res) => {
+    app.get('/services/searching/api/status', (req, res) => {
       eventEmitter.emit('api-searching-status', 'searching api running');
       res.status(200).json('searching api is running');
     });

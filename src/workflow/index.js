@@ -5,6 +5,7 @@
 const { Worker } = require('worker_threads');
 const path = require('path');
 const Routes = require('./routes');
+const Views = require('./views');
 
 class WorkflowService {
   constructor(eventEmitter) {
@@ -149,6 +150,7 @@ class WorkflowService {
 function createWorkflowService(type, options, eventEmitter) {
   const workflow = new WorkflowService(eventEmitter);
   Routes(options, eventEmitter, workflow);
+  Views(options, eventEmitter, workflow);
   return workflow;
 }
 

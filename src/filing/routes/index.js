@@ -9,7 +9,7 @@ module.exports = (options, eventEmitter, filing) => {
   if (options['express-app'] && filing) {
     const app = options['express-app'];
 
-    app.post('/api/filing/upload/:key', (req, res) => {
+    app.post('/services/filing/api/upload/:key', (req, res) => {
       const key = req.params.key;
       const value = req.body;
       filing
@@ -18,7 +18,7 @@ module.exports = (options, eventEmitter, filing) => {
         .catch((err) => res.status(500).send(err.message));
     });
 
-    app.get('/api/filing/download/:key', (req, res) => {
+    app.get('/services/filing/api/download/:key', (req, res) => {
       const key = req.params.key;
       filing
         .download(key)
@@ -26,7 +26,7 @@ module.exports = (options, eventEmitter, filing) => {
         .catch((err) => res.status(500).send(err.message));
     });
 
-    app.delete('/api/filing/remove/:key', (req, res) => {
+    app.delete('/services/filing/api/remove/:key', (req, res) => {
       const key = req.params.key;
       filing
         .remove(key)
@@ -34,7 +34,7 @@ module.exports = (options, eventEmitter, filing) => {
         .catch((err) => res.status(500).send(err.message));
     });
 
-    app.get('/api/filing/status', (req, res) => {
+    app.get('/services/filing/api/status', (req, res) => {
       eventEmitter.emit('api-filing-status', 'filing api running');
       res.status(200).json('filing api running');
     });

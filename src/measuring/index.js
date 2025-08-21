@@ -1,5 +1,6 @@
 const MeasuringService = require('./provider/measuring');
 const Routes = require('./routes');
+const Views = require('./views');
 
 /**
  * Creates a MeasuringService instance.
@@ -11,6 +12,7 @@ const Routes = require('./routes');
 function createMeasuringService(type, options, eventEmitter) {
   const measuring = new MeasuringService(options,eventEmitter);
   Routes(options, eventEmitter, measuring);
+  Views(options, eventEmitter, measuring);
   return measuring;
 }
 

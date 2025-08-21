@@ -5,6 +5,7 @@
 const ConsoleLogger = require('./providers/consoleLogger');
 const FileLogger = require('./providers/fileLogger');
 const Routes = require('./routes');
+const Views = require('./views');
 
 /**
  * Creates a logger instance based on the provided type.
@@ -20,6 +21,7 @@ function createLogger(type, options, eventEmitter) {
     logger = new ConsoleLogger(options, eventEmitter);
   }
   Routes(options, eventEmitter, logger);
+  Views(options, eventEmitter, logger);
   return logger;
 }
 

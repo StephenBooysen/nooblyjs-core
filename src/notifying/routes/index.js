@@ -9,7 +9,7 @@ module.exports = (options, eventEmitter, notifier) => {
   if (options['express-app'] && notifier) {
     const app = options['express-app'];
 
-    app.post('/api/notifying/topic', (req, res) => {
+    app.post('/services/notifying/api/topic', (req, res) => {
       const { topic } = req.body;
       if (topic) {
         notifier
@@ -21,7 +21,7 @@ module.exports = (options, eventEmitter, notifier) => {
       }
     });
 
-    app.post('/api/notifying/subscribe/topic/:topic', (req, res) => {
+    app.post('/services/notifying/api/subscribe/topic/:topic', (req, res) => {
       const topic = req.params.topic;
       const { callbackUrl } = req.body;
       if (topic && callbackUrl) {
@@ -34,7 +34,7 @@ module.exports = (options, eventEmitter, notifier) => {
       }
     });
 
-    app.post('/api/notifying/unsubscribe/topic/:topic', (req, res) => {
+    app.post('/services/notifying/api/unsubscribe/topic/:topic', (req, res) => {
       const topic = req.params.topic;
       const { callbackUrl } = req.body;
       if (topic && callbackUrl) {
@@ -47,7 +47,7 @@ module.exports = (options, eventEmitter, notifier) => {
       }
     });
 
-    app.post('/api/notifying/notify/topic/:topic', (req, res) => {
+    app.post('/services/notifying/api/notify/topic/:topic', (req, res) => {
       const topic = req.params.topic;
       const { message } = req.body;
       if (topic && message) {
@@ -60,7 +60,7 @@ module.exports = (options, eventEmitter, notifier) => {
       }
     });
 
-    app.get('/api/notifying/status', (req, res) => {
+    app.get('/services/notifying/api/status', (req, res) => {
       eventEmitter.emit('api-notifying-status', 'notifying api running');
       res.status(200).json('notifying api running');
     });

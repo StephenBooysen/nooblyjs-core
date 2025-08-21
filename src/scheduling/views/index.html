@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Scheduling Management - Noobly JS Admin</title>
+    <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@4.15.5/swagger-ui.css">
+    <style>
+        /* Material Design Theme Variables */
+        :root {
+            --primary-color: #1976d2;
+            --primary-light: #42a5f5;
+            --primary-dark: #1565c0;
+            --secondary-color: #dc004e;
+            --surface-color: #ffffff;
+            --surface-variant: #f5f5f5;
+            --background-color: #fafafa;
+            --error-color: #d32f2f;
+            --success-color: #388e3c;
+            --text-primary: #212121;
+            --text-secondary: #757575;
+            --text-hint: #9e9e9e;
+            --divider-color: #e0e0e0;
+            --outline-color: #616161;
+            --surface-tint: rgba(25, 118, 210, 0.08);
+            --elevation-1: 0px 1px 3px rgba(0, 0, 0, 0.12), 0px 1px 2px rgba(0, 0, 0, 0.24);
+            --elevation-2: 0px 3px 6px rgba(0, 0, 0, 0.16), 0px 3px 6px rgba(0, 0, 0, 0.23);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            line-height: 1.5;
+            color: var(--text-primary);
+            background: var(--background-color);
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            background: var(--surface-color);
+            box-shadow: var(--elevation-1);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            height: 64px;
+        }
+
+        .header-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 100%;
+            padding: 0 24px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            color: var(--text-primary);
+            font-weight: 500;
+            font-size: 1.25rem;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--primary-color);
+            color: white;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            margin-right: 12px;
+        }
+
+        /* Admin Container */
+        .admin-container {
+            display: flex;
+            min-height: 100vh;
+            margin-top: 64px;
+            background: var(--background-color);
+        }
+
+        .admin-sidebar {
+            width: 280px;
+            background: var(--surface-color);
+            border-right: 1px solid var(--divider-color);
+            padding: 24px 0;
+            position: fixed;
+            height: calc(100vh - 64px);
+            overflow-y: auto;
+            box-shadow: var(--elevation-1);
+        }
+
+        .admin-nav {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .admin-nav-item {
+            padding: 0;
+            margin: 0 16px;
+        }
+
+        .admin-nav-link {
+            display: block;
+            padding: 12px 16px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-weight: 500;
+            font-size: 0.875rem;
+            border-radius: 12px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .admin-nav-link:hover {
+            color: var(--primary-color);
+            background: var(--surface-tint);
+        }
+
+        .admin-nav-link.active {
+            color: var(--primary-color);
+            background: var(--surface-tint);
+        }
+
+        .admin-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 32px;
+        }
+
+        .admin-header {
+            margin-bottom: 32px;
+        }
+
+        .admin-title {
+            font-size: 2rem;
+            font-weight: 400;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            line-height: 2.5rem;
+        }
+
+        .admin-subtitle {
+            color: var(--text-secondary);
+            font-weight: 400;
+            font-size: 1rem;
+            line-height: 1.5rem;
+        }
+
+        /* Scheduling Operations */
+        .scheduling-operations {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        .scheduling-card {
+            background: var(--surface-color);
+            border-radius: 12px;
+            padding: 24px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: var(--elevation-1);
+        }
+
+        .scheduling-card:hover {
+            box-shadow: var(--elevation-2);
+        }
+
+        .scheduling-card h3 {
+            color: var(--text-primary);
+            font-size: 1.375rem;
+            font-weight: 400;
+            margin-bottom: 24px;
+            line-height: 1.75rem;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            color: var(--text-primary);
+            font-weight: 500;
+            margin-bottom: 8px;
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--outline-color);
+            border-radius: 8px;
+            background: var(--surface-color);
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px var(--surface-tint);
+        }
+
+        .form-input::placeholder {
+            color: var(--text-hint);
+        }
+
+        .form-textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--outline-color);
+            border-radius: 8px;
+            background: var(--surface-color);
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .form-textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px var(--surface-tint);
+        }
+
+        .form-textarea::placeholder {
+            color: var(--text-hint);
+        }
+
+        .form-button {
+            width: 100%;
+            padding: 10px 24px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            text-transform: uppercase;
+            letter-spacing: 1.25px;
+            font-size: 0.875rem;
+            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            min-height: 40px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: var(--elevation-1);
+        }
+
+        .form-button:hover {
+            box-shadow: var(--elevation-2);
+        }
+
+        .form-button:active {
+            box-shadow: var(--elevation-1);
+        }
+
+        .result-area {
+            background: var(--surface-variant);
+            border: 1px solid var(--divider-color);
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 16px;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            font-weight: 400;
+            min-height: 60px;
+            white-space: pre-wrap;
+            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        .result-success {
+            color: var(--success-color);
+            background: rgba(56, 142, 60, 0.08);
+            border-color: rgba(56, 142, 60, 0.2);
+        }
+
+        .result-error {
+            color: var(--error-color);
+            background: rgba(211, 47, 47, 0.08);
+            border-color: rgba(211, 47, 47, 0.2);
+        }
+
+        .form-helper {
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            margin-top: 4px;
+            line-height: 1.2;
+        }
+
+        .form-error {
+            color: var(--error-color);
+            font-size: 0.75rem;
+            margin-top: 4px;
+            line-height: 1.2;
+        }
+
+        .form-textarea.invalid {
+            border-color: var(--error-color);
+            box-shadow: 0 0 0 2px rgba(211, 47, 47, 0.1);
+        }
+
+        .form-textarea.valid {
+            border-color: var(--success-color);
+            box-shadow: 0 0 0 2px rgba(56, 142, 60, 0.1);
+        }
+
+        .json-examples {
+            background: var(--surface-variant);
+            border: 1px solid var(--divider-color);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 16px;
+            font-family: monospace;
+            font-size: 0.75rem;
+        }
+
+        .json-example {
+            margin-bottom: 8px;
+        }
+
+        .json-example:last-child {
+            margin-bottom: 0;
+        }
+
+        .json-example-label {
+            color: var(--text-secondary);
+            font-weight: 500;
+            margin-bottom: 2px;
+        }
+
+        /* Swagger UI Customization */
+        #swagger-ui {
+            margin-top: 32px;
+        }
+
+        .swagger-card {
+            background: var(--surface-color);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: var(--elevation-1);
+        }
+
+        @media (max-width: 768px) {
+            .admin-sidebar {
+                width: 240px;
+            }
+            
+            .admin-content {
+                margin-left: 240px;
+                padding: 24px 16px;
+            }
+            
+            .scheduling-operations {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .admin-sidebar {
+                width: 100%;
+                position: relative;
+                height: auto;
+                box-shadow: none;
+                border-right: none;
+                border-bottom: 1px solid var(--divider-color);
+            }
+            
+            .admin-content {
+                margin-left: 0;
+                padding: 16px;
+            }
+            
+            .admin-container {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-container">
+            <a href="#" class="logo">
+                <div class="logo-icon">N</div>
+                <span>Noobly JS Admin</span>
+            </a>
+        </div>
+    </header>
+
+    <div class="admin-container">
+        <!-- Sidebar Navigation -->
+        <aside class="admin-sidebar">
+            <nav class="admin-nav">
+                <div class="admin-nav-item">
+                    <a href="/services/caching/" class="admin-nav-link">Caching</a>
+                </div>
+                <div class="admin-nav-item">
+                    <a href="/services/dataserve/" class="admin-nav-link">Data Serve</a>
+                </div>
+                <div class="admin-nav-item">
+                    <a href="/services/filing/" class="admin-nav-link">Filing</a>
+                </div>
+                <div class="admin-nav-item">
+                    <a href="/services/logging/" class="admin-nav-link">Logging</a>
+                </div>
+                <div class="admin-nav-item">
+                    <a href="/services/measuring/" class="admin-nav-link">Measuring</a>
+                </div>
+                <div class="admin-nav-item">
+                    <a href="/services/notifying/" class="admin-nav-link">Notifying</a>
+                </div>
+                <div class="admin-nav-item">
+                    <a href="/services/queueing/" class="admin-nav-link">Queueing</a>
+                </div>
+                <div class="admin-nav-item">
+                    <a href="/services/scheduling/" class="admin-nav-link active">Scheduling</a>
+                </div>
+                <div class="admin-nav-item">
+                    <a href="/services/searching/" class="admin-nav-link">Searching</a>
+                </div>
+                <div class="admin-nav-item">
+                    <a href="/services/workflow/" class="admin-nav-link">Workflow</a>
+                </div>
+                <div class="admin-nav-item">
+                    <a href="/services/working/" class="admin-nav-link">Working</a>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="admin-content">
+            <div class="admin-header">
+                <h1 class="admin-title">Task Scheduling Management</h1>
+                <p class="admin-subtitle">Schedule, cancel and manage task scheduling with cron expressions</p>
+            </div>
+
+            <div class="scheduling-operations">
+                
+                <!-- Schedule Task -->
+                <div class="scheduling-card">
+                    <h3>Schedule Task</h3>
+                    <form id="scheduleForm">
+                        <div class="form-group">
+                            <label for="scheduleTask" class="form-label">Task (JSON Format Required)</label>
+                            <div class="json-examples">
+                                <div class="json-example">
+                                    <div class="json-example-label">Email Task:</div>
+                                    {"type": "email", "to": "user@example.com", "subject": "Reminder"}
+                                </div>
+                                <div class="json-example">
+                                    <div class="json-example-label">Backup Task:</div>
+                                    {"type": "backup", "database": "main", "location": "s3://bucket/path"}
+                                </div>
+                                <div class="json-example">
+                                    <div class="json-example-label">API Call:</div>
+                                    {"type": "webhook", "url": "https://api.example.com/endpoint", "method": "POST"}
+                                </div>
+                            </div>
+                            <textarea id="scheduleTask" name="task" class="form-textarea" placeholder="Enter valid JSON for the task (e.g., {&quot;type&quot;: &quot;email&quot;, &quot;to&quot;: &quot;user@example.com&quot;})" required></textarea>
+                            <div id="scheduleTaskHelper" class="form-helper">Enter valid JSON format only. The task will be validated before scheduling.</div>
+                            <div id="scheduleTaskError" class="form-error" style="display: none;"></div>
+                        </div>
+                        <div class="form-group">
+                            <label for="scheduleCron" class="form-label">Cron Expression</label>
+                            <input type="text" id="scheduleCron" name="cron" class="form-input" placeholder="0 0 * * * (every hour)" required>
+                            <div class="form-helper">Standard cron format: second minute hour day month weekday</div>
+                        </div>
+                        <div style="display: flex; gap: 12px; margin-bottom: 16px;">
+                            <button type="button" onclick="loadScheduleExample()" style="background: var(--surface-variant); color: var(--text-primary); border: 1px solid var(--outline-color); padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 0.875rem;">Load Example</button>
+                            <button type="button" onclick="formatTaskJson()" style="background: var(--surface-variant); color: var(--text-primary); border: 1px solid var(--outline-color); padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 0.875rem;">Format JSON</button>
+                        </div>
+                        <button type="submit" class="form-button" id="scheduleSubmitBtn">Schedule Task</button>
+                    </form>
+                    <div id="scheduleResult" class="result-area"></div>
+                </div>
+
+                <!-- Cancel Task -->
+                <div class="scheduling-card">
+                    <h3>Cancel Task</h3>
+                    <form id="cancelForm">
+                        <div class="form-group">
+                            <label for="cancelTaskId" class="form-label">Task ID</label>
+                            <input type="text" id="cancelTaskId" name="taskId" class="form-input" placeholder="Enter task ID to cancel" required>
+                            <div class="form-helper">Task ID returned when task was scheduled</div>
+                        </div>
+                        <button type="submit" class="form-button">Cancel Task</button>
+                    </form>
+                    <div id="cancelResult" class="result-area"></div>
+                </div>
+
+                <!-- Service Status -->
+                <div class="scheduling-card">
+                    <h3>Service Status</h3>
+                    <form id="statusForm">
+                        <button type="submit" class="form-button">Check Status</button>
+                    </form>
+                    <div id="statusResult" class="result-area"></div>
+                </div>
+            </div>
+
+            <!-- API Documentation -->
+            <div class="swagger-card">
+                <h2 style="margin-bottom: 24px; font-size: 1.75rem; font-weight: 400;">API Documentation</h2>
+                <div id="swagger-ui"></div>
+            </div>
+        </main>
+    </div>
+    <script src="https://unpkg.com/swagger-ui-dist@4.15.5/swagger-ui-bundle.js"></script>
+    <script>
+        // OpenAPI Specification
+        const apiSpec = {
+            "openapi": "3.0.0",
+            "info": {
+                "title": "NooblyJS Core - Scheduling Service API",
+                "version": "1.0.0",
+                "description": "RESTful API for the scheduling service in NooblyJS Core framework"
+            },
+            "servers": [
+                {
+                    "url": "/services/scheduling/api",
+                    "description": "Scheduling Service API"
+                }
+            ],
+            "paths": {
+                "/schedule": {
+                    "post": {
+                        "summary": "Schedule a task",
+                        "description": "Schedules a task with the specified cron expression",
+                        "requestBody": {
+                            "required": true,
+                            "content": {
+                                "application/json": {
+                                    "schema": {
+                                        "type": "object",
+                                        "properties": {
+                                            "task": {
+                                                "type": "object",
+                                                "description": "Task data as JSON object"
+                                            },
+                                            "cron": {
+                                                "type": "string",
+                                                "description": "Cron expression for scheduling"
+                                            }
+                                        },
+                                        "required": ["task", "cron"]
+                                    },
+                                    "example": {
+                                        "task": {
+                                            "type": "email",
+                                            "to": "user@example.com",
+                                            "subject": "Daily Report"
+                                        },
+                                        "cron": "0 0 9 * * *"
+                                    }
+                                }
+                            }
+                        },
+                        "responses": {
+                            "200": {
+                                "description": "Task scheduled successfully",
+                                "content": {
+                                    "application/json": {
+                                        "schema": {
+                                            "type": "object",
+                                            "properties": {
+                                                "taskId": {
+                                                    "type": "string",
+                                                    "description": "Unique identifier for the scheduled task"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            "400": {
+                                "description": "Invalid request body or cron expression"
+                            },
+                            "500": {
+                                "description": "Server error"
+                            }
+                        }
+                    }
+                },
+                "/cancel/{taskId}": {
+                    "delete": {
+                        "summary": "Cancel a scheduled task",
+                        "description": "Cancels a scheduled task by its ID",
+                        "parameters": [
+                            {
+                                "name": "taskId",
+                                "in": "path",
+                                "required": true,
+                                "schema": {
+                                    "type": "string"
+                                },
+                                "description": "The task ID to cancel"
+                            }
+                        ],
+                        "responses": {
+                            "200": {
+                                "description": "Task cancelled successfully"
+                            },
+                            "404": {
+                                "description": "Task not found"
+                            },
+                            "500": {
+                                "description": "Server error"
+                            }
+                        }
+                    }
+                },
+                "/status": {
+                    "get": {
+                        "summary": "Check service status",
+                        "description": "Returns the current status of the scheduling service",
+                        "responses": {
+                            "200": {
+                                "description": "Service is running",
+                                "content": {
+                                    "application/json": {
+                                        "schema": {
+                                            "type": "string",
+                                            "example": "scheduling api running"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        };
+
+        // Initialize Swagger UI
+        SwaggerUIBundle({
+            url: '',
+            spec: apiSpec,
+            dom_id: '#swagger-ui',
+            deepLinking: true,
+            presets: [
+                SwaggerUIBundle.presets.apis,
+                SwaggerUIBundle.presets.standalone
+            ],
+            plugins: [
+                SwaggerUIBundle.plugins.DownloadUrl
+            ]
+        });
+
+        // Form handling
+        const scheduleForm = document.getElementById('scheduleForm');
+        const cancelForm = document.getElementById('cancelForm');
+        const statusForm = document.getElementById('statusForm');
+
+        // Utility function to show result in specific result div
+        function showResult(resultDivId, message, type) {
+            const resultDiv = document.getElementById(resultDivId);
+            resultDiv.textContent = message;
+            resultDiv.className = `result-area${type === 'success' ? ' result-success' : type === 'error' ? ' result-error' : ''}`;
+        }
+
+        // JSON Validation Functions
+        function validateJson(jsonString) {
+            try {
+                JSON.parse(jsonString);
+                return { valid: true, error: null };
+            } catch (error) {
+                return { valid: false, error: error.message };
+            }
+        }
+
+        function updateValidationUI(textareaElement, helperElement, errorElement, validation) {
+            if (validation.valid) {
+                textareaElement.classList.remove('invalid');
+                textareaElement.classList.add('valid');
+                errorElement.style.display = 'none';
+                helperElement.style.display = 'block';
+                helperElement.textContent = 'Valid JSON format ✓';
+                helperElement.style.color = 'var(--success-color)';
+            } else {
+                textareaElement.classList.remove('valid');
+                textareaElement.classList.add('invalid');
+                helperElement.style.display = 'none';
+                errorElement.style.display = 'block';
+                errorElement.textContent = `Invalid JSON: ${validation.error}`;
+            }
+        }
+
+        function formatTaskJson() {
+            const textarea = document.getElementById('scheduleTask');
+            const value = textarea.value.trim();
+            
+            if (!value) {
+                return;
+            }
+            
+            try {
+                const parsed = JSON.parse(value);
+                textarea.value = JSON.stringify(parsed, null, 2);
+                // Trigger validation
+                validateScheduleTask();
+            } catch (error) {
+                // If it's not valid JSON, just trigger validation to show error
+                validateScheduleTask();
+            }
+        }
+
+        function validateScheduleTask() {
+            const textarea = document.getElementById('scheduleTask');
+            const helper = document.getElementById('scheduleTaskHelper');
+            const error = document.getElementById('scheduleTaskError');
+            const submitBtn = document.getElementById('scheduleSubmitBtn');
+            
+            const value = textarea.value.trim();
+            
+            if (!value) {
+                textarea.classList.remove('valid', 'invalid');
+                helper.style.display = 'block';
+                helper.textContent = 'Enter valid JSON format only. The task will be validated before scheduling.';
+                helper.style.color = 'var(--text-secondary)';
+                error.style.display = 'none';
+                submitBtn.disabled = false;
+                submitBtn.style.opacity = '1';
+                return;
+            }
+            
+            const validation = validateJson(value);
+            updateValidationUI(textarea, helper, error, validation);
+            
+            // Enable/disable submit button based on validation
+            if (validation.valid) {
+                submitBtn.disabled = false;
+                submitBtn.style.opacity = '1';
+                submitBtn.style.cursor = 'pointer';
+            } else {
+                submitBtn.disabled = true;
+                submitBtn.style.opacity = '0.5';
+                submitBtn.style.cursor = 'not-allowed';
+            }
+        }
+
+        // Add real-time validation to task textarea
+        document.getElementById('scheduleTask').addEventListener('input', validateScheduleTask);
+        document.getElementById('scheduleTask').addEventListener('blur', validateScheduleTask);
+
+        // SCHEDULE Form Handler
+        scheduleForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const taskValue = document.getElementById('scheduleTask').value.trim();
+            const cron = document.getElementById('scheduleCron').value;
+            
+            // Final validation before submission
+            if (!taskValue) {
+                showResult('scheduleResult', 'Task is required', 'error');
+                return;
+            }
+            
+            const validation = validateJson(taskValue);
+            if (!validation.valid) {
+                showResult('scheduleResult', `Cannot schedule: Invalid JSON format - ${validation.error}`, 'error');
+                return;
+            }
+            
+            try {
+                const task = JSON.parse(taskValue);
+                const body = { task, cron };
+                await executeApiCall('SCHEDULE', null, body, 'scheduleResult');
+            } catch (e) {
+                showResult('scheduleResult', `Unexpected error: ${e.message}`, 'error');
+            }
+        });
+
+        // CANCEL Form Handler
+        cancelForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const taskId = document.getElementById('cancelTaskId').value;
+            await executeApiCall('CANCEL', taskId, null, 'cancelResult');
+        });
+
+        // STATUS Form Handler
+        statusForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            await executeApiCall('STATUS', null, null, 'statusResult');
+        });
+
+        // Generic API call function
+        async function executeApiCall(operation, taskId, body, resultDivId) {
+            let url, method;
+            
+            switch (operation) {
+                case 'SCHEDULE':
+                    url = `/services/scheduling/api/schedule`;
+                    method = 'POST';
+                    break;
+                case 'CANCEL':
+                    url = `/services/scheduling/api/cancel/${encodeURIComponent(taskId)}`;
+                    method = 'DELETE';
+                    break;
+                case 'STATUS':
+                    url = `/services/scheduling/api/status`;
+                    method = 'GET';
+                    break;
+            }
+            
+            try {
+                const options = {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                };
+                
+                if (body !== undefined && body !== null) {
+                    options.body = JSON.stringify(body);
+                }
+                
+                const response = await fetch(url, options);
+                const responseText = await response.text();
+                
+                let responseData;
+                try {
+                    responseData = JSON.parse(responseText);
+                } catch (e) {
+                    responseData = responseText;
+                }
+                
+                if (response.ok) {
+                    showResult(resultDivId, `Success: ${JSON.stringify(responseData, null, 2)}`, 'success');
+                } else {
+                    showResult(resultDivId, `Error ${response.status}: ${responseData}`, 'error');
+                }
+            } catch (error) {
+                showResult(resultDivId, `Network Error: ${error.message}`, 'error');
+            }
+        }
+
+        // Load example data for schedule form
+        function loadScheduleExample() {
+            document.getElementById('scheduleTask').value = JSON.stringify({
+                "type": "email",
+                "to": "admin@example.com",
+                "subject": "Daily Report",
+                "body": "Your daily system report is ready.",
+                "priority": "normal"
+            }, null, 2);
+            document.getElementById('scheduleCron').value = '0 0 9 * * *';
+            
+            // Trigger validation after loading example
+            validateScheduleTask();
+        }
+    </script>
+</body>
+</html>

@@ -5,6 +5,7 @@
 
 const WorkerProvider = require('./providers/workingProvider');
 const Routes = require('./routes');
+const Views = require('./views');
 
 /** @type {WorkerProvider} */
 let instance = null;
@@ -20,6 +21,7 @@ function getWorkerInstance(type, options, eventEmitter) {
   if (!instance) {
     instance = new WorkerProvider(options, eventEmitter);
     Routes(options, eventEmitter, instance);
+    Views(options, eventEmitter, instance);
   }
   return instance;
 }

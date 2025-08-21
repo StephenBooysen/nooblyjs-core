@@ -3,6 +3,7 @@
  */
 const NotificationService = require('./provider/notifying');
 const Routes = require('./routes');
+const Views = require('./views');
 
 /**
  * Creates a NotificationService instance.
@@ -14,6 +15,7 @@ const Routes = require('./routes');
 function createNotificationService(type, options, eventEmitter) {
   let notifying = new NotificationService(options, eventEmitter)
   Routes(options, eventEmitter, notifying);
+  Views(options, eventEmitter, notifying);
   console.log('Notification service created with type:', type);
   return notifying;
 }

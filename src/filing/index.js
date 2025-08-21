@@ -5,6 +5,8 @@
 const LocalFilingProvider = require('./providers/filingLocal');
 const FtpFilingProvider = require('./providers/filingFtp');
 const S3FilingProvider = require('./providers/filingS3');
+const Routes = require('./routes');
+const Views = require('./views');
 
 class FilingService {
   constructor(provider, eventEmitter) {
@@ -26,6 +28,16 @@ class FilingService {
   }
 
   /**
+   * Uploads a file with the given content (alias for create).
+   * @param {string} path - The path to the file.
+   * @param {string} content - The content of the file.
+   * @returns {Promise<void>} A promise that resolves when the file is uploaded.
+   */
+  async upload(path, content) {
+    return this.provider.create(path, content);
+  }
+
+  /**
    * Reads the content of a file.
    * @param {string} path - The path to the file.
    * @returns {Promise<string>} A promise that resolves with the file content.
@@ -35,11 +47,29 @@ class FilingService {
   }
 
   /**
+   * Downloads a file (alias for read).
+   * @param {string} path - The path to the file.
+   * @returns {Promise<string>} A promise that resolves with the file content.
+   */
+  async download(path) {
+    return this.provider.read(path);
+  }
+
+  /**
    * Deletes a file.
    * @param {string} path - The path to the file.
    * @returns {Promise<void>} A promise that resolves when the file is deleted.
    */
   async delete(path) {
+    return this.provider.delete(path);
+  }
+
+  /**
+   * Removes a file (alias for delete).
+   * @param {string} path - The path to the file.
+   * @returns {Promise<void>} A promise that resolves when the file is removed.
+   */
+  async remove(path) {
     return this.provider.delete(path);
   }
 
@@ -84,7 +114,10 @@ function createFilingService(type = 'local', options, eventEmitter) {
     default:
       throw new Error(`Unsupported filing provider type: ${type}`);
   }
-  return new FilingService(provider, eventEmitter);
+  const service = new FilingService(provider, eventEmitter);
+  Routes(options, eventEmitter, service);
+  Views(options, eventEmitter, service);
+  return service;
 }
 
 module.exports = createFilingService;

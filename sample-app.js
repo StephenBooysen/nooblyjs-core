@@ -12,6 +12,8 @@ serviceRegistry.initialize(app);
 // Get services from the registry
 const log = serviceRegistry.logger('console');
 const cache = serviceRegistry.cache('memory');
+const dataserve = serviceRegistry.dataServe('memory');
+const filing = serviceRegistry.filing('local');
 const queue = serviceRegistry.queue('memory');
 
 // Test the services

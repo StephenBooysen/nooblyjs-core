@@ -9,7 +9,7 @@ module.exports = (options, eventEmitter, scheduler) => {
   if (options['express-app'] && scheduler) {
     const app = options['express-app'];
 
-    app.post('/api/scheduling/schedule', (req, res) => {
+    app.post('/services/scheduling/api/schedule', (req, res) => {
       const { task, cron } = req.body;
       if (task && cron) {
         scheduler
@@ -21,7 +21,7 @@ module.exports = (options, eventEmitter, scheduler) => {
       }
     });
 
-    app.delete('/api/scheduling/cancel/:taskId', (req, res) => {
+    app.delete('/services/scheduling/api/cancel/:taskId', (req, res) => {
       const taskId = req.params.taskId;
       scheduler
         .cancel(taskId)
@@ -29,7 +29,7 @@ module.exports = (options, eventEmitter, scheduler) => {
         .catch((err) => res.status(500).send(err.message));
     });
 
-    app.get('/api/scheduling/status', (req, res) => {
+    app.get('/services/scheduling/api/status', (req, res) => {
       eventEmitter.emit('api-scheduling-status', 'scheduling api running');
       res.status(200).json('scheduling api running');
     });

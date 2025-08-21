@@ -4,6 +4,7 @@
 'use strict';
 const SearchService = require('./provider/searching.js');
 const Routes = require('./routes');
+const Views = require('./views');
 
 /**
  * Creates a SearchService instance.
@@ -16,6 +17,7 @@ function createSearchService(type, options, eventEmitter) {
   eventEmitter.emit('Search Service Intantiated', {});
   const searching = new SearchService(options, eventEmitter);
   Routes(options, eventEmitter, searching);
+  Views(options, eventEmitter, searching);
   return searching;
 }
 
