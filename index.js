@@ -1,0 +1,229 @@
+/**
+ * @fileoverview NooblyJS Core - Service Registry
+ * A powerful set of modular Node.js backend services with singleton pattern.
+ */
+
+const EventEmitter = require('events');
+
+class ServiceRegistry {
+  constructor() {
+    this.services = new Map();
+    this.eventEmitter = new EventEmitter();
+    this.initialized = false;
+  }
+
+  /**
+   * Initializes the service registry with an Express app
+   * @param {Object} expressApp - Express application instance
+   * @param {Object} globalOptions - Global configuration options
+   */
+  initialize(expressApp, globalOptions = {}) {
+    if (this.initialized) {
+      return this;
+    }
+
+    this.expressApp = expressApp;
+    this.globalOptions = {
+      'express-app': expressApp,
+      ...globalOptions,
+    };
+
+    // Patch event emitter for debugging
+    this.patchEmitter();
+
+    this.initialized = true;
+    return this;
+  }
+
+  /**
+   * Patch event emitter to capture all events for debugging
+   */
+  patchEmitter() {
+    const originalEmit = this.eventEmitter.emit;
+    this.eventEmitter.emit = function () {
+      const eventName = arguments[0];
+      const args = Array.from(arguments).slice(1);
+      console.log(`Caught event: "${eventName}" with arguments:`, args);
+      return originalEmit.apply(this, arguments);
+    };
+  }
+
+  /**
+   * Gets or creates a service instance (singleton pattern)
+   * @param {string} serviceName - Name of the service
+   * @param {string} providerType - Type of provider to use
+   * @param {Object} options - Service-specific options
+   * @returns {Object} Service instance
+   */
+  getService(serviceName, providerType = 'memory', options = {}) {
+    if (!this.initialized) {
+      throw new Error(
+        'ServiceRegistry must be initialized before getting services',
+      );
+    }
+
+    const serviceKey = `${serviceName}:${providerType}`;
+
+    if (this.services.has(serviceKey)) {
+      return this.services.get(serviceKey);
+    }
+
+    const mergedOptions = {
+      ...this.globalOptions,
+      ...options,
+    };
+
+    let service;
+    try {
+      const serviceFactory = require(`./src/${serviceName}`);
+      service = serviceFactory(providerType, mergedOptions, this.eventEmitter);
+    } catch (error) {
+      throw new Error(
+        `Failed to create service '${serviceName}' with provider '${providerType}': ${error.message}`,
+      );
+    }
+
+    this.services.set(serviceKey, service);
+    return service;
+  }
+
+  /**
+   * Get the caching service
+   * @param {string} providerType - 'memory', 'redis', or 'memcached'
+   * @param {Object} options - Provider-specific options
+   * @returns {Object} Cache service instance
+   */
+  cache(providerType = 'memory', options = {}) {
+    return this.getService('caching', providerType, options);
+  }
+
+  /**
+   * Get the logging service
+   * @param {string} providerType - 'console' or 'file'
+   * @param {Object} options - Provider-specific options
+   * @returns {Object} Logger service instance
+   */
+  logger(providerType = 'console', options = {}) {
+    return this.getService('logging', providerType, options);
+  }
+
+  /**
+   * Get the data serving service
+   * @param {string} providerType - 'memory', 'simpledb', or 'file'
+   * @param {Object} options - Provider-specific options
+   * @returns {Object} DataServe service instance
+   */
+  dataServe(providerType = 'memory', options = {}) {
+    return this.getService('dataserve', providerType, options);
+  }
+
+  /**
+   * Get the filing service
+   * @param {string} providerType - 'local', 'ftp', or 's3'
+   * @param {Object} options - Provider-specific options
+   * @returns {Object} Filing service instance
+   */
+  filing(providerType = 'local', options = {}) {
+    return this.getService('filing', providerType, options);
+  }
+
+  /**
+   * Get the measuring service
+   * @param {string} providerType - 'memory'
+   * @param {Object} options - Provider-specific options
+   * @returns {Object} Measuring service instance
+   */
+  measuring(providerType = 'memory', options = {}) {
+    return this.getService('measuring', providerType, options);
+  }
+
+  /**
+   * Get the notifying service
+   * @param {string} providerType - 'memory'
+   * @param {Object} options - Provider-specific options
+   * @returns {Object} Notifying service instance
+   */
+  notifying(providerType = 'memory', options = {}) {
+    return this.getService('notifying', providerType, options);
+  }
+
+  /**
+   * Get the queueing service
+   * @param {string} providerType - 'memory'
+   * @param {Object} options - Provider-specific options
+   * @returns {Object} Queue service instance
+   */
+  queue(providerType = 'memory', options = {}) {
+    return this.getService('queueing', providerType, options);
+  }
+
+  /**
+   * Get the scheduling service
+   * @param {string} providerType - 'memory'
+   * @param {Object} options - Provider-specific options
+   * @returns {Object} Scheduling service instance
+   */
+  scheduling(providerType = 'memory', options = {}) {
+    return this.getService('scheduling', providerType, options);
+  }
+
+  /**
+   * Get the searching service
+   * @param {string} providerType - 'memory'
+   * @param {Object} options - Provider-specific options
+   * @returns {Object} Searching service instance
+   */
+  searching(providerType = 'memory', options = {}) {
+    return this.getService('searching', providerType, options);
+  }
+
+  /**
+   * Get the workflow service
+   * @param {string} providerType - 'memory'
+   * @param {Object} options - Provider-specific options
+   * @returns {Object} Workflow service instance
+   */
+  workflow(providerType = 'memory', options = {}) {
+    return this.getService('workflow', providerType, options);
+  }
+
+  /**
+   * Get the working service
+   * @param {string} providerType - 'memory'
+   * @param {Object} options - Provider-specific options
+   * @returns {Object} Working service instance
+   */
+  working(providerType = 'memory', options = {}) {
+    return this.getService('working', providerType, options);
+  }
+
+  /**
+   * Get the event emitter for inter-service communication
+   * @returns {EventEmitter} The global event emitter
+   */
+  getEventEmitter() {
+    return this.eventEmitter;
+  }
+
+  /**
+   * Lists all initialized services
+   * @returns {Array} Array of service keys
+   */
+  listServices() {
+    return Array.from(this.services.keys());
+  }
+
+  /**
+   * Clears all service instances (useful for testing)
+   */
+  reset() {
+    this.services.clear();
+    this.initialized = false;
+    this.eventEmitter.removeAllListeners();
+  }
+}
+
+// Export singleton instance
+const serviceRegistry = new ServiceRegistry();
+
+module.exports = serviceRegistry;

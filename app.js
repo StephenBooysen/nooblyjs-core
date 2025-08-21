@@ -1,52 +1,25 @@
-const EventEmitter = require('events');
 const path = require('path');
 const express = require('express');
 const bodyParser = require('body-parser');
+const serviceRegistry = require('./index');
+
 const app = express();
 app.use(bodyParser.json());
 
-/**
- * Patch our emitter to capture all events
- * @param {} emitter
- */
-function patchEmitter(emitter) {
-  const originalEmit = emitter.emit;
+// Initialize the service registry with the Express app
+serviceRegistry.initialize(app);
 
-  emitter.emit = function () {
-    const eventName = arguments[0];
-    const args = Array.from(arguments).slice(1); // Get arguments excluding the event name
-    console.log(`Caught event: "${eventName}" with arguments:`, args);
-    return originalEmit.apply(this, arguments);
-  };
-}
-const eventEmitter = new EventEmitter();
-patchEmitter(eventEmitter);
+// Get services from the registry
+const log = serviceRegistry.logger('console');
+const cache = serviceRegistry.cache('memory');
+const queue = serviceRegistry.queue('memory');
 
-// lets log
-const log = require('./src/logging')('', { 'express-app': app }, eventEmitter);
-
-// lets cache
-const cache = require('./src/caching')(
-  'memory',
-  { 'express-app': app },
-  eventEmitter,
-);
+// Test the services
 cache.put('currentdate', new Date());
 log.log(cache.get('currentdate'));
-
-// lets queue
-const queue = require('./src/queueing')(
-  'memory',
-  { 'express-app': app },
-  eventEmitter,
-);
 queue.enqueue(new Date());
 
-const scheduling = require('./src/scheduling')(
-  'memory',
-  { 'express-app': app },
-  eventEmitter,
-);
+const scheduling = serviceRegistry.scheduling('memory');
 scheduling.start(
   'Schedule task 1',
   '../../../tests/unit/working/exampleTask.js',
@@ -75,24 +48,16 @@ scheduling.start(
   },
 );
 
-const seaching = require('./src/searching')(
-  'memory',
-  { 'express-app': app },
-  eventEmitter,
-);
+const searching = serviceRegistry.searching('memory');
 const { v4: uuidv4 } = require('uuid');
-seaching.add(uuidv4(), { name: 'Jill', role: 'user', dob: '2025-02-01' });
-seaching.add(uuidv4(), { name: 'Frank', role: 'user', dob: '2025-03-01' });
-seaching.add(uuidv4(), { name: 'Bill', role: 'user', dob: '2025-04-01' });
-seaching.add(uuidv4(), { name: 'Ted', role: 'user', dob: '2025-05-01' });
-seaching.search('user');
+searching.add(uuidv4(), { name: 'Jill', role: 'user', dob: '2025-02-01' });
+searching.add(uuidv4(), { name: 'Frank', role: 'user', dob: '2025-03-01' });
+searching.add(uuidv4(), { name: 'Bill', role: 'user', dob: '2025-04-01' });
+searching.add(uuidv4(), { name: 'Ted', role: 'user', dob: '2025-05-01' });
+searching.search('user');
 
 // lets measure
-const measuring = require('./src/measuring')(
-  'memory',
-  { 'express-app': app },
-  eventEmitter,
-);
+const measuring = serviceRegistry.measuring('memory');
 console.log(measuring);
 measuring.add('example-measure', 300);
 measuring.add('example-measure', 150);
@@ -109,11 +74,7 @@ measuring
   });
 
 // lets notify
-const notifying = require('./src/notifying')(
-  'memory',
-  { 'express-app': app },
-  eventEmitter,
-);
+const notifying = serviceRegistry.notifying('memory');
 console.log(notifying);
 notifying.createTopic('example-topic');
 notifying.subscribe('example-topic', (message) => {
@@ -126,21 +87,13 @@ notifying.notify('example-topic', { text: 'Hello, World!' });
 notifying.notify('example-topic', { text: 'Hello, World 2!' });
 
 // lets work
-const worker = require('./src/working')(
-  'memory',
-  { 'express-app': app },
-  eventEmitter,
-);
+const worker = serviceRegistry.working('memory');
 worker.start('../../../tests/working/exampleTask.js', () => {
   console.log('Worker  task ended');
 });
 
 // lets workflow
-const workflow = require('./src/workflow')(
-  'memory',
-  { 'express-app': app },
-  eventEmitter,
-);
+const workflow = serviceRegistry.workflow('memory');
 const steps = [
   path.resolve(__dirname, './tests/unit/workflow/steps/exampleStep1.js'),
   path.resolve(__dirname, './tests/unit/workflow/steps/exampleStep2.js'),
@@ -161,5 +114,4 @@ app.use(
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   log.log(`Server is running on port ${PORT}`);
-
 });
