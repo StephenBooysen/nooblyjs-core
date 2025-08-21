@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -19,12 +20,10 @@
             --success-color: #388e3c;
             --text-primary: #212121;
             --text-secondary: #757575;
-            --text-hint: #9e9e9e;
-            --divider-color: #e0e0e0;
-            --outline-color: #616161;
-            --surface-tint: rgba(25, 118, 210, 0.08);
-            --elevation-1: 0px 1px 3px rgba(0, 0, 0, 0.12), 0px 1px 2px rgba(0, 0, 0, 0.24);
-            --elevation-2: 0px 3px 6px rgba(0, 0, 0, 0.16), 0px 3px 6px rgba(0, 0, 0, 0.23);
+            --border-color: #e0e0e0;
+            --shadow-1: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+            --shadow-2: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
+            --shadow-3: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23);
         }
 
         * {
@@ -35,635 +34,611 @@
 
         body {
             font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            line-height: 1.5;
+            background-color: var(--background-color);
             color: var(--text-primary);
-            background: var(--background-color);
+            line-height: 1.6;
+        }
+
+        .app-container {
+            display: flex;
             min-height: 100vh;
         }
 
-        /* Header */
-        .header {
+        .sidebar {
+            width: 280px;
             background: var(--surface-color);
-            box-shadow: var(--elevation-1);
+            box-shadow: var(--shadow-2);
+            padding: 24px 0;
             position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 1000;
-            height: 64px;
-        }
-
-        .header-container {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            height: 100%;
-            padding: 0 24px;
+            height: 100vh;
+            overflow-y: auto;
         }
 
         .logo {
-            display: flex;
-            align-items: center;
-            text-decoration: none;
-            color: var(--text-primary);
+            padding: 0 24px 32px;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 24px;
+        }
+
+        .logo h1 {
+            font-size: 24px;
             font-weight: 500;
-            font-size: 1.25rem;
+            color: var(--primary-color);
         }
 
-        .logo-icon {
-            width: 40px;
-            height: 40px;
-            background: var(--primary-color);
-            color: white;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 600;
-            margin-right: 12px;
-        }
-
-        /* Admin Container */
-        .admin-container {
-            display: flex;
-            min-height: 100vh;
-            margin-top: 64px;
-            background: var(--background-color);
-        }
-
-        .admin-sidebar {
-            width: 280px;
-            background: var(--surface-color);
-            border-right: 1px solid var(--divider-color);
-            padding: 24px 0;
-            position: fixed;
-            height: calc(100vh - 64px);
-            overflow-y: auto;
-            box-shadow: var(--elevation-1);
-        }
-
-        .admin-nav {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        .admin-nav-item {
-            padding: 0;
-            margin: 0 16px;
-        }
-
-        .admin-nav-link {
-            display: block;
-            padding: 12px 16px;
+        .logo .subtitle {
+            font-size: 14px;
             color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        .nav-item {
+            display: block;
+            padding: 16px 24px;
+            color: var(--text-primary);
             text-decoration: none;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            font-weight: 500;
-            font-size: 0.875rem;
-            border-radius: 12px;
-            position: relative;
-            overflow: hidden;
+            transition: all 0.2s ease;
+            border-left: 4px solid transparent;
         }
 
-        .admin-nav-link:hover {
+        .nav-item:hover {
+            background-color: var(--surface-variant);
             color: var(--primary-color);
-            background: var(--surface-tint);
         }
 
-        .admin-nav-link.active {
-            color: var(--primary-color);
-            background: var(--surface-tint);
+        .nav-item.active {
+            background-color: var(--primary-light);
+            color: white;
+            border-left-color: var(--primary-dark);
         }
 
-        .admin-content {
+        .main-content {
             flex: 1;
             margin-left: 280px;
             padding: 32px;
         }
 
-        .admin-header {
+        .page-header {
             margin-bottom: 32px;
         }
 
-        .admin-title {
-            font-size: 2rem;
+        .page-title {
+            font-size: 32px;
             font-weight: 400;
             color: var(--text-primary);
             margin-bottom: 8px;
-            line-height: 2.5rem;
         }
 
-        .admin-subtitle {
+        .page-subtitle {
+            font-size: 16px;
             color: var(--text-secondary);
-            font-weight: 400;
-            font-size: 1rem;
-            line-height: 1.5rem;
         }
 
-        /* Notifying Operations */
-        .notifying-operations {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 24px;
-            margin-bottom: 32px;
-        }
-
-        .notifying-card {
+        .card {
             background: var(--surface-color);
-            border-radius: 12px;
-            padding: 24px;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: var(--elevation-1);
-        }
-
-        .notifying-card:hover {
-            box-shadow: var(--elevation-2);
-        }
-
-        .notifying-card h3 {
-            color: var(--text-primary);
-            font-size: 1.375rem;
-            font-weight: 400;
+            border-radius: 8px;
+            box-shadow: var(--shadow-1);
             margin-bottom: 24px;
-            line-height: 1.75rem;
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 24px;
+            border-bottom: 1px solid var(--border-color);
+            background: var(--surface-variant);
+        }
+
+        .card-title {
+            font-size: 20px;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .card-subtitle {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .card-content {
+            padding: 24px;
         }
 
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 24px;
         }
 
         .form-label {
             display: block;
-            color: var(--text-primary);
+            font-size: 14px;
             font-weight: 500;
+            color: var(--text-primary);
             margin-bottom: 8px;
-            font-size: 0.875rem;
-            line-height: 1.25rem;
         }
 
         .form-input {
             width: 100%;
             padding: 12px 16px;
-            border: 1px solid var(--outline-color);
-            border-radius: 8px;
+            border: 2px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 16px;
+            transition: all 0.2s ease;
             background: var(--surface-color);
             color: var(--text-primary);
-            font-size: 1rem;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
         }
 
         .form-input:focus {
             outline: none;
             border-color: var(--primary-color);
-            box-shadow: 0 0 0 2px var(--surface-tint);
-        }
-
-        .form-input::placeholder {
-            color: var(--text-hint);
+            box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.2);
         }
 
         .form-textarea {
-            width: 100%;
-            padding: 12px 16px;
-            border: 1px solid var(--outline-color);
-            border-radius: 8px;
-            background: var(--surface-color);
-            color: var(--text-primary);
-            font-size: 1rem;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            min-height: 80px;
+            min-height: 120px;
             resize: vertical;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
         }
 
-        .form-textarea:focus {
-            outline: none;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 2px var(--surface-tint);
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            min-width: 64px;
+            justify-content: center;
         }
 
-        .form-textarea::placeholder {
-            color: var(--text-hint);
-        }
-
-        .form-button {
-            width: 100%;
-            padding: 10px 24px;
+        .btn-primary {
             background: var(--primary-color);
             color: white;
-            border: none;
-            border-radius: 20px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            text-transform: uppercase;
-            letter-spacing: 1.25px;
-            font-size: 0.875rem;
-            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            min-height: 40px;
-            position: relative;
-            overflow: hidden;
-            box-shadow: var(--elevation-1);
+            box-shadow: var(--shadow-1);
         }
 
-        .form-button:hover {
-            box-shadow: var(--elevation-2);
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            box-shadow: var(--shadow-2);
         }
 
-        .form-button:active {
-            box-shadow: var(--elevation-1);
-        }
-
-        .result-area {
+        .btn-secondary {
             background: var(--surface-variant);
-            border: 1px solid var(--divider-color);
-            border-radius: 8px;
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border-color);
+        }
+
+        .btn-success {
+            background: var(--success-color);
+            color: white;
+        }
+
+        .btn-error {
+            background: var(--error-color);
+            color: white;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .alert {
             padding: 16px;
-            margin-top: 16px;
-            color: var(--text-secondary);
-            font-size: 0.875rem;
-            font-weight: 400;
-            min-height: 60px;
-            white-space: pre-wrap;
-            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            border-radius: 4px;
+            margin-bottom: 24px;
+            display: none;
         }
 
-        .result-success {
+        .alert.show {
+            display: block;
+        }
+
+        .alert-success {
+            background: rgba(56, 142, 60, 0.1);
+            border: 1px solid var(--success-color);
             color: var(--success-color);
-            background: rgba(56, 142, 60, 0.08);
-            border-color: rgba(56, 142, 60, 0.2);
         }
 
-        .result-error {
+        .alert-error {
+            background: rgba(211, 47, 47, 0.1);
+            border: 1px solid var(--error-color);
             color: var(--error-color);
-            background: rgba(211, 47, 47, 0.08);
-            border-color: rgba(211, 47, 47, 0.2);
         }
 
-        .form-helper {
+        .helper-text {
+            font-size: 12px;
             color: var(--text-secondary);
-            font-size: 0.75rem;
             margin-top: 4px;
-            line-height: 1.2;
         }
 
-        /* Swagger UI Customization */
-        #swagger-ui {
-            margin-top: 32px;
+        .json-valid {
+            border-color: var(--success-color) !important;
         }
 
-        .swagger-card {
-            background: var(--surface-color);
-            border-radius: 12px;
-            padding: 24px;
-            box-shadow: var(--elevation-1);
+        .json-invalid {
+            border-color: var(--error-color) !important;
+        }
+
+        .validation-message {
+            font-size: 12px;
+            margin-top: 4px;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        .validation-success {
+            background: rgba(56, 142, 60, 0.1);
+            color: var(--success-color);
+        }
+
+        .validation-error {
+            background: rgba(211, 47, 47, 0.1);
+            color: var(--error-color);
+        }
+
+        .response-container {
+            margin-top: 24px;
+            padding: 16px;
+            background: var(--surface-variant);
+            border-radius: 4px;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .response-title {
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
+        .response-content {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 14px;
+            color: var(--text-secondary);
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
         }
 
         @media (max-width: 768px) {
-            .admin-sidebar {
-                width: 240px;
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
             }
-            
-            .admin-content {
-                margin-left: 240px;
-                padding: 24px 16px;
-            }
-            
-            .notifying-operations {
-                grid-template-columns: 1fr;
-                gap: 16px;
-            }
-        }
 
-        @media (max-width: 600px) {
-            .admin-sidebar {
-                width: 100%;
-                position: relative;
-                height: auto;
-                box-shadow: none;
-                border-right: none;
-                border-bottom: 1px solid var(--divider-color);
-            }
-            
-            .admin-content {
+            .main-content {
                 margin-left: 0;
                 padding: 16px;
             }
-            
-            .admin-container {
+
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+
+            .btn-group {
                 flex-direction: column;
             }
+        }
+
+        .swagger-ui {
+            font-family: inherit;
+        }
+
+        .swagger-ui .topbar {
+            display: none;
+        }
+
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
         }
     </style>
 </head>
 <body>
-    <!-- Header -->
-    <header class="header">
-        <div class="header-container">
-            <a href="#" class="logo">
-                <div class="logo-icon">N</div>
-                <span>Noobly JS Admin</span>
-            </a>
-        </div>
-    </header>
+    <div class="app-container">
+        <nav class="sidebar">
+            <div class="logo">
+                <h1>Noobly JS</h1>
+                <div class="subtitle">Notification Management</div>
+            </div>
+            <a href="/services/caching/" class="nav-item">Cache Management</a>
+            <a href="/services/dataserve/" class="nav-item">Data Serve</a>
+            <a href="/services/filing/" class="nav-item">File Management</a>
+            <a href="/services/logging/" class="nav-item">Logging</a>
+            <a href="/services/measuring/" class="nav-item">Measuring</a>
+            <a href="/services/notifying/" class="nav-item active">Notifications</a>
+            <a href="/services/queueing/" class="nav-item">Queue Management</a>
+            <a href="/services/scheduling/" class="nav-item">Scheduling</a>
+            <a href="/services/searching/" class="nav-item">Search</a>
+            <a href="/services/working/" class="nav-item">Background Tasks</a>
+            <a href="/services/workflow/" class="nav-item">Workflows</a>
+        </nav>
 
-    <div class="admin-container">
-        <!-- Sidebar Navigation -->
-        <aside class="admin-sidebar">
-            <nav class="admin-nav">
-                <div class="admin-nav-item">
-                    <a href="/services/caching" class="admin-nav-link">Caching</a>
-                </div>
-                <div class="admin-nav-item">
-                    <a href="/services/dataserve" class="admin-nav-link">Data</a>
-                </div>
-                <div class="admin-nav-item">
-                    <a href="/services/filing" class="admin-nav-link">Filing</a>
-                </div>
-                <div class="admin-nav-item">
-                    <a href="/services/logging" class="admin-nav-link">Logging</a>
-                </div>
-                <div class="admin-nav-item">
-                    <a href="/services/measuring" class="admin-nav-link">Measuring</a>
-                </div>
-                <div class="admin-nav-item">
-                    <a href="/services/notifying" class="admin-nav-link active">Notifying</a>
-                </div>
-                <div class="admin-nav-item">
-                    <a href="/services/queueing" class="admin-nav-link">Queueing</a>
-                </div>
-                <div class="admin-nav-item">
-                    <a href="/services/scheduling" class="admin-nav-link">Scheduling</a>
-                </div>
-                <div class="admin-nav-item">
-                    <a href="/services/searching" class="admin-nav-link">Searching</a>
-                </div>
-                <div class="admin-nav-item">
-                    <a href="/services/workflow" class="admin-nav-link">Workflow</a>
-                </div>
-                <div class="admin-nav-item">
-                    <a href="/services/working" class="admin-nav-link">Working</a>
-                </div>
-            </nav>
-        </aside>
-
-        <!-- Main Content -->
-        <main class="admin-content">
-            <div class="admin-header">
-                <h1 class="admin-title">Pub/Sub Notifications</h1>
-                <p class="admin-subtitle">Manage topics, subscribers and publish notifications</p>
+        <main class="main-content">
+            <div class="page-header">
+                <h1 class="page-title">Notification Management</h1>
+                <p class="page-subtitle">Send notifications to users or systems</p>
             </div>
 
-            <div class="notifying-operations">
-                
-                <!-- Create Topic -->
-                <div class="notifying-card">
-                    <h3>Create Topic</h3>
-                    <form id="createTopicForm">
-                        <div class="form-group">
-                            <label for="createTopic" class="form-label">Topic Name</label>
-                            <input type="text" id="createTopic" name="topic" class="form-input" placeholder="Enter topic name (e.g., user-events)" required>
-                            <div class="form-helper">Unique identifier for the notification topic</div>
-                        </div>
-                        <button type="submit" class="form-button">Create Topic</button>
-                    </form>
-                    <div id="createTopicResult" class="result-area"></div>
-                </div>
+            <div class="alert alert-success" id="successAlert">
+                <strong>Success!</strong> <span id="successMessage"></span>
+            </div>
 
-                <!-- Subscribe to Topic -->
-                <div class="notifying-card">
-                    <h3>Subscribe to Topic</h3>
-                    <form id="subscribeForm">
-                        <div class="form-group">
-                            <label for="subscribeTopic" class="form-label">Topic Name</label>
-                            <input type="text" id="subscribeTopic" name="topic" class="form-input" placeholder="Enter topic name" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="subscribeCallback" class="form-label">Callback URL</label>
-                            <input type="url" id="subscribeCallback" name="callbackUrl" class="form-input" placeholder="https://example.com/webhook" required>
-                            <div class="form-helper">URL that will receive notifications when messages are published to this topic</div>
-                        </div>
-                        <button type="submit" class="form-button">Subscribe</button>
-                    </form>
-                    <div id="subscribeResult" class="result-area"></div>
-                </div>
+            <div class="alert alert-error" id="errorAlert">
+                <strong>Error!</strong> <span id="errorMessage"></span>
+            </div>
 
-                <!-- Unsubscribe from Topic -->
-                <div class="notifying-card">
-                    <h3>Unsubscribe from Topic</h3>
-                    <form id="unsubscribeForm">
-                        <div class="form-group">
-                            <label for="unsubscribeTopic" class="form-label">Topic Name</label>
-                            <input type="text" id="unsubscribeTopic" name="topic" class="form-input" placeholder="Enter topic name" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="unsubscribeCallback" class="form-label">Callback URL</label>
-                            <input type="url" id="unsubscribeCallback" name="callbackUrl" class="form-input" placeholder="https://example.com/webhook" required>
-                        </div>
-                        <button type="submit" class="form-button">Unsubscribe</button>
-                    </form>
-                    <div id="unsubscribeResult" class="result-area"></div>
+            <!-- Send Notification Form -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Send Notification</h2>
+                    <p class="card-subtitle">Send a new notification</p>
                 </div>
-
-                <!-- Publish Notification -->
-                <div class="notifying-card">
-                    <h3>Publish Notification</h3>
-                    <form id="notifyForm">
+                <div class="card-content">
+                    <form id="sendForm">
                         <div class="form-group">
-                            <label for="notifyTopic" class="form-label">Topic Name</label>
-                            <input type="text" id="notifyTopic" name="topic" class="form-input" placeholder="Enter topic name" required>
+                            <label class="form-label" for="sendMessage">Message (JSON)</label>
+                            <textarea id="sendMessage" class="form-input form-textarea" placeholder='{"channel": "email", "recipient": "test@test.com", "subject": "Hello!", "body": "This is a test notification."}' required></textarea>
+                            <div id="sendValidation" class="validation-message" style="display: none;"></div>
+                            <div class="helper-text">Enter a valid JSON object for the notification</div>
                         </div>
-                        <div class="form-group">
-                            <label for="notifyMessage" class="form-label">Message</label>
-                            <textarea id="notifyMessage" name="message" class="form-textarea" placeholder="Enter notification message" required></textarea>
-                            <div class="form-helper">Message content that will be sent to all subscribers</div>
+                        <div class="btn-group">
+                            <button type="submit" class="btn btn-primary">Send Notification</button>
+                            <button type="button" class="btn btn-secondary" onclick="formatJSON('sendMessage')">Format JSON</button>
+                            <button type="button" class="btn btn-secondary" onclick="loadExample('sendMessage')">Load Example</button>
                         </div>
-                        <button type="submit" class="form-button">Send Notification</button>
                     </form>
-                    <div id="notifyResult" class="result-area"></div>
+                    <div id="sendResponse" class="response-container" style="display: none;">
+                        <div class="response-title">Response:</div>
+                        <div id="sendResponseContent" class="response-content"></div>
+                    </div>
                 </div>
+            </div>
 
-                <!-- Service Status -->
-                <div class="notifying-card">
-                    <h3>Service Status</h3>
-                    <form id="statusForm">
-                        <button type="submit" class="form-button">Check Status</button>
-                    </form>
-                    <div id="statusResult" class="result-area"></div>
+            <!-- Status Check -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Service Status</h2>
+                    <p class="card-subtitle">Check notifying service status</p>
+                </div>
+                <div class="card-content">
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-secondary" onclick="checkStatus()">Check Status</button>
+                    </div>
+                    <div id="statusResponse" class="response-container" style="display: none;">
+                        <div class="response-title">Service Status:</div>
+                        <div id="statusResponseContent" class="response-content"></div>
+                    </div>
                 </div>
             </div>
 
             <!-- API Documentation -->
-            <div class="swagger-card">
-                <h2 style="margin-bottom: 24px; font-size: 1.75rem; font-weight: 400;">API Documentation</h2>
-                <div id="swagger-ui"></div>
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">API Documentation</h2>
+                    <p class="card-subtitle">Interactive API documentation for Notifying service</p>
+                </div>
+                <div class="card-content">
+                    <div id="swagger-ui"></div>
+                </div>
             </div>
         </main>
     </div>
+
     <script src="https://unpkg.com/swagger-ui-dist@4.15.5/swagger-ui-bundle.js"></script>
     <script>
-        // OpenAPI Specification
-        const apiSpec = {
-            "openapi": "3.0.0",
-            "info": {
-                "title": "NooblyJS Core - Notifying Service API",
-                "version": "1.0.0",
-                "description": "RESTful API for the notifying service in NooblyJS Core framework"
-            },
-            "servers": [
-                {
-                    "url": "/services/notifying/api",
-                    "description": "Notifying Service API"
+        // JSON validation
+        function validateJSON(elementId) {
+            const element = document.getElementById(elementId);
+            const validation = document.getElementById(elementId.replace('Message', 'Validation'));
+            const value = element.value.trim();
+            
+            if (!value) {
+                element.classList.remove('json-valid', 'json-invalid');
+                validation.style.display = 'none';
+                return true;
+            }
+            
+            try {
+                JSON.parse(value);
+                element.classList.remove('json-invalid');
+                element.classList.add('json-valid');
+                validation.textContent = '✓ Valid JSON';
+                validation.className = 'validation-message validation-success';
+                validation.style.display = 'block';
+                return true;
+            } catch (e) {
+                element.classList.remove('json-valid');
+                element.classList.add('json-invalid');
+                validation.textContent = '✗ Invalid JSON: ' + e.message;
+                validation.className = 'validation-message validation-error';
+                validation.style.display = 'block';
+                return false;
+            }
+        }
+
+        // Real-time validation
+        document.getElementById('sendMessage').addEventListener('input', () => validateJSON('sendMessage'));
+
+        // Format JSON
+        function formatJSON(elementId) {
+            const element = document.getElementById(elementId);
+            try {
+                const parsed = JSON.parse(element.value);
+                element.value = JSON.stringify(parsed, null, 2);
+                validateJSON(elementId);
+            } catch (e) {
+                showAlert('Invalid JSON cannot be formatted', 'error');
+            }
+        }
+
+        // Load example
+        function loadExample(elementId) {
+            const examples = {
+                sendMessage: {
+                    "channel": "sms",
+                    "recipient": "+1234567890",
+                    "body": "Your package has been shipped!"
                 }
+            };
+            
+            if (examples[elementId]) {
+                document.getElementById(elementId).value = JSON.stringify(examples[elementId], null, 2);
+                validateJSON(elementId);
+            }
+        }
+
+        // Utility functions
+        function showAlert(message, type = 'success') {
+            const alertElement = document.getElementById(type + 'Alert');
+            const messageElement = document.getElementById(type + 'Message');
+            messageElement.textContent = message;
+            alertElement.classList.add('show');
+            setTimeout(() => alertElement.classList.remove('show'), 5000);
+        }
+
+        function showResponse(containerId, contentId, data) {
+            const container = document.getElementById(containerId);
+            const content = document.getElementById(contentId);
+            content.textContent = typeof data === 'object' ? JSON.stringify(data, null, 2) : data;
+            container.style.display = 'block';
+        }
+
+        function setLoading(formId, isLoading) {
+            const form = document.getElementById(formId);
+            if (isLoading) {
+                form.classList.add('loading');
+            } else {
+                form.classList.remove('loading');
+            }
+        }
+
+        // API functions
+        async function makeRequest(url, method = 'GET', body = null) {
+            const options = {
+                method,
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            };
+            
+            if (body) {
+                options.body = JSON.stringify(body);
+            }
+            
+            const response = await fetch(url, options);
+            const contentType = response.headers.get('content-type');
+            
+            if (contentType && contentType.includes('application/json')) {
+                return await response.json();
+            } else {
+                return await response.text();
+            }
+        }
+
+        // Form handlers
+        document.getElementById('sendForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const message = document.getElementById('sendMessage').value;
+            
+            if (!validateJSON('sendMessage')) {
+                showAlert('Please enter a valid JSON notification message', 'error');
+                return;
+            }
+            
+            try {
+                setLoading('sendForm', true);
+                const parsedMessage = JSON.parse(message);
+                const result = await makeRequest(`/services/notifying/api/send`, 'POST', parsedMessage);
+                showResponse('sendResponse', 'sendResponseContent', result);
+                showAlert(`Notification sent successfully`);
+            } catch (error) {
+                showAlert('Error sending notification: ' + error.message, 'error');
+                showResponse('sendResponse', 'sendResponseContent', 'Error: ' + error.message);
+            } finally {
+                setLoading('sendForm', false);
+            }
+        });
+
+        async function checkStatus() {
+            try {
+                const result = await makeRequest('/services/notifying/api/status');
+                showResponse('statusResponse', 'statusResponseContent', result);
+                showAlert('Status checked successfully');
+            } catch (error) {
+                showAlert('Error checking status: ' + error.message, 'error');
+                showResponse('statusResponse', 'statusResponseContent', 'Error: ' + error.message);
+            }
+        }
+
+        // Swagger UI setup
+        const spec = {
+            openapi: '3.0.0',
+            info: {
+                title: 'Notifying API',
+                description: 'REST API for notification operations',
+                version: '1.0.0'
+            },
+            servers: [
+                { url: '/services/notifying/api', description: 'Notifying API' }
             ],
-            "paths": {
-                "/topic": {
-                    "post": {
-                        "summary": "Create a topic",
-                        "description": "Creates a new notification topic",
-                        "requestBody": {
-                            "required": true,
-                            "content": {
-                                "application/json": {
-                                    "schema": {
-                                        "type": "object",
-                                        "properties": {
-                                            "topic": {
-                                                "type": "string",
-                                                "description": "Name of the topic to create"
-                                            }
-                                        },
-                                        "required": ["topic"]
-                                    },
-                                    "example": {
-                                        "topic": "user-events"
-                                    }
+            paths: {
+                '/send': {
+                    post: {
+                        summary: 'Send a notification',
+                        description: 'Sends a new notification',
+                        requestBody: {
+                            required: true,
+                            content: {
+                                'application/json': {
+                                    schema: { type: 'object' },
+                                    example: { "channel": "email", "recipient": "test@test.com", "subject": "Hello!", "body": "This is a test notification." }
                                 }
                             }
                         },
-                        "responses": {
-                            "200": {
-                                "description": "Topic created successfully",
-                                "content": {
-                                    "text/plain": {
-                                        "schema": {
-                                            "type": "string",
-                                            "example": "OK"
-                                        }
-                                    }
+                        responses: {
+                            '200': {
+                                description: 'Notification sent successfully',
+                                content: {
+                                    'text/plain': { schema: { type: 'string', example: 'OK' } }
                                 }
                             },
-                            "400": {
-                                "description": "Bad request - Missing topic",
-                                "content": {
-                                    "text/plain": {
-                                        "schema": {
-                                            "type": "string",
-                                            "example": "Bad Request: Missing topic"
-                                        }
-                                    }
-                                }
-                            },
-                            "500": {
-                                "description": "Server error",
-                                "content": {
-                                    "text/plain": {
-                                        "schema": {
-                                            "type": "string"
-                                        }
-                                    }
+                            '500': {
+                                description: 'Server error',
+                                content: {
+                                    'text/plain': { schema: { type: 'string' } }
                                 }
                             }
                         }
                     }
                 },
-                "/subscribe/topic/{topic}": {
-                    "post": {
-                        "summary": "Subscribe to a topic",
-                        "description": "Subscribes to notifications for a specific topic",
-                        "parameters": [
-                            {
-                                "name": "topic",
-                                "in": "path",
-                                "required": true,
-                                "schema": {
-                                    "type": "string"
-                                },
-                                "description": "Name of the topic to subscribe to"
-                            }
-                        ],
-                        "requestBody": {
-                            "required": true,
-                            "content": {
-                                "application/json": {
-                                    "schema": {
-                                        "type": "object",
-                                        "properties": {
-                                            "callbackUrl": {
-                                                "type": "string",
-                                                "format": "uri",
-                                                "description": "Callback URL to receive notifications"
-                                            }
-                                        },
-                                        "required": ["callbackUrl"]
-                                    },
-                                    "example": {
-                                        "callbackUrl": "https://example.com/webhook"
-                                    }
-                                }
-                            }
-                        },
-                        "responses": {
-                            "200": {
-                                "description": "Subscribed successfully",
-                                "content": {
-                                    "text/plain": {
-                                        "schema": {
-                                            "type": "string",
-                                            "example": "OK"
-                                        }
-                                    }
-                                }
-                            },
-                            "400": {
-                                "description": "Bad request - Missing topic or callback URL",
-                                "content": {
-                                    "text/plain": {
-                                        "schema": {
-                                            "type": "string",
-                                            "example": "Bad Request: Missing topic or callback URL"
-                                        }
-                                    }
-                                }
-                            },
-                            "500": {
-                                "description": "Server error",
-                                "content": {
-                                    "text/plain": {
-                                        "schema": {
-                                            "type": "string"
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
-                "/status": {
-                    "get": {
-                        "summary": "Check service status",
-                        "description": "Returns the current status of the notifying service",
-                        "responses": {
-                            "200": {
-                                "description": "Service is running",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {
-                                            "type": "string",
-                                            "example": "notifying api running"
-                                        }
+                '/status': {
+                    get: {
+                        summary: 'Service status',
+                        description: 'Check if the notifying service is running',
+                        responses: {
+                            '200': {
+                                description: 'Service is running',
+                                content: {
+                                    'application/json': {
+                                        schema: { type: 'string', example: 'notifying api running' }
                                     }
                                 }
                             }
@@ -673,138 +648,19 @@
             }
         };
 
-        // Initialize Swagger UI
         SwaggerUIBundle({
             url: '',
-            spec: apiSpec,
+            spec: spec,
             dom_id: '#swagger-ui',
-            deepLinking: true,
             presets: [
                 SwaggerUIBundle.presets.apis,
                 SwaggerUIBundle.presets.standalone
             ],
-            plugins: [
-                SwaggerUIBundle.plugins.DownloadUrl
-            ]
+            layout: "BaseLayout",
+            deepLinking: true,
+            showExtensions: true,
+            showCommonExtensions: true
         });
-
-        // Form handling
-        const createTopicForm = document.getElementById('createTopicForm');
-        const subscribeForm = document.getElementById('subscribeForm');
-        const unsubscribeForm = document.getElementById('unsubscribeForm');
-        const notifyForm = document.getElementById('notifyForm');
-        const statusForm = document.getElementById('statusForm');
-
-        // Utility function to show result in specific result div
-        function showResult(resultDivId, message, type) {
-            const resultDiv = document.getElementById(resultDivId);
-            resultDiv.textContent = message;
-            resultDiv.className = `result-area${type === 'success' ? ' result-success' : type === 'error' ? ' result-error' : ''}`;
-        }
-
-        // Create Topic Form Handler
-        createTopicForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const topic = document.getElementById('createTopic').value;
-            const body = { topic };
-            await executeApiCall('CREATE_TOPIC', null, body, 'createTopicResult');
-        });
-
-        // Subscribe Form Handler
-        subscribeForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const topic = document.getElementById('subscribeTopic').value;
-            const callbackUrl = document.getElementById('subscribeCallback').value;
-            const body = { callbackUrl };
-            await executeApiCall('SUBSCRIBE', { topic }, body, 'subscribeResult');
-        });
-
-        // Unsubscribe Form Handler
-        unsubscribeForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const topic = document.getElementById('unsubscribeTopic').value;
-            const callbackUrl = document.getElementById('unsubscribeCallback').value;
-            const body = { callbackUrl };
-            await executeApiCall('UNSUBSCRIBE', { topic }, body, 'unsubscribeResult');
-        });
-
-        // Notify Form Handler
-        notifyForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const topic = document.getElementById('notifyTopic').value;
-            const message = document.getElementById('notifyMessage').value;
-            const body = { message };
-            await executeApiCall('NOTIFY', { topic }, body, 'notifyResult');
-        });
-
-        // Status Form Handler
-        statusForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            await executeApiCall('STATUS', null, null, 'statusResult');
-        });
-
-        // Generic API call function
-        async function executeApiCall(operation, params, body, resultDivId) {
-            let url, method;
-            
-            switch (operation) {
-                case 'CREATE_TOPIC':
-                    url = `/services/notifying/api/topic`;
-                    method = 'POST';
-                    break;
-                case 'SUBSCRIBE':
-                    url = `/services/notifying/api/subscribe/topic/${encodeURIComponent(params.topic)}`;
-                    method = 'POST';
-                    break;
-                case 'UNSUBSCRIBE':
-                    url = `/services/notifying/api/unsubscribe/topic/${encodeURIComponent(params.topic)}`;
-                    method = 'POST';
-                    break;
-                case 'NOTIFY':
-                    url = `/services/notifying/api/notify/topic/${encodeURIComponent(params.topic)}`;
-                    method = 'POST';
-                    break;
-                case 'STATUS':
-                    url = `/services/notifying/api/status`;
-                    method = 'GET';
-                    break;
-            }
-            
-            try {
-                const options = {
-                    method: method,
-                    headers: {
-                        'Content-Type': 'application/json',
-                    }
-                };
-                
-                if (body !== undefined && body !== null) {
-                    options.body = JSON.stringify(body);
-                }
-                
-                const response = await fetch(url, options);
-                const responseText = await response.text();
-                
-                let responseData;
-                try {
-                    responseData = JSON.parse(responseText);
-                } catch (e) {
-                    responseData = responseText;
-                }
-                
-                if (response.ok) {
-                    showResult(resultDivId, `Success: ${JSON.stringify(responseData, null, 2)}`, 'success');
-                } else {
-                    showResult(resultDivId, `Error ${response.status}: ${responseData}`, 'error');
-                }
-            } catch (error) {
-                showResult(resultDivId, `Network Error: ${error.message}`, 'error');
-            }
-        }
     </script>
 </body>
 </html>

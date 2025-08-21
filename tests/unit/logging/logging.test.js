@@ -5,7 +5,7 @@
 const EventEmitter = require('events');
 const createLogger = require('../../../src/logging');
 
-describe('ConsoleLogger', () => {
+describe('logging', () => {
   let logger;
   let consoleSpy;
 

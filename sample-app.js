@@ -18,31 +18,18 @@ const queue = serviceRegistry.queue('memory');
 
 // Test the services
 cache.put('currentdate', new Date());
-log.log(cache.get('currentdate'));
+log.info(cache.get('currentdate'));
 queue.enqueue(new Date());
 
 const scheduling = serviceRegistry.scheduling('memory');
 scheduling.start(
   'Schedule task 1',
   '../../../tests/unit/working/exampleTask.js',
+   {"message": "Life is fine"},
   5,
   (status, data) => {
     console.log(
       'Schedule task 1 executed with status:',
-      status,
-      'and data:',
-      data,
-    );
-  },
-);
-
-scheduling.start(
-  'Schedule task 2',
-  '../../../tests/unit/working/exampleTask.js',
-  5,
-  (status, data) => {
-    console.log(
-      'Schedule task 2 executed with status:',
       status,
       'and data:',
       data,
@@ -88,11 +75,12 @@ notifying.subscribe('example-topic', (message) => {
 notifying.notify('example-topic', { text: 'Hello, World!' });
 notifying.notify('example-topic', { text: 'Hello, World 2!' });
 
-// lets work
+/* lets work
 const worker = serviceRegistry.working('memory');
 worker.start('../../../tests/working/exampleTask.js', () => {
   console.log('Worker  task ended');
 });
+*/
 
 // lets workflow
 const workflow = serviceRegistry.workflow('memory');
@@ -104,6 +92,9 @@ workflow.defineWorkflow('example-workflow', steps);
 workflow.runWorkflow('example-workflow', {}, () => {
   console.log('Workdflow ended');
 });
+
+const routes = require('./src/routes');
+routes(app);
 
 app.use(
   '/',
@@ -125,5 +116,5 @@ app.use(
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  log.log(`Server is running on port ${PORT}`);
+  log.info(`Server is running on port ${PORT}`);
 });

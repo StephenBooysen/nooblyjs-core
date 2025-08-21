@@ -11,7 +11,7 @@ jest.mock('fs', () => ({
 const fs = require('fs');
 const createLogger = require('../../src/logging');
 
-describe('FileLogger', () => {
+describe('loggingFile', () => {
   let logger;
   const filename = 'test.log';
 

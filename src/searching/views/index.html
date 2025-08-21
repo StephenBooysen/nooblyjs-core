@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -19,12 +20,10 @@
             --success-color: #388e3c;
             --text-primary: #212121;
             --text-secondary: #757575;
-            --text-hint: #9e9e9e;
-            --divider-color: #e0e0e0;
-            --outline-color: #616161;
-            --surface-tint: rgba(25, 118, 210, 0.08);
-            --elevation-1: 0px 1px 3px rgba(0, 0, 0, 0.12), 0px 1px 2px rgba(0, 0, 0, 0.24);
-            --elevation-2: 0px 3px 6px rgba(0, 0, 0, 0.16), 0px 3px 6px rgba(0, 0, 0, 0.23);
+            --border-color: #e0e0e0;
+            --shadow-1: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+            --shadow-2: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
+            --shadow-3: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23);
         }
 
         * {
@@ -35,772 +34,757 @@
 
         body {
             font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            line-height: 1.5;
+            background-color: var(--background-color);
             color: var(--text-primary);
-            background: var(--background-color);
+            line-height: 1.6;
+        }
+
+        .app-container {
+            display: flex;
             min-height: 100vh;
         }
 
-        /* Header */
-        .header {
+        .sidebar {
+            width: 280px;
             background: var(--surface-color);
-            box-shadow: var(--elevation-1);
+            box-shadow: var(--shadow-2);
+            padding: 24px 0;
             position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 1000;
-            height: 64px;
-        }
-
-        .header-container {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            height: 100%;
-            padding: 0 24px;
+            height: 100vh;
+            overflow-y: auto;
         }
 
         .logo {
-            display: flex;
-            align-items: center;
-            text-decoration: none;
-            color: var(--text-primary);
+            padding: 0 24px 32px;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 24px;
+        }
+
+        .logo h1 {
+            font-size: 24px;
             font-weight: 500;
-            font-size: 1.25rem;
+            color: var(--primary-color);
         }
 
-        .logo-icon {
-            width: 40px;
-            height: 40px;
-            background: var(--primary-color);
-            color: white;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 600;
-            margin-right: 12px;
-        }
-
-        /* Admin Container */
-        .admin-container {
-            display: flex;
-            min-height: 100vh;
-            margin-top: 64px;
-            background: var(--background-color);
-        }
-
-        .admin-sidebar {
-            width: 280px;
-            background: var(--surface-color);
-            border-right: 1px solid var(--divider-color);
-            padding: 24px 0;
-            position: fixed;
-            height: calc(100vh - 64px);
-            overflow-y: auto;
-            box-shadow: var(--elevation-1);
-        }
-
-        .admin-nav {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        .admin-nav-item {
-            padding: 0;
-            margin: 0 16px;
-        }
-
-        .admin-nav-link {
-            display: block;
-            padding: 12px 16px;
+        .logo .subtitle {
+            font-size: 14px;
             color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        .nav-item {
+            display: block;
+            padding: 16px 24px;
+            color: var(--text-primary);
             text-decoration: none;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            font-weight: 500;
-            font-size: 0.875rem;
-            border-radius: 12px;
-            position: relative;
-            overflow: hidden;
+            transition: all 0.2s ease;
+            border-left: 4px solid transparent;
         }
 
-        .admin-nav-link:hover {
+        .nav-item:hover {
+            background-color: var(--surface-variant);
             color: var(--primary-color);
-            background: var(--surface-tint);
         }
 
-        .admin-nav-link.active {
-            color: var(--primary-color);
-            background: var(--surface-tint);
+        .nav-item.active {
+            background-color: var(--primary-light);
+            color: white;
+            border-left-color: var(--primary-dark);
         }
 
-        .admin-content {
+        .main-content {
             flex: 1;
             margin-left: 280px;
             padding: 32px;
         }
 
-        .admin-header {
+        .page-header {
             margin-bottom: 32px;
         }
 
-        .admin-title {
-            font-size: 2rem;
+        .page-title {
+            font-size: 32px;
             font-weight: 400;
             color: var(--text-primary);
             margin-bottom: 8px;
-            line-height: 2.5rem;
         }
 
-        .admin-subtitle {
+        .page-subtitle {
+            font-size: 16px;
             color: var(--text-secondary);
-            font-weight: 400;
-            font-size: 1rem;
-            line-height: 1.5rem;
         }
 
-        /* Search Operations */
-        .search-operations {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 24px;
-            margin-bottom: 32px;
-        }
-
-        .search-card {
+        .card {
             background: var(--surface-color);
-            border-radius: 12px;
-            padding: 24px;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: var(--elevation-1);
-        }
-
-        .search-card:hover {
-            box-shadow: var(--elevation-2);
-        }
-
-        .search-card h3 {
-            color: var(--text-primary);
-            font-size: 1.375rem;
-            font-weight: 400;
+            border-radius: 8px;
+            box-shadow: var(--shadow-1);
             margin-bottom: 24px;
-            line-height: 1.75rem;
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 24px;
+            border-bottom: 1px solid var(--border-color);
+            background: var(--surface-variant);
+        }
+
+        .card-title {
+            font-size: 20px;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .card-subtitle {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .card-content {
+            padding: 24px;
         }
 
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 24px;
         }
 
         .form-label {
             display: block;
-            color: var(--text-primary);
+            font-size: 14px;
             font-weight: 500;
+            color: var(--text-primary);
             margin-bottom: 8px;
-            font-size: 0.875rem;
-            line-height: 1.25rem;
         }
 
         .form-input {
             width: 100%;
             padding: 12px 16px;
-            border: 1px solid var(--outline-color);
-            border-radius: 8px;
+            border: 2px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 16px;
+            transition: all 0.2s ease;
             background: var(--surface-color);
             color: var(--text-primary);
-            font-size: 1rem;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
         }
 
         .form-input:focus {
             outline: none;
             border-color: var(--primary-color);
-            box-shadow: 0 0 0 2px var(--surface-tint);
-        }
-
-        .form-input::placeholder {
-            color: var(--text-hint);
+            box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.2);
         }
 
         .form-textarea {
-            width: 100%;
-            padding: 12px 16px;
-            border: 1px solid var(--outline-color);
-            border-radius: 8px;
-            background: var(--surface-color);
-            color: var(--text-primary);
-            font-size: 1rem;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             min-height: 120px;
             resize: vertical;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
         }
 
-        .form-textarea:focus {
-            outline: none;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 2px var(--surface-tint);
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            min-width: 64px;
+            justify-content: center;
         }
 
-        .form-textarea::placeholder {
-            color: var(--text-hint);
-        }
-
-        .form-button {
-            width: 100%;
-            padding: 10px 24px;
+        .btn-primary {
             background: var(--primary-color);
             color: white;
-            border: none;
-            border-radius: 20px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            text-transform: uppercase;
-            letter-spacing: 1.25px;
-            font-size: 0.875rem;
-            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            min-height: 40px;
-            position: relative;
-            overflow: hidden;
-            box-shadow: var(--elevation-1);
+            box-shadow: var(--shadow-1);
         }
 
-        .form-button:hover {
-            box-shadow: var(--elevation-2);
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            box-shadow: var(--shadow-2);
         }
 
-        .form-button:active {
-            box-shadow: var(--elevation-1);
-        }
-
-        .result-area {
+        .btn-secondary {
             background: var(--surface-variant);
-            border: 1px solid var(--divider-color);
-            border-radius: 8px;
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border-color);
+        }
+
+        .btn-success {
+            background: var(--success-color);
+            color: white;
+        }
+
+        .btn-error {
+            background: var(--error-color);
+            color: white;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .alert {
             padding: 16px;
-            margin-top: 16px;
-            color: var(--text-secondary);
-            font-size: 0.875rem;
-            font-weight: 400;
-            min-height: 60px;
-            white-space: pre-wrap;
-            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            border-radius: 4px;
+            margin-bottom: 24px;
+            display: none;
         }
 
-        .result-success {
+        .alert.show {
+            display: block;
+        }
+
+        .alert-success {
+            background: rgba(56, 142, 60, 0.1);
+            border: 1px solid var(--success-color);
             color: var(--success-color);
-            background: rgba(56, 142, 60, 0.08);
-            border-color: rgba(56, 142, 60, 0.2);
         }
 
-        .result-error {
+        .alert-error {
+            background: rgba(211, 47, 47, 0.1);
+            border: 1px solid var(--error-color);
             color: var(--error-color);
-            background: rgba(211, 47, 47, 0.08);
-            border-color: rgba(211, 47, 47, 0.2);
         }
 
-        .form-helper {
+        .helper-text {
+            font-size: 12px;
             color: var(--text-secondary);
-            font-size: 0.75rem;
             margin-top: 4px;
-            line-height: 1.2;
         }
 
-        .form-error {
+        .json-valid {
+            border-color: var(--success-color) !important;
+        }
+
+        .json-invalid {
+            border-color: var(--error-color) !important;
+        }
+
+        .validation-message {
+            font-size: 12px;
+            margin-top: 4px;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        .validation-success {
+            background: rgba(56, 142, 60, 0.1);
+            color: var(--success-color);
+        }
+
+        .validation-error {
+            background: rgba(211, 47, 47, 0.1);
             color: var(--error-color);
-            font-size: 0.75rem;
-            margin-top: 4px;
-            line-height: 1.2;
         }
 
-        .form-textarea.invalid {
-            border-color: var(--error-color);
-            box-shadow: 0 0 0 2px rgba(211, 47, 47, 0.1);
-        }
-
-        .form-textarea.valid {
-            border-color: var(--success-color);
-            box-shadow: 0 0 0 2px rgba(56, 142, 60, 0.1);
-        }
-
-        .json-examples {
+        .response-container {
+            margin-top: 24px;
+            padding: 16px;
             background: var(--surface-variant);
-            border: 1px solid var(--divider-color);
-            border-radius: 8px;
-            padding: 12px;
-            margin-bottom: 16px;
-            font-family: monospace;
-            font-size: 0.75rem;
+            border-radius: 4px;
+            border-left: 4px solid var(--primary-color);
         }
 
-        .json-example {
-            margin-bottom: 8px;
-        }
-
-        .json-example:last-child {
-            margin-bottom: 0;
-        }
-
-        .json-example-label {
-            color: var(--text-secondary);
+        .response-title {
             font-weight: 500;
-            margin-bottom: 2px;
+            margin-bottom: 8px;
+            color: var(--text-primary);
         }
 
-        .search-results {
-            max-height: 300px;
-            overflow-y: auto;
-            background: var(--surface-color);
-            border: 1px solid var(--divider-color);
-            border-radius: 8px;
-            margin-top: 16px;
-        }
-
-        .search-result-item {
-            padding: 12px 16px;
-            border-bottom: 1px solid var(--divider-color);
-            transition: background-color 0.2s;
-        }
-
-        .search-result-item:last-child {
-            border-bottom: none;
-        }
-
-        .search-result-item:hover {
-            background: var(--surface-variant);
-        }
-
-        .search-result-key {
-            font-family: monospace;
-            font-weight: 600;
-            color: var(--primary-color);
-            font-size: 0.875rem;
-            margin-bottom: 4px;
-        }
-
-        .search-result-content {
+        .response-content {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 14px;
             color: var(--text-secondary);
-            font-size: 0.8125rem;
-            line-height: 1.4;
-            word-break: break-word;
+            white-space: pre-wrap;
+            word-break: break-all;
         }
 
-        /* Swagger UI Customization */
-        #swagger-ui {
-            margin-top: 32px;
-        }
-
-        .swagger-card {
-            background: var(--surface-color);
-            border-radius: 12px;
-            padding: 24px;
-            box-shadow: var(--elevation-1);
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
         }
 
         @media (max-width: 768px) {
-            .admin-sidebar {
-                width: 240px;
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
             }
-            
-            .admin-content {
-                margin-left: 240px;
-                padding: 24px 16px;
-            }
-            
-            .search-operations {
-                grid-template-columns: 1fr;
-                gap: 16px;
-            }
-        }
 
-        @media (max-width: 600px) {
-            .admin-sidebar {
-                width: 100%;
-                position: relative;
-                height: auto;
-                box-shadow: none;
-                border-right: none;
-                border-bottom: 1px solid var(--divider-color);
-            }
-            
-            .admin-content {
+            .main-content {
                 margin-left: 0;
                 padding: 16px;
             }
-            
-            .admin-container {
+
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+
+            .btn-group {
                 flex-direction: column;
             }
+        }
+
+        .swagger-ui {
+            font-family: inherit;
+        }
+
+        .swagger-ui .topbar {
+            display: none;
+        }
+
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
         }
     </style>
 </head>
 <body>
-    <!-- Header -->
-    <header class="header">
-        <div class="header-container">
-            <a href="#" class="logo">
-                <div class="logo-icon">N</div>
-                <span>Noobly JS Admin</span>
-            </a>
-        </div>
-    </header>
+    <div class="app-container">
+        <nav class="sidebar">
+            <div class="logo">
+                <h1>Noobly JS</h1>
+                <div class="subtitle">Search Management</div>
+            </div>
+            <a href="/services/caching/" class="nav-item">Cache Management</a>
+            <a href="/services/dataserve/" class="nav-item">Data Serve</a>
+            <a href="/services/filing/" class="nav-item">File Management</a>
+            <a href="/services/logging/" class="nav-item">Logging</a>
+            <a href="/services/measuring/" class="nav-item">Measuring</a>
+            <a href="/services/notifying/" class="nav-item">Notifications</a>
+            <a href="/services/queueing/" class="nav-item">Queue Management</a>
+            <a href="/services/scheduling/" class="nav-item">Scheduling</a>
+            <a href="/services/searching/" class="nav-item active">Search</a>
+            <a href="/services/working/" class="nav-item">Background Tasks</a>
+            <a href="/services/workflow/" class="nav-item">Workflows</a>
+        </nav>
 
-    <div class="admin-container">
-        <!-- Sidebar Navigation -->
-        <aside class="admin-sidebar">
-            <nav class="admin-nav">
-                <div class="admin-nav-item">
-                    <a href="/services/caching/" class="admin-nav-link">Caching</a>
-                </div>
-                <div class="admin-nav-item">
-                    <a href="/services/dataserve/" class="admin-nav-link">Data Serve</a>
-                </div>
-                <div class="admin-nav-item">
-                    <a href="/services/filing/" class="admin-nav-link">Filing</a>
-                </div>
-                <div class="admin-nav-item">
-                    <a href="/services/logging/" class="admin-nav-link">Logging</a>
-                </div>
-                <div class="admin-nav-item">
-                    <a href="/services/measuring/" class="admin-nav-link">Measuring</a>
-                </div>
-                <div class="admin-nav-item">
-                    <a href="/services/notifying/" class="admin-nav-link">Notifying</a>
-                </div>
-                <div class="admin-nav-item">
-                    <a href="/services/queueing/" class="admin-nav-link">Queueing</a>
-                </div>
-                <div class="admin-nav-item">
-                    <a href="/services/scheduling/" class="admin-nav-link">Scheduling</a>
-                </div>
-                <div class="admin-nav-item">
-                    <a href="/services/searching/" class="admin-nav-link active">Searching</a>
-                </div>
-                <div class="admin-nav-item">
-                    <a href="/services/workflow/" class="admin-nav-link">Workflow</a>
-                </div>
-                <div class="admin-nav-item">
-                    <a href="/services/working/" class="admin-nav-link">Working</a>
-                </div>
-            </nav>
-        </aside>
-
-        <!-- Main Content -->
-        <main class="admin-content">
-            <div class="admin-header">
-                <h1 class="admin-title">Search Management</h1>
-                <p class="admin-subtitle">Add documents, search content and manage search index</p>
+        <main class="main-content">
+            <div class="page-header">
+                <h1 class="page-title">Search Management</h1>
+                <p class="page-subtitle">Add, search, and delete documents in the search index</p>
             </div>
 
-            <div class="search-operations">
-                
-                <!-- Add Document -->
-                <div class="search-card">
-                    <h3>Add Document</h3>
+            <div class="alert alert-success" id="successAlert">
+                <strong>Success!</strong> <span id="successMessage"></span>
+            </div>
+
+            <div class="alert alert-error" id="errorAlert">
+                <strong>Error!</strong> <span id="errorMessage"></span>
+            </div>
+
+            <!-- Add Document Form -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Add Document</h2>
+                    <p class="card-subtitle">Add a new document to the search index</p>
+                </div>
+                <div class="card-content">
                     <form id="addForm">
                         <div class="form-group">
-                            <label for="addDocument" class="form-label">Document Content (JSON Format Required)</label>
-                            <div class="json-examples">
-                                <div class="json-example">
-                                    <div class="json-example-label">Article Document:</div>
-                                    {"title": "Sample Article", "content": "This is a sample article content", "tags": ["tech", "nodejs"]}
-                                </div>
-                                <div class="json-example">
-                                    <div class="json-example-label">User Profile:</div>
-                                    {"name": "John Doe", "bio": "Software engineer interested in search technology", "skills": ["javascript", "search"]}
-                                </div>
-                                <div class="json-example">
-                                    <div class="json-example-label">Product Document:</div>
-                                    {"name": "Widget Pro", "description": "Advanced widget with premium features", "category": "tools"}
-                                </div>
-                            </div>
-                            <textarea id="addDocument" name="document" class="form-textarea" placeholder="Enter document in JSON format (e.g., {&quot;title&quot;: &quot;Sample&quot;, &quot;content&quot;: &quot;Document content&quot;})" required></textarea>
-                            <div id="addDocumentHelper" class="form-helper">Enter valid JSON format. The document will be automatically assigned a UUID key.</div>
-                            <div id="addDocumentError" class="form-error" style="display: none;"></div>
+                            <label class="form-label" for="addDocument">Document (JSON)</label>
+                            <textarea id="addDocument" class="form-input form-textarea" placeholder='{"title": "My Document", "content": "This is the content of my document."}' required></textarea>
+                            <div id="addValidation" class="validation-message" style="display: none;"></div>
+                            <div class="helper-text">Enter a valid JSON object for the document</div>
                         </div>
-                        <div style="display: flex; gap: 12px; margin-bottom: 16px;">
-                            <button type="button" onclick="loadAddExample()" style="background: var(--surface-variant); color: var(--text-primary); border: 1px solid var(--outline-color); padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 0.875rem;">Load Example</button>
-                            <button type="button" onclick="formatAddJson()" style="background: var(--surface-variant); color: var(--text-primary); border: 1px solid var(--outline-color); padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 0.875rem;">Format JSON</button>
+                        <div class="btn-group">
+                            <button type="submit" class="btn btn-primary">Add Document</button>
+                            <button type="button" class="btn btn-secondary" onclick="formatJSON('addDocument')">Format JSON</button>
+                            <button type="button" class="btn btn-secondary" onclick="loadExample('addDocument')">Load Example</button>
                         </div>
-                        <button type="submit" class="form-button" id="addSubmitBtn">Add Document</button>
                     </form>
-                    <div id="addResult" class="result-area"></div>
+                    <div id="addResponse" class="response-container" style="display: none;">
+                        <div class="response-title">Response:</div>
+                        <div id="addResponseContent" class="response-content"></div>
+                    </div>
                 </div>
+            </div>
 
-                <!-- Search Documents -->
-                <div class="search-card">
-                    <h3>Search Documents</h3>
+            <!-- Search Documents Form -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Search Documents</h2>
+                    <p class="card-subtitle">Search for documents by a term</p>
+                </div>
+                <div class="card-content">
                     <form id="searchForm">
                         <div class="form-group">
-                            <label for="searchTerm" class="form-label">Search Term</label>
-                            <input type="text" id="searchTerm" name="term" class="form-input" placeholder="Enter search term (e.g., nodejs, technology, widget)" required>
-                            <div class="form-helper">Enter keywords to search across all indexed documents</div>
+                            <label class="form-label" for="searchTerm">Search Term</label>
+                            <input type="text" id="searchTerm" class="form-input" placeholder="Enter search term" required>
+                            <div class="helper-text">The term to search for in the documents</div>
                         </div>
-                        <button type="submit" class="form-button">Search Documents</button>
+                        <div class="btn-group">
+                            <button type="submit" class="btn btn-primary">Search</button>
+                        </div>
                     </form>
-                    <div id="searchResults" class="search-results" style="display: none;">
-                        <!-- Search results will appear here -->
+                    <div id="searchResponse" class="response-container" style="display: none;">
+                        <div class="response-title">Search Results:</div>
+                        <div id="searchResponseContent" class="response-content"></div>
                     </div>
-                    <div id="searchResult" class="result-area"></div>
                 </div>
+            </div>
 
-                <!-- Delete Document -->
-                <div class="search-card">
-                    <h3>Delete Document</h3>
+            <!-- Delete Document Form -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Delete Document</h2>
+                    <p class="card-subtitle">Remove a document from the search index</p>
+                </div>
+                <div class="card-content">
                     <form id="deleteForm">
                         <div class="form-group">
-                            <label for="deleteKey" class="form-label">Document Key</label>
-                            <input type="text" id="deleteKey" name="key" class="form-input" placeholder="Enter document UUID key" required>
-                            <div class="form-helper">Enter the UUID key of the document to delete</div>
+                            <label class="form-label" for="deleteKey">Key</label>
+                            <input type="text" id="deleteKey" class="form-input" placeholder="Enter document key to delete" required>
+                            <div class="helper-text">The key of the document to remove</div>
                         </div>
-                        <button type="submit" class="form-button">Delete Document</button>
+                        <div class="btn-group">
+                            <button type="submit" class="btn btn-error">Delete Document</button>
+                        </div>
                     </form>
-                    <div id="deleteResult" class="result-area"></div>
+                    <div id="deleteResponse" class="response-container" style="display: none;">
+                        <div class="response-title">Response:</div>
+                        <div id="deleteResponseContent" class="response-content"></div>
+                    </div>
                 </div>
+            </div>
 
-                <!-- Service Status -->
-                <div class="search-card">
-                    <h3>Service Status</h3>
-                    <form id="statusForm">
-                        <button type="submit" class="form-button">Check Status</button>
-                    </form>
-                    <div id="statusResult" class="result-area"></div>
+            <!-- Status Check -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Service Status</h2>
+                    <p class="card-subtitle">Check searching service status</p>
+                </div>
+                <div class="card-content">
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-secondary" onclick="checkStatus()">Check Status</button>
+                    </div>
+                    <div id="statusResponse" class="response-container" style="display: none;">
+                        <div class="response-title">Service Status:</div>
+                        <div id="statusResponseContent" class="response-content"></div>
+                    </div>
                 </div>
             </div>
 
             <!-- API Documentation -->
-            <div class="swagger-card">
-                <h2 style="margin-bottom: 24px; font-size: 1.75rem; font-weight: 400;">API Documentation</h2>
-                <div id="swagger-ui"></div>
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">API Documentation</h2>
+                    <p class="card-subtitle">Interactive API documentation for Searching service</p>
+                </div>
+                <div class="card-content">
+                    <div id="swagger-ui"></div>
+                </div>
             </div>
         </main>
     </div>
+
     <script src="https://unpkg.com/swagger-ui-dist@4.15.5/swagger-ui-bundle.js"></script>
     <script>
-        // OpenAPI Specification for Search Service
-        const apiSpec = {
-            "openapi": "3.0.0",
-            "info": {
-                "title": "NooblyJS Core - Searching Service API",
-                "version": "1.0.0",
-                "description": "RESTful API for the searching service in NooblyJS Core framework"
-            },
-            "servers": [
-                {
-                    "url": "/services/searching/api",
-                    "description": "Searching Service API"
+        // JSON validation
+        function validateJSON(elementId) {
+            const element = document.getElementById(elementId);
+            const validation = document.getElementById(elementId.replace('Document', 'Validation'));
+            const value = element.value.trim();
+            
+            if (!value) {
+                element.classList.remove('json-valid', 'json-invalid');
+                validation.style.display = 'none';
+                return true;
+            }
+            
+            try {
+                JSON.parse(value);
+                element.classList.remove('json-invalid');
+                element.classList.add('json-valid');
+                validation.textContent = '✓ Valid JSON';
+                validation.className = 'validation-message validation-success';
+                validation.style.display = 'block';
+                return true;
+            } catch (e) {
+                element.classList.remove('json-valid');
+                element.classList.add('json-invalid');
+                validation.textContent = '✗ Invalid JSON: ' + e.message;
+                validation.className = 'validation-message validation-error';
+                validation.style.display = 'block';
+                return false;
+            }
+        }
+
+        // Real-time validation
+        document.getElementById('addDocument').addEventListener('input', () => validateJSON('addDocument'));
+
+        // Format JSON
+        function formatJSON(elementId) {
+            const element = document.getElementById(elementId);
+            try {
+                const parsed = JSON.parse(element.value);
+                element.value = JSON.stringify(parsed, null, 2);
+                validateJSON(elementId);
+            } catch (e) {
+                showAlert('Invalid JSON cannot be formatted', 'error');
+            }
+        }
+
+        // Load example
+        function loadExample(elementId) {
+            const examples = {
+                addDocument: {
+                    "title": "Another Document",
+                    "content": "This is some more content for another document.",
+                    "tags": ["sample", "testing"]
                 }
+            };
+            
+            if (examples[elementId]) {
+                document.getElementById(elementId).value = JSON.stringify(examples[elementId], null, 2);
+                validateJSON(elementId);
+            }
+        }
+
+        // Utility functions
+        function showAlert(message, type = 'success') {
+            const alertElement = document.getElementById(type + 'Alert');
+            const messageElement = document.getElementById(type + 'Message');
+            messageElement.textContent = message;
+            alertElement.classList.add('show');
+            setTimeout(() => alertElement.classList.remove('show'), 5000);
+        }
+
+        function showResponse(containerId, contentId, data) {
+            const container = document.getElementById(containerId);
+            const content = document.getElementById(contentId);
+            content.textContent = typeof data === 'object' ? JSON.stringify(data, null, 2) : data;
+            container.style.display = 'block';
+        }
+
+        function setLoading(formId, isLoading) {
+            const form = document.getElementById(formId);
+            if (isLoading) {
+                form.classList.add('loading');
+            } else {
+                form.classList.remove('loading');
+            }
+        }
+
+        // API functions
+        async function makeRequest(url, method = 'GET', body = null) {
+            const options = {
+                method,
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            };
+            
+            if (body) {
+                options.body = JSON.stringify(body);
+            }
+            
+            const response = await fetch(url, options);
+            const contentType = response.headers.get('content-type');
+            
+            if (contentType && contentType.includes('application/json')) {
+                return await response.json();
+            } else {
+                return await response.text();
+            }
+        }
+
+        // Form handlers
+        document.getElementById('addForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const doc = document.getElementById('addDocument').value;
+            
+            if (!validateJSON('addDocument')) {
+                showAlert('Please enter a valid JSON document', 'error');
+                return;
+            }
+            
+            try {
+                setLoading('addForm', true);
+                const parsedDoc = JSON.parse(doc);
+                const result = await makeRequest(`/services/searching/api/add`, 'POST', parsedDoc);
+                showResponse('addResponse', 'addResponseContent', result);
+                showAlert(`Document added successfully`);
+            } catch (error) {
+                showAlert('Error adding document: ' + error.message, 'error');
+                showResponse('addResponse', 'addResponseContent', 'Error: ' + error.message);
+            } finally {
+                setLoading('addForm', false);
+            }
+        });
+
+        document.getElementById('searchForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const term = document.getElementById('searchTerm').value;
+            
+            try {
+                setLoading('searchForm', true);
+                const result = await makeRequest(`/services/searching/api/search/${encodeURIComponent(term)}`);
+                showResponse('searchResponse', 'searchResponseContent', result);
+                showAlert(`Search completed for term: ${term}`);
+            } catch (error) {
+                showAlert('Error searching documents: ' + error.message, 'error');
+                showResponse('searchResponse', 'searchResponseContent', 'Error: ' + error.message);
+            } finally {
+                setLoading('searchForm', false);
+            }
+        });
+
+        document.getElementById('deleteForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const key = document.getElementById('deleteKey').value;
+            
+            if (!confirm(`Are you sure you want to delete document with key: ${key}?`)) {
+                return;
+            }
+            
+            try {
+                setLoading('deleteForm', true);
+                const result = await makeRequest(`/services/searching/api/delete/${encodeURIComponent(key)}`, 'DELETE');
+                showResponse('deleteResponse', 'deleteResponseContent', result);
+                showAlert(`Document with key: ${key} deleted successfully`);
+            } catch (error) {
+                showAlert('Error deleting document: ' + error.message, 'error');
+                showResponse('deleteResponse', 'deleteResponseContent', 'Error: ' + error.message);
+            } finally {
+                setLoading('deleteForm', false);
+            }
+        });
+
+        async function checkStatus() {
+            try {
+                const result = await makeRequest('/services/searching/api/status');
+                showResponse('statusResponse', 'statusResponseContent', result);
+                showAlert('Status checked successfully');
+            } catch (error) {
+                showAlert('Error checking status: ' + error.message, 'error');
+                showResponse('statusResponse', 'statusResponseContent', 'Error: ' + error.message);
+            }
+        }
+
+        // Swagger UI setup
+        const spec = {
+            openapi: '3.0.0',
+            info: {
+                title: 'Searching API',
+                description: 'REST API for searching operations',
+                version: '1.0.0'
+            },
+            servers: [
+                { url: '/services/searching/api', description: 'Searching API' }
             ],
-            "paths": {
-                "/add": {
-                    "post": {
-                        "summary": "Add a document to search index",
-                        "description": "Adds a document to the search index with automatically generated UUID key",
-                        "requestBody": {
-                            "required": true,
-                            "content": {
-                                "application/json": {
-                                    "schema": {
-                                        "type": "object"
-                                    },
-                                    "example": {
-                                        "title": "Sample Document",
-                                        "content": "This is a sample document for searching",
-                                        "tags": ["search", "document", "example"]
-                                    }
+            paths: {
+                '/add': {
+                    post: {
+                        summary: 'Add a document',
+                        description: 'Adds a new document to the search index',
+                        requestBody: {
+                            required: true,
+                            content: {
+                                'application/json': {
+                                    schema: { type: 'object' },
+                                    example: { "title": "My Document", "content": "This is the content." }
                                 }
                             }
                         },
-                        "responses": {
-                            "200": {
-                                "description": "Document added successfully",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {
-                                            "type": "object",
-                                            "properties": {
-                                                "key": {
-                                                    "type": "string",
-                                                    "description": "Generated UUID for the document"
-                                                },
-                                                "success": {
-                                                    "type": "boolean"
-                                                }
-                                            }
-                                        }
-                                    }
+                        responses: {
+                            '200': {
+                                description: 'Document added successfully',
+                                content: {
+                                    'application/json': { schema: { type: 'object', properties: { key: { type: 'string' } } } }
                                 }
                             },
-                            "500": {
-                                "description": "Server error",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {
-                                            "type": "object",
-                                            "properties": {
-                                                "error": {
-                                                    "type": "string"
-                                                }
-                                            }
-                                        }
-                                    }
+                            '500': {
+                                description: 'Server error',
+                                content: {
+                                    'text/plain': { schema: { type: 'string' } }
                                 }
                             }
                         }
                     }
                 },
-                "/delete/{key}": {
-                    "delete": {
-                        "summary": "Delete a document from search index",
-                        "description": "Removes the document with the specified key from the search index",
-                        "parameters": [
+                '/search/{term}': {
+                    get: {
+                        summary: 'Search documents',
+                        description: 'Searches for documents matching the term',
+                        parameters: [
                             {
-                                "name": "key",
-                                "in": "path",
-                                "required": true,
-                                "schema": {
-                                    "type": "string"
-                                },
-                                "description": "The document UUID key"
+                                name: 'term',
+                                in: 'path',
+                                required: true,
+                                schema: { type: 'string' },
+                                description: 'The term to search for'
                             }
                         ],
-                        "responses": {
-                            "200": {
-                                "description": "Document deleted successfully",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {
-                                            "type": "object",
-                                            "properties": {
-                                                "success": {
-                                                    "type": "boolean"
-                                                },
-                                                "message": {
-                                                    "type": "string"
-                                                }
-                                            }
-                                        }
-                                    }
+                        responses: {
+                            '200': {
+                                description: 'Search results',
+                                content: {
+                                    'application/json': { schema: { type: 'array', items: { type: 'object' } } }
                                 }
                             },
-                            "404": {
-                                "description": "Document not found",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {
-                                            "type": "object",
-                                            "properties": {
-                                                "error": {
-                                                    "type": "string"
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            },
-                            "500": {
-                                "description": "Server error",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {
-                                            "type": "object",
-                                            "properties": {
-                                                "error": {
-                                                    "type": "string"
-                                                }
-                                            }
-                                        }
-                                    }
+                            '500': {
+                                description: 'Server error',
+                                content: {
+                                    'text/plain': { schema: { type: 'string' } }
                                 }
                             }
                         }
                     }
                 },
-                "/search/{term}": {
-                    "get": {
-                        "summary": "Search documents by term",
-                        "description": "Searches all indexed documents for the specified term",
-                        "parameters": [
+                '/delete/{key}': {
+                    delete: {
+                        summary: 'Delete a document',
+                        description: 'Deletes a document from the search index',
+                        parameters: [
                             {
-                                "name": "term",
-                                "in": "path",
-                                "required": true,
-                                "schema": {
-                                    "type": "string"
-                                },
-                                "description": "The search term"
+                                name: 'key',
+                                in: 'path',
+                                required: true,
+                                schema: { type: 'string' },
+                                description: 'The key of the document to delete'
                             }
                         ],
-                        "responses": {
-                            "200": {
-                                "description": "Search completed successfully",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {
-                                            "type": "object",
-                                            "properties": {
-                                                "results": {
-                                                    "type": "array",
-                                                    "items": {
-                                                        "type": "object",
-                                                        "properties": {
-                                                            "key": {
-                                                                "type": "string"
-                                                            },
-                                                            "document": {
-                                                                "type": "object"
-                                                            },
-                                                            "score": {
-                                                                "type": "number"
-                                                            }
-                                                        }
-                                                    }
-                                                },
-                                                "total": {
-                                                    "type": "number"
-                                                },
-                                                "query": {
-                                                    "type": "string"
-                                                }
-                                            }
-                                        }
-                                    }
+                        responses: {
+                            '200': {
+                                description: 'Document deleted successfully',
+                                content: {
+                                    'text/plain': { schema: { type: 'string', example: 'OK' } }
                                 }
                             },
-                            "500": {
-                                "description": "Server error",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {
-                                            "type": "object",
-                                            "properties": {
-                                                "error": {
-                                                    "type": "string"
-                                                }
-                                            }
-                                        }
-                                    }
+                            '500': {
+                                description: 'Server error',
+                                content: {
+                                    'text/plain': { schema: { type: 'string' } }
                                 }
                             }
                         }
                     }
                 },
-                "/status": {
-                    "get": {
-                        "summary": "Check service status",
-                        "description": "Returns the current status of the searching service",
-                        "responses": {
-                            "200": {
-                                "description": "Service is running",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {
-                                            "type": "string",
-                                            "example": "searching api running"
-                                        }
+                '/status': {
+                    get: {
+                        summary: 'Service status',
+                        description: 'Check if the searching service is running',
+                        responses: {
+                            '200': {
+                                description: 'Service is running',
+                                content: {
+                                    'application/json': {
+                                        schema: { type: 'string', example: 'searching api running' }
                                     }
                                 }
                             }
@@ -810,295 +794,19 @@
             }
         };
 
-        // Initialize Swagger UI
         SwaggerUIBundle({
             url: '',
-            spec: apiSpec,
+            spec: spec,
             dom_id: '#swagger-ui',
-            deepLinking: true,
             presets: [
                 SwaggerUIBundle.presets.apis,
                 SwaggerUIBundle.presets.standalone
             ],
-            plugins: [
-                SwaggerUIBundle.plugins.DownloadUrl
-            ]
+            layout: "BaseLayout",
+            deepLinking: true,
+            showExtensions: true,
+            showCommonExtensions: true
         });
-
-        // Form handling
-        const addForm = document.getElementById('addForm');
-        const searchForm = document.getElementById('searchForm');
-        const deleteForm = document.getElementById('deleteForm');
-        const statusForm = document.getElementById('statusForm');
-
-        // Utility function to show result in specific result div
-        function showResult(resultDivId, message, type) {
-            const resultDiv = document.getElementById(resultDivId);
-            resultDiv.textContent = message;
-            resultDiv.className = `result-area${type === 'success' ? ' result-success' : type === 'error' ? ' result-error' : ''}`;
-        }
-
-        // JSON Validation Functions
-        function validateJson(jsonString) {
-            try {
-                JSON.parse(jsonString);
-                return { valid: true, error: null };
-            } catch (error) {
-                return { valid: false, error: error.message };
-            }
-        }
-
-        function updateValidationUI(textareaElement, helperElement, errorElement, validation) {
-            if (validation.valid) {
-                textareaElement.classList.remove('invalid');
-                textareaElement.classList.add('valid');
-                errorElement.style.display = 'none';
-                helperElement.style.display = 'block';
-                helperElement.textContent = 'Valid JSON format ✓';
-                helperElement.style.color = 'var(--success-color)';
-            } else {
-                textareaElement.classList.remove('valid');
-                textareaElement.classList.add('invalid');
-                helperElement.style.display = 'none';
-                errorElement.style.display = 'block';
-                errorElement.textContent = `Invalid JSON: ${validation.error}`;
-            }
-        }
-
-        function formatAddJson() {
-            const textarea = document.getElementById('addDocument');
-            const value = textarea.value.trim();
-            
-            if (!value) {
-                return;
-            }
-            
-            try {
-                const parsed = JSON.parse(value);
-                textarea.value = JSON.stringify(parsed, null, 2);
-                // Trigger validation
-                validateAddDocument();
-            } catch (error) {
-                // If it's not valid JSON, just trigger validation to show error
-                validateAddDocument();
-            }
-        }
-
-        function validateAddDocument() {
-            const textarea = document.getElementById('addDocument');
-            const helper = document.getElementById('addDocumentHelper');
-            const error = document.getElementById('addDocumentError');
-            const submitBtn = document.getElementById('addSubmitBtn');
-            
-            const value = textarea.value.trim();
-            
-            if (!value) {
-                textarea.classList.remove('valid', 'invalid');
-                helper.style.display = 'block';
-                helper.textContent = 'Enter valid JSON format. The document will be automatically assigned a UUID key.';
-                helper.style.color = 'var(--text-secondary)';
-                error.style.display = 'none';
-                submitBtn.disabled = false;
-                submitBtn.style.opacity = '1';
-                return;
-            }
-            
-            const validation = validateJson(value);
-            updateValidationUI(textarea, helper, error, validation);
-            
-            // Enable/disable submit button based on validation
-            if (validation.valid) {
-                submitBtn.disabled = false;
-                submitBtn.style.opacity = '1';
-                submitBtn.style.cursor = 'pointer';
-            } else {
-                submitBtn.disabled = true;
-                submitBtn.style.opacity = '0.5';
-                submitBtn.style.cursor = 'not-allowed';
-            }
-        }
-
-        // Add real-time validation to document textarea
-        document.getElementById('addDocument').addEventListener('input', validateAddDocument);
-        document.getElementById('addDocument').addEventListener('blur', validateAddDocument);
-
-        // Search Results Display
-        function displaySearchResults(results) {
-            const searchResultsDiv = document.getElementById('searchResults');
-            
-            if (!results || results.length === 0) {
-                searchResultsDiv.style.display = 'none';
-                return;
-            }
-            
-            const resultsHtml = results.map(result => `
-                <div class="search-result-item">
-                    <div class="search-result-key">${escapeHtml(result.key)}</div>
-                    <div class="search-result-content">${escapeHtml(JSON.stringify(result.document, null, 2))}</div>
-                </div>
-            `).join('');
-            
-            searchResultsDiv.innerHTML = resultsHtml;
-            searchResultsDiv.style.display = 'block';
-        }
-
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-
-        // ADD Form Handler
-        addForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const document = document.getElementById('addDocument').value.trim();
-            
-            // Final validation before submission
-            if (!document) {
-                showResult('addResult', 'Document content is required', 'error');
-                return;
-            }
-            
-            const validation = validateJson(document);
-            if (!validation.valid) {
-                showResult('addResult', `Cannot add document: Invalid JSON format - ${validation.error}`, 'error');
-                return;
-            }
-            
-            try {
-                const body = JSON.parse(document);
-                await executeApiCall('ADD', null, body, 'addResult');
-            } catch (e) {
-                showResult('addResult', `Unexpected error: ${e.message}`, 'error');
-            }
-        });
-
-        // SEARCH Form Handler
-        searchForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const term = document.getElementById('searchTerm').value.trim();
-            if (!term) {
-                showResult('searchResult', 'Search term is required', 'error');
-                return;
-            }
-            
-            await executeApiCall('SEARCH', term, null, 'searchResult');
-        });
-
-        // DELETE Form Handler
-        deleteForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const key = document.getElementById('deleteKey').value.trim();
-            if (!key) {
-                showResult('deleteResult', 'Document key is required', 'error');
-                return;
-            }
-            
-            await executeApiCall('DELETE', key, null, 'deleteResult');
-        });
-
-        // STATUS Form Handler
-        statusForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            await executeApiCall('STATUS', null, null, 'statusResult');
-        });
-
-        // Generic API call function
-        async function executeApiCall(operation, key, body, resultDivId) {
-            let url, method;
-            
-            switch (operation) {
-                case 'ADD':
-                    url = `/services/searching/api/add/`;
-                    method = 'POST';
-                    break;
-                case 'SEARCH':
-                    url = `/services/searching/api/search/${encodeURIComponent(key)}`;
-                    method = 'GET';
-                    break;
-                case 'DELETE':
-                    url = `/services/searching/api/delete/${encodeURIComponent(key)}`;
-                    method = 'DELETE';
-                    break;
-                case 'STATUS':
-                    url = `/services/searching/api/status`;
-                    method = 'GET';
-                    break;
-            }
-            
-            try {
-                const options = {
-                    method: method,
-                    headers: {
-                        'Content-Type': 'application/json',
-                    }
-                };
-                
-                if (body !== undefined && body !== null) {
-                    options.body = JSON.stringify(body);
-                }
-                
-                const response = await fetch(url, options);
-                const responseText = await response.text();
-                
-                let responseData;
-                try {
-                    responseData = JSON.parse(responseText);
-                } catch (e) {
-                    responseData = responseText;
-                }
-                
-                if (response.ok) {
-                    if (operation === 'SEARCH') {
-                        // Display search results in special format
-                        if (responseData.results) {
-                            displaySearchResults(responseData.results);
-                            showResult(resultDivId, `Success: Found ${responseData.total || responseData.results.length} result(s) for "${responseData.query || key}"`, 'success');
-                        } else {
-                            document.getElementById('searchResults').style.display = 'none';
-                            showResult(resultDivId, 'Success: No results found', 'success');
-                        }
-                    } else if (operation === 'ADD') {
-                        // For ADD operations, show the generated key
-                        if (responseData.key) {
-                            showResult(resultDivId, `Success: Document added with key: ${responseData.key}`, 'success');
-                        } else {
-                            showResult(resultDivId, `Success: ${JSON.stringify(responseData, null, 2)}`, 'success');
-                        }
-                    } else {
-                        showResult(resultDivId, `Success: ${JSON.stringify(responseData, null, 2)}`, 'success');
-                    }
-                } else {
-                    if (operation === 'SEARCH') {
-                        document.getElementById('searchResults').style.display = 'none';
-                    }
-                    showResult(resultDivId, `Error ${response.status}: ${responseData}`, 'error');
-                }
-            } catch (error) {
-                if (operation === 'SEARCH') {
-                    document.getElementById('searchResults').style.display = 'none';
-                }
-                showResult(resultDivId, `Network Error: ${error.message}`, 'error');
-            }
-        }
-
-        // Load example data for ADD form
-        function loadAddExample() {
-            document.getElementById('addDocument').value = JSON.stringify({
-                "title": "Introduction to NooblyJS Searching",
-                "content": "NooblyJS provides a powerful searching service that allows you to index documents and perform full-text search operations. It supports JSON documents with automatic UUID key generation.",
-                "tags": ["nooblyjs", "search", "document", "indexing"],
-                "category": "tutorial",
-                "author": "NooblyJS Team",
-                "createdAt": new Date().toISOString()
-            }, null, 2);
-            
-            // Trigger validation after loading example
-            validateAddDocument();
-        }
     </script>
 </body>
 </html>

@@ -315,7 +315,6 @@
             gap: 24px;
         }
 
-        /* Analytics Table Styles */
         .analytics-table {
             width: 100%;
             border-collapse: collapse;
@@ -481,7 +480,7 @@
         <main class="main-content">
             <div class="page-header">
                 <h1 class="page-title">Cache Management</h1>
-                <p class="page-subtitle">Manage cache keys and values with fast retrieval operations</p>
+                <p class="page-subtitle">Store, retrieve, and delete cache entries</p>
             </div>
 
             <div class="alert alert-success" id="successAlert">
@@ -492,22 +491,22 @@
                 <strong>Error!</strong> <span id="errorMessage"></span>
             </div>
 
-            <!-- Store Cache Form -->
+            <!-- Store/Update Cache Form -->
             <div class="card">
                 <div class="card-header">
-                    <h2 class="card-title">Store Cache</h2>
-                    <p class="card-subtitle">Save a value to cache with the specified key</p>
+                    <h2 class="card-title">Store / Update Cache</h2>
+                    <p class="card-subtitle">Add or update a cache entry</p>
                 </div>
                 <div class="card-content">
                     <form id="putForm">
                         <div class="form-group">
                             <label class="form-label" for="putKey">Key</label>
                             <input type="text" id="putKey" class="form-input" placeholder="Enter cache key" required>
-                            <div class="helper-text">Unique identifier for the cached data</div>
+                            <div class="helper-text">Unique identifier for the cache entry</div>
                         </div>
                         <div class="form-group">
                             <label class="form-label" for="putValue">Value (JSON)</label>
-                            <textarea id="putValue" class="form-input form-textarea" placeholder='{"name": "John Doe", "email": "john@example.com"}' required></textarea>
+                            <textarea id="putValue" class="form-input form-textarea" placeholder='{"message": "Hello World", "timestamp": "2024-01-01"}' required></textarea>
                             <div id="putValidation" class="validation-message" style="display: none;"></div>
                             <div class="helper-text">Enter valid JSON data</div>
                         </div>
@@ -528,14 +527,14 @@
             <div class="card">
                 <div class="card-header">
                     <h2 class="card-title">Retrieve Cache</h2>
-                    <p class="card-subtitle">Get cached data by key</p>
+                    <p class="card-subtitle">Get a cache entry by key</p>
                 </div>
                 <div class="card-content">
                     <form id="getForm">
                         <div class="form-group">
                             <label class="form-label" for="getKey">Key</label>
                             <input type="text" id="getKey" class="form-input" placeholder="Enter cache key to retrieve" required>
-                            <div class="helper-text">Key of the cached data to retrieve</div>
+                            <div class="helper-text">Key of the cache entry to retrieve</div>
                         </div>
                         <div class="btn-group">
                             <button type="submit" class="btn btn-primary">Retrieve Cache</button>
@@ -552,14 +551,14 @@
             <div class="card">
                 <div class="card-header">
                     <h2 class="card-title">Delete Cache</h2>
-                    <p class="card-subtitle">Remove cached data by key</p>
+                    <p class="card-subtitle">Remove a cache entry</p>
                 </div>
                 <div class="card-content">
                     <form id="deleteForm">
                         <div class="form-group">
                             <label class="form-label" for="deleteKey">Key</label>
                             <input type="text" id="deleteKey" class="form-input" placeholder="Enter cache key to delete" required>
-                            <div class="helper-text">Key of the cached data to remove</div>
+                            <div class="helper-text">Key of the cache entry to remove</div>
                         </div>
                         <div class="btn-group">
                             <button type="submit" class="btn btn-error">Delete Cache</button>
@@ -572,7 +571,7 @@
                 </div>
             </div>
 
-            <!-- Service Status -->
+            <!-- Status Check -->
             <div class="card">
                 <div class="card-header">
                     <h2 class="card-title">Service Status</h2>
@@ -592,7 +591,7 @@
             <!-- Cache Analytics -->
             <div class="card">
                 <div class="card-header">
-                    <h2 class="card-title">Cache Analytics</h2>
+                    <h2 class="card-title">Cache Hits</h2>
                     <p class="card-subtitle">View cache usage statistics and most accessed keys</p>
                 </div>
                 <div class="card-content">
@@ -693,11 +692,10 @@
                 putValue: {
                     "name": "John Doe",
                     "email": "john@example.com",
-                    "preferences": {
-                        "theme": "dark",
-                        "notifications": true
-                    },
-                    "lastLogin": "2024-01-01T00:00:00Z"
+                    "metadata": {
+                        "created": "2024-01-01T00:00:00Z",
+                        "tags": ["user", "active"]
+                    }
                 }
             };
             
@@ -763,7 +761,7 @@
             const value = document.getElementById('putValue').value;
             
             if (!validateJSON('putValue')) {
-                showAlert('Please enter valid JSON before storing cache', 'error');
+                showAlert('Please enter valid JSON before storing data', 'error');
                 return;
             }
             
@@ -772,9 +770,10 @@
                 const parsedValue = JSON.parse(value);
                 const result = await makeRequest(`/services/caching/api/put/${encodeURIComponent(key)}`, 'POST', parsedValue);
                 showResponse('putResponse', 'putResponseContent', result);
-                showAlert(`Cache stored successfully with key: ${key}`);
+                showAlert(`Cache entry stored successfully with key: ${key}`);
+                loadAnalytics();
             } catch (error) {
-                showAlert('Error storing cache: ' + error.message, 'error');
+                showAlert('Error storing cache entry: ' + error.message, 'error');
                 showResponse('putResponse', 'putResponseContent', 'Error: ' + error.message);
             } finally {
                 setLoading('putForm', false);
@@ -790,9 +789,10 @@
                 setLoading('getForm', true);
                 const result = await makeRequest(`/services/caching/api/get/${encodeURIComponent(key)}`);
                 showResponse('getResponse', 'getResponseContent', result);
-                showAlert(`Cache retrieved successfully for key: ${key}`);
+                showAlert(`Cache entry retrieved successfully for key: ${key}`);
+                loadAnalytics();
             } catch (error) {
-                showAlert('Error retrieving cache: ' + error.message, 'error');
+                showAlert('Error retrieving cache entry: ' + error.message, 'error');
                 showResponse('getResponse', 'getResponseContent', 'Error: ' + error.message);
             } finally {
                 setLoading('getForm', false);
@@ -804,7 +804,7 @@
             
             const key = document.getElementById('deleteKey').value;
             
-            if (!confirm(`Are you sure you want to delete cache with key: ${key}?`)) {
+            if (!confirm(`Are you sure you want to delete the cache entry with key: ${key}?`)) {
                 return;
             }
             
@@ -812,10 +812,10 @@
                 setLoading('deleteForm', true);
                 const result = await makeRequest(`/services/caching/api/delete/${encodeURIComponent(key)}`, 'DELETE');
                 showResponse('deleteResponse', 'deleteResponseContent', result);
-                showAlert(`Cache deleted successfully for key: ${key}`);
-                loadAnalytics(); // Refresh analytics after deletion
+                showAlert(`Cache entry deleted successfully for key: ${key}`);
+                loadAnalytics();
             } catch (error) {
-                showAlert('Error deleting cache: ' + error.message, 'error');
+                showAlert('Error deleting cache entry: ' + error.message, 'error');
                 showResponse('deleteResponse', 'deleteResponseContent', 'Error: ' + error.message);
             } finally {
                 setLoading('deleteForm', false);
@@ -963,7 +963,7 @@
             openapi: '3.0.0',
             info: {
                 title: 'Cache API',
-                description: 'REST API for cache management operations',
+                description: 'REST API for cache operations',
                 version: '1.0.0'
             },
             servers: [
@@ -972,15 +972,15 @@
             paths: {
                 '/put/{key}': {
                     post: {
-                        summary: 'Store cache',
-                        description: 'Store data in cache with the specified key',
+                        summary: 'Store cache entry',
+                        description: 'Store a cache entry with the specified key',
                         parameters: [
                             {
                                 name: 'key',
                                 in: 'path',
                                 required: true,
                                 schema: { type: 'string' },
-                                description: 'The cache key'
+                                description: 'The key to store the cache entry under'
                             }
                         ],
                         requestBody: {
@@ -988,13 +988,13 @@
                             content: {
                                 'application/json': {
                                     schema: { type: 'object' },
-                                    example: { "name": "John Doe", "email": "john@example.com" }
+                                    example: { "message": "Hello World", "timestamp": "2024-01-01" }
                                 }
                             }
                         },
                         responses: {
                             '200': {
-                                description: 'Cache stored successfully',
+                                description: 'Cache entry stored successfully',
                                 content: {
                                     'text/plain': { schema: { type: 'string', example: 'OK' } }
                                 }
@@ -1010,24 +1010,24 @@
                 },
                 '/get/{key}': {
                     get: {
-                        summary: 'Retrieve cache',
-                        description: 'Retrieve cached data by key',
+                        summary: 'Retrieve cache entry',
+                        description: 'Retrieve a cache entry by key',
                         parameters: [
                             {
                                 name: 'key',
                                 in: 'path',
                                 required: true,
                                 schema: { type: 'string' },
-                                description: 'The cache key'
+                                description: 'The key to retrieve the cache entry for'
                             }
                         ],
                         responses: {
                             '200': {
-                                description: 'Cache retrieved successfully',
+                                description: 'Cache entry retrieved successfully',
                                 content: {
                                     'application/json': {
                                         schema: { type: 'object' },
-                                        example: { "name": "John Doe", "email": "john@example.com" }
+                                        example: { "message": "Hello World", "timestamp": "2024-01-01" }
                                     }
                                 }
                             },
@@ -1042,20 +1042,20 @@
                 },
                 '/delete/{key}': {
                     delete: {
-                        summary: 'Delete cache',
-                        description: 'Delete cached data by key',
+                        summary: 'Delete cache entry',
+                        description: 'Delete a cache entry by key',
                         parameters: [
                             {
                                 name: 'key',
                                 in: 'path',
                                 required: true,
                                 schema: { type: 'string' },
-                                description: 'The cache key'
+                                description: 'The key to delete the cache entry for'
                             }
                         ],
                         responses: {
                             '200': {
-                                description: 'Cache deleted successfully',
+                                description: 'Cache entry deleted successfully',
                                 content: {
                                     'text/plain': { schema: { type: 'string', example: 'OK' } }
                                 }

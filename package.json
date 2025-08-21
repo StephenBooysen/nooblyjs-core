@@ -21,8 +21,8 @@
     "node": ">=12.11.0"
   },
   "repository": {
-        "type": "git",
-        "url": "https://github.com/StephenBooysen/nooblyjs-core.git"
+    "type": "git",
+    "url": "https://github.com/StephenBooysen/nooblyjs-core.git"
   },
   "scripts": {
     "clean": "rimraf dist/*; rimraf jsdocs/*;",
@@ -48,6 +48,7 @@
     "jsdoc": "^4.0.4"
   },
   "dependencies": {
+    "@google/gemini-cli": "^0.1.22",
     "aws-sdk": "^2.1620.0",
     "body-parser": "^1.20.2",
     "express": "^4.19.2",

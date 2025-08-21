@@ -1,9 +1,10 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Background Task Management - Noobly JS Admin</title>
+    <title>Working Management - Noobly JS Admin</title>
     <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@4.15.5/swagger-ui.css">
     <style>
         /* Material Design Theme Variables */
@@ -19,12 +20,10 @@
             --success-color: #388e3c;
             --text-primary: #212121;
             --text-secondary: #757575;
-            --text-hint: #9e9e9e;
-            --divider-color: #e0e0e0;
-            --outline-color: #616161;
-            --surface-tint: rgba(25, 118, 210, 0.08);
-            --elevation-1: 0px 1px 3px rgba(0, 0, 0, 0.12), 0px 1px 2px rgba(0, 0, 0, 0.24);
-            --elevation-2: 0px 3px 6px rgba(0, 0, 0, 0.16), 0px 3px 6px rgba(0, 0, 0, 0.23);
+            --border-color: #e0e0e0;
+            --shadow-1: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+            --shadow-2: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
+            --shadow-3: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23);
         }
 
         * {
@@ -35,706 +34,672 @@
 
         body {
             font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            line-height: 1.5;
+            background-color: var(--background-color);
             color: var(--text-primary);
-            background: var(--background-color);
+            line-height: 1.6;
+        }
+
+        .app-container {
+            display: flex;
             min-height: 100vh;
         }
 
-        /* Header */
-        .header {
+        .sidebar {
+            width: 280px;
             background: var(--surface-color);
-            box-shadow: var(--elevation-1);
+            box-shadow: var(--shadow-2);
+            padding: 24px 0;
             position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 1000;
-            height: 64px;
-        }
-
-        .header-container {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            height: 100%;
-            padding: 0 24px;
+            height: 100vh;
+            overflow-y: auto;
         }
 
         .logo {
-            display: flex;
-            align-items: center;
-            text-decoration: none;
-            color: var(--text-primary);
+            padding: 0 24px 32px;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 24px;
+        }
+
+        .logo h1 {
+            font-size: 24px;
             font-weight: 500;
-            font-size: 1.25rem;
+            color: var(--primary-color);
         }
 
-        .logo-icon {
-            width: 40px;
-            height: 40px;
-            background: var(--primary-color);
-            color: white;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 600;
-            margin-right: 12px;
-        }
-
-        /* Admin Container */
-        .admin-container {
-            display: flex;
-            min-height: 100vh;
-            margin-top: 64px;
-            background: var(--background-color);
-        }
-
-        .admin-sidebar {
-            width: 280px;
-            background: var(--surface-color);
-            border-right: 1px solid var(--divider-color);
-            padding: 24px 0;
-            position: fixed;
-            height: calc(100vh - 64px);
-            overflow-y: auto;
-            box-shadow: var(--elevation-1);
-        }
-
-        .admin-nav {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        .admin-nav-item {
-            padding: 0;
-            margin: 0 16px;
-        }
-
-        .admin-nav-link {
-            display: block;
-            padding: 12px 16px;
+        .logo .subtitle {
+            font-size: 14px;
             color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        .nav-item {
+            display: block;
+            padding: 16px 24px;
+            color: var(--text-primary);
             text-decoration: none;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            font-weight: 500;
-            font-size: 0.875rem;
-            border-radius: 12px;
-            position: relative;
-            overflow: hidden;
+            transition: all 0.2s ease;
+            border-left: 4px solid transparent;
         }
 
-        .admin-nav-link:hover {
+        .nav-item:hover {
+            background-color: var(--surface-variant);
             color: var(--primary-color);
-            background: var(--surface-tint);
         }
 
-        .admin-nav-link.active {
-            color: var(--primary-color);
-            background: var(--surface-tint);
+        .nav-item.active {
+            background-color: var(--primary-light);
+            color: white;
+            border-left-color: var(--primary-dark);
         }
 
-        .admin-content {
+        .main-content {
             flex: 1;
             margin-left: 280px;
             padding: 32px;
         }
 
-        .admin-header {
+        .page-header {
             margin-bottom: 32px;
         }
 
-        .admin-title {
-            font-size: 2rem;
+        .page-title {
+            font-size: 32px;
             font-weight: 400;
             color: var(--text-primary);
             margin-bottom: 8px;
-            line-height: 2.5rem;
         }
 
-        .admin-subtitle {
+        .page-subtitle {
+            font-size: 16px;
             color: var(--text-secondary);
-            font-weight: 400;
-            font-size: 1rem;
-            line-height: 1.5rem;
         }
 
-        /* Working Operations */
-        .working-operations {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 24px;
-            margin-bottom: 32px;
-        }
-
-        .working-card {
+        .card {
             background: var(--surface-color);
-            border-radius: 12px;
-            padding: 24px;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: var(--elevation-1);
-        }
-
-        .working-card:hover {
-            box-shadow: var(--elevation-2);
-        }
-
-        .working-card h3 {
-            color: var(--text-primary);
-            font-size: 1.375rem;
-            font-weight: 400;
+            border-radius: 8px;
+            box-shadow: var(--shadow-1);
             margin-bottom: 24px;
-            line-height: 1.75rem;
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 24px;
+            border-bottom: 1px solid var(--border-color);
+            background: var(--surface-variant);
+        }
+
+        .card-title {
+            font-size: 20px;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .card-subtitle {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .card-content {
+            padding: 24px;
         }
 
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 24px;
         }
 
         .form-label {
             display: block;
-            color: var(--text-primary);
+            font-size: 14px;
             font-weight: 500;
+            color: var(--text-primary);
             margin-bottom: 8px;
-            font-size: 0.875rem;
-            line-height: 1.25rem;
         }
 
         .form-input {
             width: 100%;
             padding: 12px 16px;
-            border: 1px solid var(--outline-color);
-            border-radius: 8px;
+            border: 2px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 16px;
+            transition: all 0.2s ease;
             background: var(--surface-color);
             color: var(--text-primary);
-            font-size: 1rem;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
         }
 
         .form-input:focus {
             outline: none;
             border-color: var(--primary-color);
-            box-shadow: 0 0 0 2px var(--surface-tint);
-        }
-
-        .form-input::placeholder {
-            color: var(--text-hint);
+            box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.2);
         }
 
         .form-textarea {
-            width: 100%;
-            padding: 12px 16px;
-            border: 1px solid var(--outline-color);
-            border-radius: 8px;
-            background: var(--surface-color);
-            color: var(--text-primary);
-            font-size: 1rem;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             min-height: 120px;
             resize: vertical;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
         }
 
-        .form-textarea:focus {
-            outline: none;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 2px var(--surface-tint);
-        }
-
-        .form-textarea::placeholder {
-            color: var(--text-hint);
-        }
-
-        .form-button {
-            width: 100%;
-            padding: 10px 24px;
-            background: var(--primary-color);
-            color: white;
-            border: none;
-            border-radius: 20px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            text-transform: uppercase;
-            letter-spacing: 1.25px;
-            font-size: 0.875rem;
-            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            min-height: 40px;
-            position: relative;
-            overflow: hidden;
-            box-shadow: var(--elevation-1);
-        }
-
-        .form-button:hover {
-            box-shadow: var(--elevation-2);
-        }
-
-        .form-button:active {
-            box-shadow: var(--elevation-1);
-        }
-
-        .form-button.stop-button {
-            background: var(--error-color);
-        }
-
-        .result-area {
-            background: var(--surface-variant);
-            border: 1px solid var(--divider-color);
-            border-radius: 8px;
-            padding: 16px;
-            margin-top: 16px;
-            color: var(--text-secondary);
-            font-size: 0.875rem;
-            font-weight: 400;
-            min-height: 60px;
-            white-space: pre-wrap;
-            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        }
-
-        .result-success {
-            color: var(--success-color);
-            background: rgba(56, 142, 60, 0.08);
-            border-color: rgba(56, 142, 60, 0.2);
-        }
-
-        .result-error {
-            color: var(--error-color);
-            background: rgba(211, 47, 47, 0.08);
-            border-color: rgba(211, 47, 47, 0.2);
-        }
-
-        .form-helper {
-            color: var(--text-secondary);
-            font-size: 0.75rem;
-            margin-top: 4px;
-            line-height: 1.2;
-        }
-
-        .form-error {
-            color: var(--error-color);
-            font-size: 0.75rem;
-            margin-top: 4px;
-            line-height: 1.2;
-        }
-
-        .form-textarea.invalid {
-            border-color: var(--error-color);
-            box-shadow: 0 0 0 2px rgba(211, 47, 47, 0.1);
-        }
-
-        .form-textarea.valid {
-            border-color: var(--success-color);
-            box-shadow: 0 0 0 2px rgba(56, 142, 60, 0.1);
-        }
-
-        .json-examples {
-            background: var(--surface-variant);
-            border: 1px solid var(--divider-color);
-            border-radius: 8px;
-            padding: 12px;
-            margin-bottom: 16px;
-            font-family: monospace;
-            font-size: 0.75rem;
-        }
-
-        .json-example {
-            margin-bottom: 8px;
-        }
-
-        .json-example:last-child {
-            margin-bottom: 0;
-        }
-
-        .json-example-label {
-            color: var(--text-secondary);
-            font-weight: 500;
-            margin-bottom: 2px;
-        }
-
-        /* Swagger UI Customization */
-        #swagger-ui {
-            margin-top: 32px;
-        }
-
-        .swagger-card {
-            background: var(--surface-color);
-            border-radius: 12px;
-            padding: 24px;
-            box-shadow: var(--elevation-1);
-        }
-
-        .confirmation-modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 2000;
+        .btn {
+            display: inline-flex;
             align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            min-width: 64px;
             justify-content: center;
         }
 
-        .confirmation-dialog {
-            background: var(--surface-color);
-            border-radius: 12px;
-            padding: 24px;
-            max-width: 400px;
-            width: 90%;
-            box-shadow: var(--elevation-2);
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+            box-shadow: var(--shadow-1);
         }
 
-        .confirmation-title {
-            font-size: 1.25rem;
-            font-weight: 500;
-            margin-bottom: 16px;
-            color: var(--text-primary);
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            box-shadow: var(--shadow-2);
         }
 
-        .confirmation-message {
-            color: var(--text-secondary);
-            margin-bottom: 24px;
-            line-height: 1.5;
-        }
-
-        .confirmation-buttons {
-            display: flex;
-            gap: 12px;
-            justify-content: flex-end;
-        }
-
-        .confirmation-button {
-            padding: 8px 16px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 500;
-            font-size: 0.875rem;
-            transition: all 0.2s;
-        }
-
-        .confirmation-button.cancel {
+        .btn-secondary {
             background: var(--surface-variant);
             color: var(--text-primary);
+            border: 1px solid var(--border-color);
         }
 
-        .confirmation-button.confirm {
+        .btn-secondary:hover {
+            background: var(--border-color);
+        }
+
+        .btn-success {
+            background: var(--success-color);
+            color: white;
+        }
+
+        .btn-error {
             background: var(--error-color);
             color: white;
         }
 
-        .confirmation-button:hover {
-            opacity: 0.8;
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .alert {
+            padding: 16px;
+            border-radius: 4px;
+            margin-bottom: 24px;
+            display: none;
+        }
+
+        .alert.show {
+            display: block;
+        }
+
+        .alert-success {
+            background: rgba(56, 142, 60, 0.1);
+            border: 1px solid var(--success-color);
+            color: var(--success-color);
+        }
+
+        .alert-error {
+            background: rgba(211, 47, 47, 0.1);
+            border: 1px solid var(--error-color);
+            color: var(--error-color);
+        }
+
+        .helper-text {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        .json-valid {
+            border-color: var(--success-color) !important;
+        }
+
+        .json-invalid {
+            border-color: var(--error-color) !important;
+        }
+
+        .validation-message {
+            font-size: 12px;
+            margin-top: 4px;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        .validation-success {
+            background: rgba(56, 142, 60, 0.1);
+            color: var(--success-color);
+        }
+
+        .validation-error {
+            background: rgba(211, 47, 47, 0.1);
+            color: var(--error-color);
+        }
+
+        .response-container {
+            margin-top: 24px;
+            padding: 16px;
+            background: var(--surface-variant);
+            border-radius: 4px;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .response-title {
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
+        .response-content {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 14px;
+            color: var(--text-secondary);
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
         }
 
         @media (max-width: 768px) {
-            .admin-sidebar {
-                width: 240px;
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
             }
-            
-            .admin-content {
-                margin-left: 240px;
-                padding: 24px 16px;
-            }
-            
-            .working-operations {
-                grid-template-columns: 1fr;
-                gap: 16px;
-            }
-        }
 
-        @media (max-width: 600px) {
-            .admin-sidebar {
-                width: 100%;
-                position: relative;
-                height: auto;
-                box-shadow: none;
-                border-right: none;
-                border-bottom: 1px solid var(--divider-color);
-            }
-            
-            .admin-content {
+            .main-content {
                 margin-left: 0;
                 padding: 16px;
             }
-            
-            .admin-container {
+
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+
+            .btn-group {
                 flex-direction: column;
             }
+        }
+
+        .swagger-ui {
+            font-family: inherit;
+        }
+
+        .swagger-ui .topbar {
+            display: none;
+        }
+
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
         }
     </style>
 </head>
 <body>
-    <!-- Header -->
-    <header class="header">
-        <div class="header-container">
-            <a href="#" class="logo">
-                <div class="logo-icon">N</div>
-                <span>Noobly JS Admin</span>
-            </a>
-        </div>
-    </header>
+    <div class="app-container">
+        <nav class="sidebar">
+            <div class="logo">
+                <h1>Noobly JS</h1>
+                <div class="subtitle">Background Tasks</div>
+            </div>
+            <a href="/services/caching/" class="nav-item">Cache Management</a>
+            <a href="/services/dataserve/" class="nav-item">Data Serve</a>
+            <a href="/services/filing/" class="nav-item">File Management</a>
+            <a href="/services/logging/" class="nav-item">Logging</a>
+            <a href="/services/measuring/" class="nav-item">Measuring</a>
+            <a href="/services/notifying/" class="nav-item">Notifications</a>
+            <a href="/services/queueing/" class="nav-item">Queue Management</a>
+            <a href="/services/scheduling/" class="nav-item">Scheduling</a>
+            <a href="/services/searching/" class="nav-item">Search</a>
+            <a href="/services/working/" class="nav-item active">Background Tasks</a>
+            <a href="/services/workflow/" class="nav-item">Workflows</a>
+        </nav>
 
-    <div class="admin-container">
-        <!-- Sidebar Navigation -->
-        <aside class="admin-sidebar">
-            <nav class="admin-nav">
-                <div class="admin-nav-item">
-                    <a href="/services/caching/" class="admin-nav-link">Caching</a>
-                </div>
-                <div class="admin-nav-item">
-                    <a href="/services/dataserve/" class="admin-nav-link">Data Serve</a>
-                </div>
-                <div class="admin-nav-item">
-                    <a href="/services/filing/" class="admin-nav-link">Filing</a>
-                </div>
-                <div class="admin-nav-item">
-                    <a href="/services/logging/" class="admin-nav-link">Logging</a>
-                </div>
-                <div class="admin-nav-item">
-                    <a href="/services/measuring/" class="admin-nav-link">Measuring</a>
-                </div>
-                <div class="admin-nav-item">
-                    <a href="/services/notifying/" class="admin-nav-link">Notifying</a>
-                </div>
-                <div class="admin-nav-item">
-                    <a href="/services/queueing/" class="admin-nav-link">Queueing</a>
-                </div>
-                <div class="admin-nav-item">
-                    <a href="/services/scheduling/" class="admin-nav-link">Scheduling</a>
-                </div>
-                <div class="admin-nav-item">
-                    <a href="/services/searching/" class="admin-nav-link">Searching</a>
-                </div>
-                <div class="admin-nav-item">
-                    <a href="/services/workflow/" class="admin-nav-link">Workflow</a>
-                </div>
-                <div class="admin-nav-item">
-                    <a href="/services/working/" class="admin-nav-link active">Working</a>
-                </div>
-            </nav>
-        </aside>
-
-        <!-- Main Content -->
-        <main class="admin-content">
-            <div class="admin-header">
-                <h1 class="admin-title">Background Task Management</h1>
-                <p class="admin-subtitle">Start, stop and manage background tasks and workers</p>
+        <main class="main-content">
+            <div class="page-header">
+                <h1 class="page-title">Background Task Management</h1>
+                <p class="page-subtitle">Run, stop, and monitor background tasks</p>
             </div>
 
-            <div class="working-operations">
-                
-                <!-- Start Task -->
-                <div class="working-card">
-                    <h3>Start Task</h3>
+            <div class="alert alert-success" id="successAlert">
+                <strong>Success!</strong> <span id="successMessage"></span>
+            </div>
+
+            <div class="alert alert-error" id="errorAlert">
+                <strong>Error!</strong> <span id="errorMessage"></span>
+            </div>
+
+            <!-- Run Task Form -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Run Task</h2>
+                    <p class="card-subtitle">Run a new background task</p>
+                </div>
+                <div class="card-content">
                     <form id="runForm">
                         <div class="form-group">
-                            <label for="taskPath" class="form-label">Task Path</label>
-                            <input type="text" id="taskPath" name="task" class="form-input" placeholder="Enter task path (e.g., ./tasks/dataProcessor.js)" required>
-                            <div class="form-helper">Path to the JavaScript file containing the background task</div>
+                            <label class="form-label" for="runTask">Task (JSON)</label>
+                            <textarea id="runTask" class="form-input form-textarea" placeholder='{"task": "/path/to/your/task.js", "data": { "param1": "value1" }}' required></textarea>
+                            <div id="runValidation" class="validation-message" style="display: none;"></div>
+                            <div class="helper-text">Enter a valid JSON object for the task, including the path to the task file and any data to pass.</div>
                         </div>
-                        <div class="form-group">
-                            <label for="taskData" class="form-label">Task Data (Optional JSON)</label>
-                            <div class="json-examples">
-                                <div class="json-example">
-                                    <div class="json-example-label">Simple data:</div>
-                                    {"input": "data", "config": "value"}
-                                </div>
-                                <div class="json-example">
-                                    <div class="json-example-label">Array processing:</div>
-                                    {"items": ["item1", "item2"], "batchSize": 10}
-                                </div>
-                                <div class="json-example">
-                                    <div class="json-example-label">Complex task:</div>
-                                    {"source": "database", "target": "file.csv", "filters": {}}
-                                </div>
-                            </div>
-                            <textarea id="taskData" name="data" class="form-textarea" placeholder="Enter optional JSON data for the task (leave empty if no data needed)"></textarea>
-                            <div id="taskDataHelper" class="form-helper">Optional JSON data to pass to the background task. Leave empty if no data is needed.</div>
-                            <div id="taskDataError" class="form-error" style="display: none;"></div>
+                        <div class="btn-group">
+                            <button type="submit" class="btn btn-primary">Run Task</button>
+                            <button type="button" class="btn btn-secondary" onclick="formatJSON('runTask')">Format JSON</button>
+                            <button type="button" class="btn btn-secondary" onclick="loadExample('runTask')">Load Example</button>
                         </div>
-                        <div style="display: flex; gap: 12px; margin-bottom: 16px;">
-                            <button type="button" onclick="loadTaskExample()" style="background: var(--surface-variant); color: var(--text-primary); border: 1px solid var(--outline-color); padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 0.875rem;">Load Example</button>
-                            <button type="button" onclick="formatTaskJson()" style="background: var(--surface-variant); color: var(--text-primary); border: 1px solid var(--outline-color); padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 0.875rem;">Format JSON</button>
-                        </div>
-                        <button type="submit" class="form-button" id="runSubmitBtn">Start Task</button>
                     </form>
-                    <div id="runResult" class="result-area"></div>
+                    <div id="runResponse" class="response-container" style="display: none;">
+                        <div class="response-title">Response:</div>
+                        <div id="runResponseContent" class="response-content"></div>
+                    </div>
                 </div>
+            </div>
 
-                <!-- Stop Tasks -->
-                <div class="working-card">
-                    <h3>Stop Tasks</h3>
+            <!-- Stop Task Form -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Stop Task</h2>
+                    <p class="card-subtitle">Stop a running background task</p>
+                </div>
+                <div class="card-content">
                     <form id="stopForm">
-                        <div class="form-group">
-                            <p class="form-helper" style="margin-bottom: 16px;">This will stop the currently running background task. Any work in progress may be lost.</p>
+                        <div class="btn-group">
+                            <button type="submit" class="btn btn-error">Stop Task</button>
                         </div>
-                        <button type="submit" class="form-button stop-button">Stop All Tasks</button>
                     </form>
-                    <div id="stopResult" class="result-area"></div>
+                    <div id="stopResponse" class="response-container" style="display: none;">
+                        <div class="response-title">Response:</div>
+                        <div id="stopResponseContent" class="response-content"></div>
+                    </div>
                 </div>
+            </div>
 
-                <!-- Task Status -->
-                <div class="working-card">
-                    <h3>Task Status</h3>
-                    <form id="statusForm">
-                        <div class="form-group">
-                            <p class="form-helper" style="margin-bottom: 16px;">Check the current status of the background task service and any running tasks.</p>
-                        </div>
-                        <button type="submit" class="form-button">Check Status</button>
-                    </form>
-                    <div id="statusResult" class="result-area"></div>
+            <!-- Status Check -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Service Status</h2>
+                    <p class="card-subtitle">Check working service status</p>
+                </div>
+                <div class="card-content">
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-secondary" onclick="checkStatus()">Check Status</button>
+                    </div>
+                    <div id="statusResponse" class="response-container" style="display: none;">
+                        <div class="response-title">Service Status:</div>
+                        <div id="statusResponseContent" class="response-content"></div>
+                    </div>
                 </div>
             </div>
 
             <!-- API Documentation -->
-            <div class="swagger-card">
-                <h2 style="margin-bottom: 24px; font-size: 1.75rem; font-weight: 400;">API Documentation</h2>
-                <div id="swagger-ui"></div>
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">API Documentation</h2>
+                    <p class="card-subtitle">Interactive API documentation for Working service</p>
+                </div>
+                <div class="card-content">
+                    <div id="swagger-ui"></div>
+                </div>
             </div>
         </main>
     </div>
 
-    <!-- Confirmation Modal -->
-    <div class="confirmation-modal" id="confirmationModal">
-        <div class="confirmation-dialog">
-            <h3 class="confirmation-title">Confirm Task Stop</h3>
-            <p class="confirmation-message">Are you sure you want to stop all running background tasks? Any work in progress may be lost.</p>
-            <div class="confirmation-buttons">
-                <button class="confirmation-button cancel" onclick="hideConfirmation()">Cancel</button>
-                <button class="confirmation-button confirm" onclick="confirmStop()">Stop Tasks</button>
-            </div>
-        </div>
-    </div>
-
     <script src="https://unpkg.com/swagger-ui-dist@4.15.5/swagger-ui-bundle.js"></script>
     <script>
-        // OpenAPI Specification
-        const apiSpec = {
-            "openapi": "3.0.0",
-            "info": {
-                "title": "NooblyJS Core - Working Service API",
-                "version": "1.0.0",
-                "description": "RESTful API for the background task service in NooblyJS Core framework"
-            },
-            "servers": [
-                {
-                    "url": "/services/working/api",
-                    "description": "Working Service API"
+        // JSON validation
+        function validateJSON(elementId) {
+            const element = document.getElementById(elementId);
+            const validation = document.getElementById(elementId.replace('Task', 'Validation'));
+            const value = element.value.trim();
+            
+            if (!value) {
+                element.classList.remove('json-valid', 'json-invalid');
+                validation.style.display = 'none';
+                return true;
+            }
+            
+            try {
+                JSON.parse(value);
+                element.classList.remove('json-invalid');
+                element.classList.add('json-valid');
+                validation.textContent = '✓ Valid JSON';
+                validation.className = 'validation-message validation-success';
+                validation.style.display = 'block';
+                return true;
+            } catch (e) {
+                element.classList.remove('json-valid');
+                element.classList.add('json-invalid');
+                validation.textContent = '✗ Invalid JSON: ' + e.message;
+                validation.className = 'validation-message validation-error';
+                validation.style.display = 'block';
+                return false;
+            }
+        }
+
+        // Real-time validation
+        document.getElementById('runTask').addEventListener('input', () => validateJSON('runTask'));
+
+        // Format JSON
+        function formatJSON(elementId) {
+            const element = document.getElementById(elementId);
+            try {
+                const parsed = JSON.parse(element.value);
+                element.value = JSON.stringify(parsed, null, 2);
+                validateJSON(elementId);
+            } catch (e) {
+                showAlert('Invalid JSON cannot be formatted', 'error');
+            }
+        }
+
+        // Load example
+        function loadExample(elementId) {
+            const examples = {
+                runTask: {
+                    "task": "./tasks/image-processor.js",
+                    "data": {
+                        "source": "/uploads/image.jpg",
+                        "operations": ["resize", "watermark"]
+                    }
                 }
+            };
+            
+            if (examples[elementId]) {
+                document.getElementById(elementId).value = JSON.stringify(examples[elementId], null, 2);
+                validateJSON(elementId);
+            }
+        }
+
+        // Utility functions
+        function showAlert(message, type = 'success') {
+            const alertElement = document.getElementById(type + 'Alert');
+            const messageElement = document.getElementById(type + 'Message');
+            messageElement.textContent = message;
+            alertElement.classList.add('show');
+            setTimeout(() => alertElement.classList.remove('show'), 5000);
+        }
+
+        function showResponse(containerId, contentId, data) {
+            const container = document.getElementById(containerId);
+            const content = document.getElementById(contentId);
+            content.textContent = typeof data === 'object' ? JSON.stringify(data, null, 2) : data;
+            container.style.display = 'block';
+        }
+
+        function setLoading(formId, isLoading) {
+            const form = document.getElementById(formId);
+            if (isLoading) {
+                form.classList.add('loading');
+            } else {
+                form.classList.remove('loading');
+            }
+        }
+
+        // API functions
+        async function makeRequest(url, method = 'GET', body = null) {
+            const options = {
+                method,
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            };
+            
+            if (body) {
+                options.body = JSON.stringify(body);
+            }
+            
+            const response = await fetch(url, options);
+            const contentType = response.headers.get('content-type');
+            
+            if (contentType && contentType.includes('application/json')) {
+                return await response.json();
+            } else {
+                return await response.text();
+            }
+        }
+
+        // Form handlers
+        document.getElementById('runForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const task = document.getElementById('runTask').value;
+            
+            if (!validateJSON('runTask')) {
+                showAlert('Please enter a valid JSON task', 'error');
+                return;
+            }
+            
+            try {
+                setLoading('runForm', true);
+                const parsedTask = JSON.parse(task);
+                const result = await makeRequest(`/services/working/api/run`, 'POST', parsedTask);
+                showResponse('runResponse', 'runResponseContent', result);
+                showAlert(`Task started successfully`);
+            } catch (error) {
+                showAlert('Error starting task: ' + error.message, 'error');
+                showResponse('runResponse', 'runResponseContent', 'Error: ' + error.message);
+            } finally {
+                setLoading('runForm', false);
+            }
+        });
+
+        document.getElementById('stopForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            if (!confirm(`Are you sure you want to stop the running task?`)) {
+                return;
+            }
+            
+            try {
+                setLoading('stopForm', true);
+                const result = await makeRequest(`/services/working/api/stop`);
+                showResponse('stopResponse', 'stopResponseContent', result);
+                showAlert(`Task stopped successfully`);
+            } catch (error) {
+                showAlert('Error stopping task: ' + error.message, 'error');
+                showResponse('stopResponse', 'stopResponseContent', 'Error: ' + error.message);
+            } finally {
+                setLoading('stopForm', false);
+            }
+        });
+
+        async function checkStatus() {
+            try {
+                const result = await makeRequest('/services/working/api/status');
+                showResponse('statusResponse', 'statusResponseContent', result);
+                showAlert('Status checked successfully');
+            } catch (error) {
+                showAlert('Error checking status: ' + error.message, 'error');
+                showResponse('statusResponse', 'statusResponseContent', 'Error: ' + error.message);
+            }
+        }
+
+        // Swagger UI setup
+        const spec = {
+            openapi: '3.0.0',
+            info: {
+                title: 'Working API',
+                description: 'REST API for background task operations',
+                version: '1.0.0'
+            },
+            servers: [
+                { url: '/services/working/api', description: 'Working API' }
             ],
-            "paths": {
-                "/run": {
-                    "post": {
-                        "summary": "Run a background task",
-                        "description": "Starts a background task with the specified task file and optional data",
-                        "requestBody": {
-                            "required": true,
-                            "content": {
-                                "application/json": {
-                                    "schema": {
-                                        "type": "object",
-                                        "properties": {
-                                            "task": {
-                                                "type": "string",
-                                                "description": "Path to the task file to execute"
-                                            },
-                                            "data": {
-                                                "type": "object",
-                                                "description": "Optional data to pass to the task"
-                                            }
-                                        },
-                                        "required": ["task"]
-                                    },
-                                    "example": {
-                                        "task": "./tasks/dataProcessor.js",
-                                        "data": {
-                                            "input": "data",
-                                            "batchSize": 100
-                                        }
-                                    }
+            paths: {
+                '/run': {
+                    post: {
+                        summary: 'Run a background task',
+                        description: 'Runs a new background task',
+                        requestBody: {
+                            required: true,
+                            content: {
+                                'application/json': {
+                                    schema: { type: 'object' },
+                                    example: { "task": "/path/to/task.js", "data": {} }
                                 }
                             }
                         },
-                        "responses": {
-                            "200": {
-                                "description": "Task started successfully",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {
-                                            "type": "object"
-                                        }
-                                    }
+                        responses: {
+                            '200': {
+                                description: 'Task started successfully',
+                                content: {
+                                    'application/json': { schema: { type: 'object', properties: { pid: { type: 'number' } } } }
                                 }
                             },
-                            "400": {
-                                "description": "Bad Request: Missing task parameter",
-                                "content": {
-                                    "text/plain": {
-                                        "schema": {
-                                            "type": "string"
-                                        }
-                                    }
-                                }
-                            },
-                            "500": {
-                                "description": "Server error",
-                                "content": {
-                                    "text/plain": {
-                                        "schema": {
-                                            "type": "string"
-                                        }
-                                    }
+                            '500': {
+                                description: 'Server error',
+                                content: {
+                                    'text/plain': { schema: { type: 'string' } }
                                 }
                             }
                         }
                     }
                 },
-                "/stop": {
-                    "get": {
-                        "summary": "Stop running tasks",
-                        "description": "Stops the currently running background task",
-                        "responses": {
-                            "200": {
-                                "description": "Tasks stopped successfully",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {
-                                            "type": "object"
-                                        }
-                                    }
+                '/stop': {
+                    get: {
+                        summary: 'Stop the background task',
+                        description: 'Stops the currently running background task',
+                        responses: {
+                            '200': {
+                                description: 'Task stopped successfully',
+                                content: {
+                                    'text/plain': { schema: { type: 'string', example: 'OK' } }
                                 }
                             },
-                            "500": {
-                                "description": "Server error",
-                                "content": {
-                                    "text/plain": {
-                                        "schema": {
-                                            "type": "string"
-                                        }
-                                    }
+                            '500': {
+                                description: 'Server error',
+                                content: {
+                                    'text/plain': { schema: { type: 'string' } }
                                 }
                             }
                         }
                     }
                 },
-                "/status": {
-                    "get": {
-                        "summary": "Check service status",
-                        "description": "Returns the current status of the working service",
-                        "responses": {
-                            "200": {
-                                "description": "Service is running",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {
-                                            "type": "string",
-                                            "example": "working api running"
-                                        }
+                '/status': {
+                    get: {
+                        summary: 'Service status',
+                        description: 'Check if the working service is running',
+                        responses: {
+                            '200': {
+                                description: 'Service is running',
+                                content: {
+                                    'application/json': {
+                                        schema: { type: 'string', example: 'working api running' }
                                     }
                                 }
                             }
@@ -744,237 +709,18 @@
             }
         };
 
-        // Initialize Swagger UI
         SwaggerUIBundle({
             url: '',
-            spec: apiSpec,
+            spec: spec,
             dom_id: '#swagger-ui',
-            deepLinking: true,
             presets: [
                 SwaggerUIBundle.presets.apis,
                 SwaggerUIBundle.presets.standalone
             ],
-            plugins: [
-                SwaggerUIBundle.plugins.DownloadUrl
-            ]
-        });
-
-        // Form handling
-        const runForm = document.getElementById('runForm');
-        const stopForm = document.getElementById('stopForm');
-        const statusForm = document.getElementById('statusForm');
-
-        // Utility function to show result in specific result div
-        function showResult(resultDivId, message, type) {
-            const resultDiv = document.getElementById(resultDivId);
-            resultDiv.textContent = message;
-            resultDiv.className = `result-area${type === 'success' ? ' result-success' : type === 'error' ? ' result-error' : ''}`;
-        }
-
-        // JSON Validation Functions
-        function validateJson(jsonString) {
-            if (!jsonString.trim()) {
-                return { valid: true, error: null }; // Empty is valid for optional data
-            }
-            
-            try {
-                JSON.parse(jsonString);
-                return { valid: true, error: null };
-            } catch (error) {
-                return { valid: false, error: error.message };
-            }
-        }
-
-        function updateValidationUI(textareaElement, helperElement, errorElement, validation) {
-            if (validation.valid) {
-                textareaElement.classList.remove('invalid');
-                textareaElement.classList.add('valid');
-                errorElement.style.display = 'none';
-                helperElement.style.display = 'block';
-                helperElement.textContent = textareaElement.value.trim() ? 'Valid JSON format ✓' : 'Optional JSON data to pass to the background task. Leave empty if no data is needed.';
-                helperElement.style.color = textareaElement.value.trim() ? 'var(--success-color)' : 'var(--text-secondary)';
-            } else {
-                textareaElement.classList.remove('valid');
-                textareaElement.classList.add('invalid');
-                helperElement.style.display = 'none';
-                errorElement.style.display = 'block';
-                errorElement.textContent = `Invalid JSON: ${validation.error}`;
-            }
-        }
-
-        function formatTaskJson() {
-            const textarea = document.getElementById('taskData');
-            const value = textarea.value.trim();
-            
-            if (!value) {
-                return;
-            }
-            
-            try {
-                const parsed = JSON.parse(value);
-                textarea.value = JSON.stringify(parsed, null, 2);
-                // Trigger validation
-                validateTaskData();
-            } catch (error) {
-                // If it's not valid JSON, just trigger validation to show error
-                validateTaskData();
-            }
-        }
-
-        function validateTaskData() {
-            const textarea = document.getElementById('taskData');
-            const helper = document.getElementById('taskDataHelper');
-            const error = document.getElementById('taskDataError');
-            const submitBtn = document.getElementById('runSubmitBtn');
-            
-            const value = textarea.value.trim();
-            const validation = validateJson(value);
-            
-            updateValidationUI(textarea, helper, error, validation);
-            
-            // Enable/disable submit button based on validation
-            if (validation.valid) {
-                submitBtn.disabled = false;
-                submitBtn.style.opacity = '1';
-                submitBtn.style.cursor = 'pointer';
-            } else {
-                submitBtn.disabled = true;
-                submitBtn.style.opacity = '0.5';
-                submitBtn.style.cursor = 'not-allowed';
-            }
-        }
-
-        // Add real-time validation to task data textarea
-        document.getElementById('taskData').addEventListener('input', validateTaskData);
-        document.getElementById('taskData').addEventListener('blur', validateTaskData);
-
-        // RUN Form Handler
-        runForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const task = document.getElementById('taskPath').value;
-            const dataValue = document.getElementById('taskData').value.trim();
-            
-            // Final validation before submission
-            const validation = validateJson(dataValue);
-            if (!validation.valid) {
-                showResult('runResult', `Cannot start task: Invalid JSON format - ${validation.error}`, 'error');
-                return;
-            }
-            
-            try {
-                const body = { task };
-                if (dataValue) {
-                    body.data = JSON.parse(dataValue);
-                }
-                await executeApiCall('RUN', null, body, 'runResult');
-            } catch (e) {
-                showResult('runResult', `Unexpected error: ${e.message}`, 'error');
-            }
-        });
-
-        // STOP Form Handler with confirmation
-        stopForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            showConfirmation();
-        });
-
-        function showConfirmation() {
-            const modal = document.getElementById('confirmationModal');
-            modal.style.display = 'flex';
-        }
-
-        function hideConfirmation() {
-            const modal = document.getElementById('confirmationModal');
-            modal.style.display = 'none';
-        }
-
-        async function confirmStop() {
-            hideConfirmation();
-            await executeApiCall('STOP', null, null, 'stopResult');
-        }
-
-        // STATUS Form Handler
-        statusForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            await executeApiCall('STATUS', null, null, 'statusResult');
-        });
-
-        // Generic API call function
-        async function executeApiCall(operation, params, body, resultDivId) {
-            let url, method;
-            
-            switch (operation) {
-                case 'RUN':
-                    url = `/services/working/api/run`;
-                    method = 'POST';
-                    break;
-                case 'STOP':
-                    url = `/services/working/api/stop`;
-                    method = 'GET';
-                    break;
-                case 'STATUS':
-                    url = `/services/working/api/status`;
-                    method = 'GET';
-                    break;
-            }
-            
-            try {
-                const options = {
-                    method: method,
-                    headers: {
-                        'Content-Type': 'application/json',
-                    }
-                };
-                
-                if (body !== undefined && body !== null) {
-                    options.body = JSON.stringify(body);
-                }
-                
-                const response = await fetch(url, options);
-                const responseText = await response.text();
-                
-                let responseData;
-                try {
-                    responseData = JSON.parse(responseText);
-                } catch (e) {
-                    responseData = responseText;
-                }
-                
-                if (response.ok) {
-                    showResult(resultDivId, `Success: ${JSON.stringify(responseData, null, 2)}`, 'success');
-                } else {
-                    showResult(resultDivId, `Error ${response.status}: ${responseData}`, 'error');
-                }
-            } catch (error) {
-                showResult(resultDivId, `Network Error: ${error.message}`, 'error');
-            }
-        }
-
-        // Load example data for task form
-        function loadTaskExample() {
-            document.getElementById('taskPath').value = './tasks/dataProcessor.js';
-            document.getElementById('taskData').value = JSON.stringify({
-                "input": "data",
-                "batchSize": 100,
-                "options": {
-                    "parallel": true,
-                    "timeout": 30000
-                },
-                "config": {
-                    "outputFormat": "json",
-                    "compression": false
-                }
-            }, null, 2);
-            
-            // Trigger validation after loading example
-            validateTaskData();
-        }
-
-        // Initialize page
-        document.addEventListener('DOMContentLoaded', () => {
-            // Set initial validation state
-            validateTaskData();
+            layout: "BaseLayout",
+            deepLinking: true,
+            showExtensions: true,
+            showCommonExtensions: true
         });
     </script>
 </body>

@@ -26,7 +26,7 @@ class SchedulerProvider {
    * @param {number} intervalSeconds The interval in seconds at which to execute the script.
    * @param {Function=} executionCallback Optional callback function to be called on each execution.
    */
-  async start(taskName, scriptPath, intervalSeconds, executionCallback) {
+  async start(taskName, scriptPath, data, intervalSeconds, executionCallback) {
     if (this.tasks_.has(taskName)) {
       if (this.eventEmitter_)
         this.eventEmitter_.emit('scheduler:start:error', {
@@ -37,7 +37,7 @@ class SchedulerProvider {
     }
 
     const executeTask = () => {
-      this.worker_.start(scriptPath, null, (status, data) => {
+      this.worker_.start(scriptPath, data, (status, data) => {
         if (executionCallback) {
           executionCallback(status, data);
         }
@@ -88,9 +88,6 @@ class SchedulerProvider {
           this.eventEmitter_.emit('scheduler:stopped', { taskName: name });
       });
       this.tasks_.clear();
-    }
-    if (this.tasks_.size === 0) {
-      this.worker_.stop();
     }
   }
 

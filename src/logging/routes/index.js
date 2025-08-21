@@ -9,11 +9,35 @@ module.exports = (options, eventEmitter, logger) => {
   if (options['express-app'] && logger) {
     const app = options['express-app'];
 
-    app.post('/services/logging/api/log', (req, res) => {
+    app.post('/services/logging/api/info', (req, res) => {
       const message = req.body;
       if (message) {
         logger
-          .log(message)
+          .info(message)
+          .then(() => res.status(200).send('OK'))
+          .catch((err) => res.status(500).send(err.message));
+      } else {
+        res.status(400).send('Bad Request: Missing message');
+      }
+    });
+
+    app.post('/services/logging/api/warn', (req, res) => {
+      const message = req.body;
+      if (message) {
+        logger
+          .warn(message)
+          .then(() => res.status(200).send('OK'))
+          .catch((err) => res.status(500).send(err.message));
+      } else {
+        res.status(400).send('Bad Request: Missing message');
+      }
+    });
+
+    app.post('/services/logging/api/error', (req, res) => {
+      const message = req.body;
+      if (message) {
+        logger
+          .error(message)
           .then(() => res.status(200).send('OK'))
           .catch((err) => res.status(500).send(err.message));
       } else {

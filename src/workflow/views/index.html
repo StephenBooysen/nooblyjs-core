@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -19,12 +20,10 @@
             --success-color: #388e3c;
             --text-primary: #212121;
             --text-secondary: #757575;
-            --text-hint: #9e9e9e;
-            --divider-color: #e0e0e0;
-            --outline-color: #616161;
-            --surface-tint: rgba(25, 118, 210, 0.08);
-            --elevation-1: 0px 1px 3px rgba(0, 0, 0, 0.12), 0px 1px 2px rgba(0, 0, 0, 0.24);
-            --elevation-2: 0px 3px 6px rgba(0, 0, 0, 0.16), 0px 3px 6px rgba(0, 0, 0, 0.23);
+            --border-color: #e0e0e0;
+            --shadow-1: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+            --shadow-2: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
+            --shadow-3: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23);
         }
 
         * {
@@ -35,690 +34,730 @@
 
         body {
             font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            line-height: 1.5;
+            background-color: var(--background-color);
             color: var(--text-primary);
-            background: var(--background-color);
+            line-height: 1.6;
+        }
+
+        .app-container {
+            display: flex;
             min-height: 100vh;
         }
 
-        /* Header */
-        .header {
+        .sidebar {
+            width: 280px;
             background: var(--surface-color);
-            box-shadow: var(--elevation-1);
+            box-shadow: var(--shadow-2);
+            padding: 24px 0;
             position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 1000;
-            height: 64px;
-        }
-
-        .header-container {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            height: 100%;
-            padding: 0 24px;
+            height: 100vh;
+            overflow-y: auto;
         }
 
         .logo {
-            display: flex;
-            align-items: center;
-            text-decoration: none;
-            color: var(--text-primary);
+            padding: 0 24px 32px;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 24px;
+        }
+
+        .logo h1 {
+            font-size: 24px;
             font-weight: 500;
-            font-size: 1.25rem;
+            color: var(--primary-color);
         }
 
-        .logo-icon {
-            width: 40px;
-            height: 40px;
-            background: var(--primary-color);
-            color: white;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 600;
-            margin-right: 12px;
-        }
-
-        /* Admin Container */
-        .admin-container {
-            display: flex;
-            min-height: 100vh;
-            margin-top: 64px;
-            background: var(--background-color);
-        }
-
-        .admin-sidebar {
-            width: 280px;
-            background: var(--surface-color);
-            border-right: 1px solid var(--divider-color);
-            padding: 24px 0;
-            position: fixed;
-            height: calc(100vh - 64px);
-            overflow-y: auto;
-            box-shadow: var(--elevation-1);
-        }
-
-        .admin-nav {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        .admin-nav-item {
-            padding: 0;
-            margin: 0 16px;
-        }
-
-        .admin-nav-link {
-            display: block;
-            padding: 12px 16px;
+        .logo .subtitle {
+            font-size: 14px;
             color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        .nav-item {
+            display: block;
+            padding: 16px 24px;
+            color: var(--text-primary);
             text-decoration: none;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            font-weight: 500;
-            font-size: 0.875rem;
-            border-radius: 12px;
-            position: relative;
-            overflow: hidden;
+            transition: all 0.2s ease;
+            border-left: 4px solid transparent;
         }
 
-        .admin-nav-link:hover {
+        .nav-item:hover {
+            background-color: var(--surface-variant);
             color: var(--primary-color);
-            background: var(--surface-tint);
         }
 
-        .admin-nav-link.active {
-            color: var(--primary-color);
-            background: var(--surface-tint);
+        .nav-item.active {
+            background-color: var(--primary-light);
+            color: white;
+            border-left-color: var(--primary-dark);
         }
 
-        .admin-content {
+        .main-content {
             flex: 1;
             margin-left: 280px;
             padding: 32px;
         }
 
-        .admin-header {
+        .page-header {
             margin-bottom: 32px;
         }
 
-        .admin-title {
-            font-size: 2rem;
+        .page-title {
+            font-size: 32px;
             font-weight: 400;
             color: var(--text-primary);
             margin-bottom: 8px;
-            line-height: 2.5rem;
         }
 
-        .admin-subtitle {
+        .page-subtitle {
+            font-size: 16px;
             color: var(--text-secondary);
-            font-weight: 400;
-            font-size: 1rem;
-            line-height: 1.5rem;
         }
 
-        /* Workflow Operations */
-        .workflow-operations {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 24px;
-            margin-bottom: 32px;
-        }
-
-        .workflow-card {
+        .card {
             background: var(--surface-color);
-            border-radius: 12px;
-            padding: 24px;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: var(--elevation-1);
-        }
-
-        .workflow-card:hover {
-            box-shadow: var(--elevation-2);
-        }
-
-        .workflow-card h3 {
-            color: var(--text-primary);
-            font-size: 1.375rem;
-            font-weight: 400;
+            border-radius: 8px;
+            box-shadow: var(--shadow-1);
             margin-bottom: 24px;
-            line-height: 1.75rem;
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 24px;
+            border-bottom: 1px solid var(--border-color);
+            background: var(--surface-variant);
+        }
+
+        .card-title {
+            font-size: 20px;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .card-subtitle {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .card-content {
+            padding: 24px;
         }
 
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 24px;
         }
 
         .form-label {
             display: block;
-            color: var(--text-primary);
+            font-size: 14px;
             font-weight: 500;
+            color: var(--text-primary);
             margin-bottom: 8px;
-            font-size: 0.875rem;
-            line-height: 1.25rem;
         }
 
         .form-input {
             width: 100%;
             padding: 12px 16px;
-            border: 1px solid var(--outline-color);
-            border-radius: 8px;
+            border: 2px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 16px;
+            transition: all 0.2s ease;
             background: var(--surface-color);
             color: var(--text-primary);
-            font-size: 1rem;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
         }
 
         .form-input:focus {
             outline: none;
             border-color: var(--primary-color);
-            box-shadow: 0 0 0 2px var(--surface-tint);
-        }
-
-        .form-input::placeholder {
-            color: var(--text-hint);
+            box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.2);
         }
 
         .form-textarea {
-            width: 100%;
-            padding: 12px 16px;
-            border: 1px solid var(--outline-color);
-            border-radius: 8px;
-            background: var(--surface-color);
-            color: var(--text-primary);
-            font-size: 1rem;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             min-height: 120px;
             resize: vertical;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
         }
 
-        .form-textarea:focus {
-            outline: none;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 2px var(--surface-tint);
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            min-width: 64px;
+            justify-content: center;
         }
 
-        .form-textarea::placeholder {
-            color: var(--text-hint);
-        }
-
-        .form-button {
-            width: 100%;
-            padding: 10px 24px;
+        .btn-primary {
             background: var(--primary-color);
             color: white;
-            border: none;
-            border-radius: 20px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            text-transform: uppercase;
-            letter-spacing: 1.25px;
-            font-size: 0.875rem;
-            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            min-height: 40px;
-            position: relative;
-            overflow: hidden;
-            box-shadow: var(--elevation-1);
+            box-shadow: var(--shadow-1);
         }
 
-        .form-button:hover {
-            box-shadow: var(--elevation-2);
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            box-shadow: var(--shadow-2);
         }
 
-        .form-button:active {
-            box-shadow: var(--elevation-1);
-        }
-
-        .result-area {
+        .btn-secondary {
             background: var(--surface-variant);
-            border: 1px solid var(--divider-color);
-            border-radius: 8px;
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border-color);
+        }
+
+        .btn-success {
+            background: var(--success-color);
+            color: white;
+        }
+
+        .btn-error {
+            background: var(--error-color);
+            color: white;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .alert {
             padding: 16px;
-            margin-top: 16px;
-            color: var(--text-secondary);
-            font-size: 0.875rem;
-            font-weight: 400;
-            min-height: 60px;
-            white-space: pre-wrap;
-            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            border-radius: 4px;
+            margin-bottom: 24px;
+            display: none;
         }
 
-        .result-success {
+        .alert.show {
+            display: block;
+        }
+
+        .alert-success {
+            background: rgba(56, 142, 60, 0.1);
+            border: 1px solid var(--success-color);
             color: var(--success-color);
-            background: rgba(56, 142, 60, 0.08);
-            border-color: rgba(56, 142, 60, 0.2);
         }
 
-        .result-error {
+        .alert-error {
+            background: rgba(211, 47, 47, 0.1);
+            border: 1px solid var(--error-color);
             color: var(--error-color);
-            background: rgba(211, 47, 47, 0.08);
-            border-color: rgba(211, 47, 47, 0.2);
         }
 
-        .form-helper {
+        .helper-text {
+            font-size: 12px;
             color: var(--text-secondary);
-            font-size: 0.75rem;
             margin-top: 4px;
-            line-height: 1.2;
         }
 
-        .form-error {
+        .json-valid {
+            border-color: var(--success-color) !important;
+        }
+
+        .json-invalid {
+            border-color: var(--error-color) !important;
+        }
+
+        .validation-message {
+            font-size: 12px;
+            margin-top: 4px;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        .validation-success {
+            background: rgba(56, 142, 60, 0.1);
+            color: var(--success-color);
+        }
+
+        .validation-error {
+            background: rgba(211, 47, 47, 0.1);
             color: var(--error-color);
-            font-size: 0.75rem;
-            margin-top: 4px;
-            line-height: 1.2;
         }
 
-        .form-textarea.invalid {
-            border-color: var(--error-color);
-            box-shadow: 0 0 0 2px rgba(211, 47, 47, 0.1);
-        }
-
-        .form-textarea.valid {
-            border-color: var(--success-color);
-            box-shadow: 0 0 0 2px rgba(56, 142, 60, 0.1);
-        }
-
-        .json-examples {
+        .response-container {
+            margin-top: 24px;
+            padding: 16px;
             background: var(--surface-variant);
-            border: 1px solid var(--divider-color);
-            border-radius: 8px;
-            padding: 12px;
-            margin-bottom: 16px;
-            font-family: monospace;
-            font-size: 0.75rem;
+            border-radius: 4px;
+            border-left: 4px solid var(--primary-color);
         }
 
-        .json-example {
-            margin-bottom: 8px;
-        }
-
-        .json-example:last-child {
-            margin-bottom: 0;
-        }
-
-        .json-example-label {
-            color: var(--text-secondary);
+        .response-title {
             font-weight: 500;
-            margin-bottom: 2px;
+            margin-bottom: 8px;
+            color: var(--text-primary);
         }
 
-        /* Swagger UI Customization */
-        #swagger-ui {
-            margin-top: 32px;
+        .response-content {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 14px;
+            color: var(--text-secondary);
+            white-space: pre-wrap;
+            word-break: break-all;
         }
 
-        .swagger-card {
-            background: var(--surface-color);
-            border-radius: 12px;
-            padding: 24px;
-            box-shadow: var(--elevation-1);
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
         }
 
         @media (max-width: 768px) {
-            .admin-sidebar {
-                width: 240px;
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
             }
-            
-            .admin-content {
-                margin-left: 240px;
-                padding: 24px 16px;
-            }
-            
-            .workflow-operations {
-                grid-template-columns: 1fr;
-                gap: 16px;
-            }
-        }
 
-        @media (max-width: 600px) {
-            .admin-sidebar {
-                width: 100%;
-                position: relative;
-                height: auto;
-                box-shadow: none;
-                border-right: none;
-                border-bottom: 1px solid var(--divider-color);
-            }
-            
-            .admin-content {
+            .main-content {
                 margin-left: 0;
                 padding: 16px;
             }
-            
-            .admin-container {
+
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+
+            .btn-group {
                 flex-direction: column;
             }
+        }
+
+        .swagger-ui {
+            font-family: inherit;
+        }
+
+        .swagger-ui .topbar {
+            display: none;
+        }
+
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
         }
     </style>
 </head>
 <body>
-    <!-- Header -->
-    <header class="header">
-        <div class="header-container">
-            <a href="#" class="logo">
-                <div class="logo-icon">N</div>
-                <span>Noobly JS Admin</span>
-            </a>
-        </div>
-    </header>
+    <div class="app-container">
+        <nav class="sidebar">
+            <div class="logo">
+                <h1>Noobly JS</h1>
+                <div class="subtitle">Workflow Management</div>
+            </div>
+            <a href="/services/caching/" class="nav-item">Cache Management</a>
+            <a href="/services/dataserve/" class="nav-item">Data Serve</a>
+            <a href="/services/filing/" class="nav-item">File Management</a>
+            <a href="/services/logging/" class="nav-item">Logging</a>
+            <a href="/services/measuring/" class="nav-item">Measuring</a>
+            <a href="/services/notifying/" class="nav-item">Notifications</a>
+            <a href="/services/queueing/" class="nav-item">Queue Management</a>
+            <a href="/services/scheduling/" class="nav-item">Scheduling</a>
+            <a href="/services/searching/" class="nav-item">Search</a>
+            <a href="/services/working/" class="nav-item">Background Tasks</a>
+            <a href="/services/workflow/" class="nav-item active">Workflows</a>
+        </nav>
 
-    <div class="admin-container">
-        <!-- Sidebar Navigation -->
-        <aside class="admin-sidebar">
-            <nav class="admin-nav">
-                <div class="admin-nav-item">
-                    <a href="/services/caching/" class="admin-nav-link">Caching</a>
-                </div>
-                <div class="admin-nav-item">
-                    <a href="/services/dataserve/" class="admin-nav-link">Data Serve</a>
-                </div>
-                <div class="admin-nav-item">
-                    <a href="/services/filing/" class="admin-nav-link">Filing</a>
-                </div>
-                <div class="admin-nav-item">
-                    <a href="/services/logging/" class="admin-nav-link">Logging</a>
-                </div>
-                <div class="admin-nav-item">
-                    <a href="/services/measuring/" class="admin-nav-link">Measuring</a>
-                </div>
-                <div class="admin-nav-item">
-                    <a href="/services/notifying/" class="admin-nav-link">Notifying</a>
-                </div>
-                <div class="admin-nav-item">
-                    <a href="/services/queueing/" class="admin-nav-link">Queueing</a>
-                </div>
-                <div class="admin-nav-item">
-                    <a href="/services/scheduling/" class="admin-nav-link">Scheduling</a>
-                </div>
-                <div class="admin-nav-item">
-                    <a href="/services/searching/" class="admin-nav-link">Searching</a>
-                </div>
-                <div class="admin-nav-item">
-                    <a href="/services/workflow/" class="admin-nav-link active">Workflow</a>
-                </div>
-                <div class="admin-nav-item">
-                    <a href="/services/working/" class="admin-nav-link">Working</a>
-                </div>
-            </nav>
-        </aside>
-
-        <!-- Main Content -->
-        <main class="admin-content">
-            <div class="admin-header">
-                <h1 class="admin-title">Workflow Management</h1>
-                <p class="admin-subtitle">Define, start and manage multi-step workflows</p>
+        <main class="main-content">
+            <div class="page-header">
+                <h1 class="page-title">Workflow Management</h1>
+                <p class="page-subtitle">Define and start workflows</p>
             </div>
 
-            <div class="workflow-operations">
-                
-                <!-- Define Workflow -->
-                <div class="workflow-card">
-                    <h3>Define Workflow</h3>
-                    <form id="defineWorkflowForm">
-                        <div class="form-group">
-                            <label for="workflowName" class="form-label">Workflow Name</label>
-                            <input type="text" id="workflowName" name="name" class="form-input" placeholder="Enter workflow name (e.g., user-onboarding)" required>
-                            <div class="form-helper">Unique identifier for the workflow</div>
-                        </div>
-                        <div class="form-group">
-                            <label for="workflowSteps" class="form-label">Steps (JSON Array Format Required)</label>
-                            <div class="json-examples">
-                                <div class="json-example">
-                                    <div class="json-example-label">Example steps array:</div>
-                                    [<br>
-                                    &nbsp;&nbsp;"/path/to/step1.js",<br>
-                                    &nbsp;&nbsp;"/path/to/step2.js",<br>
-                                    &nbsp;&nbsp;"/path/to/step3.js"<br>
-                                    ]
-                                </div>
-                                <div class="json-example">
-                                    <div class="json-example-label">User onboarding example:</div>
-                                    [<br>
-                                    &nbsp;&nbsp;"/workflows/steps/validate-user.js",<br>
-                                    &nbsp;&nbsp;"/workflows/steps/send-welcome-email.js",<br>
-                                    &nbsp;&nbsp;"/workflows/steps/create-profile.js"<br>
-                                    ]
-                                </div>
-                            </div>
-                            <textarea id="workflowSteps" name="steps" class="form-textarea" placeholder="Enter JSON array of step file paths" required></textarea>
-                            <div id="workflowStepsHelper" class="form-helper">Enter a valid JSON array of step file paths. Each step should be a JavaScript file path.</div>
-                            <div id="workflowStepsError" class="form-error" style="display: none;"></div>
-                        </div>
-                        <div style="display: flex; gap: 12px; margin-bottom: 16px;">
-                            <button type="button" onclick="loadDefineExample()" style="background: var(--surface-variant); color: var(--text-primary); border: 1px solid var(--outline-color); padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 0.875rem;">Load Example</button>
-                            <button type="button" onclick="formatStepsJson()" style="background: var(--surface-variant); color: var(--text-primary); border: 1px solid var(--outline-color); padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 0.875rem;">Format JSON</button>
-                        </div>
-                        <button type="submit" class="form-button" id="defineSubmitBtn">Define Workflow</button>
-                    </form>
-                    <div id="defineResult" class="result-area"></div>
-                </div>
+            <div class="alert alert-success" id="successAlert">
+                <strong>Success!</strong> <span id="successMessage"></span>
+            </div>
 
-                <!-- Start Workflow -->
-                <div class="workflow-card">
-                    <h3>Start Workflow</h3>
-                    <form id="startWorkflowForm">
-                        <div class="form-group">
-                            <label for="startWorkflowName" class="form-label">Workflow Name</label>
-                            <input type="text" id="startWorkflowName" name="name" class="form-input" placeholder="Enter workflow name" required>
-                            <div class="form-helper">Name of the workflow to start</div>
-                        </div>
-                        <div class="form-group">
-                            <label for="workflowData" class="form-label">Initial Data (JSON Format - Optional)</label>
-                            <div class="json-examples">
-                                <div class="json-example">
-                                    <div class="json-example-label">User data example:</div>
-                                    {"userId": 123, "email": "user@example.com", "plan": "premium"}
-                                </div>
-                                <div class="json-example">
-                                    <div class="json-example-label">Order processing example:</div>
-                                    {"orderId": "ORD-001", "customerId": 456, "items": [{"id": 1, "qty": 2}]}
-                                </div>
-                            </div>
-                            <textarea id="workflowData" name="data" class="form-textarea" placeholder="Enter initial data as JSON (optional)"></textarea>
-                            <div id="workflowDataHelper" class="form-helper">Optional initial data to pass to the workflow. Leave empty if no data is needed.</div>
-                            <div id="workflowDataError" class="form-error" style="display: none;"></div>
-                        </div>
-                        <div style="display: flex; gap: 12px; margin-bottom: 16px;">
-                            <button type="button" onclick="loadStartExample()" style="background: var(--surface-variant); color: var(--text-primary); border: 1px solid var(--outline-color); padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 0.875rem;">Load Example</button>
-                            <button type="button" onclick="formatDataJson()" style="background: var(--surface-variant); color: var(--text-primary); border: 1px solid var(--outline-color); padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 0.875rem;">Format JSON</button>
-                        </div>
-                        <button type="submit" class="form-button" id="startSubmitBtn">Start Workflow</button>
-                    </form>
-                    <div id="startResult" class="result-area"></div>
-                </div>
+            <div class="alert alert-error" id="errorAlert">
+                <strong>Error!</strong> <span id="errorMessage"></span>
+            </div>
 
-                <!-- Workflow Status -->
-                <div class="workflow-card">
-                    <h3>Workflow Status</h3>
-                    <form id="statusForm">
-                        <button type="submit" class="form-button">Check Status</button>
+            <!-- Define Workflow Form -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Define Workflow</h2>
+                    <p class="card-subtitle">Define a new workflow with a series of steps</p>
+                </div>
+                <div class="card-content">
+                    <form id="defineForm">
+                        <div class="form-group">
+                            <label class="form-label" for="defineName">Workflow Name</label>
+                            <input type="text" id="defineName" class="form-input" placeholder="Enter workflow name" required>
+                            <div class="helper-text">A unique name for the workflow</div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="defineSteps">Steps (JSON Array)</label>
+                            <textarea id="defineSteps" class="form-input form-textarea" placeholder='["step1", "step2", "step3"]' required></textarea>
+                            <div id="defineValidation" class="validation-message" style="display: none;"></div>
+                            <div class="helper-text">Enter a valid JSON array of step names</div>
+                        </div>
+                        <div class="btn-group">
+                            <button type="submit" class="btn btn-primary">Define Workflow</button>
+                            <button type="button" class="btn btn-secondary" onclick="formatJSON('defineSteps')">Format JSON</button>
+                            <button type="button" class="btn btn-secondary" onclick="loadExample('defineSteps')">Load Example</button>
+                        </div>
                     </form>
-                    <div id="statusResult" class="result-area"></div>
+                    <div id="defineResponse" class="response-container" style="display: none;">
+                        <div class="response-title">Response:</div>
+                        <div id="defineResponseContent" class="response-content"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Start Workflow Form -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Start Workflow</h2>
+                    <p class="card-subtitle">Start a defined workflow with initial data</p>
+                </div>
+                <div class="card-content">
+                    <form id="startForm">
+                        <div class="form-group">
+                            <label class="form-label" for="startName">Workflow Name</label>
+                            <input type="text" id="startName" class="form-input" placeholder="Enter workflow name" required>
+                            <div class="helper-text">The name of the workflow to start</div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="startData">Initial Data (JSON)</label>
+                            <textarea id="startData" class="form-input form-textarea" placeholder='{"userId": 123, "orderId": 456}'></textarea>
+                            <div id="startValidation" class="validation-message" style="display: none;"></div>
+                            <div class="helper-text">Optional JSON data to pass to the workflow</div>
+                        </div>
+                        <div class="btn-group">
+                            <button type="submit" class="btn btn-primary">Start Workflow</button>
+                            <button type="button" class="btn btn-secondary" onclick="formatJSON('startData')">Format JSON</button>
+                            <button type="button" class="btn btn-secondary" onclick="loadExample('startData')">Load Example</button>
+                        </div>
+                    </form>
+                    <div id="startResponse" class="response-container" style="display: none;">
+                        <div class="response-title">Response:</div>
+                        <div id="startResponseContent" class="response-content"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Status Check -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Service Status</h2>
+                    <p class="card-subtitle">Check workflow service status</p>
+                </div>
+                <div class="card-content">
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-secondary" onclick="checkStatus()">Check Status</button>
+                    </div>
+                    <div id="statusResponse" class="response-container" style="display: none;">
+                        <div class="response-title">Service Status:</div>
+                        <div id="statusResponseContent" class="response-content"></div>
+                    </div>
                 </div>
             </div>
 
             <!-- API Documentation -->
-            <div class="swagger-card">
-                <h2 style="margin-bottom: 24px; font-size: 1.75rem; font-weight: 400;">API Documentation</h2>
-                <div id="swagger-ui"></div>
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">API Documentation</h2>
+                    <p class="card-subtitle">Interactive API documentation for Workflow service</p>
+                </div>
+                <div class="card-content">
+                    <div id="swagger-ui"></div>
+                </div>
             </div>
         </main>
     </div>
+
     <script src="https://unpkg.com/swagger-ui-dist@4.15.5/swagger-ui-bundle.js"></script>
     <script>
-        // OpenAPI Specification
-        const apiSpec = {
-            "openapi": "3.0.0",
-            "info": {
-                "title": "NooblyJS Core - Workflow Service API",
-                "version": "1.0.0",
-                "description": "RESTful API for the workflow orchestration service in NooblyJS Core framework"
-            },
-            "servers": [
-                {
-                    "url": "/services/workflow/api",
-                    "description": "Workflow Service API"
+        // JSON validation
+        function validateJSON(elementId) {
+            const element = document.getElementById(elementId);
+            const validation = document.getElementById(elementId.replace(/Steps|Data/, 'Validation'));
+            const value = element.value.trim();
+            
+            if (!value && elementId === 'startData') { // Optional field
+                element.classList.remove('json-valid', 'json-invalid');
+                if(validation) validation.style.display = 'none';
+                return true;
+            }
+
+            if (!value) {
+                element.classList.remove('json-valid', 'json-invalid');
+                if(validation) validation.style.display = 'none';
+                return true;
+            }
+            
+            try {
+                JSON.parse(value);
+                element.classList.remove('json-invalid');
+                element.classList.add('json-valid');
+                if(validation) {
+                    validation.textContent = '✓ Valid JSON';
+                    validation.className = 'validation-message validation-success';
+                    validation.style.display = 'block';
                 }
+                return true;
+            } catch (e) {
+                element.classList.remove('json-valid');
+                element.classList.add('json-invalid');
+                if(validation) {
+                    validation.textContent = '✗ Invalid JSON: ' + e.message;
+                    validation.className = 'validation-message validation-error';
+                    validation.style.display = 'block';
+                }
+                return false;
+            }
+        }
+
+        // Real-time validation
+        document.getElementById('defineSteps').addEventListener('input', () => validateJSON('defineSteps'));
+        document.getElementById('startData').addEventListener('input', () => validateJSON('startData'));
+
+        // Format JSON
+        function formatJSON(elementId) {
+            const element = document.getElementById(elementId);
+            try {
+                const parsed = JSON.parse(element.value);
+                element.value = JSON.stringify(parsed, null, 2);
+                validateJSON(elementId);
+            } catch (e) {
+                showAlert('Invalid JSON cannot be formatted', 'error');
+            }
+        }
+
+        // Load example
+        function loadExample(elementId) {
+            const examples = {
+                defineSteps: ["validate-order", "process-payment", "ship-order"],
+                startData: {
+                    "orderId": "xyz-789",
+                    "amount": 99.99,
+                    "customer": {
+                        "id": "cust-456",
+                        "email": "customer@example.com"
+                    }
+                }
+            };
+            
+            if (examples[elementId]) {
+                document.getElementById(elementId).value = JSON.stringify(examples[elementId], null, 2);
+                validateJSON(elementId);
+            }
+        }
+
+        // Utility functions
+        function showAlert(message, type = 'success') {
+            const alertElement = document.getElementById(type + 'Alert');
+            const messageElement = document.getElementById(type + 'Message');
+            messageElement.textContent = message;
+            alertElement.classList.add('show');
+            setTimeout(() => alertElement.classList.remove('show'), 5000);
+        }
+
+        function showResponse(containerId, contentId, data) {
+            const container = document.getElementById(containerId);
+            const content = document.getElementById(contentId);
+            content.textContent = typeof data === 'object' ? JSON.stringify(data, null, 2) : data;
+            container.style.display = 'block';
+        }
+
+        function setLoading(formId, isLoading) {
+            const form = document.getElementById(formId);
+            if (isLoading) {
+                form.classList.add('loading');
+            } else {
+                form.classList.remove('loading');
+            }
+        }
+
+        // API functions
+        async function makeRequest(url, method = 'GET', body = null) {
+            const options = {
+                method,
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            };
+            
+            if (body) {
+                options.body = JSON.stringify(body);
+            }
+            
+            const response = await fetch(url, options);
+            const contentType = response.headers.get('content-type');
+            
+            if (contentType && contentType.includes('application/json')) {
+                return await response.json();
+            } else {
+                return await response.text();
+            }
+        }
+
+        // Form handlers
+        document.getElementById('defineForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const name = document.getElementById('defineName').value;
+            const steps = document.getElementById('defineSteps').value;
+            
+            if (!validateJSON('defineSteps')) {
+                showAlert('Please enter a valid JSON array of steps', 'error');
+                return;
+            }
+            
+            try {
+                setLoading('defineForm', true);
+                const parsedSteps = JSON.parse(steps);
+                const result = await makeRequest(`/services/workflow/api/defineworkflow`, 'POST', { name, steps: parsedSteps });
+                showResponse('defineResponse', 'defineResponseContent', result);
+                showAlert(`Workflow "${name}" defined successfully`);
+            } catch (error) {
+                showAlert('Error defining workflow: ' + error.message, 'error');
+                showResponse('defineResponse', 'defineResponseContent', 'Error: ' + error.message);
+            } finally {
+                setLoading('defineForm', false);
+            }
+        });
+
+        document.getElementById('startForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const name = document.getElementById('startName').value;
+            const data = document.getElementById('startData').value;
+            
+            if (data && !validateJSON('startData')) {
+                showAlert('Please enter valid JSON for the initial data', 'error');
+                return;
+            }
+            
+            try {
+                setLoading('startForm', true);
+                const initialData = data ? JSON.parse(data) : {};
+                const result = await makeRequest(`/services/workflow/api/start`, 'POST', { name, data: initialData });
+                showResponse('startResponse', 'startResponseContent', result);
+                showAlert(`Workflow "${name}" started successfully`);
+            } catch (error) {
+                showAlert('Error starting workflow: ' + error.message, 'error');
+                showResponse('startResponse', 'startResponseContent', 'Error: ' + error.message);
+            } finally {
+                setLoading('startForm', false);
+            }
+        });
+
+        async function checkStatus() {
+            try {
+                const result = await makeRequest('/services/workflow/api/status');
+                showResponse('statusResponse', 'statusResponseContent', result);
+                showAlert('Status checked successfully');
+            } catch (error) {
+                showAlert('Error checking status: ' + error.message, 'error');
+                showResponse('statusResponse', 'statusResponseContent', 'Error: ' + error.message);
+            }
+        }
+
+        // Swagger UI setup
+        const spec = {
+            openapi: '3.0.0',
+            info: {
+                title: 'Workflow API',
+                description: 'REST API for workflow operations',
+                version: '1.0.0'
+            },
+            servers: [
+                { url: '/services/workflow/api', description: 'Workflow API' }
             ],
-            "paths": {
-                "/defineworkflow": {
-                    "post": {
-                        "summary": "Define a new workflow",
-                        "description": "Creates a new workflow definition with a name and series of step file paths",
-                        "requestBody": {
-                            "required": true,
-                            "content": {
-                                "application/json": {
-                                    "schema": {
-                                        "type": "object",
-                                        "properties": {
-                                            "name": {
-                                                "type": "string",
-                                                "description": "Unique workflow name"
-                                            },
-                                            "steps": {
-                                                "type": "array",
-                                                "items": {
-                                                    "type": "string"
-                                                },
-                                                "description": "Array of step file paths"
-                                            }
-                                        },
-                                        "required": ["name", "steps"]
+            paths: {
+                '/defineworkflow': {
+                    post: {
+                        summary: 'Define a workflow',
+                        description: 'Defines a new workflow with a name and steps',
+                        requestBody: {
+                            required: true,
+                            content: {
+                                'application/json': {
+                                    schema: {
+                                        type: 'object',
+                                        properties: {
+                                            name: { type: 'string' },
+                                            steps: { type: 'array', items: { type: 'string' } }
+                                        }
                                     },
-                                    "example": {
-                                        "name": "user-onboarding",
-                                        "steps": [
-                                            "/workflows/steps/validate-user.js",
-                                            "/workflows/steps/send-welcome-email.js",
-                                            "/workflows/steps/create-profile.js"
-                                        ]
-                                    }
+                                    example: { "name": "user-onboarding", "steps": ["create-user", "send-email"] }
                                 }
                             }
                         },
-                        "responses": {
-                            "200": {
-                                "description": "Workflow defined successfully",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {
-                                            "type": "object"
-                                        }
-                                    }
+                        responses: {
+                            '200': {
+                                description: 'Workflow defined successfully',
+                                content: {
+                                    'text/plain': { schema: { type: 'string', example: 'OK' } }
                                 }
                             },
-                            "400": {
-                                "description": "Bad request - invalid input",
-                                "content": {
-                                    "text/plain": {
-                                        "schema": {
-                                            "type": "string"
-                                        }
-                                    }
-                                }
-                            },
-                            "500": {
-                                "description": "Server error",
-                                "content": {
-                                    "text/plain": {
-                                        "schema": {
-                                            "type": "string"
-                                        }
-                                    }
+                            '500': {
+                                description: 'Server error',
+                                content: {
+                                    'text/plain': { schema: { type: 'string' } }
                                 }
                             }
                         }
                     }
                 },
-                "/start": {
-                    "post": {
-                        "summary": "Start a workflow",
-                        "description": "Starts execution of a previously defined workflow with optional initial data",
-                        "requestBody": {
-                            "required": true,
-                            "content": {
-                                "application/json": {
-                                    "schema": {
-                                        "type": "object",
-                                        "properties": {
-                                            "name": {
-                                                "type": "string",
-                                                "description": "Name of the workflow to start"
-                                            },
-                                            "data": {
-                                                "type": "object",
-                                                "description": "Optional initial data for the workflow"
-                                            }
-                                        },
-                                        "required": ["name"]
-                                    },
-                                    "example": {
-                                        "name": "user-onboarding",
-                                        "data": {
-                                            "userId": 123,
-                                            "email": "user@example.com",
-                                            "plan": "premium"
+                '/start': {
+                    post: {
+                        summary: 'Start a workflow',
+                        description: 'Starts a defined workflow with initial data',
+                        requestBody: {
+                            required: true,
+                            content: {
+                                'application/json': {
+                                    schema: {
+                                        type: 'object',
+                                        properties: {
+                                            name: { type: 'string' },
+                                            data: { type: 'object' }
                                         }
-                                    }
+                                    },
+                                    example: { "name": "user-onboarding", "data": { "userId": 123 } }
                                 }
                             }
                         },
-                        "responses": {
-                            "200": {
-                                "description": "Workflow started successfully",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {
-                                            "type": "object"
-                                        }
-                                    }
+                        responses: {
+                            '200': {
+                                description: 'Workflow started successfully',
+                                content: {
+                                    'application/json': { schema: { type: 'object', properties: { instanceId: { type: 'string' } } } }
                                 }
                             },
-                            "400": {
-                                "description": "Bad request - workflow not found or invalid input",
-                                "content": {
-                                    "text/plain": {
-                                        "schema": {
-                                            "type": "string"
-                                        }
-                                    }
-                                }
-                            },
-                            "500": {
-                                "description": "Server error",
-                                "content": {
-                                    "text/plain": {
-                                        "schema": {
-                                            "type": "string"
-                                        }
-                                    }
+                            '500': {
+                                description: 'Server error',
+                                content: {
+                                    'text/plain': { schema: { type: 'string' } }
                                 }
                             }
                         }
                     }
                 },
-                "/status": {
-                    "get": {
-                        "summary": "Check service status",
-                        "description": "Returns the current status of the workflow orchestration service",
-                        "responses": {
-                            "200": {
-                                "description": "Service is running",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {
-                                            "type": "string",
-                                            "example": "workflow api running"
-                                        }
+                '/status': {
+                    get: {
+                        summary: 'Service status',
+                        description: 'Check if the workflow service is running',
+                        responses: {
+                            '200': {
+                                description: 'Service is running',
+                                content: {
+                                    'application/json': {
+                                        schema: { type: 'string', example: 'workflow api running' }
                                     }
                                 }
                             }
@@ -728,328 +767,19 @@
             }
         };
 
-        // Initialize Swagger UI
         SwaggerUIBundle({
             url: '',
-            spec: apiSpec,
+            spec: spec,
             dom_id: '#swagger-ui',
-            deepLinking: true,
             presets: [
                 SwaggerUIBundle.presets.apis,
                 SwaggerUIBundle.presets.standalone
             ],
-            plugins: [
-                SwaggerUIBundle.plugins.DownloadUrl
-            ]
+            layout: "BaseLayout",
+            deepLinking: true,
+            showExtensions: true,
+            showCommonExtensions: true
         });
-
-        // Form handling
-        const defineWorkflowForm = document.getElementById('defineWorkflowForm');
-        const startWorkflowForm = document.getElementById('startWorkflowForm');
-        const statusForm = document.getElementById('statusForm');
-
-        // Utility function to show result in specific result div
-        function showResult(resultDivId, message, type) {
-            const resultDiv = document.getElementById(resultDivId);
-            resultDiv.textContent = message;
-            resultDiv.className = `result-area${type === 'success' ? ' result-success' : type === 'error' ? ' result-error' : ''}`;
-        }
-
-        // JSON Validation Functions
-        function validateJson(jsonString) {
-            try {
-                JSON.parse(jsonString);
-                return { valid: true, error: null };
-            } catch (error) {
-                return { valid: false, error: error.message };
-            }
-        }
-
-        function updateValidationUI(textareaElement, helperElement, errorElement, validation) {
-            if (validation.valid) {
-                textareaElement.classList.remove('invalid');
-                textareaElement.classList.add('valid');
-                errorElement.style.display = 'none';
-                helperElement.style.display = 'block';
-                helperElement.textContent = 'Valid JSON format ✓';
-                helperElement.style.color = 'var(--success-color)';
-            } else {
-                textareaElement.classList.remove('valid');
-                textareaElement.classList.add('invalid');
-                helperElement.style.display = 'none';
-                errorElement.style.display = 'block';
-                errorElement.textContent = `Invalid JSON: ${validation.error}`;
-            }
-        }
-
-        function validateStepsArray(jsonString) {
-            try {
-                const parsed = JSON.parse(jsonString);
-                if (!Array.isArray(parsed)) {
-                    return { valid: false, error: "Steps must be an array" };
-                }
-                if (parsed.length === 0) {
-                    return { valid: false, error: "Steps array cannot be empty" };
-                }
-                if (!parsed.every(item => typeof item === 'string')) {
-                    return { valid: false, error: "All steps must be strings (file paths)" };
-                }
-                return { valid: true, error: null };
-            } catch (error) {
-                return { valid: false, error: error.message };
-            }
-        }
-
-        function formatStepsJson() {
-            const textarea = document.getElementById('workflowSteps');
-            const value = textarea.value.trim();
-            
-            if (!value) {
-                return;
-            }
-            
-            try {
-                const parsed = JSON.parse(value);
-                textarea.value = JSON.stringify(parsed, null, 2);
-                // Trigger validation
-                validateWorkflowSteps();
-            } catch (error) {
-                // If it's not valid JSON, just trigger validation to show error
-                validateWorkflowSteps();
-            }
-        }
-
-        function formatDataJson() {
-            const textarea = document.getElementById('workflowData');
-            const value = textarea.value.trim();
-            
-            if (!value) {
-                return;
-            }
-            
-            try {
-                const parsed = JSON.parse(value);
-                textarea.value = JSON.stringify(parsed, null, 2);
-                // Trigger validation
-                validateWorkflowData();
-            } catch (error) {
-                // If it's not valid JSON, just trigger validation to show error
-                validateWorkflowData();
-            }
-        }
-
-        function validateWorkflowSteps() {
-            const textarea = document.getElementById('workflowSteps');
-            const helper = document.getElementById('workflowStepsHelper');
-            const error = document.getElementById('workflowStepsError');
-            const submitBtn = document.getElementById('defineSubmitBtn');
-            
-            const value = textarea.value.trim();
-            
-            if (!value) {
-                textarea.classList.remove('valid', 'invalid');
-                helper.style.display = 'block';
-                helper.textContent = 'Enter a valid JSON array of step file paths. Each step should be a JavaScript file path.';
-                helper.style.color = 'var(--text-secondary)';
-                error.style.display = 'none';
-                submitBtn.disabled = false;
-                submitBtn.style.opacity = '1';
-                return;
-            }
-            
-            const validation = validateStepsArray(value);
-            updateValidationUI(textarea, helper, error, validation);
-            
-            // Enable/disable submit button based on validation
-            if (validation.valid) {
-                submitBtn.disabled = false;
-                submitBtn.style.opacity = '1';
-                submitBtn.style.cursor = 'pointer';
-            } else {
-                submitBtn.disabled = true;
-                submitBtn.style.opacity = '0.5';
-                submitBtn.style.cursor = 'not-allowed';
-            }
-        }
-
-        function validateWorkflowData() {
-            const textarea = document.getElementById('workflowData');
-            const helper = document.getElementById('workflowDataHelper');
-            const error = document.getElementById('workflowDataError');
-            const submitBtn = document.getElementById('startSubmitBtn');
-            
-            const value = textarea.value.trim();
-            
-            if (!value) {
-                textarea.classList.remove('valid', 'invalid');
-                helper.style.display = 'block';
-                helper.textContent = 'Optional initial data to pass to the workflow. Leave empty if no data is needed.';
-                helper.style.color = 'var(--text-secondary)';
-                error.style.display = 'none';
-                submitBtn.disabled = false;
-                submitBtn.style.opacity = '1';
-                return;
-            }
-            
-            const validation = validateJson(value);
-            updateValidationUI(textarea, helper, error, validation);
-            
-            // Enable/disable submit button based on validation
-            if (validation.valid) {
-                submitBtn.disabled = false;
-                submitBtn.style.opacity = '1';
-                submitBtn.style.cursor = 'pointer';
-            } else {
-                submitBtn.disabled = true;
-                submitBtn.style.opacity = '0.5';
-                submitBtn.style.cursor = 'not-allowed';
-            }
-        }
-
-        // Add real-time validation to textareas
-        document.getElementById('workflowSteps').addEventListener('input', validateWorkflowSteps);
-        document.getElementById('workflowSteps').addEventListener('blur', validateWorkflowSteps);
-        document.getElementById('workflowData').addEventListener('input', validateWorkflowData);
-        document.getElementById('workflowData').addEventListener('blur', validateWorkflowData);
-
-        // Define Workflow Form Handler
-        defineWorkflowForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const name = document.getElementById('workflowName').value;
-            const stepsValue = document.getElementById('workflowSteps').value.trim();
-            
-            // Final validation before submission
-            if (!stepsValue) {
-                showResult('defineResult', 'Steps array is required', 'error');
-                return;
-            }
-            
-            const validation = validateStepsArray(stepsValue);
-            if (!validation.valid) {
-                showResult('defineResult', `Cannot define workflow: Invalid steps array - ${validation.error}`, 'error');
-                return;
-            }
-            
-            try {
-                const steps = JSON.parse(stepsValue);
-                const body = { name, steps };
-                await executeApiCall('DEFINE', null, body, 'defineResult');
-            } catch (e) {
-                showResult('defineResult', `Unexpected error: ${e.message}`, 'error');
-            }
-        });
-
-        // Start Workflow Form Handler
-        startWorkflowForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const name = document.getElementById('startWorkflowName').value;
-            const dataValue = document.getElementById('workflowData').value.trim();
-            
-            let body = { name };
-            
-            // Add data if provided
-            if (dataValue) {
-                const validation = validateJson(dataValue);
-                if (!validation.valid) {
-                    showResult('startResult', `Cannot start workflow: Invalid data JSON - ${validation.error}`, 'error');
-                    return;
-                }
-                
-                try {
-                    body.data = JSON.parse(dataValue);
-                } catch (e) {
-                    showResult('startResult', `Unexpected error: ${e.message}`, 'error');
-                    return;
-                }
-            }
-            
-            await executeApiCall('START', null, body, 'startResult');
-        });
-
-        // STATUS Form Handler
-        statusForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            await executeApiCall('STATUS', null, null, 'statusResult');
-        });
-
-        // Generic API call function
-        async function executeApiCall(operation, key, body, resultDivId) {
-            let url, method;
-            
-            switch (operation) {
-                case 'DEFINE':
-                    url = `/services/workflow/api/defineworkflow`;
-                    method = 'POST';
-                    break;
-                case 'START':
-                    url = `/services/workflow/api/start`;
-                    method = 'POST';
-                    break;
-                case 'STATUS':
-                    url = `/services/workflow/api/status`;
-                    method = 'GET';
-                    break;
-            }
-            
-            try {
-                const options = {
-                    method: method,
-                    headers: {
-                        'Content-Type': 'application/json',
-                    }
-                };
-                
-                if (body !== undefined && body !== null) {
-                    options.body = JSON.stringify(body);
-                }
-                
-                const response = await fetch(url, options);
-                const responseText = await response.text();
-                
-                let responseData;
-                try {
-                    responseData = JSON.parse(responseText);
-                } catch (e) {
-                    responseData = responseText;
-                }
-                
-                if (response.ok) {
-                    showResult(resultDivId, `Success: ${JSON.stringify(responseData, null, 2)}`, 'success');
-                } else {
-                    showResult(resultDivId, `Error ${response.status}: ${responseData}`, 'error');
-                }
-            } catch (error) {
-                showResult(resultDivId, `Network Error: ${error.message}`, 'error');
-            }
-        }
-
-        // Load example data for forms
-        function loadDefineExample() {
-            document.getElementById('workflowName').value = 'user-onboarding';
-            document.getElementById('workflowSteps').value = JSON.stringify([
-                "/workflows/steps/validate-user.js",
-                "/workflows/steps/send-welcome-email.js",
-                "/workflows/steps/create-profile.js"
-            ], null, 2);
-            
-            // Trigger validation after loading example
-            validateWorkflowSteps();
-        }
-
-        function loadStartExample() {
-            document.getElementById('startWorkflowName').value = 'user-onboarding';
-            document.getElementById('workflowData').value = JSON.stringify({
-                "userId": 123,
-                "email": "user@example.com",
-                "plan": "premium",
-                "timestamp": new Date().toISOString()
-            }, null, 2);
-            
-            // Trigger validation after loading example
-            validateWorkflowData();
-        }
     </script>
 </body>
 </html>

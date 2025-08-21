@@ -6,10 +6,12 @@
  * Runs the example task.
  * @return {!Promise<string>} A promise that resolves with a completion message.
  */
+const { parentPort } = require('worker_threads');
+
 async function run() {
   return new Promise((resolve) => {
     setTimeout(() => {
-      resolve('Example task completed successfully! Yay!');
+      resolve({'message': 'Example task completed successfully! Yay!'});
     }, 1000);
   });
 }

@@ -19,6 +19,9 @@ function updateStatus(newStatus, data) {
 }
 
 parentPort.on('message', async (message) => {
+  if (message == null){
+    return
+  }
   if (message.type === 'start' && message.scriptPath) {
     userScriptPath = message.scriptPath;
     try {

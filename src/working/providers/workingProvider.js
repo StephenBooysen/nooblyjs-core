@@ -28,7 +28,7 @@ class WorkerProvider {
    * @param {Object} data The data to be passed to the worker thread.
    * @param {Function=} completionCallback Optional callback function to be called on completion.
    */
-  async start(scriptPath, data,  completionCallback) {
+  async start(scriptPath, data, completionCallback) {
     
     if (this.worker_) {
       if (this.eventEmitter_)
@@ -94,7 +94,9 @@ class WorkerProvider {
       this.worker_ = null;
     });
 
-    this.worker_.postMessage({ type: 'start', scriptPath: scriptPath });
+    // send the data to the worker
+    //this.worker_.postMessage(data);
+    this.worker_.postMessage({ type: 'start', scriptPath: scriptPath, data: data });
   }
 
   /**
