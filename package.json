@@ -1,6 +1,6 @@
 {
   "name": "noobly-core",
-  "version": "1.0.1",
+  "version": "1.0.12",
   "description": "A powerful set of modular Node.js backend services with singleton pattern - caching, logging, data serving, filing, measuring, notifying, queueing, scheduling, searching, workflow, and working services.",
   "keywords": [
     "nodejs",
@@ -13,8 +13,14 @@
     "workflow",
     "express"
   ],
+  "files": [
+        "src",
+        "README.md",
+        "package.json",
+        "index.js" 
+   ],
   "license": "ISC",
-  "author": "Stephen Booysen",
+  "author": "NooblyJS",
   "type": "commonjs",
   "main": "index.js",
   "engines": {

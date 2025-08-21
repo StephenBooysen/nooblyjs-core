@@ -75,7 +75,7 @@ class ServiceRegistry {
 
     let service;
     try {
-      const serviceFactory = require(`./src/${serviceName}`);
+      const serviceFactory = require(`${__dirname}/src/${serviceName}`);
       service = serviceFactory(providerType, mergedOptions, this.eventEmitter);
     } catch (error) {
       throw new Error(
