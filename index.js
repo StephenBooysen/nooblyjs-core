@@ -4,6 +4,7 @@
  */
 
 const EventEmitter = require('events');
+const path = require('path');
 
 class ServiceRegistry {
   constructor() {
@@ -27,6 +28,11 @@ class ServiceRegistry {
       'express-app': expressApp,
       ...globalOptions,
     };
+
+    // Serve the service registry landing page
+    this.expressApp.get('/services/', (req, res) => {
+      res.sendFile(path.join(__dirname, 'src/views', 'index.html'));
+    });
 
     // Patch event emitter for debugging
     this.patchEmitter();
