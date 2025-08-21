@@ -15,16 +15,12 @@ function patchEmitter(emitter) {
   emitter.emit = function () {
     const eventName = arguments[0];
     const args = Array.from(arguments).slice(1); // Get arguments excluding the event name
-
     console.log(`Caught event: "${eventName}" with arguments:`, args);
-
-    // Call the original emit method to ensure normal event handling continues
     return originalEmit.apply(this, arguments);
   };
 }
 const eventEmitter = new EventEmitter();
 patchEmitter(eventEmitter);
-
 
 // lets log
 const log = require('./src/logging')('', { 'express-app': app }, eventEmitter);
@@ -46,19 +42,38 @@ const queue = require('./src/queueing')(
 );
 queue.enqueue(new Date());
 
-
 const scheduling = require('./src/scheduling')(
   'memory',
   { 'express-app': app },
   eventEmitter,
 );
-scheduling.start('Schedule task 1', '../../../tests/working/exampleTask.js', 5, (status, data) => {
-  console.log('Schedule task 1 executed with status:', status, 'and data:', data);
-});
-scheduling.start('Schedule task 2', '../../../tests/working/exampleTask.js', 5, (status, data) => {
-  console.log('Schedule task 2 executed with status:', status, 'and data:', data);
-});
+scheduling.start(
+  'Schedule task 1',
+  '../../../tests/unit/working/exampleTask.js',
+  5,
+  (status, data) => {
+    console.log(
+      'Schedule task 1 executed with status:',
+      status,
+      'and data:',
+      data,
+    );
+  },
+);
 
+scheduling.start(
+  'Schedule task 2',
+  '../../../tests/unit/working/exampleTask.js',
+  5,
+  (status, data) => {
+    console.log(
+      'Schedule task 2 executed with status:',
+      status,
+      'and data:',
+      data,
+    );
+  },
+);
 
 const seaching = require('./src/searching')(
   'memory',
@@ -82,8 +97,16 @@ console.log(measuring);
 measuring.add('example-measure', 300);
 measuring.add('example-measure', 150);
 measuring.add('example-measure', 200);
-measuring.list('example-measure',new Date('2025-01-01'), new Date('2025-12-31')).then((data) => {console.log('Measure data:', data);});
-measuring.total('example-measure',new Date('2025-01-01'), new Date('2025-12-31')).then((data) => {console.log('Measure data:', data);});
+measuring
+  .list('example-measure', new Date('2025-01-01'), new Date('2025-12-31'))
+  .then((data) => {
+    console.log('Measure data:', data);
+  });
+measuring
+  .total('example-measure', new Date('2025-01-01'), new Date('2025-12-31'))
+  .then((data) => {
+    console.log('Measure data:', data);
+  });
 
 // lets notify
 const notifying = require('./src/notifying')(
@@ -108,7 +131,7 @@ const worker = require('./src/working')(
   { 'express-app': app },
   eventEmitter,
 );
-worker.start('../../../tests/working/exampleTask.js',  () => {
+worker.start('../../../tests/working/exampleTask.js', () => {
   console.log('Worker  task ended');
 });
 
@@ -119,20 +142,24 @@ const workflow = require('./src/workflow')(
   eventEmitter,
 );
 const steps = [
-  path.resolve(__dirname, './tests/workflow/steps/exampleStep1.js'),
-  path.resolve(__dirname, './tests/workflow/steps/exampleStep2.js'),
+  path.resolve(__dirname, './tests/unit/workflow/steps/exampleStep1.js'),
+  path.resolve(__dirname, './tests/unit/workflow/steps/exampleStep2.js'),
 ];
 workflow.defineWorkflow('example-workflow', steps);
 workflow.runWorkflow('example-workflow', {}, () => {
   console.log('Workdflow ended');
 });
 
-app.use('/', express.static(__dirname + '/ui-design/home-glass'))
-app.use('/flat', express.static(__dirname + '/ui-design/home-flat'))
-app.use('/material', express.static(__dirname + '/ui-design/home-material'))
-app.use('/minimalist', express.static(__dirname + '/ui-design/home-minimalist'))
+app.use('/', express.static(__dirname + '/ui-design/home-glass'));
+app.use('/flat', express.static(__dirname + '/ui-design/home-flat'));
+app.use('/material', express.static(__dirname + '/ui-design/home-material'));
+app.use(
+  '/minimalist',
+  express.static(__dirname + '/ui-design/home-minimalist'),
+);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   log.log(`Server is running on port ${PORT}`);
+
 });

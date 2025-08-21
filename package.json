@@ -11,7 +11,7 @@
   },
   "scripts": {
     "clean": "rimraf dist/*; rimraf docs/*;",
-    "dev": "npm clean; nodemon --watch ./src ./app.js",
+    "dev": "npm run clean; nodemon --watch ./src ./app.js",
     "test": "jest",
     "test-load": "node ./tests-load/",
     "build": "jsdoc -c jsdoc.json; npm version minor; babel src -d dist; npm pack --pack-destination='package'"
