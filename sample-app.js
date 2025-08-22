@@ -2,7 +2,7 @@
  * @fileoverview Sample application demonstrating NooblyJS Core services.
  * This file serves as a comprehensive example of how to use all available
  * services in the NooblyJS Core framework.
- * 
+ *
  * @author NooblyJS Team
  * @version 1.0.14
  * @since 1.0.0
@@ -13,7 +13,7 @@
 const path = require('path');
 const express = require('express');
 const bodyParser = require('body-parser');
-const {v4: uuidv4} = require('uuid');
+const { v4: uuidv4 } = require('uuid');
 const serviceRegistry = require('./index');
 
 /** @type {express.Application} Express application instance */
@@ -36,6 +36,9 @@ const dataserve = serviceRegistry.dataServe('memory');
 const filing = serviceRegistry.filing('local');
 const queue = serviceRegistry.queue('memory');
 
+dataserve.status;
+filing.status;
+
 /**
  * Demonstrate basic service operations.
  * Test caching, logging, and queueing functionality.
@@ -52,16 +55,16 @@ const scheduling = serviceRegistry.scheduling('memory');
 scheduling.start(
   'Schedule task 1',
   '../../../tests/unit/working/exampleTask.js',
-  {'message': 'Life is fine'},
+  { message: 'Life is fine' },
   5,
   (status, data) => {
     console.log(
       'Schedule task 1 executed with status:',
       status,
       'and data:',
-      data
+      data,
     );
-  }
+  },
 );
 
 /**
@@ -69,10 +72,10 @@ scheduling.start(
  * Add sample users and perform a search operation.
  */
 const searching = serviceRegistry.searching('memory');
-searching.add(uuidv4(), {name: 'Jill', role: 'user', dob: '2025-02-01'});
-searching.add(uuidv4(), {name: 'Frank', role: 'user', dob: '2025-03-01'});
-searching.add(uuidv4(), {name: 'Bill', role: 'user', dob: '2025-04-01'});
-searching.add(uuidv4(), {name: 'Ted', role: 'user', dob: '2025-05-01'});
+searching.add(uuidv4(), { name: 'Jill', role: 'user', dob: '2025-02-01' });
+searching.add(uuidv4(), { name: 'Frank', role: 'user', dob: '2025-03-01' });
+searching.add(uuidv4(), { name: 'Bill', role: 'user', dob: '2025-04-01' });
+searching.add(uuidv4(), { name: 'Ted', role: 'user', dob: '2025-05-01' });
 searching.search('user');
 
 /**
@@ -84,16 +87,19 @@ console.log(measuring);
 measuring.add('example-measure', 300);
 measuring.add('example-measure', 150);
 measuring.add('example-measure', 200);
-measuring
-  .list('example-measure', new Date('2025-01-01'), new Date('2025-12-31'))
-  .then((data) => {
-    console.log('Measure data:', data);
-  });
-measuring
-  .total('example-measure', new Date('2025-01-01'), new Date('2025-12-31'))
-  .then((data) => {
-    console.log('Measure data:', data);
-  });
+const measureData = measuring.list(
+  'example-measure',
+  new Date('2025-01-01'),
+  new Date('2025-12-31'),
+);
+console.log('Measure data:', measureData);
+
+const totalData = measuring.total(
+  'example-measure',
+  new Date('2025-01-01'),
+  new Date('2025-12-31'),
+);
+console.log('Total measure data:', totalData);
 
 /**
  * Demonstrate notifying service.
@@ -108,17 +114,17 @@ notifying.subscribe('example-topic', (message) => {
 notifying.subscribe('example-topic', (message) => {
   console.log('Subscriber 2 Received message on example-topic:', message);
 });
-notifying.notify('example-topic', {text: 'Hello, World!'});
-notifying.notify('example-topic', {text: 'Hello, World 2!'});
+notifying.notify('example-topic', { text: 'Hello, World!' });
+notifying.notify('example-topic', { text: 'Hello, World 2!' });
 
 /**
  * Demonstrate working service (commented out).
  * This shows how to start background worker tasks.
  */
-/* const worker = serviceRegistry.working('memory');
+const worker = serviceRegistry.working('memory');
 worker.start('../../../tests/working/exampleTask.js', () => {
   console.log('Worker task ended');
-}); */
+});
 
 /**
  * Demonstrate workflow service.

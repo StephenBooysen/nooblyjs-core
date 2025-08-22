@@ -34,13 +34,32 @@ class SchedulerProvider {
    * Starts the scheduler to execute a script at a given interval.
    * @param {string} taskName The name of the task to schedule.
    * @param {string} scriptPath The absolute path to the Node.js file to execute.
-   * @param {*} data The data to pass to the script.
-   * @param {number} intervalSeconds The interval in seconds at which to execute the script.
+   * @param {*|number} dataOrInterval The data to pass to the script, or interval if 3 args provided.
+   * @param {number=} intervalSeconds The interval in seconds at which to execute the script.
    * @param {Function=} executionCallback Optional callback function to be called on each execution.
    * @return {Promise<void>} A promise that resolves when the task is started.
    * @throws {Error} When a task with the same name is already scheduled.
    */
-  async start(taskName, scriptPath, data, intervalSeconds, executionCallback) {
+  async start(taskName, scriptPath, dataOrInterval, intervalSeconds, executionCallback) {
+    // Handle different calling patterns for backward compatibility
+    let data, interval, callback;
+    
+    if (arguments.length === 3) {
+      // start(taskName, scriptPath, intervalSeconds)
+      data = null;
+      interval = dataOrInterval;
+      callback = undefined;
+    } else if (arguments.length === 4) {
+      // start(taskName, scriptPath, intervalSeconds, executionCallback)
+      data = null;
+      interval = dataOrInterval;
+      callback = intervalSeconds;
+    } else {
+      // start(taskName, scriptPath, data, intervalSeconds, executionCallback)
+      data = dataOrInterval;
+      interval = intervalSeconds;
+      callback = executionCallback;
+    }
     if (this.tasks_.has(taskName)) {
       if (this.eventEmitter_)
         this.eventEmitter_.emit('scheduler:start:error', {
@@ -52,8 +71,8 @@ class SchedulerProvider {
 
     const executeTask = () => {
       this.worker_.start(scriptPath, data, (status, data) => {
-        if (executionCallback) {
-          executionCallback(status, data);
+        if (callback) {
+          callback(status, data);
         }
         if (this.eventEmitter_)
           this.eventEmitter_.emit('scheduler:taskExecuted', {
@@ -67,18 +86,18 @@ class SchedulerProvider {
 
     // Execute immediately and then at intervals
     executeTask();
-    const intervalId = setInterval(executeTask, intervalSeconds * 1000);
+    const intervalId = setInterval(executeTask, interval * 1000);
     this.tasks_.set(taskName, {
       intervalId,
       scriptPath,
-      executionCallback,
+      executionCallback: callback,
     });
 
     if (this.eventEmitter_)
       this.eventEmitter_.emit('scheduler:started', {
         taskName,
         scriptPath,
-        intervalSeconds,
+        intervalSeconds: interval,
       });
   }
 
@@ -103,6 +122,10 @@ class SchedulerProvider {
           this.eventEmitter_.emit('scheduler:stopped', { taskName: name });
       });
       this.tasks_.clear();
+      // Stop the worker when stopping all tasks
+      if (this.worker_ && this.worker_.stop) {
+        this.worker_.stop();
+      }
     }
   }
 

@@ -28,7 +28,7 @@ const workerInstanceMock = {
  * Mock the working module to return our mock worker instance.
  * This allows testing scheduler behavior without actual worker processes.
  */
-jest.doMock('../../src/working', () => {
+jest.doMock('../../../src/working', () => {
   return jest.fn(() => workerInstanceMock);
 });
 

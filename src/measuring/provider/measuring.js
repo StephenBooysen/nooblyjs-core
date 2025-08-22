@@ -32,9 +32,9 @@ class MeasuringService {
    * Adds a measure to a specified metric with current timestamp.
    * @param {string} metricName The name of the metric.
    * @param {number} value The value of the measure.
-   * @return {Promise<void>} A promise that resolves when the measure is added.
+   * @return {void}
    */
-  async add(metricName, value) {
+  add(metricName, value) {
     if (!this.metrics.has(metricName)) {
       this.metrics.set(metricName, []);
     }
@@ -53,7 +53,7 @@ class MeasuringService {
    * @private
    */
   _filterMeasuresByPeriod(metricName, startDate, endDate) {
-    // Debug logging removed for production   
+    // Debug logging removed for production
     const measures = this.metrics.get(metricName);
     if (!measures) {
       return [];
@@ -69,9 +69,9 @@ class MeasuringService {
    * @param {string} metricName The name of the metric.
    * @param {Date} startDate The start date of the period (inclusive).
    * @param {Date} endDate The end date of the period (inclusive).
-   * @return {Promise<Array<{value: number, timestamp: Date}>>} A promise that resolves to an array of measures.
+   * @return {Array<{value: number, timestamp: Date}>} An array of measures.
    */
-  async list(metricName, startDate, endDate) {
+  list(metricName, startDate, endDate) {
     const measures = this._filterMeasuresByPeriod(
       metricName,
       startDate,
@@ -92,9 +92,9 @@ class MeasuringService {
    * @param {string} metricName The name of the metric.
    * @param {Date} startDate The start date of the period (inclusive).
    * @param {Date} endDate The end date of the period (inclusive).
-   * @return {Promise<number>} A promise that resolves to the total sum of measures.
+   * @return {number} The total sum of measures.
    */
-  async total(metricName, startDate, endDate) {
+  total(metricName, startDate, endDate) {
     const measures = this._filterMeasuresByPeriod(
       metricName,
       startDate,
@@ -116,9 +116,9 @@ class MeasuringService {
    * @param {string} metricName The name of the metric.
    * @param {Date} startDate The start date of the period (inclusive).
    * @param {Date} endDate The end date of the period (inclusive).
-   * @return {Promise<number>} A promise that resolves to the average of measures.
+   * @return {number} The average of measures.
    */
-  async average(metricName, startDate, endDate) {
+  average(metricName, startDate, endDate) {
     const measures = this._filterMeasuresByPeriod(
       metricName,
       startDate,

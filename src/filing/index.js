@@ -38,7 +38,7 @@ class FilingService {
   /**
    * Creates a file with the given content.
    * @param {string} path - The path to the file
-   * @param {string} content - The content of the file
+   * @param {Buffer|ReadableStream|string} content - The file content as Buffer, Stream, or string
    * @return {Promise<void>} Promise that resolves when the file is created
    */
   async create(path, content) {
@@ -48,7 +48,7 @@ class FilingService {
   /**
    * Uploads a file with the given content (alias for create).
    * @param {string} path - The path to the file
-   * @param {string} content - The content of the file
+   * @param {Buffer|ReadableStream|string} content - The file content as Buffer, Stream, or string
    * @return {Promise<void>} Promise that resolves when the file is uploaded
    */
   async upload(path, content) {
@@ -58,19 +58,21 @@ class FilingService {
   /**
    * Reads the content of a file.
    * @param {string} path - The path to the file
-   * @return {Promise<string>} Promise that resolves with the file content
+   * @param {string} [encoding] - Optional encoding (e.g., 'utf8', 'base64'), defaults to Buffer
+   * @return {Promise<Buffer|string>} Promise that resolves with the file content as Buffer or string if encoding specified
    */
-  async read(path) {
-    return this.provider.read(path);
+  async read(path, encoding) {
+    return this.provider.read(path, encoding);
   }
 
   /**
    * Downloads a file (alias for read).
    * @param {string} path - The path to the file
-   * @return {Promise<string>} Promise that resolves with the file content
+   * @param {string} [encoding] - Optional encoding (e.g., 'utf8', 'base64'), defaults to Buffer
+   * @return {Promise<Buffer|string>} Promise that resolves with the file content as Buffer or string if encoding specified
    */
-  async download(path) {
-    return this.provider.read(path);
+  async download(path, encoding) {
+    return this.provider.read(path, encoding);
   }
 
   /**
@@ -103,7 +105,7 @@ class FilingService {
   /**
    * Updates a file with the given content.
    * @param {string} path - The path to the file
-   * @param {string} content - The new content of the file
+   * @param {Buffer|ReadableStream|string} content - The new file content as Buffer, Stream, or string
    * @return {Promise<void>} Promise that resolves when the file is updated
    */
   async update(path, content) {

@@ -65,7 +65,7 @@ class WorkflowService {
   async runWorkflow(workflowName, data, statusCallback) {
     const steps = this.workflows.get(workflowName);
     if (!steps) {
-      const error = new Error(`Workflow '${workflowName}' not found`);
+      const error = new Error(`Workflow '${workflowName}' not found.`);
       if (this.eventEmitter_) {
         this.eventEmitter_.emit('workflow:error', {
           workflowName,

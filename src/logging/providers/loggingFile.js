@@ -76,6 +76,18 @@ class loggingFile {
     if (this.eventEmitter_)
       this.eventEmitter_.emit('log:error', { filename: this.filename_, message: logMessage });
   }
+
+  /**
+   * Logs a generic message to a file.
+   * @param {string} message The message to log.
+   * @return {Promise<void>} A promise that resolves when the message is logged.
+   * @throws {Error} When file write operation fails.
+   */
+  async log(message) {
+    fs.appendFileSync(this.filename_, message + '\n');
+    if (this.eventEmitter_)
+      this.eventEmitter_.emit('log:log', { filename: this.filename_, message: message });
+  }
 }
 
 module.exports = loggingFile;

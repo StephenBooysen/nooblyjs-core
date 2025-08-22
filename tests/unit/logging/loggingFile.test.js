@@ -23,7 +23,7 @@ jest.mock('fs', () => ({
 }));
 
 const fs = require('fs');
-const createLogger = require('../../src/logging');
+const createLogger = require('../../../src/logging');
 
 /**
  * Test suite for file logging operations.

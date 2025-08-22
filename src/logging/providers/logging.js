@@ -68,6 +68,20 @@ class logging {
       this.eventEmitter_.emit('log:error', { message: logMessage });
   }
 
+  /**
+   * Logs a generic message to the console with timestamp and device info.
+   * @param {string} message The message to log.
+   * @return {Promise<void>} A promise that resolves when the message is logged.
+   */
+  async log(message) {
+    const timestamp = new Date().toISOString();
+    const device = os.hostname();
+    const logMessage = `${timestamp} - ${device} - ${message}`;
+    console.log(logMessage);
+    if (this.eventEmitter_)
+      this.eventEmitter_.emit('log:log', { message: logMessage });
+  }
+
 }
 
 module.exports = logging;

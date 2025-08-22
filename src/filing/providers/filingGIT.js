@@ -15,7 +15,7 @@ const Client = require('ftp');
  * Provides methods for creating, reading, updating, deleting, and listing files over FTP.
  * @class
  */
-class FtpFilingProvider {
+class filingGIT {
   /**
    * Initializes the FTP filing provider with connection settings.
    * @param {Object} options Configuration options for the FTP provider.
@@ -269,4 +269,4 @@ class FtpFilingProvider {
   }
 }
 
-module.exports = FtpFilingProvider;
+module.exports = filingGIT;

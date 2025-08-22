@@ -12,7 +12,7 @@
 
 'use strict';
 
-const createCache = require('../../src/caching');
+const createCache = require('../../../src/caching');
 const EventEmitter = require('events');
 
 /**

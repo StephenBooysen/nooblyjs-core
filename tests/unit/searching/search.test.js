@@ -59,7 +59,8 @@ describe('SearchService', () => {
     );
     expect(searchService.data.size).toBe(1); // Size should remain 1
     expect(mockEventEmitter.emit).toHaveBeenCalledWith('search:add:error', {
-      sonObject: { id: 2, name: 'Another Object' },
+      jsonObject: { id: 2, name: 'Another Object' },
+      key: 'key1',
       error: 'Key already exists.',
     });
   });
@@ -121,7 +122,11 @@ describe('SearchService', () => {
     mockEventEmitter.emit.mockClear();
     // Search for 'fruit' (case-insensitive)
     let results = await searchService.search('fruit');
-    expect(results).toEqual(expect.arrayContaining([obj1, obj2, obj3]));
+    expect(results).toEqual(expect.arrayContaining([
+      {key: 'obj1', obj: obj1},
+      {key: 'obj2', obj: obj2},
+      {key: 'obj3', obj: obj3}
+    ]));
     expect(results.length).toBe(3);
     expect(mockEventEmitter.emit).toHaveBeenCalledWith('search:search', {
       searchTerm: 'fruit',
@@ -131,7 +136,7 @@ describe('SearchService', () => {
     mockEventEmitter.emit.mockClear();
     // Search for 'red'
     results = await searchService.search('red');
-    expect(results).toEqual(expect.arrayContaining([obj1, obj3]));
+    expect(results).toEqual(expect.arrayContaining([{key: 'obj1', obj: obj1}, {key: 'obj3', obj: obj3}]));
     expect(results.length).toBe(2);
     expect(mockEventEmitter.emit).toHaveBeenCalledWith('search:search', {
       searchTerm: 'red',
@@ -141,7 +146,7 @@ describe('SearchService', () => {
     mockEventEmitter.emit.mockClear();
     // Search for 'yellow'
     results = await searchService.search('yellow');
-    expect(results).toEqual(expect.arrayContaining([obj2]));
+    expect(results).toEqual(expect.arrayContaining([{key: 'obj2', obj: obj2}]));
     expect(results.length).toBe(1);
     expect(mockEventEmitter.emit).toHaveBeenCalledWith('search:search', {
       searchTerm: 'yellow',
@@ -161,7 +166,7 @@ describe('SearchService', () => {
     mockEventEmitter.emit.mockClear();
     // Search for a term in a nested object
     results = await searchService.search('brown');
-    expect(results).toEqual(expect.arrayContaining([obj4]));
+    expect(results).toEqual(expect.arrayContaining([{key: 'obj4', obj: obj4}]));
     expect(results.length).toBe(1);
     expect(mockEventEmitter.emit).toHaveBeenCalledWith('search:search', {
       searchTerm: 'brown',

@@ -9,6 +9,8 @@
 'use strict';
 
 const fs = require('fs').promises;
+const fsSync = require('fs');
+const path = require('path');
 
 /**
  * A class that implements a local file system-based file storage provider.
@@ -29,26 +31,45 @@ class LocalFilingProvider {
   /**
    * Creates a new file on the local file system.
    * @param {string} filePath The path where the file should be created.
-   * @param {string} content The content to write to the file.
+   * @param {Buffer|ReadableStream|string} content The content to write to the file.
    * @return {Promise<void>} A promise that resolves when the file is created.
    * @throws {Error} When file creation fails.
    */
   async create(filePath, content) {
-    await fs.writeFile(filePath, content);
+    await this._ensureDirectoryExists(filePath);
+
+    if (content && typeof content.pipe === 'function') {
+      // Handle ReadableStream
+      await this._writeStreamToFile(filePath, content);
+    } else {
+      // Handle Buffer or string
+      await fs.writeFile(filePath, content);
+    }
+
     if (this.eventEmitter_)
-      this.eventEmitter_.emit('filing:create', { filePath, content });
+      this.eventEmitter_.emit('filing:create', {
+        filePath,
+        contentType: typeof content,
+      });
   }
 
   /**
    * Reads a file from the local file system.
    * @param {string} filePath The path of the file to read.
-   * @return {Promise<string>} A promise that resolves to the file content.
+   * @param {string} [encoding] Optional encoding (e.g., 'utf8', 'base64'), defaults to Buffer.
+   * @return {Promise<Buffer|string>} A promise that resolves to the file content.
    * @throws {Error} When file reading fails.
    */
-  async read(filePath) {
-    const content = await fs.readFile(filePath, 'utf8');
+  async read(filePath, encoding) {
+    const content = encoding
+      ? await fs.readFile(filePath, encoding)
+      : await fs.readFile(filePath);
     if (this.eventEmitter_)
-      this.eventEmitter_.emit('filing:read', { filePath, content });
+      this.eventEmitter_.emit('filing:read', {
+        filePath,
+        encoding,
+        contentType: encoding ? 'string' : 'Buffer',
+      });
     return content;
   }
 
@@ -80,14 +101,57 @@ class LocalFilingProvider {
   /**
    * Updates an existing file on the local file system.
    * @param {string} filePath The path of the file to update.
-   * @param {string} content The new content for the file.
+   * @param {Buffer|ReadableStream|string} content The new content for the file.
    * @return {Promise<void>} A promise that resolves when the file is updated.
    * @throws {Error} When file update fails.
    */
   async update(filePath, content) {
-    await fs.writeFile(filePath, content);
+    await this._ensureDirectoryExists(filePath);
+
+    if (content && typeof content.pipe === 'function') {
+      // Handle ReadableStream
+      await this._writeStreamToFile(filePath, content);
+    } else {
+      // Handle Buffer or string
+      await fs.writeFile(filePath, content);
+    }
+
     if (this.eventEmitter_)
-      this.eventEmitter_.emit('filing:update', { filePath, content });
+      this.eventEmitter_.emit('filing:update', {
+        filePath,
+        contentType: typeof content,
+      });
+  }
+  /**
+   * Ensures the directory for the given file path exists.
+   * @param {string} filePath The file path to ensure directory exists for.
+   * @return {Promise<void>} A promise that resolves when directory is ensured.
+   * @private
+   */
+  async _ensureDirectoryExists(filePath) {
+    const dirname = path.dirname(filePath);
+    try {
+      await fs.access(dirname);
+    } catch (error) {
+      await fs.mkdir(dirname, { recursive: true });
+    }
+  }
+
+  /**
+   * Writes a readable stream to a file.
+   * @param {string} filePath The path where to write the file.
+   * @param {ReadableStream} stream The readable stream to write.
+   * @return {Promise<void>} A promise that resolves when the stream is written.
+   * @private
+   */
+  async _writeStreamToFile(filePath, stream) {
+    return new Promise((resolve, reject) => {
+      const writeStream = fsSync.createWriteStream(filePath);
+      stream.pipe(writeStream);
+      writeStream.on('finish', resolve);
+      writeStream.on('error', reject);
+      stream.on('error', reject);
+    });
   }
 }
 

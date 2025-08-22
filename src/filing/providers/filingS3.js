@@ -49,7 +49,7 @@ class S3FilingProvider {
   /**
    * Uploads a file to S3.
    * @param {string} filePath - The path to the file in the bucket (key).
-   * @param {string} content - The content of the file.
+   * @param {Buffer|ReadableStream|string} content - The content of the file.
    * @returns {Promise<void>}
    */
   async create(filePath, content) {
@@ -61,7 +61,10 @@ class S3FilingProvider {
     try {
       await this.s3.upload(params).promise();
       if (this.eventEmitter_)
-        this.eventEmitter_.emit('filing:create', { filePath, content });
+        this.eventEmitter_.emit('filing:create', {
+          filePath,
+          contentType: typeof content,
+        });
     } catch (error) {
       if (this.eventEmitter_)
         this.eventEmitter_.emit('filing:create:error', {
@@ -75,18 +78,23 @@ class S3FilingProvider {
   /**
    * Downloads a file from S3.
    * @param {string} filePath - The path to the file in the bucket (key).
-   * @returns {Promise<string>}
+   * @param {string} [encoding] - Optional encoding (e.g., 'utf8', 'base64'), defaults to Buffer.
+   * @returns {Promise<Buffer|string>}
    */
-  async read(filePath) {
+  async read(filePath, encoding) {
     const params = {
       Bucket: this.bucketName,
       Key: filePath,
     };
     try {
       const data = await this.s3.getObject(params).promise();
-      const content = data.Body.toString('utf-8');
+      const content = encoding ? data.Body.toString(encoding) : data.Body;
       if (this.eventEmitter_)
-        this.eventEmitter_.emit('filing:read', { filePath, content });
+        this.eventEmitter_.emit('filing:read', {
+          filePath,
+          encoding,
+          contentType: encoding ? 'string' : 'Buffer',
+        });
       return content;
     } catch (error) {
       if (this.eventEmitter_)
@@ -151,7 +159,7 @@ class S3FilingProvider {
   /**
    * Updates a file in S3 (same as create, as S3 overwrites).
    * @param {string} filePath - The path to the file in the bucket (key).
-   * @param {string} content - The new content of the file.
+   * @param {Buffer|ReadableStream|string} content - The new content of the file.
    * @returns {Promise<void>}
    */
   async update(filePath, content) {
@@ -164,7 +172,10 @@ class S3FilingProvider {
     try {
       await this.s3.upload(params).promise();
       if (this.eventEmitter_)
-        this.eventEmitter_.emit('filing:update', { filePath, content });
+        this.eventEmitter_.emit('filing:update', {
+          filePath,
+          contentType: typeof content,
+        });
     } catch (error) {
       if (this.eventEmitter_)
         this.eventEmitter_.emit('filing:update:error', {
