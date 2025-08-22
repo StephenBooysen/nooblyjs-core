@@ -125,11 +125,21 @@ class ServiceRegistry {
 
   /**
    * Get the filing service
-   * @param {string} providerType - 'local', 'ftp', or 's3'
+   * @param {string} providerType - 'local', 'ftp', 's3', 'git', or 'sync'
    * @param {Object} options - Provider-specific options
    * @returns {Object} Filing service instance
    */
   filing(providerType = 'local', options = {}) {
+    return this.getService('filing', providerType, options);
+  }
+
+  /**
+   * Get the filer service (alias for filing service)
+   * @param {string} providerType - 'local', 'ftp', 's3', 'git', or 'sync'
+   * @param {Object} options - Provider-specific options
+   * @returns {Object} Filer service instance
+   */
+  filer(providerType = 'local', options = {}) {
     return this.getService('filing', providerType, options);
   }
 
