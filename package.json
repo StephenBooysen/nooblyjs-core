@@ -1,6 +1,6 @@
 {
   "name": "noobly-core",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "A powerful set of modular Node.js backend services with singleton pattern - caching, logging, data serving, filing, measuring, notifying, queueing, scheduling, searching, workflow, and working services.",
   "keywords": [
     "nodejs",
