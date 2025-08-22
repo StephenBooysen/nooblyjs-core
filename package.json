@@ -51,7 +51,8 @@
     "@babel/preset-env": "^7.28.0",
     "gts": "^6.0.2",
     "jest": "^30.0.3",
-    "jsdoc": "^4.0.4"
+    "jsdoc": "^4.0.4",
+    "supertest": "^7.1.4"
   },
   "dependencies": {
     "@google/gemini-cli": "^0.1.22",

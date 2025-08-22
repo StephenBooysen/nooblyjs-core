@@ -1,16 +1,298 @@
-### Dataserve API Status
-GET http://localhost:3000/api/dataserve/status
+###
+### NooblyJS Core - DataServe API Tests
+### 
+### These tests demonstrate the DataServe service API endpoints with API key authentication.
+### DataServe provides persistent key-value storage with various backend options.
+###
+### Make sure your server is running with API keys configured before testing.
+###
 
-### Dataserve API Put
-POST http://localhost:3000/api/dataserve/put/testKey
+@baseUrl = http://localhost:3000
+@apiKey = your-api-key-here
+
+### Check DataServe API Status (No API key required)
+GET {{baseUrl}}/services/dataserve/api/status
+
+###
+
+### Test without API key (should return 401 Unauthorized)
+POST {{baseUrl}}/services/dataserve/api/put/unauthorized-test
 Content-Type: application/json
 
 {
-  "value": "testValue"
+  "message": "This request should fail without API key",
+  "timestamp": "{{$datetime iso8601}}"
 }
 
-### Dataserve API Get
-GET http://localhost:3000/api/dataserve/get/testKey
+###
 
-### Dataserve API Delete
-DELETE http://localhost:3000/api/dataserve/delete/testKey
+### PUT - Store user data with x-api-key header
+POST {{baseUrl}}/services/dataserve/api/put/user:john-doe
+Content-Type: application/json
+x-api-key: {{apiKey}}
+
+{
+  "userId": "john-doe",
+  "profile": {
+    "firstName": "John",
+    "lastName": "Doe", 
+    "email": "john.doe@example.com",
+    "age": 30,
+    "preferences": {
+      "theme": "dark",
+      "language": "en-US",
+      "notifications": true
+    }
+  },
+  "createdAt": "{{$datetime iso8601}}",
+  "lastModified": "{{$datetime iso8601}}"
+}
+
+###
+
+### PUT - Store product data with Bearer token
+POST {{baseUrl}}/services/dataserve/api/put/product:laptop-001
+Content-Type: application/json
+Authorization: Bearer {{apiKey}}
+
+{
+  "productId": "laptop-001",
+  "name": "Professional Laptop",
+  "category": "electronics",
+  "price": 1299.99,
+  "inventory": {
+    "inStock": true,
+    "quantity": 25,
+    "warehouse": "US-West"
+  },
+  "specifications": {
+    "cpu": "Intel i7",
+    "ram": "16GB",
+    "storage": "512GB SSD",
+    "display": "15.6 inch"
+  },
+  "lastUpdated": "{{$datetime iso8601}}"
+}
+
+###
+
+### PUT - Store configuration data with ApiKey header
+POST {{baseUrl}}/services/dataserve/api/put/config:app-settings
+Content-Type: application/json
+Authorization: ApiKey {{apiKey}}
+
+{
+  "appConfig": {
+    "version": "1.2.0",
+    "environment": "production",
+    "features": {
+      "caching": true,
+      "logging": true,
+      "metrics": true,
+      "fileStorage": true
+    },
+    "limits": {
+      "maxUsers": 10000,
+      "maxStorage": "100GB",
+      "apiRateLimit": 1000
+    }
+  },
+  "updatedBy": "admin",
+  "updatedAt": "{{$datetime iso8601}}"
+}
+
+###
+
+### PUT - Store session data with query parameter
+POST {{baseUrl}}/services/dataserve/api/put/session:abc123?api_key={{apiKey}}
+Content-Type: application/json
+
+{
+  "sessionId": "abc123",
+  "userId": "john-doe",
+  "loginTime": "{{$datetime iso8601}}",
+  "expiresAt": "2024-12-31T23:59:59Z",
+  "permissions": ["read", "write"],
+  "metadata": {
+    "userAgent": "Mozilla/5.0",
+    "ipAddress": "192.168.1.100",
+    "location": "US"
+  }
+}
+
+###
+
+### PUT - Store analytics data with api-key header
+POST {{baseUrl}}/services/dataserve/api/put/analytics:daily-stats
+Content-Type: application/json
+api-key: {{apiKey}}
+
+{
+  "date": "2024-01-15",
+  "metrics": {
+    "totalRequests": 15420,
+    "uniqueUsers": 1247,
+    "errorRate": 0.023,
+    "avgResponseTime": 145,
+    "topEndpoints": [
+      "/api/users",
+      "/api/products", 
+      "/api/orders"
+    ]
+  },
+  "performance": {
+    "cpuUsage": 65.2,
+    "memoryUsage": 78.5,
+    "diskUsage": 45.1
+  }
+}
+
+###
+
+### GET - Retrieve user data
+GET {{baseUrl}}/services/dataserve/api/get/user:john-doe
+x-api-key: {{apiKey}}
+
+###
+
+### GET - Retrieve product data
+GET {{baseUrl}}/services/dataserve/api/get/product:laptop-001
+Authorization: Bearer {{apiKey}}
+
+###
+
+### GET - Retrieve configuration
+GET {{baseUrl}}/services/dataserve/api/get/config:app-settings
+Authorization: ApiKey {{apiKey}}
+
+###
+
+### GET - Try to retrieve non-existent data
+GET {{baseUrl}}/services/dataserve/api/get/nonexistent:key
+x-api-key: {{apiKey}}
+
+###
+
+### PUT - Update existing user data (partial update)
+POST {{baseUrl}}/services/dataserve/api/put/user:john-doe
+Content-Type: application/json
+x-api-key: {{apiKey}}
+
+{
+  "userId": "john-doe",
+  "profile": {
+    "firstName": "John",
+    "lastName": "Doe", 
+    "email": "john.doe@newcompany.com",
+    "age": 31,
+    "preferences": {
+      "theme": "light",
+      "language": "en-US",
+      "notifications": false
+    }
+  },
+  "createdAt": "2024-01-10T10:30:00Z",
+  "lastModified": "{{$datetime iso8601}}",
+  "updated": true
+}
+
+###
+
+### GET - Retrieve updated user data
+GET {{baseUrl}}/services/dataserve/api/get/user:john-doe
+x-api-key: {{apiKey}}
+
+###
+
+### DELETE - Remove session data
+DELETE {{baseUrl}}/services/dataserve/api/delete/session:abc123
+x-api-key: {{apiKey}}
+
+###
+
+### DELETE - Remove product data
+DELETE {{baseUrl}}/services/dataserve/api/delete/product:laptop-001
+Authorization: Bearer {{apiKey}}
+
+###
+
+### DELETE - Try to delete non-existent data
+DELETE {{baseUrl}}/services/dataserve/api/delete/nonexistent:key
+x-api-key: {{apiKey}}
+
+###
+
+### GET - Verify deletion (should return not found)
+GET {{baseUrl}}/services/dataserve/api/get/session:abc123
+x-api-key: {{apiKey}}
+
+###
+
+### Bulk Operations Test Sequence
+### 1. Store multiple related records
+POST {{baseUrl}}/services/dataserve/api/put/order:2024-001
+Content-Type: application/json
+x-api-key: {{apiKey}}
+
+{
+  "orderId": "2024-001",
+  "customerId": "john-doe",
+  "items": [
+    {"productId": "laptop-001", "quantity": 1, "price": 1299.99},
+    {"productId": "mouse-001", "quantity": 1, "price": 29.99}
+  ],
+  "total": 1329.98,
+  "status": "pending",
+  "orderDate": "{{$datetime iso8601}}"
+}
+
+### 2. Store customer order history
+POST {{baseUrl}}/services/dataserve/api/put/customer:john-doe:orders
+Content-Type: application/json
+x-api-key: {{apiKey}}
+
+{
+  "customerId": "john-doe",
+  "orders": ["2024-001"],
+  "totalOrders": 1,
+  "totalSpent": 1329.98,
+  "lastOrderDate": "{{$datetime iso8601}}"
+}
+
+### 3. Retrieve order details
+GET {{baseUrl}}/services/dataserve/api/get/order:2024-001
+x-api-key: {{apiKey}}
+
+### 4. Retrieve customer order history
+GET {{baseUrl}}/services/dataserve/api/get/customer:john-doe:orders
+x-api-key: {{apiKey}}
+
+### 5. Update order status
+POST {{baseUrl}}/services/dataserve/api/put/order:2024-001
+Content-Type: application/json
+x-api-key: {{apiKey}}
+
+{
+  "orderId": "2024-001",
+  "customerId": "john-doe",
+  "items": [
+    {"productId": "laptop-001", "quantity": 1, "price": 1299.99},
+    {"productId": "mouse-001", "quantity": 1, "price": 29.99}
+  ],
+  "total": 1329.98,
+  "status": "shipped",
+  "orderDate": "2024-01-15T10:00:00Z",
+  "shippedDate": "{{$datetime iso8601}}",
+  "trackingNumber": "TRK123456789"
+}
+
+### 6. Cleanup - Remove test data
+DELETE {{baseUrl}}/services/dataserve/api/delete/order:2024-001
+x-api-key: {{apiKey}}
+
+###
+
+DELETE {{baseUrl}}/services/dataserve/api/delete/customer:john-doe:orders
+x-api-key: {{apiKey}}
+
+###

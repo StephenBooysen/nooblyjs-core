@@ -1,20 +1,192 @@
-### Check the API Caching status endpoint.
-http://localhost:3000/api/caching/status
+###
+### NooblyJS Core - Caching API Tests
+### 
+### These tests demonstrate the Caching service API endpoints with API key authentication.
+### Make sure your server is running with API keys configured before testing.
+###
+### Example server setup with API keys:
+### const apiKey = serviceRegistry.generateApiKey();
+### serviceRegistry.initialize(app, { apiKeys: [apiKey], requireApiKey: true });
+###
 
-### POST a cache record for a key
-POST http://localhost:3000/api/caching/put/1234 HTTP/1.1
-content-type: application/json
+@baseUrl = http://localhost:3000
+@apiKey = your-api-key-here
+
+### Check the Caching API status endpoint (No API key required)
+GET {{baseUrl}}/services/caching/api/status
+
+###
+
+### Test without API key (should return 401 Unauthorized)
+POST {{baseUrl}}/services/caching/api/put/test-no-auth
+Content-Type: application/json
 
 {
-    "name": "sample",
-    "time": "Wed, 21 Oct 2015 18:27:50 GMT"
+    "message": "This request should fail without API key",
+    "timestamp": "{{$datetime iso8601}}"
 }
 
-### Get a cache record for a key
-http://localhost:3000/api/caching/get/1234
+###
 
+### PUT - Store a cache entry with API key in header
+POST {{baseUrl}}/services/caching/api/put/user-1234
+Content-Type: application/json
+x-api-key: {{apiKey}}
 
-### Delete a cache record for a key
-DELETE http://localhost:3000/api/caching/delete/1234
+{
+    "userId": "1234",
+    "name": "John Doe",
+    "email": "john@example.com",
+    "lastLogin": "{{$datetime iso8601}}",
+    "preferences": {
+        "theme": "dark",
+        "notifications": true
+    }
+}
 
+###
 
+### PUT - Store cache entry with Authorization Bearer header
+POST {{baseUrl}}/services/caching/api/put/session-abc123
+Content-Type: application/json
+Authorization: Bearer {{apiKey}}
+
+{
+    "sessionId": "abc123",
+    "userId": "1234",
+    "createdAt": "{{$datetime iso8601}}",
+    "expiresAt": "2024-12-31T23:59:59Z",
+    "data": {
+        "cart": ["item1", "item2"],
+        "preferences": {"lang": "en"}
+    }
+}
+
+###
+
+### PUT - Store cache entry with Authorization ApiKey header
+POST {{baseUrl}}/services/caching/api/put/config-app
+Content-Type: application/json
+Authorization: ApiKey {{apiKey}}
+
+{
+    "appConfig": {
+        "version": "1.2.0",
+        "features": ["caching", "logging", "metrics"],
+        "environment": "development"
+    },
+    "updatedAt": "{{$datetime iso8601}}"
+}
+
+###
+
+### PUT - Store cache entry with query parameter
+POST {{baseUrl}}/services/caching/api/put/temp-data?api_key={{apiKey}}
+Content-Type: application/json
+
+{
+    "temporary": true,
+    "data": "Some temporary data",
+    "ttl": 3600,
+    "created": "{{$datetime iso8601}}"
+}
+
+###
+
+### PUT - Store cache entry with api-key header
+POST {{baseUrl}}/services/caching/api/put/metrics-summary
+Content-Type: application/json
+api-key: {{apiKey}}
+
+{
+    "totalRequests": 1542,
+    "errorRate": 0.02,
+    "avgResponseTime": 145,
+    "lastUpdated": "{{$datetime iso8601}}"
+}
+
+###
+
+### GET - Retrieve a cache entry
+GET {{baseUrl}}/services/caching/api/get/user-1234
+x-api-key: {{apiKey}}
+
+###
+
+### GET - Retrieve session data
+GET {{baseUrl}}/services/caching/api/get/session-abc123
+Authorization: Bearer {{apiKey}}
+
+###
+
+### GET - Try to get non-existent key
+GET {{baseUrl}}/services/caching/api/get/non-existent-key
+x-api-key: {{apiKey}}
+
+###
+
+### GET - Cache analytics and statistics
+GET {{baseUrl}}/services/caching/api/list
+x-api-key: {{apiKey}}
+
+###
+
+### DELETE - Remove a cache entry
+DELETE {{baseUrl}}/services/caching/api/delete/temp-data
+x-api-key: {{apiKey}}
+
+###
+
+### DELETE - Remove session data
+DELETE {{baseUrl}}/services/caching/api/delete/session-abc123
+Authorization: Bearer {{apiKey}}
+
+###
+
+### DELETE - Try to delete non-existent key
+DELETE {{baseUrl}}/services/caching/api/delete/non-existent-key
+x-api-key: {{apiKey}}
+
+###
+
+### Test multiple cache operations in sequence
+### 1. Store data
+POST {{baseUrl}}/services/caching/api/put/sequence-test
+Content-Type: application/json
+x-api-key: {{apiKey}}
+
+{
+    "step": 1,
+    "message": "First step in sequence",
+    "timestamp": "{{$datetime iso8601}}"
+}
+
+### 2. Retrieve the data
+GET {{baseUrl}}/services/caching/api/get/sequence-test
+x-api-key: {{apiKey}}
+
+### 3. Update the data
+POST {{baseUrl}}/services/caching/api/put/sequence-test
+Content-Type: application/json
+x-api-key: {{apiKey}}
+
+{
+    "step": 2,
+    "message": "Updated step in sequence",
+    "timestamp": "{{$datetime iso8601}}",
+    "updated": true
+}
+
+### 4. Retrieve updated data
+GET {{baseUrl}}/services/caching/api/get/sequence-test
+x-api-key: {{apiKey}}
+
+### 5. Delete the data
+DELETE {{baseUrl}}/services/caching/api/delete/sequence-test
+x-api-key: {{apiKey}}
+
+### 6. Verify deletion
+GET {{baseUrl}}/services/caching/api/get/sequence-test
+x-api-key: {{apiKey}}
+
+###

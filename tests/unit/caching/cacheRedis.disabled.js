@@ -77,7 +77,7 @@ describe('CacheRedis', () => {
       key: 'key',
       value: 'value',
     });
-  });
+  }, 10000);
 
   /**
    * Test Redis cache delete operation.
@@ -100,7 +100,7 @@ describe('CacheRedis', () => {
       key: 'key',
       value: null,
     });
-  });
+  }, 10000);
 
   /**
    * Test Redis cache behavior for non-existent keys.
@@ -116,5 +116,5 @@ describe('CacheRedis', () => {
       key: 'non-existent-key',
       value: null,
     });
-  });
+  }, 10000);
 });

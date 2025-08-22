@@ -5,6 +5,7 @@
 
 const EventEmitter = require('events');
 const path = require('path');
+const { createApiKeyAuthMiddleware, generateApiKey } = require('./src/middleware/apiKeyAuth');
 
 class ServiceRegistry {
   constructor() {
@@ -28,6 +29,25 @@ class ServiceRegistry {
       'express-app': expressApp,
       ...globalOptions,
     };
+
+    // Setup API key authentication if configured
+    if (globalOptions.apiKeys && globalOptions.apiKeys.length > 0) {
+      this.authMiddleware = createApiKeyAuthMiddleware({
+        apiKeys: globalOptions.apiKeys,
+        requireApiKey: globalOptions.requireApiKey !== false,
+        excludePaths: globalOptions.excludePaths || ['/services/*/status', '/services/', '/services/*/views/*']
+      }, this.eventEmitter);
+      
+      // Store auth config for services to use
+      this.globalOptions.authMiddleware = this.authMiddleware;
+      
+      // Log API key authentication setup
+      this.eventEmitter.emit('api-auth-setup', {
+        message: 'API key authentication enabled',
+        keyCount: globalOptions.apiKeys.length,
+        requireApiKey: globalOptions.requireApiKey !== false
+      });
+    }
 
     // Serve the service registry landing page
     this.expressApp.get('/services/', (req, res) => {
@@ -227,6 +247,15 @@ class ServiceRegistry {
    */
   listServices() {
     return Array.from(this.services.keys());
+  }
+
+  /**
+   * Generate a new API key
+   * @param {number} length - Length of the API key (default: 32)
+   * @returns {string} Generated API key
+   */
+  generateApiKey(length = 32) {
+    return generateApiKey(length);
   }
 
   /**

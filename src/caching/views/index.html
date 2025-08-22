@@ -963,17 +963,40 @@
             openapi: '3.0.0',
             info: {
                 title: 'Cache API',
-                description: 'REST API for cache operations',
+                description: 'REST API for cache operations with API key authentication',
                 version: '1.0.0'
             },
             servers: [
                 { url: '/services/caching/api', description: 'Cache API' }
+            ],
+            components: {
+                securitySchemes: {
+                    ApiKeyAuth: {
+                        type: 'apiKey',
+                        in: 'header',
+                        name: 'x-api-key',
+                        description: 'API key for authentication. Can also be provided via Authorization header (Bearer token) or api_key query parameter.'
+                    },
+                    BearerAuth: {
+                        type: 'http',
+                        scheme: 'bearer',
+                        description: 'API key provided as Bearer token in Authorization header'
+                    }
+                }
+            },
+            security: [
+                { ApiKeyAuth: [] },
+                { BearerAuth: [] }
             ],
             paths: {
                 '/put/{key}': {
                     post: {
                         summary: 'Store cache entry',
                         description: 'Store a cache entry with the specified key',
+                        security: [
+                            { ApiKeyAuth: [] },
+                            { BearerAuth: [] }
+                        ],
                         parameters: [
                             {
                                 name: 'key',
@@ -999,6 +1022,21 @@
                                     'text/plain': { schema: { type: 'string', example: 'OK' } }
                                 }
                             },
+                            '401': {
+                                description: 'Unauthorized - Invalid or missing API key',
+                                content: {
+                                    'application/json': { 
+                                        schema: { 
+                                            type: 'object',
+                                            properties: {
+                                                error: { type: 'string', example: 'Unauthorized' },
+                                                message: { type: 'string', example: 'API key is required' },
+                                                code: { type: 'string', example: 'MISSING_API_KEY' }
+                                            }
+                                        }
+                                    }
+                                }
+                            },
                             '500': {
                                 description: 'Server error',
                                 content: {
@@ -1012,6 +1050,10 @@
                     get: {
                         summary: 'Retrieve cache entry',
                         description: 'Retrieve a cache entry by key',
+                        security: [
+                            { ApiKeyAuth: [] },
+                            { BearerAuth: [] }
+                        ],
                         parameters: [
                             {
                                 name: 'key',
@@ -1031,6 +1073,21 @@
                                     }
                                 }
                             },
+                            '401': {
+                                description: 'Unauthorized - Invalid or missing API key',
+                                content: {
+                                    'application/json': { 
+                                        schema: { 
+                                            type: 'object',
+                                            properties: {
+                                                error: { type: 'string', example: 'Unauthorized' },
+                                                message: { type: 'string', example: 'API key is required' },
+                                                code: { type: 'string', example: 'MISSING_API_KEY' }
+                                            }
+                                        }
+                                    }
+                                }
+                            },
                             '500': {
                                 description: 'Server error',
                                 content: {
@@ -1044,6 +1101,10 @@
                     delete: {
                         summary: 'Delete cache entry',
                         description: 'Delete a cache entry by key',
+                        security: [
+                            { ApiKeyAuth: [] },
+                            { BearerAuth: [] }
+                        ],
                         parameters: [
                             {
                                 name: 'key',
@@ -1060,6 +1121,21 @@
                                     'text/plain': { schema: { type: 'string', example: 'OK' } }
                                 }
                             },
+                            '401': {
+                                description: 'Unauthorized - Invalid or missing API key',
+                                content: {
+                                    'application/json': { 
+                                        schema: { 
+                                            type: 'object',
+                                            properties: {
+                                                error: { type: 'string', example: 'Unauthorized' },
+                                                message: { type: 'string', example: 'API key is required' },
+                                                code: { type: 'string', example: 'MISSING_API_KEY' }
+                                            }
+                                        }
+                                    }
+                                }
+                            },
                             '500': {
                                 description: 'Server error',
                                 content: {
@@ -1072,13 +1148,79 @@
                 '/status': {
                     get: {
                         summary: 'Service status',
-                        description: 'Check if the cache service is running',
+                        description: 'Check if the cache service is running (No API key required)',
                         responses: {
                             '200': {
                                 description: 'Service is running',
                                 content: {
                                     'application/json': {
                                         schema: { type: 'string', example: 'caching api running' }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                '/list': {
+                    get: {
+                        summary: 'Cache analytics',
+                        description: 'Retrieve cache usage statistics and analytics',
+                        security: [
+                            { ApiKeyAuth: [] },
+                            { BearerAuth: [] }
+                        ],
+                        responses: {
+                            '200': {
+                                description: 'Analytics data retrieved successfully',
+                                content: {
+                                    'application/json': {
+                                        schema: { 
+                                            type: 'object',
+                                            properties: {
+                                                success: { type: 'boolean', example: true },
+                                                data: { 
+                                                    type: 'array',
+                                                    items: {
+                                                        type: 'object',
+                                                        properties: {
+                                                            key: { type: 'string', example: 'user:123' },
+                                                            hits: { type: 'number', example: 42 },
+                                                            lastHit: { type: 'string', example: '2024-01-01T12:00:00Z' }
+                                                        }
+                                                    }
+                                                },
+                                                total: { type: 'number', example: 10 }
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            '401': {
+                                description: 'Unauthorized - Invalid or missing API key',
+                                content: {
+                                    'application/json': { 
+                                        schema: { 
+                                            type: 'object',
+                                            properties: {
+                                                error: { type: 'string', example: 'Unauthorized' },
+                                                message: { type: 'string', example: 'API key is required' },
+                                                code: { type: 'string', example: 'MISSING_API_KEY' }
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            '500': {
+                                description: 'Server error',
+                                content: {
+                                    'application/json': { 
+                                        schema: { 
+                                            type: 'object',
+                                            properties: {
+                                                success: { type: 'boolean', example: false },
+                                                error: { type: 'string', example: 'Internal server error' }
+                                            }
+                                        }
                                     }
                                 }
                             }

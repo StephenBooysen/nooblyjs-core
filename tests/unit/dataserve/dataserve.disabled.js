@@ -2,12 +2,11 @@
  * @fileoverview Unit tests for the DataServeService and its providers.
  */
 
-
-
 const AWS = require('aws-sdk');
 const fs = require('fs').promises;
 const path = require('path');
 const EventEmitter = require('events');
+const createDataserveService = require('../../../src/dataserve');
 
 // Mock the AWS SimpleDB client
 jest.mock('aws-sdk', () => {
@@ -432,7 +431,7 @@ describe('DataServeService', () => {
         SelectExpression:
           'SELECT * FROM `' +
           mockDomainName +
-          (('` WHERE itemName() LIKE ' % ' + searchTerm + ') % ''),
+          '` WHERE itemName() LIKE \'%' + searchTerm + '%\'',
       });
       expect(results).toEqual([
         { itemName: 'item1', name: 'Laptop', category: 'Electronics' },

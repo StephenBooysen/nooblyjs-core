@@ -1,19 +1,173 @@
-### Scheduling API Status
-GET http://localhost:3000/api/scheduling/status
+###
+### NooblyJS Core - Scheduling API Tests
+###
+### These tests demonstrate the Scheduling service API endpoints with API key authentication.
+### The Scheduling service provides cron-based task scheduling capabilities.
+###
 
-### Scheduling API Schedule
-POST http://localhost:3000/api/scheduling/schedule
+@baseUrl = http://localhost:3000
+@apiKey = your-api-key-here
+
+### Check Scheduling API Status (No API key required)
+GET {{baseUrl}}/services/scheduling/api/status
+
+###
+
+### Test without API key (should return 401 Unauthorized)
+POST {{baseUrl}}/services/scheduling/api/schedule
 Content-Type: application/json
 
 {
   "task": {
-    "name": "myScheduledTask",
-    "data": {
-      "param1": "value1"
-    }
+    "name": "unauthorizedTask",
+    "data": { "test": "fail" }
   },
-  "cron": "* * * * *"
+  "cron": "0 0 * * *"
 }
 
-### Scheduling API Cancel
-DELETE http://localhost:3000/api/scheduling/cancel/someTaskId
+###
+
+### SCHEDULE - Create scheduled task with x-api-key header
+POST {{baseUrl}}/services/scheduling/api/schedule
+Content-Type: application/json
+x-api-key: {{apiKey}}
+
+{
+  "task": {
+    "name": "dailyBackup",
+    "description": "Perform daily data backup",
+    "data": {
+      "backupType": "incremental",
+      "targetPath": "/backups/daily",
+      "retentionDays": 30
+    }
+  },
+  "cron": "0 2 * * *",
+  "timezone": "UTC",
+  "metadata": {
+    "createdBy": "admin",
+    "priority": "high"
+  }
+}
+
+###
+
+### SCHEDULE - Create recurring task with Bearer token
+POST {{baseUrl}}/services/scheduling/api/schedule
+Content-Type: application/json
+Authorization: Bearer {{apiKey}}
+
+{
+  "task": {
+    "name": "metricsCollection",
+    "description": "Collect system metrics every 5 minutes",
+    "data": {
+      "metrics": ["cpu", "memory", "disk", "network"],
+      "aggregation": "average",
+      "storageLocation": "metrics-db"
+    }
+  },
+  "cron": "*/5 * * * *",
+  "enabled": true,
+  "metadata": {
+    "category": "monitoring",
+    "alertOnFailure": true
+  }
+}
+
+###
+
+### SCHEDULE - Create monthly report task with ApiKey header
+POST {{baseUrl}}/services/scheduling/api/schedule
+Content-Type: application/json
+Authorization: ApiKey {{apiKey}}
+
+{
+  "task": {
+    "name": "monthlyReport",
+    "description": "Generate monthly performance report",
+    "data": {
+      "reportType": "performance",
+      "includeCharts": true,
+      "recipients": ["admin@company.com", "manager@company.com"],
+      "format": "pdf"
+    }
+  },
+  "cron": "0 9 1 * *",
+  "timezone": "America/New_York",
+  "metadata": {
+    "department": "analytics",
+    "budget": 50
+  }
+}
+
+###
+
+### SCHEDULE - Create cleanup task with query parameter
+POST {{baseUrl}}/services/scheduling/api/schedule?api_key={{apiKey}}
+Content-Type: application/json
+
+{
+  "task": {
+    "name": "logCleanup",
+    "description": "Clean up old log files",
+    "data": {
+      "logPath": "/var/log/app",
+      "maxAge": "30-days",
+      "compressionEnabled": true,
+      "archivePath": "/archives/logs"
+    }
+  },
+  "cron": "0 1 * * 0",
+  "enabled": true
+}
+
+###
+
+### CANCEL - Cancel scheduled task with x-api-key header
+DELETE {{baseUrl}}/services/scheduling/api/cancel/dailyBackup
+x-api-key: {{apiKey}}
+
+###
+
+### CANCEL - Cancel task with Authorization header
+DELETE {{baseUrl}}/services/scheduling/api/cancel/metricsCollection
+Authorization: Bearer {{apiKey}}
+
+###
+
+### CANCEL - Try to cancel non-existent task
+DELETE {{baseUrl}}/services/scheduling/api/cancel/nonExistentTask
+x-api-key: {{apiKey}}
+
+###
+
+### Task Management Sequence
+### 1. Schedule a test task
+POST {{baseUrl}}/services/scheduling/api/schedule
+Content-Type: application/json
+x-api-key: {{apiKey}}
+
+{
+  "task": {
+    "name": "testSequence",
+    "description": "Test task for demonstration",
+    "data": {
+      "action": "ping",
+      "target": "https://example.com",
+      "timeout": 5000
+    }
+  },
+  "cron": "*/10 * * * *",
+  "enabled": false,
+  "metadata": {
+    "temporary": true,
+    "createdFor": "testing"
+  }
+}
+
+### 2. Cancel the test task
+DELETE {{baseUrl}}/services/scheduling/api/cancel/testSequence
+x-api-key: {{apiKey}}
+
+###

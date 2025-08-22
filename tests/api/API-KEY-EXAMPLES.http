@@ -1,0 +1,372 @@
+###
+### NooblyJS Core - API Key Authentication Examples
+### 
+### This file demonstrates all supported API key authentication methods
+### across NooblyJS services. Use this as a reference for implementing
+### API key authentication in your applications.
+###
+### SETUP INSTRUCTIONS:
+### 1. Replace 'your-api-key-here' with your actual API key
+### 2. Make sure your NooblyJS server is running with API key authentication enabled
+### 3. Example server setup:
+###    const apiKey = serviceRegistry.generateApiKey();
+###    serviceRegistry.initialize(app, { apiKeys: [apiKey], requireApiKey: true });
+###
+
+@baseUrl = http://localhost:3000
+@apiKey = your-api-key-here
+
+### ===================================================================
+### API KEY AUTHENTICATION METHODS
+### ===================================================================
+
+### Method 1: x-api-key Header (Recommended)
+POST {{baseUrl}}/services/caching/api/put/test-x-api-key
+Content-Type: application/json
+x-api-key: {{apiKey}}
+
+{
+    "method": "x-api-key header",
+    "description": "Most common and recommended method",
+    "timestamp": "{{$datetime iso8601}}"
+}
+
+###
+
+### Method 2: Authorization Bearer Header
+POST {{baseUrl}}/services/caching/api/put/test-bearer
+Content-Type: application/json
+Authorization: Bearer {{apiKey}}
+
+{
+    "method": "Authorization Bearer",
+    "description": "Standard OAuth-style bearer token",
+    "timestamp": "{{$datetime iso8601}}"
+}
+
+###
+
+### Method 3: Authorization ApiKey Header
+POST {{baseUrl}}/services/caching/api/put/test-apikey
+Content-Type: application/json
+Authorization: ApiKey {{apiKey}}
+
+{
+    "method": "Authorization ApiKey",
+    "description": "Custom ApiKey authorization scheme",
+    "timestamp": "{{$datetime iso8601}}"
+}
+
+###
+
+### Method 4: Query Parameter
+POST {{baseUrl}}/services/caching/api/put/test-query?api_key={{apiKey}}
+Content-Type: application/json
+
+{
+    "method": "Query parameter",
+    "description": "API key passed as URL query parameter",
+    "timestamp": "{{$datetime iso8601}}"
+}
+
+###
+
+### Method 5: api-key Header
+POST {{baseUrl}}/services/caching/api/put/test-api-key-header
+Content-Type: application/json
+api-key: {{apiKey}}
+
+{
+    "method": "api-key header",
+    "description": "Alternative header name for API key",
+    "timestamp": "{{$datetime iso8601}}"
+}
+
+###
+
+### ===================================================================
+### ERROR SCENARIOS
+### ===================================================================
+
+### Test 1: Missing API Key (401 Unauthorized)
+POST {{baseUrl}}/services/caching/api/put/test-no-auth
+Content-Type: application/json
+
+{
+    "test": "missing API key",
+    "expected": "401 Unauthorized",
+    "expectedError": "MISSING_API_KEY"
+}
+
+###
+
+### Test 2: Invalid API Key (401 Unauthorized)
+POST {{baseUrl}}/services/caching/api/put/test-invalid-auth
+Content-Type: application/json
+x-api-key: invalid-key-12345
+
+{
+    "test": "invalid API key",
+    "expected": "401 Unauthorized", 
+    "expectedError": "INVALID_API_KEY"
+}
+
+###
+
+### ===================================================================
+### CROSS-SERVICE API KEY TESTING
+### ===================================================================
+
+### Caching Service
+GET {{baseUrl}}/services/caching/api/status
+###
+POST {{baseUrl}}/services/caching/api/put/cross-service-test
+Content-Type: application/json
+x-api-key: {{apiKey}}
+
+{
+    "service": "caching",
+    "test": "cross-service authentication",
+    "timestamp": "{{$datetime iso8601}}"
+}
+
+###
+
+### DataServe Service
+GET {{baseUrl}}/services/dataserve/api/status
+###
+POST {{baseUrl}}/services/dataserve/api/put/cross-service-test
+Content-Type: application/json
+Authorization: Bearer {{apiKey}}
+
+{
+    "service": "dataserve",
+    "test": "cross-service authentication",
+    "timestamp": "{{$datetime iso8601}}"
+}
+
+###
+
+### Logging Service
+GET {{baseUrl}}/services/logging/api/status
+###
+POST {{baseUrl}}/services/logging/api/info
+Content-Type: application/json
+Authorization: ApiKey {{apiKey}}
+
+{
+    "service": "logging",
+    "test": "cross-service authentication",
+    "message": "Cross-service API key test",
+    "timestamp": "{{$datetime iso8601}}"
+}
+
+###
+
+### Measuring Service
+GET {{baseUrl}}/services/measuring/api/status
+###
+POST {{baseUrl}}/services/measuring/api/add
+Content-Type: application/json
+api-key: {{apiKey}}
+
+{
+    "metric": "cross-service-test",
+    "value": 123,
+    "metadata": {
+        "service": "measuring",
+        "test": "cross-service authentication"
+    },
+    "timestamp": "{{$datetime iso8601}}"
+}
+
+###
+
+### Notifying Service
+GET {{baseUrl}}/services/notifying/api/status
+###
+POST {{baseUrl}}/services/notifying/api/topic?api_key={{apiKey}}
+Content-Type: application/json
+
+{
+    "topic": "cross-service-test",
+    "description": "Cross-service authentication test"
+}
+
+###
+
+### ===================================================================
+### BULK OPERATIONS WITH API KEYS
+### ===================================================================
+
+### Create multiple cache entries with different authentication methods
+POST {{baseUrl}}/services/caching/api/put/bulk-1
+Content-Type: application/json
+x-api-key: {{apiKey}}
+
+{
+    "operation": "bulk-test",
+    "sequence": 1,
+    "data": "First entry in bulk operation"
+}
+
+###
+
+POST {{baseUrl}}/services/caching/api/put/bulk-2
+Content-Type: application/json
+Authorization: Bearer {{apiKey}}
+
+{
+    "operation": "bulk-test", 
+    "sequence": 2,
+    "data": "Second entry in bulk operation"
+}
+
+###
+
+POST {{baseUrl}}/services/caching/api/put/bulk-3
+Content-Type: application/json
+Authorization: ApiKey {{apiKey}}
+
+{
+    "operation": "bulk-test",
+    "sequence": 3,
+    "data": "Third entry in bulk operation"
+}
+
+###
+
+### Retrieve all bulk test entries
+GET {{baseUrl}}/services/caching/api/get/bulk-1
+x-api-key: {{apiKey}}
+
+###
+
+GET {{baseUrl}}/services/caching/api/get/bulk-2
+Authorization: Bearer {{apiKey}}
+
+###
+
+GET {{baseUrl}}/services/caching/api/get/bulk-3
+Authorization: ApiKey {{apiKey}}
+
+###
+
+### Clean up bulk test entries
+DELETE {{baseUrl}}/services/caching/api/delete/bulk-1
+x-api-key: {{apiKey}}
+
+###
+
+DELETE {{baseUrl}}/services/caching/api/delete/bulk-2
+Authorization: Bearer {{apiKey}}
+
+###
+
+DELETE {{baseUrl}}/services/caching/api/delete/bulk-3
+Authorization: ApiKey {{apiKey}}
+
+###
+
+### ===================================================================
+### STATUS ENDPOINTS (No API Key Required)
+### ===================================================================
+
+### All status endpoints should work without API keys
+GET {{baseUrl}}/services/caching/api/status
+###
+GET {{baseUrl}}/services/dataserve/api/status
+###
+GET {{baseUrl}}/services/logging/api/status
+###
+GET {{baseUrl}}/services/measuring/api/status
+###
+GET {{baseUrl}}/services/notifying/api/status
+###
+GET {{baseUrl}}/services/filing/api/status
+###
+GET {{baseUrl}}/services/scheduling/api/status
+###
+GET {{baseUrl}}/services/searching/api/status
+###
+GET {{baseUrl}}/services/queueing/api/status
+###
+GET {{baseUrl}}/services/working/api/status
+###
+GET {{baseUrl}}/services/workflow/api/status
+
+###
+
+### ===================================================================
+### SERVICE LANDING PAGES (No API Key Required)
+### ===================================================================
+
+### Main services page
+GET {{baseUrl}}/services/
+
+### Service-specific pages with Swagger documentation
+GET {{baseUrl}}/services/caching/
+###
+GET {{baseUrl}}/services/dataserve/
+###
+GET {{baseUrl}}/services/logging/
+
+###
+
+### ===================================================================
+### API KEY TESTING SCENARIOS
+### ===================================================================
+
+### Scenario 1: API Key Priority Test
+### Headers should take priority over query parameters
+POST {{baseUrl}}/services/caching/api/put/priority-test?api_key=invalid-query-key
+Content-Type: application/json
+x-api-key: {{apiKey}}
+
+{
+    "test": "API key priority",
+    "description": "Header should take priority over query parameter",
+    "expected": "200 OK (using header key)"
+}
+
+###
+
+### Scenario 2: Multiple Header Test
+### x-api-key should take priority over Authorization headers
+POST {{baseUrl}}/services/caching/api/put/multiple-header-test
+Content-Type: application/json
+x-api-key: {{apiKey}}
+Authorization: Bearer invalid-bearer-token
+
+{
+    "test": "Multiple API key headers",
+    "description": "x-api-key should take priority",
+    "expected": "200 OK (using x-api-key)"
+}
+
+###
+
+### Scenario 3: Case Sensitivity Test
+### API key should be case sensitive
+POST {{baseUrl}}/services/caching/api/put/case-sensitivity-test
+Content-Type: application/json
+x-api-key: {{apiKey}}
+
+{
+    "test": "Case sensitivity",
+    "description": "API keys should be case sensitive",
+    "validKey": "{{apiKey}}"
+}
+
+### Test with wrong case (should fail if key contains mixed case)
+POST {{baseUrl}}/services/caching/api/put/case-sensitivity-fail
+Content-Type: application/json
+x-api-key: WRONG-CASE-KEY
+
+{
+    "test": "Case sensitivity failure",
+    "description": "This should fail with wrong case",
+    "expected": "401 Unauthorized"
+}
+
+###

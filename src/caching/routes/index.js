@@ -23,6 +23,7 @@
 module.exports = (options, eventEmitter, cache) => {
   if (options['express-app'] && cache) {
     const app = options['express-app'];
+    const authMiddleware = options.authMiddleware;
 
     /**
      * PUT /services/caching/api/put/:key
@@ -34,7 +35,7 @@ module.exports = (options, eventEmitter, cache) => {
      * @param {express.Response} res - Express response object
      * @return {void}
      */
-    app.post('/services/caching/api/put/:key', (req, res) => {
+    app.post('/services/caching/api/put/:key', authMiddleware || ((req, res, next) => next()), (req, res) => {
       const key = req.params.key;
       const value = req.body;
       cache
@@ -52,7 +53,7 @@ module.exports = (options, eventEmitter, cache) => {
      * @param {express.Response} res - Express response object
      * @return {void}
      */
-    app.get('/services/caching/api/get/:key', (req, res) => {
+    app.get('/services/caching/api/get/:key', authMiddleware || ((req, res, next) => next()), (req, res) => {
       const key = req.params.key;
       cache
         .get(key)
@@ -69,7 +70,7 @@ module.exports = (options, eventEmitter, cache) => {
      * @param {express.Response} res - Express response object
      * @return {void}
      */
-    app.delete('/services/caching/api/delete/:key', (req, res) => {
+    app.delete('/services/caching/api/delete/:key', authMiddleware || ((req, res, next) => next()), (req, res) => {
       const key = req.params.key;
       cache
         .delete(key)
@@ -98,7 +99,7 @@ module.exports = (options, eventEmitter, cache) => {
      * @param {express.Response} res - Express response object
      * @return {void}
      */
-    app.get('/services/caching/api/list', (req, res) => {
+    app.get('/services/caching/api/list', authMiddleware || ((req, res, next) => next()), (req, res) => {
       try {
         const analytics = cache.getAnalytics ? cache.getAnalytics() : [];
         eventEmitter.emit('api-cache-list',

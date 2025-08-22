@@ -1,13 +1,223 @@
-### Check the API Caching status endpoint.
-http://localhost:3000/api/logging/status
+###
+### NooblyJS Core - Logging API Tests
+### 
+### These tests demonstrate the Logging service API endpoints with API key authentication.
+### The Logging service provides structured logging with various output options.
+###
 
-### POST a cache record for a key
-POST http://localhost:3000/api/logging/log HTTP/1.1
-content-type: application/json
+@baseUrl = http://localhost:3000
+@apiKey = your-api-key-here
+
+### Check Logging API Status (No API key required)
+GET {{baseUrl}}/services/logging/api/status
+
+###
+
+### Test without API key (should return 401 Unauthorized)
+POST {{baseUrl}}/services/logging/api/info
+Content-Type: application/json
 
 {
-    "name": "sample",
-    "time": "Wed, 21 Oct 2015 18:27:50 GMT"
+    "message": "This request should fail without API key",
+    "timestamp": "{{$datetime iso8601}}"
 }
 
+###
 
+### LOG INFO - Log informational message with x-api-key header
+POST {{baseUrl}}/services/logging/api/info
+Content-Type: application/json
+x-api-key: {{apiKey}}
+
+{
+    "message": "User login successful",
+    "userId": "john-doe",
+    "timestamp": "{{$datetime iso8601}}",
+    "metadata": {
+        "ipAddress": "192.168.1.100",
+        "userAgent": "Mozilla/5.0",
+        "source": "web-app"
+    }
+}
+
+###
+
+### LOG WARN - Log warning message with Bearer token
+POST {{baseUrl}}/services/logging/api/warn
+Content-Type: application/json
+Authorization: Bearer {{apiKey}}
+
+{
+    "message": "High memory usage detected",
+    "level": "warning",
+    "timestamp": "{{$datetime iso8601}}",
+    "metrics": {
+        "memoryUsage": 85.2,
+        "threshold": 80.0,
+        "action": "scaling-recommended"
+    },
+    "source": "system-monitor"
+}
+
+###
+
+### LOG ERROR - Log error message with ApiKey header
+POST {{baseUrl}}/services/logging/api/error
+Content-Type: application/json
+Authorization: ApiKey {{apiKey}}
+
+{
+    "message": "Database connection failed",
+    "level": "error",
+    "timestamp": "{{$datetime iso8601}}",
+    "error": {
+        "code": "DB_CONNECTION_ERROR",
+        "details": "Connection timeout after 30 seconds",
+        "retryAttempt": 3,
+        "maxRetries": 5
+    },
+    "context": {
+        "service": "dataserve",
+        "operation": "user-lookup",
+        "requestId": "req-abc123"
+    }
+}
+
+###
+
+### LOG INFO - Application startup with query parameter
+POST {{baseUrl}}/services/logging/api/info?api_key={{apiKey}}
+Content-Type: application/json
+
+{
+    "message": "Application started successfully",
+    "timestamp": "{{$datetime iso8601}}",
+    "application": {
+        "name": "nooblyjs-core",
+        "version": "1.2.1",
+        "environment": "production",
+        "port": 3000
+    },
+    "services": [
+        "caching", "dataserve", "logging", 
+        "measuring", "filing", "notifying"
+    ],
+    "startupTime": "2.34s"
+}
+
+###
+
+### LOG WARN - Performance warning with api-key header
+POST {{baseUrl}}/services/logging/api/warn
+Content-Type: application/json
+api-key: {{apiKey}}
+
+{
+    "message": "Slow API response detected",
+    "timestamp": "{{$datetime iso8601}}",
+    "performance": {
+        "endpoint": "/services/dataserve/api/get/large-dataset",
+        "responseTime": 2500,
+        "threshold": 1000,
+        "method": "GET",
+        "statusCode": 200
+    },
+    "recommendation": "Consider implementing pagination or caching"
+}
+
+###
+
+### LOG INFO - Bulk operations logging
+POST {{baseUrl}}/services/logging/api/info
+Content-Type: application/json
+x-api-key: {{apiKey}}
+
+{
+    "message": "Bulk data processing completed",
+    "timestamp": "{{$datetime iso8601}}",
+    "operation": {
+        "type": "bulk-import",
+        "recordsProcessed": 50000,
+        "successfulRecords": 49750,
+        "failedRecords": 250,
+        "processingTime": "45.2s",
+        "throughput": "1104 records/sec"
+    },
+    "stats": {
+        "memoryPeak": "512MB",
+        "diskUsed": "2.1GB",
+        "networkTraffic": "156MB"
+    }
+}
+
+###
+
+### LOG ERROR - Security incident
+POST {{baseUrl}}/services/logging/api/error
+Content-Type: application/json
+Authorization: Bearer {{apiKey}}
+
+{
+    "message": "Suspicious API activity detected",
+    "level": "error",
+    "timestamp": "{{$datetime iso8601}}",
+    "security": {
+        "type": "rate-limit-exceeded",
+        "sourceIP": "203.0.113.42",
+        "requests": 1500,
+        "timeWindow": "1 minute",
+        "limit": 100,
+        "action": "IP_BLOCKED"
+    },
+    "incident": {
+        "id": "SEC-2024-001",
+        "severity": "high",
+        "alertSent": true
+    }
+}
+
+###
+
+### LOG INFO - User activity tracking
+POST {{baseUrl}}/services/logging/api/info
+Content-Type: application/json
+x-api-key: {{apiKey}}
+
+{
+    "message": "User session activity",
+    "timestamp": "{{$datetime iso8601}}",
+    "session": {
+        "userId": "john-doe",
+        "sessionId": "sess-abc123",
+        "action": "data-export",
+        "resource": "/api/reports/sales-summary",
+        "duration": "12.3s",
+        "dataSize": "2.5MB"
+    },
+    "audit": {
+        "compliant": true,
+        "retention": "7-years",
+        "category": "data-access"
+    }
+}
+
+###
+
+### LOG WARN - System maintenance notice
+POST {{baseUrl}}/services/logging/api/warn
+Content-Type: application/json
+Authorization: ApiKey {{apiKey}}
+
+{
+    "message": "Scheduled maintenance window approaching",
+    "timestamp": "{{$datetime iso8601}}",
+    "maintenance": {
+        "scheduledTime": "2024-01-20T02:00:00Z",
+        "estimatedDuration": "30 minutes",
+        "affectedServices": ["dataserve", "filing"],
+        "reason": "database-optimization",
+        "notificationsSent": 1247
+    }
+}
+
+###

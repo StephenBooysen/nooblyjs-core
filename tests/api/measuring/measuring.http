@@ -1,22 +1,240 @@
-### Measuring API Status
-GET http://localhost:3000/api/measuring/status
+###
+### NooblyJS Core - Measuring API Tests
+### 
+### These tests demonstrate the Measuring service API endpoints with API key authentication.
+### The Measuring service provides metrics collection and analytics capabilities.
+###
 
-### Measuring API Measure
-POST http://localhost:3000/api/measuring/add
+@baseUrl = http://localhost:3000
+@apiKey = your-api-key-here
+
+### Check Measuring API Status (No API key required)
+GET {{baseUrl}}/services/measuring/api/status
+
+###
+
+### Test without API key (should return 401 Unauthorized)
+POST {{baseUrl}}/services/measuring/api/add
 Content-Type: application/json
 
 {
-  "metric": "testMetric",
-  "value": 123
+  "metric": "unauthorized-test",
+  "value": 123,
+  "timestamp": "{{$datetime iso8601}}"
 }
 
-### Get the measurement list
-http://localhost:3000/api/measuring/list/example-measure/2025-01-01%2000:00:01/2025-12-01%2000:00:01/
+###
 
+### ADD METRIC - Record API response time with x-api-key header
+POST {{baseUrl}}/services/measuring/api/add
+Content-Type: application/json
+x-api-key: {{apiKey}}
 
-### Get the measurement total
-http://localhost:3000/api/measuring/total/example-measure/2025-01-01%2000:00:01/2025-12-01%2000:00:01/
+{
+  "metric": "api-response-time",
+  "value": 145.7,
+  "timestamp": "{{$datetime iso8601}}",
+  "metadata": {
+    "endpoint": "/services/dataserve/api/get/user",
+    "method": "GET",
+    "statusCode": 200,
+    "region": "us-west-1"
+  }
+}
 
+###
 
-### Get the measurement average
-http://localhost:3000/api/measuring/total/example-measure/2025-01-01%2000:00:01/2025-12-01%2000:00:01/
+### ADD METRIC - Record user activity with Bearer token
+POST {{baseUrl}}/services/measuring/api/add
+Content-Type: application/json
+Authorization: Bearer {{apiKey}}
+
+{
+  "metric": "active-users",
+  "value": 1547,
+  "timestamp": "{{$datetime iso8601}}",
+  "metadata": {
+    "timeframe": "current-hour",
+    "breakdown": {
+      "web": 987,
+      "mobile": 560
+    },
+    "geography": {
+      "us": 892,
+      "eu": 455,
+      "asia": 200
+    }
+  }
+}
+
+###
+
+### ADD METRIC - Record system performance with ApiKey header
+POST {{baseUrl}}/services/measuring/api/add
+Content-Type: application/json
+Authorization: ApiKey {{apiKey}}
+
+{
+  "metric": "cpu-usage",
+  "value": 67.3,
+  "timestamp": "{{$datetime iso8601}}",
+  "metadata": {
+    "server": "api-server-01",
+    "cores": 8,
+    "loadAverage": 2.4,
+    "processes": 156
+  }
+}
+
+###
+
+### ADD METRIC - Record memory usage with query parameter
+POST {{baseUrl}}/services/measuring/api/add?api_key={{apiKey}}
+Content-Type: application/json
+
+{
+  "metric": "memory-usage",
+  "value": 78.9,
+  "timestamp": "{{$datetime iso8601}}",
+  "metadata": {
+    "total": "16GB",
+    "used": "12.6GB", 
+    "available": "3.4GB",
+    "cached": "2.1GB",
+    "server": "api-server-01"
+  }
+}
+
+###
+
+### ADD METRIC - Record business metric with api-key header
+POST {{baseUrl}}/services/measuring/api/add
+Content-Type: application/json
+api-key: {{apiKey}}
+
+{
+  "metric": "daily-revenue",
+  "value": 12750.00,
+  "timestamp": "{{$datetime iso8601}}",
+  "metadata": {
+    "currency": "USD",
+    "orders": 87,
+    "averageOrderValue": 146.55,
+    "returningCustomers": 34,
+    "newCustomers": 53
+  }
+}
+
+###
+
+### GET METRICS LIST - Retrieve API response time metrics for date range
+GET {{baseUrl}}/services/measuring/api/list/api-response-time/2024-01-01T00:00:00Z/2024-12-31T23:59:59Z
+x-api-key: {{apiKey}}
+
+###
+
+### GET METRICS LIST - Retrieve user activity metrics with Bearer token
+GET {{baseUrl}}/services/measuring/api/list/active-users/2024-01-15T00:00:00Z/2024-01-16T00:00:00Z
+Authorization: Bearer {{apiKey}}
+
+###
+
+### GET METRICS TOTAL - Calculate total revenue for period
+GET {{baseUrl}}/services/measuring/api/total/daily-revenue/2024-01-01T00:00:00Z/2024-01-31T23:59:59Z
+Authorization: ApiKey {{apiKey}}
+
+###
+
+### GET METRICS AVERAGE - Calculate average response time
+GET {{baseUrl}}/services/measuring/api/average/api-response-time/2024-01-15T00:00:00Z/2024-01-16T00:00:00Z
+x-api-key: {{apiKey}}
+
+###
+
+### GET METRICS AVERAGE - Calculate average CPU usage with query parameter
+GET {{baseUrl}}/services/measuring/api/average/cpu-usage/2024-01-15T00:00:00Z/2024-01-16T00:00:00Z?api_key={{apiKey}}
+
+###
+
+### Bulk metrics collection sequence
+### 1. Record multiple performance metrics
+POST {{baseUrl}}/services/measuring/api/add
+Content-Type: application/json
+x-api-key: {{apiKey}}
+
+{
+  "metric": "disk-usage",
+  "value": 45.2,
+  "timestamp": "{{$datetime iso8601}}",
+  "metadata": {
+    "server": "api-server-01",
+    "mount": "/var/lib/data",
+    "totalSpace": "500GB",
+    "usedSpace": "226GB"
+  }
+}
+
+### 2. Record network metrics
+POST {{baseUrl}}/services/measuring/api/add
+Content-Type: application/json
+Authorization: Bearer {{apiKey}}
+
+{
+  "metric": "network-throughput",
+  "value": 156.7,
+  "timestamp": "{{$datetime iso8601}}",
+  "metadata": {
+    "unit": "Mbps",
+    "interface": "eth0",
+    "direction": "outbound",
+    "server": "api-server-01"
+  }
+}
+
+### 3. Record application metrics
+POST {{baseUrl}}/services/measuring/api/add
+Content-Type: application/json
+api-key: {{apiKey}}
+
+{
+  "metric": "cache-hit-rate",
+  "value": 92.4,
+  "timestamp": "{{$datetime iso8601}}",
+  "metadata": {
+    "service": "caching",
+    "totalRequests": 10547,
+    "cacheHits": 9745,
+    "cacheMisses": 802
+  }
+}
+
+### 4. Record error metrics
+POST {{baseUrl}}/services/measuring/api/add
+Content-Type: application/json
+Authorization: ApiKey {{apiKey}}
+
+{
+  "metric": "error-rate",
+  "value": 0.023,
+  "timestamp": "{{$datetime iso8601}}",
+  "metadata": {
+    "totalRequests": 15420,
+    "errorCount": 35,
+    "errorTypes": {
+      "500": 12,
+      "502": 8,
+      "503": 15
+    },
+    "timeframe": "last-hour"
+  }
+}
+
+### 5. Get comprehensive metrics for the current day
+GET {{baseUrl}}/services/measuring/api/list/cpu-usage/2024-01-15T00:00:00Z/2024-01-15T23:59:59Z
+x-api-key: {{apiKey}}
+
+### 6. Calculate average error rate for the week
+GET {{baseUrl}}/services/measuring/api/average/error-rate/2024-01-08T00:00:00Z/2024-01-15T00:00:00Z
+Authorization: Bearer {{apiKey}}
+
+###

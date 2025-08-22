@@ -1,22 +1,159 @@
-### Queueing API Status
-GET http://localhost:3000/api/queueing/status
+###
+### NooblyJS Core - Queueing API Tests
+###
+### These tests demonstrate the Queueing service API endpoints with API key authentication.
+### The Queueing service provides message queue functionality for background processing.
+###
 
-### Queueing API Enqueue
-POST http://localhost:3000/api/queueing/enqueue
+@baseUrl = http://localhost:3000
+@apiKey = your-api-key-here
+
+### Check Queueing API Status (No API key required)
+GET {{baseUrl}}/services/queueing/api/status
+
+###
+
+### Test without API key (should return 401 Unauthorized)
+POST {{baseUrl}}/services/queueing/api/push
 Content-Type: application/json
 
 {
-  "task": {
-    "name": "testTask",
-    "data": {
-      "param1": "value1"
-    }
-  }
+    "message": "This should fail without API key",
+    "timestamp": "{{$datetime iso8601}}"
 }
 
-### Queueing API Dequeue
-GET http://localhost:3000/api/queueing/dequeue
+###
 
+### PUSH - Add message to queue with x-api-key header
+POST {{baseUrl}}/services/queueing/api/push
+Content-Type: application/json
+x-api-key: {{apiKey}}
 
-### Queueing API Size
-GET http://localhost:3000/api/queueing/size
+{
+    "message": "User data processing task",
+    "type": "data-processing",
+    "payload": {
+        "userId": "john-doe",
+        "action": "profile-update",
+        "data": {
+            "email": "john.new@example.com",
+            "preferences": {"theme": "dark"}
+        }
+    },
+    "priority": 5,
+    "timestamp": "{{$datetime iso8601}}"
+}
+
+###
+
+### PUSH - Add email task with Bearer token
+POST {{baseUrl}}/services/queueing/api/push
+Content-Type: application/json
+Authorization: Bearer {{apiKey}}
+
+{
+    "message": "Send welcome email",
+    "type": "email",
+    "payload": {
+        "to": "newuser@example.com",
+        "template": "welcome",
+        "variables": {
+            "name": "New User",
+            "loginUrl": "https://app.example.com"
+        }
+    },
+    "priority": 3,
+    "retryCount": 3,
+    "timestamp": "{{$datetime iso8601}}"
+}
+
+###
+
+### POP - Get next message from queue with ApiKey header
+GET {{baseUrl}}/services/queueing/api/pop
+Authorization: ApiKey {{apiKey}}
+
+###
+
+### SIZE - Get current queue size with query parameter
+GET {{baseUrl}}/services/queueing/api/size?api_key={{apiKey}}
+
+###
+
+### PUSH - Add batch processing task with api-key header
+POST {{baseUrl}}/services/queueing/api/push
+Content-Type: application/json
+api-key: {{apiKey}}
+
+{
+    "message": "Batch report generation",
+    "type": "batch-processing",
+    "payload": {
+        "reportType": "sales-summary",
+        "dateRange": {
+            "start": "2024-01-01",
+            "end": "2024-01-31"
+        },
+        "filters": {
+            "region": "US",
+            "department": "sales"
+        },
+        "outputFormat": "pdf"
+    },
+    "priority": 2,
+    "estimatedDuration": "5-minutes",
+    "timestamp": "{{$datetime iso8601}}"
+}
+
+###
+
+### Queue Management Sequence
+### 1. Check queue size
+GET {{baseUrl}}/services/queueing/api/size
+x-api-key: {{apiKey}}
+
+### 2. Add multiple messages
+POST {{baseUrl}}/services/queueing/api/push
+Content-Type: application/json
+x-api-key: {{apiKey}}
+
+{
+    "message": "Image processing task 1",
+    "type": "image-processing",
+    "payload": {
+        "imageId": "img-001",
+        "operations": ["resize", "optimize", "watermark"],
+        "targetSizes": [800, 400, 200]
+    },
+    "priority": 4
+}
+
+### 3. Add another message
+POST {{baseUrl}}/services/queueing/api/push
+Content-Type: application/json
+Authorization: Bearer {{apiKey}}
+
+{
+    "message": "Image processing task 2", 
+    "type": "image-processing",
+    "payload": {
+        "imageId": "img-002",
+        "operations": ["resize", "compress"],
+        "quality": 85
+    },
+    "priority": 4
+}
+
+### 4. Check updated queue size
+GET {{baseUrl}}/services/queueing/api/size
+x-api-key: {{apiKey}}
+
+### 5. Process messages from queue
+GET {{baseUrl}}/services/queueing/api/pop
+x-api-key: {{apiKey}}
+
+### 6. Process another message
+GET {{baseUrl}}/services/queueing/api/pop
+Authorization: ApiKey {{apiKey}}
+
+###

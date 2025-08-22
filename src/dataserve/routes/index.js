@@ -23,6 +23,7 @@
 module.exports = (options, eventEmitter, dataserve) => {
   if (options['express-app'] && dataserve) {
     const app = options['express-app'];
+    const authMiddleware = options.authMiddleware;
 
     /**
      * POST /services/dataserve/api/put/:key
@@ -34,7 +35,7 @@ module.exports = (options, eventEmitter, dataserve) => {
      * @param {express.Response} res - Express response object
      * @return {void}
      */
-    app.post('/services/dataserve/api/put/:key', (req, res) => {
+    app.post('/services/dataserve/api/put/:key', authMiddleware || ((req, res, next) => next()), (req, res) => {
       const key = req.params.key;
       const value = req.body;
       dataserve
@@ -52,7 +53,7 @@ module.exports = (options, eventEmitter, dataserve) => {
      * @param {express.Response} res - Express response object
      * @return {void}
      */
-    app.get('/services/dataserve/api/get/:key', (req, res) => {
+    app.get('/services/dataserve/api/get/:key', authMiddleware || ((req, res, next) => next()), (req, res) => {
       const key = req.params.key;
       dataserve
         .get(key)
@@ -69,7 +70,7 @@ module.exports = (options, eventEmitter, dataserve) => {
      * @param {express.Response} res - Express response object
      * @return {void}
      */
-    app.delete('/services/dataserve/api/delete/:key', (req, res) => {
+    app.delete('/services/dataserve/api/delete/:key', authMiddleware || ((req, res, next) => next()), (req, res) => {
       const key = req.params.key;
       dataserve
         .delete(key)
