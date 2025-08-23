@@ -15,6 +15,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const { v4: uuidv4 } = require('uuid');
 const serviceRegistry = require('./index');
+const { EventEmitter } = require('events');
 
 /** @type {express.Application} Express application instance */
 const app = express();
@@ -24,7 +25,7 @@ app.use(bodyParser.json());
  * Initialize the service registry with the Express app.
  * This sets up all services and their REST endpoints.
  */
-serviceRegistry.initialize(app);
+serviceRegistry.initialize(app, new EventEmitter());
 
 /**
  * Initialize core services from the registry.

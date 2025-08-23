@@ -5,26 +5,31 @@
 
 const EventEmitter = require('events');
 const path = require('path');
-const { createApiKeyAuthMiddleware, generateApiKey } = require('./src/middleware/apiKeyAuth');
+const {
+  createApiKeyAuthMiddleware,
+  generateApiKey,
+} = require('./src/middleware/apiKeyAuth');
 
 class ServiceRegistry {
   constructor() {
     this.services = new Map();
-    this.eventEmitter = new EventEmitter();
     this.initialized = false;
+    this.eventEmitter = new EventEmitter();
   }
 
   /**
    * Initializes the service registry with an Express app
    * @param {Object} expressApp - Express application instance
+   * @param {Object} eventEmitter - EventEmitter instance
    * @param {Object} globalOptions - Global configuration options
    */
-  initialize(expressApp, globalOptions = {}) {
+  initialize(expressApp, eventEmitter, globalOptions = {}) {
     if (this.initialized) {
       return this;
     }
 
     this.expressApp = expressApp;
+    this.eventEmitter = eventEmitter;
     this.globalOptions = {
       'express-app': expressApp,
       ...globalOptions,
@@ -32,20 +37,27 @@ class ServiceRegistry {
 
     // Setup API key authentication if configured
     if (globalOptions.apiKeys && globalOptions.apiKeys.length > 0) {
-      this.authMiddleware = createApiKeyAuthMiddleware({
-        apiKeys: globalOptions.apiKeys,
-        requireApiKey: globalOptions.requireApiKey !== false,
-        excludePaths: globalOptions.excludePaths || ['/services/*/status', '/services/', '/services/*/views/*']
-      }, this.eventEmitter);
-      
+      this.authMiddleware = createApiKeyAuthMiddleware(
+        {
+          apiKeys: globalOptions.apiKeys,
+          requireApiKey: globalOptions.requireApiKey !== false,
+          excludePaths: globalOptions.excludePaths || [
+            '/services/*/status',
+            '/services/',
+            '/services/*/views/*',
+          ],
+        },
+        this.eventEmitter,
+      );
+
       // Store auth config for services to use
       this.globalOptions.authMiddleware = this.authMiddleware;
-      
+
       // Log API key authentication setup
       this.eventEmitter.emit('api-auth-setup', {
         message: 'API key authentication enabled',
         keyCount: globalOptions.apiKeys.length,
-        requireApiKey: globalOptions.requireApiKey !== false
+        requireApiKey: globalOptions.requireApiKey !== false,
       });
     }
 
