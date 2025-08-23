@@ -1,5 +1,5 @@
 /**
- * @fileoverview Sample application demonstrating NooblyJS Core services.
+ * @fileoverview Application demonstrating NooblyJS Core services.
  * This file serves as a comprehensive example of how to use all available
  * services in the NooblyJS Core framework.
  *
