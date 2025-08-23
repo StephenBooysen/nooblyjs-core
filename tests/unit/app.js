@@ -14,7 +14,7 @@ const path = require('path');
 const express = require('express');
 const bodyParser = require('body-parser');
 const { v4: uuidv4 } = require('uuid');
-const serviceRegistry = require('./index');
+const serviceRegistry = require('../../index');
 const { EventEmitter } = require('events');
 
 /** @type {express.Application} Express application instance */
