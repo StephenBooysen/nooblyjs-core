@@ -66,24 +66,8 @@ class ServiceRegistry {
       res.sendFile(path.join(__dirname, 'src/views', 'index.html'));
     });
 
-    // Patch event emitter for debugging
-    this.patchEmitter();
-
     this.initialized = true;
     return this;
-  }
-
-  /**
-   * Patch event emitter to capture all events for debugging
-   */
-  patchEmitter() {
-    const originalEmit = this.eventEmitter.emit;
-    this.eventEmitter.emit = function () {
-      const eventName = arguments[0];
-      const args = Array.from(arguments).slice(1);
-      console.log(`Caught event: "${eventName}" with arguments:`, args);
-      return originalEmit.apply(this, arguments);
-    };
   }
 
   /**
