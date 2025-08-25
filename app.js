@@ -144,7 +144,7 @@ workflow.runWorkflow('example-workflow', {}, () => {
 });
 
 /**
- * Configure static file serving for multiple UI themes.
+ * Configure static file serving for multiple UI themes.docs/Noobly Core Technical Usage Guide.md
  * Each theme provides a different visual design for the web interface.
  */
 app.use('/', express.static(__dirname + '/public'));
