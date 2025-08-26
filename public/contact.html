@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Contact - Noobly JS</title>
+    <title id="page-title">Loading...</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -11,26 +11,20 @@
     <header class="header" id="header">
         <div class="header-container">
             <a href="index.html" class="logo">
-                <div class="logo-icon">NJS</div>
-                <span>Noobly JS</span>
+                <div class="logo-icon" id="logo-icon">NJS</div>
+                <span id="logo-text">Noobly JS</span>
             </a>
             
-            <nav class="nav-menu">
-                <a href="index.html" class="nav-link">Home</a>
-                <a href="documentation.html" class="nav-link">Documentation</a>
-                <a href="contact.html" class="nav-link active">Contact</a>
-                <a href="/services" class="nav-link">Services</a>
+            <nav class="nav-menu" id="nav-menu">
+                <!-- Navigation links will be loaded from JSON -->
             </nav>
             
             <button class="mobile-menu-toggle" id="mobileMenuToggle">☰</button>
         </div>
         
         <div class="mobile-menu" id="mobileMenu">
-            <nav class="mobile-nav-menu">
-                <a href="index.html" class="mobile-nav-link">Home</a>
-                <a href="documentation.html" class="mobile-nav-link">Documentation</a>
-                <a href="contact.html" class="mobile-nav-link">Contact</a>
-                <a href="cache.html" class="btn btn-primary">Get Started</a>
+            <nav class="mobile-nav-menu" id="mobile-nav-menu">
+                <!-- Mobile navigation links will be loaded from JSON -->
             </nav>
         </div>
     </header>
@@ -38,42 +32,17 @@
     <!-- Contact Hero Section -->
     <section class="service-hero">
         <div class="service-content">
-            <div class="badge badge-default" style="margin-bottom: 1rem;">💬 Contact</div>
-            <h1 class="service-title">Get in Touch</h1>
-            <p class="service-description">Have questions about Noobly JS? Need support or want to contribute? We'd love to hear from you.</p>
+            <div class="badge badge-default" id="hero-badge" style="margin-bottom: 1rem;">💬 Contact</div>
+            <h1 class="service-title" id="hero-title">Loading...</h1>
+            <p class="service-description" id="hero-description">Loading...</p>
         </div>
     </section>
 
     <!-- Contact Methods Section -->
     <section style="padding: 2rem 0;">
         <div class="container">
-            <div class="service-grid">
-                <div class="service-card card">
-                    <div class="card-content" style="text-align: center;">
-                        <div style="font-size: 3rem; margin-bottom: 1rem;">📧</div>
-                        <h3>Email Support</h3>
-                        <p style="color: hsl(var(--muted-foreground)); margin-bottom: 1rem;">Get help with technical questions and support issues</p>
-                        <a href="mailto:support@nooblyjs.com" class="btn btn-outline">support@nooblyjs.com</a>
-                    </div>
-                </div>
-
-                <div class="service-card card">
-                    <div class="card-content" style="text-align: center;">
-                        <div style="font-size: 3rem; margin-bottom: 1rem;">🐙</div>
-                        <h3>GitHub</h3>
-                        <p style="color: hsl(var(--muted-foreground)); margin-bottom: 1rem;">Report bugs, request features, or contribute to the project</p>
-                        <a href="#" class="btn btn-outline">View Repository</a>
-                    </div>
-                </div>
-
-                <div class="service-card card">
-                    <div class="card-content" style="text-align: center;">
-                        <div style="font-size: 3rem; margin-bottom: 1rem;">💬</div>
-                        <h3>Community</h3>
-                        <p style="color: hsl(var(--muted-foreground)); margin-bottom: 1rem;">Join our Discord server for real-time discussions</p>
-                        <a href="#" class="btn btn-outline">Join Discord</a>
-                    </div>
-                </div>
+            <div class="service-grid" id="contact-methods">
+                <!-- Contact methods will be loaded from JSON -->
             </div>
         </div>
     </section>
@@ -84,43 +53,15 @@
             <div style="max-width: 600px; margin: 0 auto;">
                 <div class="card">
                     <div class="card-header">
-                        <h2 style="text-align: center; margin-bottom: 0.5rem;">Send us a Message</h2>
-                        <p style="text-align: center; color: hsl(var(--muted-foreground)); margin: 0;">We'll get back to you as soon as possible</p>
+                        <h2 id="form-title" style="text-align: center; margin-bottom: 0.5rem;">Loading...</h2>
+                        <p id="form-description" style="text-align: center; color: hsl(var(--muted-foreground)); margin: 0;">Loading...</p>
                     </div>
                     <div class="card-content">
                         <form id="contactForm">
-                            <div style="margin-bottom: 1rem;">
-                                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Name</label>
-                                <input type="text" id="contactName" placeholder="Your full name" required 
-                                       style="width: 100%; padding: 0.75rem; border: 1px solid hsl(var(--border)); border-radius: calc(var(--radius)); background: hsl(var(--background)); color: hsl(var(--foreground));">
+                            <div id="form-fields">
+                                <!-- Form fields will be loaded from JSON -->
                             </div>
-
-                            <div style="margin-bottom: 1rem;">
-                                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Email</label>
-                                <input type="email" id="contactEmail" placeholder="your.email@example.com" required 
-                                       style="width: 100%; padding: 0.75rem; border: 1px solid hsl(var(--border)); border-radius: calc(var(--radius)); background: hsl(var(--background)); color: hsl(var(--foreground));">
-                            </div>
-
-                            <div style="margin-bottom: 1rem;">
-                                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Subject</label>
-                                <select id="contactSubject" required 
-                                        style="width: 100%; padding: 0.75rem; border: 1px solid hsl(var(--border)); border-radius: calc(var(--radius)); background: hsl(var(--background)); color: hsl(var(--foreground));">
-                                    <option value="">Select a topic</option>
-                                    <option value="general">General Question</option>
-                                    <option value="technical">Technical Support</option>
-                                    <option value="feature">Feature Request</option>
-                                    <option value="bug">Bug Report</option>
-                                    <option value="business">Business Inquiry</option>
-                                </select>
-                            </div>
-
-                            <div style="margin-bottom: 1rem;">
-                                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Message</label>
-                                <textarea id="contactMessage" placeholder="Tell us how we can help you..." required rows="6"
-                                          style="width: 100%; padding: 0.75rem; border: 1px solid hsl(var(--border)); border-radius: calc(var(--radius)); background: hsl(var(--background)); color: hsl(var(--foreground)); resize: vertical;"></textarea>
-                            </div>
-
-                            <button type="submit" class="btn btn-primary" style="width: 100%;">Send Message</button>
+                            <button type="submit" id="submit-button" class="btn btn-primary" style="width: 100%;">Loading...</button>
                         </form>
                         
                         <div id="contactResult" style="margin-top: 1rem; padding: 0.75rem; border-radius: calc(var(--radius)); display: none;"></div>
@@ -134,45 +75,12 @@
     <section style="padding: 2rem 0;">
         <div class="container">
             <div style="text-align: center; margin-bottom: 3rem;">
-                <h2 style="font-size: 2.5rem; font-weight: 700; margin-bottom: 1rem;">Frequently Asked Questions</h2>
-                <p style="font-size: 1.25rem; color: hsl(var(--muted-foreground));">Common questions about Noobly JS</p>
+                <h2 id="faq-title" style="font-size: 2.5rem; font-weight: 700; margin-bottom: 1rem;">Loading...</h2>
+                <p id="faq-description" style="font-size: 1.25rem; color: hsl(var(--muted-foreground));">Loading...</p>
             </div>
 
-            <div style="max-width: 800px; margin: 0 auto;">
-                <div class="card" style="margin-bottom: 1rem;">
-                    <div class="card-content">
-                        <h4 style="margin-bottom: 0.5rem;">What is Noobly JS?</h4>
-                        <p style="color: hsl(var(--muted-foreground)); margin: 0;">Noobly JS is a modular Node.js backend framework that provides pluggable core services for building scalable web applications quickly and efficiently.</p>
-                    </div>
-                </div>
-
-                <div class="card" style="margin-bottom: 1rem;">
-                    <div class="card-content">
-                        <h4 style="margin-bottom: 0.5rem;">Is Noobly JS free to use?</h4>
-                        <p style="color: hsl(var(--muted-foreground)); margin: 0;">Yes, Noobly JS is open-source and free to use for both personal and commercial projects. Check our license for more details.</p>
-                    </div>
-                </div>
-
-                <div class="card" style="margin-bottom: 1rem;">
-                    <div class="card-content">
-                        <h4 style="margin-bottom: 0.5rem;">How do I get started?</h4>
-                        <p style="color: hsl(var(--muted-foreground)); margin: 0;">Check out our <a href="documentation.html" style="color: hsl(var(--primary)); text-decoration: none;">documentation</a> for a comprehensive quick start guide and examples.</p>
-                    </div>
-                </div>
-
-                <div class="card" style="margin-bottom: 1rem;">
-                    <div class="card-content">
-                        <h4 style="margin-bottom: 0.5rem;">Can I contribute to the project?</h4>
-                        <p style="color: hsl(var(--muted-foreground)); margin: 0;">Absolutely! We welcome contributions. Visit our GitHub repository to see how you can help improve Noobly JS.</p>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="card-content">
-                        <h4 style="margin-bottom: 0.5rem;">Do you offer commercial support?</h4>
-                        <p style="color: hsl(var(--muted-foreground)); margin: 0;">Yes, we offer commercial support and consulting services. Contact us at <a href="mailto:business@nooblyjs.com" style="color: hsl(var(--primary)); text-decoration: none;">business@nooblyjs.com</a> for more information.</p>
-                    </div>
-                </div>
+            <div style="max-width: 800px; margin: 0 auto;" id="faq-items">
+                <!-- FAQ items will be loaded from JSON -->
             </div>
         </div>
     </section>
@@ -182,32 +90,24 @@
         <div class="footer-container">
             <div class="footer-content">
                 <div class="footer-section">
-                    <h3>Contact Information</h3>
-                    <p>Get in touch with our team for support, questions, or business inquiries.</p>
-                    <div style="margin-top: 1rem;">
-                        <p style="margin-bottom: 0.5rem;"><strong>Email:</strong> support@nooblyjs.com</p>
-                        <p style="margin-bottom: 0.5rem;"><strong>Business:</strong> business@nooblyjs.com</p>
-                        <p style="margin: 0;"><strong>Response Time:</strong> Within 24 hours</p>
+                    <h3 id="footer-contact-title">Loading...</h3>
+                    <p id="footer-contact-description">Loading...</p>
+                    <div id="footer-contact-details" style="margin-top: 1rem;">
+                        <!-- Contact details will be loaded from JSON -->
                     </div>
                 </div>
                 
                 <div class="footer-section">
                     <h3>Quick Links</h3>
-                    <ul class="footer-links">
-                        <li><a href="index.html" class="footer-link">Home</a></li>
-                        <li><a href="documentation.html" class="footer-link">Documentation</a></li>
-                        <li><a href="contact.html" class="footer-link">Contact</a></li>
-                        <li><a href="cache.html" class="footer-link">Services</a></li>
+                    <ul class="footer-links" id="footer-quick-links">
+                        <!-- Links will be loaded from JSON -->
                     </ul>
                 </div>
                 
                 <div class="footer-section">
                     <h3>Community</h3>
-                    <ul class="footer-links">
-                        <li><a href="#" class="footer-link">GitHub</a></li>
-                        <li><a href="#" class="footer-link">Discord</a></li>
-                        <li><a href="#" class="footer-link">Twitter</a></li>
-                        <li><a href="#" class="footer-link">Blog</a></li>
+                    <ul class="footer-links" id="footer-community">
+                        <!-- Community links will be loaded from JSON -->
                     </ul>
                 </div>
             </div>
@@ -215,22 +115,157 @@
             <div class="footer-bottom">
                 <div class="footer-bottom-left">
                     <a href="index.html" class="footer-logo">
-                        <div class="footer-logo-icon">NJS</div>
-                        <span>Noobly JS</span>
+                        <div class="footer-logo-icon" id="footer-logo-icon">NJS</div>
+                        <span id="footer-logo-text">Noobly JS</span>
                     </a>
-                    <span class="footer-copyright">© 2024 Noobly JS. All rights reserved.</span>
+                    <span class="footer-copyright" id="footer-copyright">Loading...</span>
                 </div>
                 
-                <div class="footer-bottom-right">
-                    <a href="#" class="footer-bottom-link">Privacy Policy</a>
-                    <a href="#" class="footer-bottom-link">Terms of Service</a>
-                    <a href="#" class="footer-bottom-link">License</a>
+                <div class="footer-bottom-right" id="footer-legal-links">
+                    <!-- Legal links will be loaded from JSON -->
                 </div>
             </div>
         </div>
     </footer>
 
     <script>
+        let contentData = null;
+
+        // Load content from JSON
+        async function loadContent() {
+            try {
+                const response = await fetch('./data/content.json');
+                contentData = await response.json();
+                populatePageContent();
+            } catch (error) {
+                console.error('Error loading content:', error);
+            }
+        }
+
+        function populatePageContent() {
+            if (!contentData || !contentData.contact) return;
+
+            const data = contentData.contact;
+            const common = contentData.common;
+
+            // Meta and title
+            document.getElementById('page-title').textContent = data.meta.title;
+
+            // Navigation
+            const logoIcon = document.getElementById('logo-icon');
+            const logoText = document.getElementById('logo-text');
+            logoIcon.textContent = common.navigation.logo.icon;
+            logoText.textContent = common.navigation.logo.text;
+
+            const navMenu = document.getElementById('nav-menu');
+            navMenu.innerHTML = common.navigation.links.map(link => 
+                `<a href="${link.href}" class="nav-link ${link.href === 'contact.html' ? 'active' : ''}">${link.text}</a>`
+            ).join('');
+
+            const mobileNavMenu = document.getElementById('mobile-nav-menu');
+            mobileNavMenu.innerHTML = common.mobileMenu.links.map(link => 
+                `<a href="${link.href}" class="mobile-nav-link">${link.text}</a>`
+            ).join('') + `<a href="${common.mobileMenu.cta.href}" class="btn btn-primary">${common.mobileMenu.cta.text}</a>`;
+
+            // Hero section
+            document.getElementById('hero-badge').textContent = data.hero.badge;
+            document.getElementById('hero-title').textContent = data.hero.title;
+            document.getElementById('hero-description').textContent = data.hero.description;
+
+            // Contact methods
+            const contactMethods = document.getElementById('contact-methods');
+            contactMethods.innerHTML = data.contactMethods.map(method => `
+                <div class="service-card card">
+                    <div class="card-content" style="text-align: center;">
+                        <div style="font-size: 3rem; margin-bottom: 1rem;">${method.icon}</div>
+                        <h3>${method.title}</h3>
+                        <p style="color: hsl(var(--muted-foreground)); margin-bottom: 1rem;">${method.description}</p>
+                        <a href="${method.button.href}" class="btn btn-${method.button.type}">${method.button.text}</a>
+                    </div>
+                </div>
+            `).join('');
+
+            // Contact form
+            document.getElementById('form-title').textContent = data.contactForm.title;
+            document.getElementById('form-description').textContent = data.contactForm.description;
+            document.getElementById('submit-button').textContent = data.contactForm.submitText;
+
+            const formFields = document.getElementById('form-fields');
+            formFields.innerHTML = data.contactForm.fields.map(field => {
+                if (field.type === 'select') {
+                    return `
+                        <div style="margin-bottom: 1rem;">
+                            <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">${field.label}</label>
+                            <select id="${field.id}" ${field.required ? 'required' : ''} style="width: 100%; padding: 0.75rem; border: 1px solid hsl(var(--border)); border-radius: calc(var(--radius)); background: hsl(var(--background)); color: hsl(var(--foreground));">
+                                ${field.options.map(option => `<option value="${option.value}">${option.text}</option>`).join('')}
+                            </select>
+                        </div>
+                    `;
+                } else if (field.type === 'textarea') {
+                    return `
+                        <div style="margin-bottom: 1rem;">
+                            <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">${field.label}</label>
+                            <textarea id="${field.id}" placeholder="${field.placeholder}" ${field.required ? 'required' : ''} rows="${field.rows}" style="width: 100%; padding: 0.75rem; border: 1px solid hsl(var(--border)); border-radius: calc(var(--radius)); background: hsl(var(--background)); color: hsl(var(--foreground)); resize: vertical;"></textarea>
+                        </div>
+                    `;
+                } else {
+                    return `
+                        <div style="margin-bottom: 1rem;">
+                            <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">${field.label}</label>
+                            <input type="${field.type}" id="${field.id}" placeholder="${field.placeholder}" ${field.required ? 'required' : ''} style="width: 100%; padding: 0.75rem; border: 1px solid hsl(var(--border)); border-radius: calc(var(--radius)); background: hsl(var(--background)); color: hsl(var(--foreground));">
+                        </div>
+                    `;
+                }
+            }).join('');
+
+            // FAQ
+            document.getElementById('faq-title').textContent = data.faq.title;
+            document.getElementById('faq-description').textContent = data.faq.description;
+
+            const faqItems = document.getElementById('faq-items');
+            faqItems.innerHTML = data.faq.items.map(item => `
+                <div class="card" style="margin-bottom: 1rem;">
+                    <div class="card-content">
+                        <h4 style="margin-bottom: 0.5rem;">${item.question}</h4>
+                        <p style="color: hsl(var(--muted-foreground)); margin: 0;">${item.answer}</p>
+                    </div>
+                </div>
+            `).join('');
+
+            // Footer
+            document.getElementById('footer-contact-title').textContent = data.footer.contactInfo.title;
+            document.getElementById('footer-contact-description').textContent = data.footer.contactInfo.description;
+
+            const footerContactDetails = document.getElementById('footer-contact-details');
+            footerContactDetails.innerHTML = `
+                <p style="margin-bottom: 0.5rem;"><strong>Email:</strong> ${data.footer.contactInfo.details.email}</p>
+                <p style="margin-bottom: 0.5rem;"><strong>Business:</strong> ${data.footer.contactInfo.details.business}</p>
+                <p style="margin: 0;"><strong>Response Time:</strong> ${data.footer.contactInfo.details.responseTime}</p>
+            `;
+
+            const footerQuickLinks = document.getElementById('footer-quick-links');
+            footerQuickLinks.innerHTML = data.footer.quickLinks.map(link => 
+                `<li><a href="${link.href}" class="footer-link">${link.text}</a></li>`
+            ).join('');
+
+            const footerCommunity = document.getElementById('footer-community');
+            footerCommunity.innerHTML = data.footer.community.map(link => 
+                `<li><a href="${link.href}" class="footer-link">${link.text}</a></li>`
+            ).join('');
+
+            document.getElementById('footer-logo-icon').textContent = common.footer.logo.icon;
+            document.getElementById('footer-logo-text').textContent = common.footer.logo.text;
+            document.getElementById('footer-copyright').textContent = common.footer.copyright;
+
+            const footerLegalLinks = document.getElementById('footer-legal-links');
+            footerLegalLinks.innerHTML = common.footer.legalLinks.map(link => 
+                `<a href="${link.href}" class="footer-bottom-link">${link.text}</a>`
+            ).join('');
+        }
+
+        // Load content when page loads
+        document.addEventListener('DOMContentLoaded', loadContent);
+
         // Mobile menu toggle
         const mobileMenuToggle = document.getElementById('mobileMenuToggle');
         const mobileMenu = document.getElementById('mobileMenu');
@@ -261,43 +296,48 @@
             }, 5000);
         }
 
-        document.getElementById('contactForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const name = document.getElementById('contactName').value.trim();
-            const email = document.getElementById('contactEmail').value.trim();
-            const subject = document.getElementById('contactSubject').value;
-            const message = document.getElementById('contactMessage').value.trim();
-            
-            if (!name || !email || !subject || !message) {
-                showResult('Please fill in all required fields.', false);
-                return;
+        document.addEventListener('submit', function(e) {
+            if (e.target.id === 'contactForm') {
+                e.preventDefault();
+                
+                const name = document.getElementById('contactName').value.trim();
+                const email = document.getElementById('contactEmail').value.trim();
+                const subject = document.getElementById('contactSubject').value;
+                const message = document.getElementById('contactMessage').value.trim();
+                
+                if (!name || !email || !subject || !message) {
+                    showResult('Please fill in all required fields.', false);
+                    return;
+                }
+                
+                // Email validation
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(email)) {
+                    showResult('Please enter a valid email address.', false);
+                    return;
+                }
+                
+                // Simulate form submission
+                showResult('✅ Thank you! Your message has been sent successfully. We\'ll get back to you within 24 hours.');
+                
+                // Clear form
+                document.getElementById('contactForm').reset();
             }
-            
-            // Email validation
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailRegex.test(email)) {
-                showResult('Please enter a valid email address.', false);
-                return;
-            }
-            
-            // Simulate form submission
-            showResult('✅ Thank you! Your message has been sent successfully. We\'ll get back to you within 24 hours.');
-            
-            // Clear form
-            document.getElementById('contactForm').reset();
         });
 
         // Card hover effects
-        document.querySelectorAll('.card').forEach(card => {
-            card.addEventListener('mouseenter', function() {
-                this.style.transform = 'translateY(-2px)';
-                this.style.transition = 'all 0.3s ease';
-            });
-            card.addEventListener('mouseleave', function() {
-                this.style.transform = 'translateY(0)';
-            });
-        });
+        document.addEventListener('mouseenter', function(e) {
+            if (e.target.classList.contains('card')) {
+                e.target.style.transform = 'translateY(-2px)';
+                e.target.style.transition = 'all 0.3s ease';
+            }
+        }, true);
+
+        document.addEventListener('mouseleave', function(e) {
+            if (e.target.classList.contains('card')) {
+                e.target.style.transform = 'translateY(0)';
+            }
+        }, true);
     </script>
 </body>
 </html>

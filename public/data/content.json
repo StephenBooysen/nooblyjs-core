@@ -1,0 +1,493 @@
+{
+  "index": {
+    "meta": {
+      "title": "Noobly JS - Not Just Another Accelerator Framework",
+      "description": "Not Just Another Accelerator Framework"
+    },
+    "hero": {
+      "title": "Noobly JS",
+      "subtitle": "Not Just Another Accelerator Framework",
+      "buttons": [
+        {
+          "text": "Get Started",
+          "href": "documentation.html",
+          "type": "primary"
+        },
+        {
+          "text": "Learn More",
+          "href": "contact.html",
+          "type": "outline"
+        }
+      ]
+    },
+    "features": [
+      {
+        "icon": "🚀",
+        "title": "Fast & Lightweight",
+        "description": "Built for performance with minimal overhead and maximum efficiency. Experience lightning-fast development cycles."
+      },
+      {
+        "icon": "🔧",
+        "title": "Modular Architecture",
+        "description": "Use only what you need with our flexible, plugin-based system. Build exactly what your project requires."
+      },
+      {
+        "icon": "💡",
+        "title": "Developer First",
+        "description": "Intuitive APIs and excellent documentation for a smooth development experience. Built by developers, for developers."
+      }
+    ],
+    "stats": [
+      {
+        "number": "50+",
+        "label": "Built-in Modules"
+      },
+      {
+        "number": "99.9%",
+        "label": "Uptime"
+      },
+      {
+        "number": "10x",
+        "label": "Faster Development"
+      },
+      {
+        "number": "24/7",
+        "label": "Support"
+      }
+    ],
+    "services": {
+      "title": "Core Services",
+      "description": "Explore our comprehensive suite of backend services",
+      "items": [
+        {
+          "badge": "⚡ Performance",
+          "badgeType": "default",
+          "title": "Caching Service",
+          "href": "cache.html",
+          "description": "High-performance caching with Redis, Memcached, and in-memory providers for lightning-fast data access."
+        },
+        {
+          "badge": "🗄️ Storage",
+          "badgeType": "secondary",
+          "title": "Data Service",
+          "href": "data.html",
+          "description": "Flexible data storage solutions with SimpleDB and file-based providers for all your data needs."
+        },
+        {
+          "badge": "📁 Files",
+          "badgeType": "outline",
+          "title": "Filing Service",
+          "href": "filing.html",
+          "description": "Comprehensive file management with local, FTP, and S3 storage options for secure file handling."
+        },
+        {
+          "badge": "📝 Monitoring",
+          "badgeType": "default",
+          "title": "Logging Service",
+          "href": "logging.html",
+          "description": "Advanced logging capabilities with console and file outputs for comprehensive application monitoring."
+        },
+        {
+          "badge": "📊 Analytics",
+          "badgeType": "secondary",
+          "title": "Measuring Service",
+          "href": "measuring.html",
+          "description": "Real-time metrics collection and analysis for performance insights and system optimization."
+        },
+        {
+          "badge": "🔔 Communication",
+          "badgeType": "outline",
+          "title": "Notifying Service",
+          "href": "notifying.html",
+          "description": "Robust notification system with pub/sub messaging for real-time communication across services."
+        },
+        {
+          "badge": "⏳ Processing",
+          "badgeType": "default",
+          "title": "Queueing Service",
+          "href": "queueing.html",
+          "description": "Efficient task queueing with in-memory processing for handling background operations."
+        },
+        {
+          "badge": "⏰ Automation",
+          "badgeType": "secondary",
+          "title": "Scheduling Service",
+          "href": "scheduling.html",
+          "description": "Cron-like task scheduling for automated processes and recurring operations."
+        },
+        {
+          "badge": "🔍 Discovery",
+          "badgeType": "outline",
+          "title": "Searching Service",
+          "href": "searching.html",
+          "description": "Powerful search functionality with in-memory indexing for fast data retrieval and filtering."
+        },
+        {
+          "badge": "🔄 Orchestration",
+          "badgeType": "default",
+          "title": "Workflow Service",
+          "href": "workflow.html",
+          "description": "Step-based workflow orchestration for complex business processes and automation."
+        },
+        {
+          "badge": "⚙️ Execution",
+          "badgeType": "secondary",
+          "title": "Working Service",
+          "href": "working.html",
+          "description": "Background task execution engine for processing intensive operations asynchronously."
+        }
+      ]
+    },
+    "testimonial": {
+      "text": "Noobly JS has revolutionized our development process. What used to take weeks now takes days. The framework's intuitive design and powerful features make it an indispensable tool for any serious developer.",
+      "author": "— Sarah Chen, Lead Developer at TechCorp"
+    },
+    "footer": {
+      "about": {
+        "title": "About Noobly JS",
+        "description": "Not just another accelerator framework. Noobly JS is designed to empower developers with powerful tools and intuitive APIs for building modern web applications.",
+        "techStack": ["Node.js", "Express", "TypeScript", "Redis", "PostgreSQL"]
+      },
+      "quickLinks": [
+        { "text": "Home", "href": "index.html" },
+        { "text": "Documentation", "href": "documentation.html" },
+        { "text": "Contact", "href": "contact.html" },
+        { "text": "API Reference", "href": "#" },
+        { "text": "Examples", "href": "#" },
+        { "text": "GitHub", "href": "#" }
+      ],
+      "resources": [
+        { "text": "Getting Started", "href": "#" },
+        { "text": "Tutorials", "href": "#" },
+        { "text": "Community", "href": "#" },
+        { "text": "Blog", "href": "#" },
+        { "text": "Changelog", "href": "#" },
+        { "text": "Support", "href": "#" }
+      ],
+      "newsletter": {
+        "title": "Stay Updated",
+        "description": "Subscribe to our newsletter for the latest updates and features.",
+        "placeholder": "Enter your email"
+      },
+      "copyright": "© 2024 Noobly JS. All rights reserved.",
+      "legalLinks": [
+        { "text": "Privacy Policy", "href": "#" },
+        { "text": "Terms of Service", "href": "#" },
+        { "text": "License", "href": "#" }
+      ]
+    }
+  },
+  "documentation": {
+    "meta": {
+      "title": "Documentation - Noobly JS",
+      "description": "Comprehensive documentation and guides for getting started with Noobly JS framework and all its services."
+    },
+    "hero": {
+      "badge": "📚 Documentation",
+      "title": "Documentation",
+      "description": "Comprehensive documentation and guides for getting started with Noobly JS framework and all its services.",
+      "buttons": [
+        {
+          "text": "Quick Start",
+          "href": "#quick-start",
+          "type": "primary"
+        },
+        {
+          "text": "API Reference",
+          "href": "#api-reference",
+          "type": "outline"
+        }
+      ]
+    },
+    "quickStart": {
+      "title": "Quick Start Guide",
+      "description": "Get up and running with Noobly JS in minutes",
+      "steps": [
+        {
+          "title": "1. Installation",
+          "description": "Install Noobly JS using npm:",
+          "code": "npm install noobly-core"
+        },
+        {
+          "title": "2. Basic Setup",
+          "description": "Create your main application file:",
+          "code": "const noobly = require('noobly-core');\nconst app = noobly.create();"
+        },
+        {
+          "title": "3. Start Building",
+          "description": "Add services and start your server:",
+          "code": "app.addService('cache');\napp.listen(3000);"
+        }
+      ]
+    },
+    "services": {
+      "title": "Available Services",
+      "description": "Explore our comprehensive service ecosystem",
+      "items": [
+        {
+          "badge": "⚡ Performance",
+          "badgeType": "default",
+          "title": "Caching Service",
+          "href": "cache.html",
+          "description": "High-performance caching with Redis, Memcached, and in-memory providers.",
+          "code": "const cache = app.service('cache');\nawait cache.set('key', 'value');"
+        },
+        {
+          "badge": "🗄️ Storage",
+          "badgeType": "secondary",
+          "title": "Data Service",
+          "href": "data.html",
+          "description": "Flexible data storage with SimpleDB and file-based providers.",
+          "code": "const data = app.service('data');\nawait data.store('user:1', userData);"
+        },
+        {
+          "badge": "📝 Monitoring",
+          "badgeType": "outline",
+          "title": "Logging Service",
+          "href": "logging.html",
+          "description": "Advanced logging with console and file outputs.",
+          "code": "const logger = app.service('logging');\nlogger.info('Application started');"
+        },
+        {
+          "badge": "📊 Analytics",
+          "badgeType": "default",
+          "title": "Measuring Service",
+          "href": "measuring.html",
+          "description": "Real-time metrics collection and analysis.",
+          "code": "const metrics = app.service('measuring');\nmetrics.increment('api_calls');"
+        },
+        {
+          "badge": "🔔 Communication",
+          "badgeType": "secondary",
+          "title": "Notifying Service",
+          "href": "notifying.html",
+          "description": "Pub/sub messaging for real-time communication.",
+          "code": "const notify = app.service('notifying');\nnotify.publish('channel', message);"
+        },
+        {
+          "badge": "⏳ Processing",
+          "badgeType": "outline",
+          "title": "Queueing Service",
+          "href": "queueing.html",
+          "description": "Efficient task queueing for background operations.",
+          "code": "const queue = app.service('queueing');\nqueue.add('task', taskData);"
+        }
+      ]
+    },
+    "apiReference": {
+      "title": "API Reference",
+      "description": "Complete API documentation for all services",
+      "coreFramework": {
+        "title": "Core Framework Methods",
+        "code": "// Initialize Noobly JS application\nconst app = noobly.create(options);\n\n// Add a service\napp.addService(serviceName, provider, options);\n\n// Get a service instance\nconst service = app.service(serviceName);\n\n// Start the server\napp.listen(port, callback);\n\n// Graceful shutdown\napp.shutdown();"
+      },
+      "sections": [
+        {
+          "title": "Configuration",
+          "description": "Service configuration options and examples.",
+          "href": "#"
+        },
+        {
+          "title": "Examples",
+          "description": "Real-world usage examples and tutorials.",
+          "href": "#"
+        },
+        {
+          "title": "Best Practices",
+          "description": "Recommended patterns and best practices.",
+          "href": "#"
+        }
+      ]
+    },
+    "footer": {
+      "about": {
+        "title": "Documentation",
+        "description": "Comprehensive guides and API reference for building applications with Noobly JS framework."
+      },
+      "quickLinks": [
+        { "text": "Home", "href": "index.html" },
+        { "text": "Documentation", "href": "documentation.html" },
+        { "text": "Contact", "href": "contact.html" },
+        { "text": "Services", "href": "cache.html" }
+      ],
+      "resources": [
+        { "text": "Quick Start", "href": "#quick-start" },
+        { "text": "API Reference", "href": "#api-reference" },
+        { "text": "Examples", "href": "#" },
+        { "text": "Best Practices", "href": "#" }
+      ]
+    }
+  },
+  "contact": {
+    "meta": {
+      "title": "Contact - Noobly JS",
+      "description": "Have questions about Noobly JS? Need support or want to contribute? We'd love to hear from you."
+    },
+    "hero": {
+      "badge": "💬 Contact",
+      "title": "Get in Touch",
+      "description": "Have questions about Noobly JS? Need support or want to contribute? We'd love to hear from you."
+    },
+    "contactMethods": [
+      {
+        "icon": "📧",
+        "title": "Email Support",
+        "description": "Get help with technical questions and support issues",
+        "button": {
+          "text": "support@nooblyjs.com",
+          "href": "mailto:support@nooblyjs.com",
+          "type": "outline"
+        }
+      },
+      {
+        "icon": "🐙",
+        "title": "GitHub",
+        "description": "Report bugs, request features, or contribute to the project",
+        "button": {
+          "text": "View Repository",
+          "href": "#",
+          "type": "outline"
+        }
+      },
+      {
+        "icon": "💬",
+        "title": "Community",
+        "description": "Join our Discord server for real-time discussions",
+        "button": {
+          "text": "Join Discord",
+          "href": "#",
+          "type": "outline"
+        }
+      }
+    ],
+    "contactForm": {
+      "title": "Send us a Message",
+      "description": "We'll get back to you as soon as possible",
+      "fields": [
+        {
+          "id": "contactName",
+          "type": "text",
+          "label": "Name",
+          "placeholder": "Your full name",
+          "required": true
+        },
+        {
+          "id": "contactEmail",
+          "type": "email",
+          "label": "Email",
+          "placeholder": "your.email@example.com",
+          "required": true
+        },
+        {
+          "id": "contactSubject",
+          "type": "select",
+          "label": "Subject",
+          "required": true,
+          "options": [
+            { "value": "", "text": "Select a topic" },
+            { "value": "general", "text": "General Question" },
+            { "value": "technical", "text": "Technical Support" },
+            { "value": "feature", "text": "Feature Request" },
+            { "value": "bug", "text": "Bug Report" },
+            { "value": "business", "text": "Business Inquiry" }
+          ]
+        },
+        {
+          "id": "contactMessage",
+          "type": "textarea",
+          "label": "Message",
+          "placeholder": "Tell us how we can help you...",
+          "required": true,
+          "rows": 6
+        }
+      ],
+      "submitText": "Send Message"
+    },
+    "faq": {
+      "title": "Frequently Asked Questions",
+      "description": "Common questions about Noobly JS",
+      "items": [
+        {
+          "question": "What is Noobly JS?",
+          "answer": "Noobly JS is a modular Node.js backend framework that provides pluggable core services for building scalable web applications quickly and efficiently."
+        },
+        {
+          "question": "Is Noobly JS free to use?",
+          "answer": "Yes, Noobly JS is open-source and free to use for both personal and commercial projects. Check our license for more details."
+        },
+        {
+          "question": "How do I get started?",
+          "answer": "Check out our <a href=\"documentation.html\" style=\"color: hsl(var(--primary)); text-decoration: none;\">documentation</a> for a comprehensive quick start guide and examples."
+        },
+        {
+          "question": "Can I contribute to the project?",
+          "answer": "Absolutely! We welcome contributions. Visit our GitHub repository to see how you can help improve Noobly JS."
+        },
+        {
+          "question": "Do you offer commercial support?",
+          "answer": "Yes, we offer commercial support and consulting services. Contact us at <a href=\"mailto:business@nooblyjs.com\" style=\"color: hsl(var(--primary)); text-decoration: none;\">business@nooblyjs.com</a> for more information."
+        }
+      ]
+    },
+    "footer": {
+      "contactInfo": {
+        "title": "Contact Information",
+        "description": "Get in touch with our team for support, questions, or business inquiries.",
+        "details": {
+          "email": "support@nooblyjs.com",
+          "business": "business@nooblyjs.com",
+          "responseTime": "Within 24 hours"
+        }
+      },
+      "quickLinks": [
+        { "text": "Home", "href": "index.html" },
+        { "text": "Documentation", "href": "documentation.html" },
+        { "text": "Contact", "href": "contact.html" },
+        { "text": "Services", "href": "cache.html" }
+      ],
+      "community": [
+        { "text": "GitHub", "href": "#" },
+        { "text": "Discord", "href": "#" },
+        { "text": "Twitter", "href": "#" },
+        { "text": "Blog", "href": "#" }
+      ]
+    }
+  },
+  "common": {
+    "navigation": {
+      "logo": {
+        "icon": "NJS",
+        "text": "Noobly JS"
+      },
+      "links": [
+        { "text": "Home", "href": "index.html" },
+        { "text": "Documentation", "href": "documentation.html" },
+        { "text": "Contact", "href": "contact.html" },
+        { "text": "Services", "href": "/services" }
+      ]
+    },
+    "mobileMenu": {
+      "links": [
+        { "text": "Home", "href": "index.html" },
+        { "text": "Documentation", "href": "documentation.html" },
+        { "text": "Contact", "href": "contact.html" }
+      ],
+      "cta": {
+        "text": "Get Started",
+        "href": "cache.html"
+      }
+    },
+    "footer": {
+      "logo": {
+        "icon": "NJS",
+        "text": "Noobly JS"
+      },
+      "copyright": "© 2024 Noobly JS. All rights reserved.",
+      "legalLinks": [
+        { "text": "Privacy Policy", "href": "#" },
+        { "text": "Terms of Service", "href": "#" },
+        { "text": "License", "href": "#" }
+      ]
+    }
+  }
+}
