@@ -124,7 +124,7 @@ await cache.put('key', 'value');
 | Service | Purpose | Providers | API Endpoints |
 |---------|---------|-----------|---------------|
 | **caching** | High-performance caching | memory, redis, memcached | `/services/caching/api/*` |
-| **dataserve** | Persistent data storage | memory, simpledb, file | `/services/dataserve/api/*` |
+| **dataserve** | Container-based persistent storage with JSON search | memory, simpledb, file | `/services/dataserve/api/*` |
 | **filing** | File management | local, ftp, s3, git, sync | `/services/filing/api/*` |
 | **logging** | Application logging | console, file | `/services/logging/api/*` |
 | **measuring** | Metrics collection | memory | `/services/measuring/api/*` |
@@ -236,9 +236,13 @@ GET /services/caching/api/status
 
 ### DataServe API
 
+The DataServe API provides **container-based persistent storage** with support for both simple key-value operations and advanced JSON search capabilities.
+
+#### Container-Based Storage
+
 ```bash
-# Store persistent data
-POST /services/dataserve/api/put/config:app
+# Store persistent data in a specific container
+POST /services/dataserve/api/put/config/app-settings
 Content-Type: application/json
 x-api-key: YOUR_API_KEY
 
@@ -251,13 +255,142 @@ x-api-key: YOUR_API_KEY
   "updatedAt": "2025-08-25T10:30:00Z"
 }
 
-# Retrieve persistent data
-GET /services/dataserve/api/get/config:app
+# Retrieve persistent data from container
+GET /services/dataserve/api/get/config/app-settings
 x-api-key: YOUR_API_KEY
 
-# Delete persistent data
-DELETE /services/dataserve/api/delete/config:app
+# Response:
+{
+  "appConfig": {
+    "version": "1.2.0",
+    "features": ["caching", "logging", "metrics"],
+    "environment": "production"
+  },
+  "updatedAt": "2025-08-25T10:30:00Z"
+}
+
+# Delete persistent data from container
+DELETE /services/dataserve/api/delete/config/app-settings
 x-api-key: YOUR_API_KEY
+
+# Store user data in users container
+POST /services/dataserve/api/put/users/user123
+Content-Type: application/json
+x-api-key: YOUR_API_KEY
+
+{
+  "id": 123,
+  "name": "John Doe",
+  "email": "john@example.com",
+  "profile": {
+    "department": "engineering",
+    "role": "senior-developer",
+    "location": "remote"
+  },
+  "status": "active",
+  "joinedAt": "2024-01-15T09:30:00Z"
+}
+```
+
+#### JSON Search API
+
+The DataServe API includes powerful JSON search capabilities for querying stored data:
+
+**1. Custom Predicate Search** - Use JavaScript expressions to find objects:
+
+```bash
+POST /services/dataserve/api/jsonFind/users
+Content-Type: application/json
+x-api-key: YOUR_API_KEY
+
+{
+  "predicate": "obj.id === 123 && obj.status === 'active'"
+}
+
+# Response: Array of matching objects
+[
+  {
+    "id": 123,
+    "name": "John Doe",
+    "email": "john@example.com",
+    "profile": {
+      "department": "engineering",
+      "role": "senior-developer"
+    },
+    "status": "active"
+  }
+]
+```
+
+**2. Path-Based Search** - Search by specific property paths:
+
+```bash
+# Find all users in the engineering department
+GET /services/dataserve/api/jsonFindByPath/users/profile.department/engineering
+x-api-key: YOUR_API_KEY
+
+# Find users with specific role
+GET /services/dataserve/api/jsonFindByPath/users/profile.role/senior-developer
+x-api-key: YOUR_API_KEY
+
+# Response: Array of users matching the criteria
+[
+  {
+    "id": 123,
+    "name": "John Doe",
+    "profile": {
+      "department": "engineering",
+      "role": "senior-developer"
+    }
+  },
+  {
+    "id": 456,
+    "name": "Jane Smith", 
+    "profile": {
+      "department": "engineering",
+      "role": "senior-developer"
+    }
+  }
+]
+```
+
+**3. Multi-Criteria Search** - Search using multiple conditions:
+
+```bash
+POST /services/dataserve/api/jsonFindByCriteria/users
+Content-Type: application/json
+x-api-key: YOUR_API_KEY
+
+{
+  "status": "active",
+  "profile.department": "engineering",
+  "profile.role": "senior-developer"
+}
+
+# Response: Users matching ALL criteria
+[
+  {
+    "id": 123,
+    "name": "John Doe",
+    "email": "john@example.com",
+    "profile": {
+      "department": "engineering",
+      "role": "senior-developer"
+    },
+    "status": "active"
+  }
+]
+```
+
+#### Legacy API Support
+
+For backward compatibility, the original key-only endpoints are still supported (using a default container):
+
+```bash
+# Legacy endpoints (uses default container)
+POST /services/dataserve/api/put/config:app
+GET /services/dataserve/api/get/config:app
+DELETE /services/dataserve/api/delete/config:app
 ```
 
 ### Filing API
@@ -415,6 +548,70 @@ const userData = await cache.get('session:abc123');
 const analytics = cache.getAnalytics();
 console.log('Cache hit ratio:', analytics.hitRatio);
 console.log('Most accessed keys:', analytics.topKeys);
+```
+
+#### Container-Based Data Management
+
+```javascript
+const dataServe = serviceRegistry.dataServe('memory'); // or 'file', 'simpledb'
+
+// Store data in containers
+await dataServe.put('users', 'user123', {
+  id: 123,
+  name: 'John Doe',
+  email: 'john@example.com',
+  profile: {
+    department: 'engineering',
+    role: 'senior-developer',
+    location: 'remote'
+  },
+  status: 'active',
+  joinedAt: '2024-01-15T09:30:00Z'
+});
+
+await dataServe.put('products', 'product456', {
+  id: 456,
+  name: 'Premium Widget',
+  category: 'electronics',
+  price: 199.99,
+  inStock: true
+});
+
+// Retrieve data from containers
+const user = await dataServe.get('users', 'user123');
+const product = await dataServe.get('products', 'product456');
+
+// Delete data from containers
+await dataServe.delete('users', 'user123');
+
+// JSON Search Operations
+// 1. Custom predicate search - like Array.find()
+const activeEngineers = await dataServe.jsonFind('users', 
+  user => user.status === 'active' && user.profile.department === 'engineering'
+);
+
+// 2. Path-based search - find by nested property
+const seniorDevelopers = await dataServe.jsonFindByPath('users', 'profile.role', 'senior-developer');
+
+// 3. Multi-criteria search - match multiple conditions
+const activeSeniorEngineers = await dataServe.jsonFindByCriteria('users', {
+  'status': 'active',
+  'profile.department': 'engineering',
+  'profile.role': 'senior-developer'
+});
+
+// Complex search examples
+const remoteWorkers = await dataServe.jsonFind('users',
+  user => user.profile.location === 'remote' && user.status === 'active'
+);
+
+const expensiveElectronics = await dataServe.jsonFind('products',
+  product => product.category === 'electronics' && product.price > 100
+);
+
+// Legacy compatibility (uses default container)
+await dataServe.putLegacy('config:app', appConfiguration);
+const config = await dataServe.getLegacy('config:app');
 ```
 
 #### File Management
@@ -772,19 +969,56 @@ const cache = serviceRegistry.cache('memory', {
 
 ### DataServe Service
 
-**Purpose**: Persistent key-value data storage
+**Purpose**: Container-based persistent data storage with JSON search capabilities
 
 **Providers**:
-- `memory`: In-memory storage
-- `simpledb`: AWS SimpleDB
-- `file`: File-based storage
+- `memory`: In-memory storage with container organization
+- `simpledb`: AWS SimpleDB with container mapping
+- `file`: File-based storage with JSON persistence
 
-**Methods**:
+**Core Methods**:
 ```javascript
-await dataServe.put(key, value);       // Store persistently
-const value = await dataServe.get(key); // Retrieve
-await dataServe.delete(key);           // Remove
-const status = dataServe.status;       // Service status
+// Container-based operations
+await dataServe.put(container, key, value);        // Store in container
+const value = await dataServe.get(container, key);  // Retrieve from container
+await dataServe.delete(container, key);            // Remove from container
+
+// Legacy methods (uses default container)
+await dataServe.putLegacy(key, value);             // Legacy store
+const value = await dataServe.getLegacy(key);       // Legacy retrieve
+await dataServe.deleteLegacy(key);                 // Legacy remove
+
+const status = dataServe.status;                   // Service status
+```
+
+**JSON Search Methods**:
+```javascript
+// Custom predicate search (like Array.find)
+const results = await dataServe.jsonFind(container, obj => obj.status === 'active');
+
+// Path-based search (nested property matching)
+const results = await dataServe.jsonFindByPath(container, 'profile.department', 'engineering');
+
+// Multi-criteria search (multiple conditions)
+const results = await dataServe.jsonFindByCriteria(container, {
+  'status': 'active',
+  'profile.role': 'senior-developer',
+  'profile.department': 'engineering'
+});
+```
+
+**Configuration Examples**:
+```javascript
+// File-based provider with custom directory
+const dataServe = serviceRegistry.dataServe('file', {
+  baseDir: './data/containers'
+});
+
+// SimpleDB provider configuration
+const dataServe = serviceRegistry.dataServe('simpledb', {
+  domain: 'myapp-containers',
+  region: 'us-east-1'
+});
 ```
 
 ### Filing Service
@@ -1346,9 +1580,20 @@ describe('Service Integration', () => {
    ```javascript
    const eventEmitter = serviceRegistry.getEventEmitter();
    
-   // Business logic
+   // Business logic with container-based data storage
    eventEmitter.on('user-registered', async (userData) => {
+     // Store user in appropriate containers
+     await dataServe.put('users', `user:${userData.id}`, userData);
      await cache.put(`user:${userData.id}`, userData);
+     
+     // Store in analytics container for reporting
+     await dataServe.put('analytics', `registration:${Date.now()}`, {
+       userId: userData.id,
+       timestamp: new Date().toISOString(),
+       source: userData.source || 'web'
+     });
+     
+     // Queue welcome email
      queue.enqueue({ type: 'sendWelcomeEmail', userId: userData.id });
      measuring.add('user.registration', 1);
    });
@@ -1356,23 +1601,52 @@ describe('Service Integration', () => {
 
 ### Performance Optimization
 
-1. **Cache Strategy**
+1. **Cache Strategy with Container-Based Storage**
    ```javascript
-   // Cache frequently accessed data
+   // Cache frequently accessed data with persistent fallback
    async function getUser(id) {
      const cacheKey = `user:${id}`;
      
-     // Try cache first
+     // Try cache first (fastest)
      let user = await cache.get(cacheKey);
      if (user) return user;
      
-     // Fallback to database
+     // Fallback to persistent container storage
+     user = await dataServe.get('users', `user:${id}`);
+     if (user) {
+       // Cache for future requests
+       await cache.put(cacheKey, user, 1800); // 30 min
+       return user;
+     }
+     
+     // Final fallback to database
      user = await db.user.findById(id);
      if (user) {
-       await cache.put(cacheKey, user, 1800); // 30 min
+       // Store in both cache and persistent storage
+       await cache.put(cacheKey, user, 1800);
+       await dataServe.put('users', `user:${id}`, user);
      }
      
      return user;
+   }
+   
+   // Advanced search with caching
+   async function findActiveEngineers() {
+     const cacheKey = 'active-engineers';
+     
+     // Try cached results first
+     let engineers = await cache.get(cacheKey);
+     if (engineers) return engineers;
+     
+     // Search using JSON query
+     engineers = await dataServe.jsonFindByCriteria('users', {
+       'status': 'active',
+       'profile.department': 'engineering'
+     });
+     
+     // Cache results for 10 minutes
+     await cache.put(cacheKey, engineers, 600);
+     return engineers;
    }
    ```
 
