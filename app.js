@@ -26,7 +26,6 @@ app.use(bodyParser.json());
  * This sets up all services and their REST endpoints.
  */
 const eventEmitter = new EventEmitter();
-patchEmitter(eventEmitter);
 serviceRegistry.initialize(app, eventEmitter);
 
 /**
@@ -159,16 +158,3 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   log.info(`Server is running on port ${PORT}`);
 });
-
-/**
- * Patch event emitter to capture all events for debugging
- */
-function patchEmitter(eventEmitter) {
-  const originalEmit = eventEmitter.emit;
-  eventEmitter.emit = function () {
-    const eventName = arguments[0];
-    const args = Array.from(arguments).slice(1);
-    console.log(`Caught event: "${eventName}" with arguments:`, args);
-    return originalEmit.apply(this, arguments);
-  };
-}

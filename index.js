@@ -4,6 +4,7 @@
  */
 
 const EventEmitter = require('events');
+const express = require('express');
 const path = require('path');
 const {
   createApiKeyAuthMiddleware,
@@ -60,6 +61,12 @@ class ServiceRegistry {
         requireApiKey: globalOptions.requireApiKey !== false,
       });
     }
+
+    // Serve static files from the views directory for caching service
+    expressApp.use(
+      '/services/',
+      express.static(path.join(__dirname, 'src/views')),
+    );
 
     // Serve the service registry landing page
     this.expressApp.get('/services/', (req, res) => {
