@@ -28,43 +28,50 @@ module.exports = (options, eventEmitter, cache) => {
     /**
      * PUT /services/caching/api/put/:key
      * Stores a value in the cache with the specified key.
-     * 
+     *
      * @param {express.Request} req - Express request object
      * @param {string} req.params.key - The cache key to store the value under
      * @param {*} req.body - The value to store in the cache
      * @param {express.Response} res - Express response object
      * @return {void}
      */
-    app.post('/services/caching/api/put/:key', authMiddleware || ((req, res, next) => next()), (req, res) => {
-      const key = req.params.key;
-      const value = req.body;
-      cache
-        .put(key, value)
-        .then(() => res.status(200).send('OK'))
-        .catch((err) => res.status(500).send(err.message));
+    app.post(
+      '/services/caching/api/put/:key',
+      authMiddleware || ((req, res, next) => next()),
+      (req, res) => {
+        const key = req.params.key;
+        const value = req.body;
+        cache
+          .put(key, value)
+          .then(() => res.status(200).send('OK'))
+          .catch((err) => res.status(500).send(err.message));
     });
 
     /**
      * GET /services/caching/api/get/:key
      * Retrieves a value from the cache by key.
-     * 
+     *
      * @param {express.Request} req - Express request object
      * @param {string} req.params.key - The cache key to retrieve
      * @param {express.Response} res - Express response object
      * @return {void}
      */
-    app.get('/services/caching/api/get/:key', authMiddleware || ((req, res, next) => next()), (req, res) => {
-      const key = req.params.key;
-      cache
-        .get(key)
-        .then((value) => res.status(200).json(value))
-        .catch((err) => res.status(500).send(err.message));
-    });
+    app.get(
+      '/services/caching/api/get/:key',
+      authMiddleware || ((req, res, next) => next()),
+      (req, res) => {
+        const key = req.params.key;
+        cache
+          .get(key)
+          .then((value) => res.status(200).json(value))
+          .catch((err) => res.status(500).send(err.message));
+      },
+    );
 
     /**
      * DELETE /services/caching/api/delete/:key
      * Removes a value from the cache by key.
-     * 
+     *
      * @param {express.Request} req - Express request object
      * @param {string} req.params.key - The cache key to delete
      * @param {express.Response} res - Express response object

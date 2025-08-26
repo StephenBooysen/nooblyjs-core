@@ -12,6 +12,7 @@
 const Cache = require('./providers/caching');
 const CacheRedis = require('./providers/cachingRedis');
 const CacheMemcached = require('./providers/cachingMemcached');
+
 const Routes = require('./routes');
 const Views = require('./views');
 
