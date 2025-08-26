@@ -2,7 +2,6 @@
  * @fileoverview Unit tests for the DataServeService and its providers.
  */
 
-const AWS = require('aws-sdk');
 const fs = require('fs').promises;
 const path = require('path');
 const EventEmitter = require('events');
@@ -24,6 +23,8 @@ jest.mock('aws-sdk', () => {
     },
   };
 });
+
+const AWS = require('aws-sdk');
 
 describe('DataServeService', () => {
   // Test InMemoryDataRingProvider
@@ -302,7 +303,11 @@ describe('DataServeService', () => {
     beforeEach(() => {
       mockEventEmitter = new EventEmitter();
       jest.spyOn(mockEventEmitter, 'emit');
-      jest.clearAllMocks();
+      
+      // Reset AWS mocks before each test
+      AWS.config.update.mockClear();
+      AWS.SimpleDB.mockClear();
+      
       simpleDbDataRingService = createDataserveService(
         'simpledb',
         {
@@ -316,6 +321,10 @@ describe('DataServeService', () => {
     });
 
     it('should initialize with correct SimpleDB configuration', () => {
+      // Verify the service was created with SimpleDB provider
+      expect(simpleDbDataRingService.provider).toBeDefined();
+      expect(simpleDbDataRingService.provider.sdb).toBeDefined();
+      
       expect(AWS.config.update).toHaveBeenCalledWith({
         region: mockRegion,
         accessKeyId: mockAccessKeyId,

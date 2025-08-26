@@ -86,7 +86,7 @@ class InMemoryDataServeProvider {
    * Performs a recursive search through all string values in the objects.
    * @param {string} containerName The name of the container to search in.
    * @param {string} searchTerm The term to search for (case-insensitive).
-   * @return {Promise<Array<{key: string, obj: !Object}>>} A promise that resolves to an array of matching objects with their keys.
+   * @return {Promise<Array<!Object>>} A promise that resolves to an array of matching objects.
    */
   async find(containerName, searchTerm) {
     if (!this.containers.has(containerName)) {
@@ -122,7 +122,7 @@ class InMemoryDataServeProvider {
 
       searchInObject(obj);
       if (found) {
-        results.push({ key, obj });
+        results.push(obj);
       }
     }
     if (this.eventEmitter_)
