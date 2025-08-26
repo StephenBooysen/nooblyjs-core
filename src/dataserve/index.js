@@ -52,13 +52,7 @@ function createDataserveService(type, options, eventEmitter) {
       break;
   }
 
-  // Default container name for key-value operations
-  const DEFAULT_CONTAINER = 'default';
-  const KEY_MAPPING_CONTAINER = '__key_mappings';
-  
-  // Ensure containers exist
-  provider.createContainer(DEFAULT_CONTAINER).catch(() => {});
-  provider.createContainer(KEY_MAPPING_CONTAINER).catch(() => {});
+  // Remove legacy container creation - containers are created on demand
 
   // Create service object
   const service = {
@@ -68,79 +62,13 @@ function createDataserveService(type, options, eventEmitter) {
     remove: (...args) => provider.remove(...args),
     find: (...args) => provider.find(...args),
     
-    // Container-based key-value store interface for API routes
-    put: async (containerName, key, value) => {
-      // Ensure container exists
+    // UUID-based retrieval for API routes
+    getByUuid: async (containerName, uuid) => {
       try {
-        await provider.createContainer(containerName);
-      } catch (err) {
-        // Container may already exist, ignore error
-      }
-      
-      // First, delete existing entry if it exists
-      try {
-        await service.delete(containerName, key);
-      } catch (err) {
-        // Ignore delete errors on put
-      }
-      
-      // Store the value with key metadata
-      const obj = { __key: key, __value: value, __timestamp: new Date().toISOString() };
-      const objectKey = await provider.add(containerName, obj);
-      
-      return objectKey;
-    },
-    
-    get: async (containerName, key) => {
-      try {
-        // Find objects with matching key in the specified container
-        const results = await provider.find(containerName, key);
-        const match = results.find(obj => obj.__key === key);
-        return match ? match.__value : null;
+        return await provider.getByUuid(containerName, uuid);
       } catch (err) {
         return null;
       }
-    },
-    
-    delete: async (containerName, key) => {
-      try {
-        // Find all objects in the container to locate the one with matching key
-        const allObjects = await provider.find(containerName, '');
-        const targetObject = allObjects.find(obj => obj.__key === key);
-        
-        if (!targetObject) {
-          return false;
-        }
-        
-        // We need the object's ID to remove it, but the provider doesn't expose this
-        // So we'll search through all objects and remove by content matching
-        // This is a limitation of the current provider interface
-        const results = await provider.find(containerName, key);
-        const match = results.find(obj => obj.__key === key);
-        
-        if (match) {
-          // Try to remove by finding a unique property to search for removal
-          // This is not ideal but works with current provider limitations
-          return true; // Mark as success even though we can't fully remove
-        }
-        
-        return false;
-      } catch (err) {
-        return false;
-      }
-    },
-
-    // Legacy methods for backward compatibility (using default container)
-    putLegacy: async (key, value) => {
-      return service.put(DEFAULT_CONTAINER, key, value);
-    },
-    
-    getLegacy: async (key) => {
-      return service.get(DEFAULT_CONTAINER, key);
-    },
-    
-    deleteLegacy: async (key) => {
-      return service.delete(DEFAULT_CONTAINER, key);
     },
 
     // JSON search functionality

@@ -372,7 +372,7 @@
         <main class="main-content">
             <div class="page-header">
                 <h1 class="page-title">Data Serve Management</h1>
-                <p class="page-subtitle">Store and retrieve data using key-value operations</p>
+                <p class="page-subtitle">Store and retrieve JSON data in containers using UUIDs</p>
             </div>
 
             <div class="alert alert-success" id="successAlert">
@@ -387,7 +387,7 @@
             <div class="card">
                 <div class="card-header">
                     <h2 class="card-title">Store Data</h2>
-                    <p class="card-subtitle">Add a new data entry to a container</p>
+                    <p class="card-subtitle">Add a new data entry to a container and get a UUID</p>
                 </div>
                 <div class="card-content">
                     <form id="putForm">
@@ -395,11 +395,6 @@
                             <label class="form-label" for="putContainer">Container</label>
                             <input type="text" id="putContainer" class="form-input" placeholder="Enter container name (e.g., users, products)" required>
                             <div class="helper-text">Container to store the data in (will be created if it doesn't exist)</div>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label" for="putKey">Key</label>
-                            <input type="text" id="putKey" class="form-input" placeholder="Enter data key" required>
-                            <div class="helper-text">Unique identifier for the data entry within the container</div>
                         </div>
                         <div class="form-group">
                             <label class="form-label" for="putValue">Value (JSON)</label>
@@ -411,7 +406,7 @@
                             <button type="submit" class="btn btn-primary">Store Data</button>
                             <button type="button" class="btn btn-secondary" onclick="formatJSON('putValue')">Format JSON</button>
                             <button type="button" class="btn btn-secondary" onclick="loadExample('putValue')">Load Example</button>
-                            <button type="button" class="btn btn-secondary" onclick="loadContainerExample('put')">Load Container Example</button>
+                            <button type="button" class="btn btn-secondary" onclick="loadContainerExample('put')">Load Example</button>
                         </div>
                     </form>
                     <div id="putResponse" class="response-container" style="display: none;">
@@ -425,7 +420,7 @@
             <div class="card">
                 <div class="card-header">
                     <h2 class="card-title">Retrieve Data</h2>
-                    <p class="card-subtitle">Get data by key from a specific container</p>
+                    <p class="card-subtitle">Get data by UUID from a specific container</p>
                 </div>
                 <div class="card-content">
                     <form id="getForm">
@@ -435,13 +430,13 @@
                             <div class="helper-text">Container to retrieve data from</div>
                         </div>
                         <div class="form-group">
-                            <label class="form-label" for="getKey">Key</label>
-                            <input type="text" id="getKey" class="form-input" placeholder="Enter data key to retrieve" required>
-                            <div class="helper-text">Key of the data entry to retrieve</div>
+                            <label class="form-label" for="getUuid">UUID</label>
+                            <input type="text" id="getUuid" class="form-input" placeholder="Enter UUID to retrieve" required>
+                            <div class="helper-text">UUID of the data entry to retrieve</div>
                         </div>
                         <div class="btn-group">
                             <button type="submit" class="btn btn-primary">Retrieve Data</button>
-                            <button type="button" class="btn btn-secondary" onclick="loadContainerExample('get')">Load Container Example</button>
+                            <button type="button" class="btn btn-secondary" onclick="loadContainerExample('get')">Load Example</button>
                         </div>
                     </form>
                     <div id="getResponse" class="response-container" style="display: none;">
@@ -455,7 +450,7 @@
             <div class="card">
                 <div class="card-header">
                     <h2 class="card-title">Delete Data</h2>
-                    <p class="card-subtitle">Remove data entry from a specific container</p>
+                    <p class="card-subtitle">Remove data entry by UUID from a specific container</p>
                 </div>
                 <div class="card-content">
                     <form id="deleteForm">
@@ -465,13 +460,13 @@
                             <div class="helper-text">Container to delete data from</div>
                         </div>
                         <div class="form-group">
-                            <label class="form-label" for="deleteKey">Key</label>
-                            <input type="text" id="deleteKey" class="form-input" placeholder="Enter data key to delete" required>
-                            <div class="helper-text">Key of the data entry to remove</div>
+                            <label class="form-label" for="deleteUuid">UUID</label>
+                            <input type="text" id="deleteUuid" class="form-input" placeholder="Enter UUID to delete" required>
+                            <div class="helper-text">UUID of the data entry to remove</div>
                         </div>
                         <div class="btn-group">
                             <button type="submit" class="btn btn-error">Delete Data</button>
-                            <button type="button" class="btn btn-secondary" onclick="loadContainerExample('delete')">Load Container Example</button>
+                            <button type="button" class="btn btn-secondary" onclick="loadContainerExample('delete')">Load Example</button>
                         </div>
                     </form>
                     <div id="deleteResponse" class="response-container" style="display: none;">
@@ -697,15 +692,17 @@
         // Load container examples for basic operations
         function loadContainerExample(operation) {
             const examples = {
-                put: { container: 'users', key: 'user123' },
-                get: { container: 'users', key: 'user123' },
-                delete: { container: 'users', key: 'user123' }
+                put: { container: 'users' },
+                get: { container: 'users', uuid: '123e4567-e89b-12d3-a456-426614174000' },
+                delete: { container: 'users', uuid: '123e4567-e89b-12d3-a456-426614174000' }
             };
             
             const example = examples[operation];
             if (example) {
                 document.getElementById(operation + 'Container').value = example.container;
-                document.getElementById(operation + 'Key').value = example.key;
+                if (example.uuid) {
+                    document.getElementById(operation + 'Uuid').value = example.uuid;
+                }
             }
         }
 
@@ -762,7 +759,6 @@
             e.preventDefault();
             
             const container = document.getElementById('putContainer').value;
-            const key = document.getElementById('putKey').value;
             const value = document.getElementById('putValue').value;
             
             if (!validateJSON('putValue')) {
@@ -773,9 +769,9 @@
             try {
                 setLoading('putForm', true);
                 const parsedValue = JSON.parse(value);
-                const result = await makeRequest(`/services/dataserve/api/put/${encodeURIComponent(container)}/${encodeURIComponent(key)}`, 'POST', parsedValue);
+                const result = await makeRequest(`/services/dataserve/api/${encodeURIComponent(container)}`, 'POST', parsedValue);
                 showResponse('putResponse', 'putResponseContent', result);
-                showAlert(`Data stored successfully in container: ${container}, key: ${key}`);
+                showAlert(`Data stored successfully in container: ${container}. UUID: ${result.id}`);
             } catch (error) {
                 showAlert('Error storing data: ' + error.message, 'error');
                 showResponse('putResponse', 'putResponseContent', 'Error: ' + error.message);
@@ -788,13 +784,13 @@
             e.preventDefault();
             
             const container = document.getElementById('getContainer').value;
-            const key = document.getElementById('getKey').value;
+            const uuid = document.getElementById('getUuid').value;
             
             try {
                 setLoading('getForm', true);
-                const result = await makeRequest(`/services/dataserve/api/get/${encodeURIComponent(container)}/${encodeURIComponent(key)}`);
+                const result = await makeRequest(`/services/dataserve/api/${encodeURIComponent(container)}/${encodeURIComponent(uuid)}`);
                 showResponse('getResponse', 'getResponseContent', result);
-                showAlert(`Data retrieved successfully from container: ${container}, key: ${key}`);
+                showAlert(`Data retrieved successfully from container: ${container}, UUID: ${uuid}`);
             } catch (error) {
                 showAlert('Error retrieving data: ' + error.message, 'error');
                 showResponse('getResponse', 'getResponseContent', 'Error: ' + error.message);
@@ -807,17 +803,17 @@
             e.preventDefault();
             
             const container = document.getElementById('deleteContainer').value;
-            const key = document.getElementById('deleteKey').value;
+            const uuid = document.getElementById('deleteUuid').value;
             
-            if (!confirm(`Are you sure you want to delete data from container: ${container}, key: ${key}?`)) {
+            if (!confirm(`Are you sure you want to delete data from container: ${container}, UUID: ${uuid}?`)) {
                 return;
             }
             
             try {
                 setLoading('deleteForm', true);
-                const result = await makeRequest(`/services/dataserve/api/delete/${encodeURIComponent(container)}/${encodeURIComponent(key)}`, 'DELETE');
+                const result = await makeRequest(`/services/dataserve/api/${encodeURIComponent(container)}/${encodeURIComponent(uuid)}`, 'DELETE');
                 showResponse('deleteResponse', 'deleteResponseContent', result);
-                showAlert(`Data deleted successfully from container: ${container}, key: ${key}`);
+                showAlert(`Data deleted successfully from container: ${container}, UUID: ${uuid}`);
             } catch (error) {
                 showAlert('Error deleting data: ' + error.message, 'error');
                 showResponse('deleteResponse', 'deleteResponseContent', 'Error: ' + error.message);
@@ -914,10 +910,10 @@
                 { url: '/services/dataserve/api', description: 'Data Serve API' }
             ],
             paths: {
-                '/put/{container}/{key}': {
+                '/{container}': {
                     post: {
                         summary: 'Store data in container',
-                        description: 'Store data with the specified key in a specific container',
+                        description: 'Store data in a container and get back a generated UUID',
                         parameters: [
                             {
                                 name: 'container',
@@ -925,13 +921,6 @@
                                 required: true,
                                 schema: { type: 'string' },
                                 description: 'The container to store the data in'
-                            },
-                            {
-                                name: 'key',
-                                in: 'path',
-                                required: true,
-                                schema: { type: 'string' },
-                                description: 'The key to store the data under'
                             }
                         ],
                         requestBody: {
@@ -945,47 +934,16 @@
                         },
                         responses: {
                             '200': {
-                                description: 'Data stored successfully',
+                                description: 'Data stored successfully with generated UUID',
                                 content: {
-                                    'text/plain': { schema: { type: 'string', example: 'OK' } }
-                                }
-                            },
-                            '500': {
-                                description: 'Server error',
-                                content: {
-                                    'text/plain': { schema: { type: 'string' } }
-                                }
-                            }
-                        }
-                    }
-                },
-                '/get/{container}/{key}': {
-                    get: {
-                        summary: 'Retrieve data from container',
-                        description: 'Retrieve data by key from a specific container',
-                        parameters: [
-                            {
-                                name: 'container',
-                                in: 'path',
-                                required: true,
-                                schema: { type: 'string' },
-                                description: 'The container to retrieve data from'
-                            },
-                            {
-                                name: 'key',
-                                in: 'path',
-                                required: true,
-                                schema: { type: 'string' },
-                                description: 'The key to retrieve data for'
-                            }
-                        ],
-                        responses: {
-                            '200': {
-                                description: 'Data retrieved successfully',
-                                content: {
-                                    'application/json': {
-                                        schema: { type: 'object' },
-                                        example: { "message": "Hello World", "timestamp": "2024-01-01" }
+                                    'application/json': { 
+                                        schema: { 
+                                            type: 'object',
+                                            properties: {
+                                                id: { type: 'string', description: 'Generated UUID for the stored data' }
+                                            }
+                                        },
+                                        example: { "id": "123e4567-e89b-12d3-a456-426614174000" }
                                     }
                                 }
                             },
@@ -998,10 +956,53 @@
                         }
                     }
                 },
-                '/delete/{container}/{key}': {
+                '/{container}/{uuid}': {
+                    get: {
+                        summary: 'Retrieve data from container',
+                        description: 'Retrieve data by UUID from a specific container',
+                        parameters: [
+                            {
+                                name: 'container',
+                                in: 'path',
+                                required: true,
+                                schema: { type: 'string' },
+                                description: 'The container to retrieve data from'
+                            },
+                            {
+                                name: 'uuid',
+                                in: 'path',
+                                required: true,
+                                schema: { type: 'string' },
+                                description: 'The UUID of the data to retrieve'
+                            }
+                        ],
+                        responses: {
+                            '200': {
+                                description: 'Data retrieved successfully',
+                                content: {
+                                    'application/json': {
+                                        schema: { type: 'object' },
+                                        example: { "message": "Hello World", "timestamp": "2024-01-01" }
+                                    }
+                                }
+                            },
+                            '404': {
+                                description: 'Data not found',
+                                content: {
+                                    'text/plain': { schema: { type: 'string', example: 'null' } }
+                                }
+                            },
+                            '500': {
+                                description: 'Server error',
+                                content: {
+                                    'text/plain': { schema: { type: 'string' } }
+                                }
+                            }
+                        }
+                    },
                     delete: {
                         summary: 'Delete data from container',
-                        description: 'Delete data by key from a specific container',
+                        description: 'Delete data by UUID from a specific container',
                         parameters: [
                             {
                                 name: 'container',
@@ -1011,11 +1012,11 @@
                                 description: 'The container to delete data from'
                             },
                             {
-                                name: 'key',
+                                name: 'uuid',
                                 in: 'path',
                                 required: true,
                                 schema: { type: 'string' },
-                                description: 'The key to delete data for'
+                                description: 'The UUID of the data to delete'
                             }
                         ],
                         responses: {
@@ -1023,6 +1024,12 @@
                                 description: 'Data deleted successfully',
                                 content: {
                                     'text/plain': { schema: { type: 'string', example: 'OK' } }
+                                }
+                            },
+                            '404': {
+                                description: 'Data not found',
+                                content: {
+                                    'text/plain': { schema: { type: 'string', example: 'Not found' } }
                                 }
                             },
                             '500': {

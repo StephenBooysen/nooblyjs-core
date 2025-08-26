@@ -124,7 +124,7 @@ await cache.put('key', 'value');
 | Service | Purpose | Providers | API Endpoints |
 |---------|---------|-----------|---------------|
 | **caching** | High-performance caching | memory, redis, memcached | `/services/caching/api/*` |
-| **dataserve** | Container-based persistent storage with JSON search | memory, simpledb, file | `/services/dataserve/api/*` |
+| **dataserve** | Database-style JSON document storage with UUIDs | memory, simpledb, file | `/services/dataserve/api/*` |
 | **filing** | File management | local, ftp, s3, git, sync | `/services/filing/api/*` |
 | **logging** | Application logging | console, file | `/services/logging/api/*` |
 | **measuring** | Metrics collection | memory | `/services/measuring/api/*` |
@@ -236,45 +236,13 @@ GET /services/caching/api/status
 
 ### DataServe API
 
-The DataServe API provides **container-based persistent storage** with support for both simple key-value operations and advanced JSON search capabilities.
+The DataServe API provides **container-based persistent storage** that works like a database - you insert JSON documents into containers and receive UUIDs for retrieval and management. It supports advanced JSON search capabilities for complex queries.
 
-#### Container-Based Storage
+#### Database-Style Storage
 
 ```bash
-# Store persistent data in a specific container
-POST /services/dataserve/api/put/config/app-settings
-Content-Type: application/json
-x-api-key: YOUR_API_KEY
-
-{
-  "appConfig": {
-    "version": "1.2.0",
-    "features": ["caching", "logging", "metrics"],
-    "environment": "production"
-  },
-  "updatedAt": "2025-08-25T10:30:00Z"
-}
-
-# Retrieve persistent data from container
-GET /services/dataserve/api/get/config/app-settings
-x-api-key: YOUR_API_KEY
-
-# Response:
-{
-  "appConfig": {
-    "version": "1.2.0",
-    "features": ["caching", "logging", "metrics"],
-    "environment": "production"
-  },
-  "updatedAt": "2025-08-25T10:30:00Z"
-}
-
-# Delete persistent data from container
-DELETE /services/dataserve/api/delete/config/app-settings
-x-api-key: YOUR_API_KEY
-
-# Store user data in users container
-POST /services/dataserve/api/put/users/user123
+# Insert data into a container and receive a UUID
+POST /services/dataserve/api/users
 Content-Type: application/json
 x-api-key: YOUR_API_KEY
 
@@ -289,6 +257,54 @@ x-api-key: YOUR_API_KEY
   },
   "status": "active",
   "joinedAt": "2024-01-15T09:30:00Z"
+}
+
+# Response: Returns generated UUID
+{
+  "id": "9c8a6a28-f6af-4386-8aba-b8caad5bcfa6"
+}
+
+# Retrieve data using the UUID
+GET /services/dataserve/api/users/9c8a6a28-f6af-4386-8aba-b8caad5bcfa6
+x-api-key: YOUR_API_KEY
+
+# Response: Original data
+{
+  "id": 123,
+  "name": "John Doe",
+  "email": "john@example.com",
+  "profile": {
+    "department": "engineering",
+    "role": "senior-developer",
+    "location": "remote"
+  },
+  "status": "active",
+  "joinedAt": "2024-01-15T09:30:00Z"
+}
+
+# Delete data using the UUID
+DELETE /services/dataserve/api/users/9c8a6a28-f6af-4386-8aba-b8caad5bcfa6
+x-api-key: YOUR_API_KEY
+
+# Response: "OK" or "Not found"
+
+# Store configuration data in config container
+POST /services/dataserve/api/config
+Content-Type: application/json
+x-api-key: YOUR_API_KEY
+
+{
+  "appConfig": {
+    "version": "1.2.0",
+    "features": ["caching", "logging", "metrics"],
+    "environment": "production"
+  },
+  "updatedAt": "2025-08-25T10:30:00Z"
+}
+
+# Response:
+{
+  "id": "7b1d3e8f-2a4c-4b5d-9e8f-1a2b3c4d5e6f"
 }
 ```
 
@@ -382,16 +398,9 @@ x-api-key: YOUR_API_KEY
 ]
 ```
 
-#### Legacy API Support
+#### Important Note
 
-For backward compatibility, the original key-only endpoints are still supported (using a default container):
-
-```bash
-# Legacy endpoints (uses default container)
-POST /services/dataserve/api/put/config:app
-GET /services/dataserve/api/get/config:app
-DELETE /services/dataserve/api/delete/config:app
-```
+The DataServe API requires containers for all operations. There are no legacy key-only endpoints - all operations must specify a container. This ensures proper data organization and allows for better scalability and data isolation.
 
 ### Filing API
 
@@ -550,13 +559,13 @@ console.log('Cache hit ratio:', analytics.hitRatio);
 console.log('Most accessed keys:', analytics.topKeys);
 ```
 
-#### Container-Based Data Management
+#### Database-Style Data Management
 
 ```javascript
 const dataServe = serviceRegistry.dataServe('memory'); // or 'file', 'simpledb'
 
-// Store data in containers
-await dataServe.put('users', 'user123', {
+// Insert data into containers and get UUIDs back
+const userUuid = await dataServe.add('users', {
   id: 123,
   name: 'John Doe',
   email: 'john@example.com',
@@ -568,21 +577,23 @@ await dataServe.put('users', 'user123', {
   status: 'active',
   joinedAt: '2024-01-15T09:30:00Z'
 });
+// userUuid = "9c8a6a28-f6af-4386-8aba-b8caad5bcfa6"
 
-await dataServe.put('products', 'product456', {
+const productUuid = await dataServe.add('products', {
   id: 456,
   name: 'Premium Widget',
   category: 'electronics',
   price: 199.99,
   inStock: true
 });
+// productUuid = "7b1d3e8f-2a4c-4b5d-9e8f-1a2b3c4d5e6f"
 
-// Retrieve data from containers
-const user = await dataServe.get('users', 'user123');
-const product = await dataServe.get('products', 'product456');
+// Retrieve data using UUIDs
+const user = await dataServe.getByUuid('users', userUuid);
+const product = await dataServe.getByUuid('products', productUuid);
 
-// Delete data from containers
-await dataServe.delete('users', 'user123');
+// Delete data using UUIDs
+await dataServe.remove('users', userUuid);
 
 // JSON Search Operations
 // 1. Custom predicate search - like Array.find()
@@ -609,9 +620,13 @@ const expensiveElectronics = await dataServe.jsonFind('products',
   product => product.category === 'electronics' && product.price > 100
 );
 
-// Legacy compatibility (uses default container)
-await dataServe.putLegacy('config:app', appConfiguration);
-const config = await dataServe.getLegacy('config:app');
+// Create containers explicitly when needed
+try {
+  await dataServe.createContainer('config');
+} catch (err) {
+  // Container may already exist
+}
+const configUuid = await dataServe.add('config', appConfiguration);
 ```
 
 #### File Management
@@ -969,7 +984,7 @@ const cache = serviceRegistry.cache('memory', {
 
 ### DataServe Service
 
-**Purpose**: Container-based persistent data storage with JSON search capabilities
+**Purpose**: Container-based persistent data storage with JSON search capabilities - works like a database
 
 **Providers**:
 - `memory`: In-memory storage with container organization
@@ -978,16 +993,14 @@ const cache = serviceRegistry.cache('memory', {
 
 **Core Methods**:
 ```javascript
-// Container-based operations
-await dataServe.put(container, key, value);        // Store in container
-const value = await dataServe.get(container, key);  // Retrieve from container
-await dataServe.delete(container, key);            // Remove from container
+// Database-style operations with UUIDs
+await dataServe.createContainer(containerName);    // Create container
+const uuid = await dataServe.add(container, data); // Insert data, get UUID
+const data = await dataServe.getByUuid(container, uuid); // Retrieve by UUID
+await dataServe.remove(container, uuid);           // Delete by UUID
 
-// Legacy methods (uses default container)
-await dataServe.putLegacy(key, value);             // Legacy store
-const value = await dataServe.getLegacy(key);       // Legacy retrieve
-await dataServe.deleteLegacy(key);                 // Legacy remove
-
+// Container and search operations
+await dataServe.find(container, searchTerm);       // Find objects containing term
 const status = dataServe.status;                   // Service status
 ```
 
@@ -1580,30 +1593,37 @@ describe('Service Integration', () => {
    ```javascript
    const eventEmitter = serviceRegistry.getEventEmitter();
    
-   // Business logic with container-based data storage
+   // Business logic with database-style data storage
    eventEmitter.on('user-registered', async (userData) => {
-     // Store user in appropriate containers
-     await dataServe.put('users', `user:${userData.id}`, userData);
+     // Store user and get UUID
+     const userUuid = await dataServe.add('users', userData);
      await cache.put(`user:${userData.id}`, userData);
      
      // Store in analytics container for reporting
-     await dataServe.put('analytics', `registration:${Date.now()}`, {
+     const analyticsUuid = await dataServe.add('analytics', {
        userId: userData.id,
+       userUuid: userUuid,
        timestamp: new Date().toISOString(),
        source: userData.source || 'web'
      });
      
-     // Queue welcome email
-     queue.enqueue({ type: 'sendWelcomeEmail', userId: userData.id });
+     // Queue welcome email with UUIDs for reference
+     queue.enqueue({ 
+       type: 'sendWelcomeEmail', 
+       userId: userData.id,
+       userUuid: userUuid
+     });
      measuring.add('user.registration', 1);
    });
    ```
 
 ### Performance Optimization
 
-1. **Cache Strategy with Container-Based Storage**
+1. **Cache Strategy with Database-Style Storage**
    ```javascript
-   // Cache frequently accessed data with persistent fallback
+   // Cache frequently accessed data with UUID-based persistent fallback
+   const userUuidMapping = new Map(); // In practice, store this mapping persistently
+   
    async function getUser(id) {
      const cacheKey = `user:${id}`;
      
@@ -1611,20 +1631,26 @@ describe('Service Integration', () => {
      let user = await cache.get(cacheKey);
      if (user) return user;
      
-     // Fallback to persistent container storage
-     user = await dataServe.get('users', `user:${id}`);
-     if (user) {
-       // Cache for future requests
-       await cache.put(cacheKey, user, 1800); // 30 min
-       return user;
+     // Fallback to persistent storage using UUID
+     const userUuid = userUuidMapping.get(id);
+     if (userUuid) {
+       user = await dataServe.getByUuid('users', userUuid);
+       if (user) {
+         // Cache for future requests
+         await cache.put(cacheKey, user, 1800); // 30 min
+         return user;
+       }
      }
      
      // Final fallback to database
      user = await db.user.findById(id);
      if (user) {
-       // Store in both cache and persistent storage
+       // Store in persistent storage and get UUID
+       const uuid = await dataServe.add('users', user);
+       userUuidMapping.set(id, uuid);
+       
+       // Cache for future requests
        await cache.put(cacheKey, user, 1800);
-       await dataServe.put('users', `user:${id}`, user);
      }
      
      return user;

@@ -66,6 +66,22 @@ class InMemoryDataServeProvider {
   }
 
   /**
+   * Gets a JSON object from the specified container by UUID.
+   * @param {string} containerName The name of the container to retrieve the object from.
+   * @param {string} objectKey The unique UUID of the object to retrieve.
+   * @return {Promise<Object|null>} A promise that resolves to the object or null if not found.
+   */
+  async getByUuid(containerName, objectKey) {
+    if (!this.containers.has(containerName)) {
+      return null;
+    }
+    const obj = this.containers.get(containerName).get(objectKey);
+    if (obj && this.eventEmitter_)
+      this.eventEmitter_.emit('dataserve:getByUuid', { containerName, objectKey, obj });
+    return obj || null;
+  }
+
+  /**
    * Removes a JSON object from the specified container.
    * @param {string} containerName The name of the container to remove the object from.
    * @param {string} objectKey The unique key of the object to remove.

@@ -26,101 +26,76 @@ module.exports = (options, eventEmitter, dataserve) => {
     const authMiddleware = options.authMiddleware;
 
     /**
-     * POST /services/dataserve/api/put/:container/:key
-     * Stores data with the specified key in a container within the data serving system.
+     * POST /services/dataserve/api/:container
+     * Adds data to a container and returns the generated UUID.
      *
      * @param {express.Request} req - Express request object
      * @param {string} req.params.container - The container to store the data in
-     * @param {string} req.params.key - The key to store the data under
      * @param {*} req.body - The data to store
      * @param {express.Response} res - Express response object
      * @return {void}
      */
-    app.post('/services/dataserve/api/put/:container/:key', authMiddleware || ((req, res, next) => next()), (req, res) => {
+    app.post('/services/dataserve/api/:container', authMiddleware || ((req, res, next) => next()), async (req, res) => {
       const container = req.params.container;
-      const key = req.params.key;
-      const value = req.body;
+      const jsonObject = req.body;
+      
+      try {
+        // Ensure container exists
+        await dataserve.createContainer(container);
+      } catch (err) {
+        // Container may already exist, ignore error
+      }
+      
       dataserve
-        .put(container, key, value)
-        .then(() => res.status(200).send('OK'))
+        .add(container, jsonObject)
+        .then((uuid) => res.status(200).json({ id: uuid }))
         .catch((err) => res.status(500).send(err.message));
     });
 
     /**
-     * GET /services/dataserve/api/get/:container/:key
-     * Retrieves data by key from a specific container in the data serving system.
+     * GET /services/dataserve/api/:container/:uuid
+     * Retrieves data by UUID from a specific container in the data serving system.
      *
      * @param {express.Request} req - Express request object
      * @param {string} req.params.container - The container to retrieve data from
-     * @param {string} req.params.key - The key to retrieve data for
+     * @param {string} req.params.uuid - The UUID to retrieve data for
      * @param {express.Response} res - Express response object
      * @return {void}
      */
-    app.get('/services/dataserve/api/get/:container/:key', authMiddleware || ((req, res, next) => next()), (req, res) => {
+    app.get('/services/dataserve/api/:container/:uuid', authMiddleware || ((req, res, next) => next()), (req, res) => {
       const container = req.params.container;
-      const key = req.params.key;
+      const uuid = req.params.uuid;
       dataserve
-        .get(container, key)
+        .getByUuid(container, uuid)
         .then((value) => res.status(200).json(value))
         .catch((err) => res.status(500).send(err.message));
     });
 
     /**
-     * DELETE /services/dataserve/api/delete/:container/:key
-     * Removes data by key from a specific container in the data serving system.
+     * DELETE /services/dataserve/api/:container/:uuid
+     * Removes data by UUID from a specific container in the data serving system.
      *
      * @param {express.Request} req - Express request object
      * @param {string} req.params.container - The container to delete data from
-     * @param {string} req.params.key - The key to delete
+     * @param {string} req.params.uuid - The UUID to delete
      * @param {express.Response} res - Express response object
      * @return {void}
      */
-    app.delete('/services/dataserve/api/delete/:container/:key', authMiddleware || ((req, res, next) => next()), (req, res) => {
+    app.delete('/services/dataserve/api/:container/:uuid', authMiddleware || ((req, res, next) => next()), (req, res) => {
       const container = req.params.container;
-      const key = req.params.key;
+      const uuid = req.params.uuid;
       dataserve
-        .delete(container, key)
-        .then(() => res.status(200).send('OK'))
+        .remove(container, uuid)
+        .then((success) => {
+          if (success) {
+            res.status(200).send('OK');
+          } else {
+            res.status(404).send('Not found');
+          }
+        })
         .catch((err) => res.status(500).send(err.message));
     });
 
-    // Legacy routes for backward compatibility (using default container)
-    /**
-     * POST /services/dataserve/api/put/:key
-     * Legacy endpoint - stores data in the default container.
-     */
-    app.post('/services/dataserve/api/put/:key', authMiddleware || ((req, res, next) => next()), (req, res) => {
-      const key = req.params.key;
-      const value = req.body;
-      dataserve
-        .putLegacy(key, value)
-        .then(() => res.status(200).send('OK'))
-        .catch((err) => res.status(500).send(err.message));
-    });
-
-    /**
-     * GET /services/dataserve/api/get/:key  
-     * Legacy endpoint - retrieves data from the default container.
-     */
-    app.get('/services/dataserve/api/get/:key', authMiddleware || ((req, res, next) => next()), (req, res) => {
-      const key = req.params.key;
-      dataserve
-        .getLegacy(key)
-        .then((value) => res.status(200).json(value))
-        .catch((err) => res.status(500).send(err.message));
-    });
-
-    /**
-     * DELETE /services/dataserve/api/delete/:key
-     * Legacy endpoint - removes data from the default container.
-     */
-    app.delete('/services/dataserve/api/delete/:key', authMiddleware || ((req, res, next) => next()), (req, res) => {
-      const key = req.params.key;
-      dataserve
-        .deleteLegacy(key)
-        .then(() => res.status(200).send('OK'))
-        .catch((err) => res.status(500).send(err.message));
-    });
 
     /**
      * POST /services/dataserve/api/jsonFind/:containerName
