@@ -95,7 +95,7 @@ class WorkerProvider {
           this.eventEmitter_.emit('worker:exit:error', { code });
         if (this.completionCallback_) {
           this.completionCallback_(
-            this.status_,
+            this.status_, 
             `Worker exited with code ${code}`,
           );
         }

@@ -41,8 +41,8 @@ function createApiKeyAuthMiddleware(options = {}, eventEmitter = null) {
 
     // Check if path should be excluded from authentication
     const shouldExclude = excludePaths.some(pattern => {
-      // Replace * with [^/]+ for more precise matching (one or more non-slash characters)
-      const regex = new RegExp('^' + pattern.replace(/\*/g, '[^/]+') + '$');
+      // Replace * with .* for matching any characters including slashes
+      const regex = new RegExp('^' + pattern.replace(/\*/g, '.*') + '$');
       return regex.test(req.path);
     });
 

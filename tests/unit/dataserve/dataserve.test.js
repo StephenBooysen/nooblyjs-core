@@ -2,29 +2,30 @@
  * @fileoverview Unit tests for the DataServeService and its providers.
  */
 
+// Mock the AWS SimpleDB client FIRST before any imports
+const mockPromise = jest.fn();
+const mockSimpleDB = {
+  createDomain: jest.fn().mockReturnValue({ promise: mockPromise }),
+  putAttributes: jest.fn().mockReturnValue({ promise: mockPromise }),
+  deleteAttributes: jest.fn().mockReturnValue({ promise: mockPromise }),
+  select: jest.fn().mockReturnValue({ promise: mockPromise }),
+};
+const mockConfig = {
+  update: jest.fn(),
+};
+const mockSimpleDBConstructor = jest.fn(() => mockSimpleDB);
+
+jest.mock('aws-sdk', () => ({
+  SimpleDB: mockSimpleDBConstructor,
+  config: mockConfig,
+}));
+
+// Now import other modules
 const fs = require('fs').promises;
 const path = require('path');
 const EventEmitter = require('events');
-const createDataserveService = require('../../../src/dataserve');
-
-// Mock the AWS SimpleDB client
-jest.mock('aws-sdk', () => {
-  const mockSimpleDB = {
-    createDomain: jest.fn().mockReturnThis(),
-    putAttributes: jest.fn().mockReturnThis(),
-    deleteAttributes: jest.fn().mockReturnThis(),
-    select: jest.fn().mockReturnThis(),
-    promise: jest.fn(),
-  };
-  return {
-    SimpleDB: jest.fn(() => mockSimpleDB),
-    config: {
-      update: jest.fn(),
-    },
-  };
-});
-
 const AWS = require('aws-sdk');
+const createDataserveService = require('../../../src/dataserve');
 
 describe('DataServeService', () => {
   // Test InMemoryDataRingProvider
@@ -305,8 +306,13 @@ describe('DataServeService', () => {
       jest.spyOn(mockEventEmitter, 'emit');
       
       // Reset AWS mocks before each test
-      AWS.config.update.mockClear();
-      AWS.SimpleDB.mockClear();
+      mockConfig.update.mockClear();
+      mockPromise.mockClear();
+      mockSimpleDBConstructor.mockClear();
+      mockSimpleDB.createDomain.mockClear();
+      mockSimpleDB.putAttributes.mockClear();
+      mockSimpleDB.deleteAttributes.mockClear();
+      mockSimpleDB.select.mockClear();
       
       simpleDbDataRingService = createDataserveService(
         'simpledb',
@@ -325,21 +331,21 @@ describe('DataServeService', () => {
       expect(simpleDbDataRingService.provider).toBeDefined();
       expect(simpleDbDataRingService.provider.sdb).toBeDefined();
       
-      expect(AWS.config.update).toHaveBeenCalledWith({
+      expect(mockConfig.update).toHaveBeenCalledWith({
         region: mockRegion,
         accessKeyId: mockAccessKeyId,
         secretAccessKey: mockSecretAccessKey,
       });
-      expect(AWS.SimpleDB).toHaveBeenCalledTimes(1);
+      expect(mockSimpleDBConstructor).toHaveBeenCalledTimes(1);
     });
 
     it('should create a SimpleDB domain', async () => {
-      mockSdbInstance.createDomain().promise.mockResolvedValueOnce({});
+      mockPromise.mockResolvedValueOnce({});
       await simpleDbDataRingService.createContainer(mockDomainName);
       expect(mockSdbInstance.createDomain).toHaveBeenCalledWith({
         DomainName: mockDomainName,
       });
-      expect(mockSdbInstance.createDomain().promise).toHaveBeenCalledTimes(1);
+      expect(mockPromise).toHaveBeenCalledTimes(1);
       expect(mockEventEmitter.emit).toHaveBeenCalledWith(
         'dataserve:createContainer',
         { domainName: mockDomainName },
@@ -347,7 +353,7 @@ describe('DataServeService', () => {
     });
 
     it('should add a JSON object to a SimpleDB domain', async () => {
-      mockSdbInstance.putAttributes().promise.mockResolvedValueOnce({});
+      mockPromise.mockResolvedValueOnce({});
       const jsonObject = { name: 'TestItem', value: 123 };
       const itemName = await simpleDbDataRingService.add(
         mockDomainName,
@@ -362,7 +368,7 @@ describe('DataServeService', () => {
           { Name: 'value', Value: '123', Replace: true },
         ],
       });
-      expect(mockSdbInstance.putAttributes().promise).toHaveBeenCalledTimes(1);
+      expect(mockPromise).toHaveBeenCalledTimes(1);
       expect(typeof itemName).toBe('string');
       expect(mockEventEmitter.emit).toHaveBeenCalledWith('dataserve:add', {
         domainName: mockDomainName,
@@ -372,7 +378,7 @@ describe('DataServeService', () => {
     });
 
     it('should remove a JSON object from a SimpleDB domain', async () => {
-      mockSdbInstance.deleteAttributes().promise.mockResolvedValueOnce({});
+      mockPromise.mockResolvedValueOnce({});
       const objectKey = 'some-item-key';
       const result = await simpleDbDataRingService.remove(
         mockDomainName,
@@ -383,9 +389,7 @@ describe('DataServeService', () => {
         DomainName: mockDomainName,
         ItemName: objectKey,
       });
-      expect(mockSdbInstance.deleteAttributes().promise).toHaveBeenCalledTimes(
-        1,
-      );
+      expect(mockPromise).toHaveBeenCalledTimes(1);
       expect(result).toBe(true);
       expect(mockEventEmitter.emit).toHaveBeenCalledWith('dataserve:remove', {
         domainName: mockDomainName,
@@ -394,9 +398,7 @@ describe('DataServeService', () => {
     });
 
     it('should return false if deletion fails', async () => {
-      mockSdbInstance
-        .deleteAttributes()
-        .promise.mockRejectedValueOnce(new Error('Deletion failed'));
+      mockPromise.mockRejectedValueOnce(new Error('Deletion failed'));
       const objectKey = 'some-item-key';
       const result = await simpleDbDataRingService.remove(
         mockDomainName,
@@ -426,9 +428,7 @@ describe('DataServeService', () => {
           ],
         },
       ];
-      mockSdbInstance
-        .select()
-        .promise.mockResolvedValueOnce({ Items: sdbItems });
+      mockPromise.mockResolvedValueOnce({ Items: sdbItems });
 
       const searchTerm = 'Electronics';
       const results = await simpleDbDataRingService.find(
@@ -454,7 +454,7 @@ describe('DataServeService', () => {
     });
 
     it('should return an empty array if no items are found', async () => {
-      mockSdbInstance.select().promise.mockResolvedValueOnce({ Items: [] });
+      mockPromise.mockResolvedValueOnce({ Items: [] });
       const searchTerm = 'NonExistent';
       const results = await simpleDbDataRingService.find(
         mockDomainName,
@@ -469,7 +469,7 @@ describe('DataServeService', () => {
     });
 
     it('should return an empty array if Items is undefined', async () => {
-      mockSdbInstance.select().promise.mockResolvedValueOnce({});
+      mockPromise.mockResolvedValueOnce({});
       const searchTerm = 'NonExistent';
       const results = await simpleDbDataRingService.find(
         mockDomainName,

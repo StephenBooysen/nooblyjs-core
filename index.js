@@ -267,7 +267,6 @@ class ServiceRegistry {
   reset() {
     this.services.clear();
     this.initialized = false;
-    this.eventEmitter.removeAllListeners();
   }
 }
 

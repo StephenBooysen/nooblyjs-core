@@ -2,50 +2,43 @@
  * @fileoverview Unit tests for the FilingService and its providers.
  */
 
-const createFilingService = require('../../src/filing');
+// Mock the ftp client FIRST before any imports  
+let listeners = {};
+const mockFtpClient = {
+  on: jest.fn((event, cb) => {
+    listeners[event] = cb;
+  }),
+  once: jest.fn((event, cb) => {
+    listeners[event] = cb;
+  }),
+  connect: jest.fn((options) => {
+    setImmediate(() => {
+      if (listeners.ready) listeners.ready();
+    });
+  }),
+  end: jest.fn(() => {
+    setImmediate(() => {
+      if (listeners.end) listeners.end();
+    });
+  }),
+  put: jest.fn((buffer, filePath, callback) => callback(null)),
+  get: jest.fn((filePath, callback) => {
+    const mockStream = new (require('stream').Readable)();
+    mockStream.push('mock file content');
+    mockStream.push(null);
+    callback(null, mockStream);
+  }),
+  delete: jest.fn((filePath, callback) => callback(null)),
+  list: jest.fn((dirPath, callback) =>
+    callback(null, [{ name: 'file1.txt' }, { name: 'file2.txt' }]),
+  ),
+};
 
-const AWS = require('aws-sdk');
-const fs = require('fs').promises;
-const path = require('path');
-
-// Mock the ftp client for FtpFilingProvider tests
 jest.mock('ftp', () => {
-  return jest.fn().mockImplementation(() => {
-    const listeners = {};
-    const mockClient = {
-      on: jest.fn((event, cb) => {
-        listeners[event] = cb;
-      }),
-      once: jest.fn((event, cb) => {
-        listeners[event] = cb;
-      }),
-      connect: jest.fn((options) => {
-        setImmediate(() => {
-          if (listeners.ready) listeners.ready();
-        });
-      }),
-      end: jest.fn(() => {
-        setImmediate(() => {
-          if (listeners.end) listeners.end();
-        });
-      }),
-      put: jest.fn((buffer, filePath, callback) => callback(null)),
-      get: jest.fn((filePath, callback) => {
-        const mockStream = new (require('stream').Readable)();
-        mockStream.push('mock file content');
-        mockStream.push(null);
-        callback(null, mockStream);
-      }),
-      delete: jest.fn((filePath, callback) => callback(null)),
-      list: jest.fn((dirPath, callback) =>
-        callback(null, [{ name: 'file1.txt' }, { name: 'file2.txt' }]),
-      ),
-    };
-    return mockClient;
-  });
+  return jest.fn().mockImplementation(() => mockFtpClient);
 });
 
-// Mock the AWS S3 client
+// Mock the AWS S3 client BEFORE imports
 const mockS3 = {
   upload: jest.fn().mockReturnValue({
     promise: jest.fn(),
@@ -70,6 +63,12 @@ jest.mock('aws-sdk', () => ({
   config: mockConfig,
 }));
 
+// Now import other modules
+const createFilingService = require('../../../src/filing');
+const AWS = require('aws-sdk');
+const fs = require('fs').promises;
+const path = require('path');
+
 describe('FilingService', () => {
   // Test LocalFilingProvider
   describe('LocalFilingProvider', () => {
@@ -87,7 +86,7 @@ describe('FilingService', () => {
     let localFilingService;
 
     beforeEach(() => {
-      localFilingService = createFilingService('local');
+      localFilingService = createFilingService('local', {});
     });
 
     afterEach(async () => {
@@ -109,7 +108,7 @@ describe('FilingService', () => {
     it('should read a file locally', async () => {
       const content = 'Read this content.';
       await fs.writeFile(testFilePath, content);
-      const readContent = await localFilingService.read(testFilePath);
+      const readContent = await localFilingService.read(testFilePath, 'utf8');
       expect(readContent).toBe(content);
     });
 
@@ -138,15 +137,14 @@ describe('FilingService', () => {
   // Test FtpFilingProvider
   describe('FtpFilingProvider', () => {
     let ftpFilingService;
-    let mockFtpClient;
 
     beforeEach(() => {
       // Clear mock and re-initialize for each test
-      require('ftp').mockClear();
+      jest.clearAllMocks();
+      listeners = {};
       ftpFilingService = createFilingService('ftp', {
         connectionString: 'ftp://localhost',
       });
-      mockFtpClient = require('ftp').mock.instances[0];
     });
 
     it('should connect to FTP server', async () => {
@@ -168,7 +166,7 @@ describe('FilingService', () => {
 
     it('should read a file from FTP server', async () => {
       const filePath = '/remote/test.txt';
-      const content = await ftpFilingService.read(filePath);
+      const content = await ftpFilingService.read(filePath, 'utf8');
       expect(mockFtpClient.get).toHaveBeenCalledWith(
         filePath,
         expect.any(Function),
@@ -219,7 +217,7 @@ describe('FilingService', () => {
 
     beforeEach(() => {
       jest.clearAllMocks();
-      s3FilingService = require('../../src/filing')('s3', {
+      s3FilingService = require('../../../src/filing')('s3', {
         bucketName: mockBucketName,
         region: mockRegion,
         accessKeyId: mockAccessKeyId,
@@ -257,7 +255,7 @@ describe('FilingService', () => {
       mockS3
         .getObject()
         .promise.mockResolvedValueOnce({ Body: Buffer.from(content) });
-      const result = await s3FilingService.read(filePath);
+      const result = await s3FilingService.read(filePath, 'utf8');
       expect(mockS3.getObject).toHaveBeenCalledWith({
         Bucket: mockBucketName,
         Key: filePath,

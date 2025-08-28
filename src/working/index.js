@@ -12,7 +12,7 @@
 
 // TODO - we need to work on how data is passed to the script
 
-const WorkerProvider = require('./providers/workingProvider');
+const WorkerProvider = require('./providers/working');
 const Routes = require('./routes');
 const Views = require('./views');
 

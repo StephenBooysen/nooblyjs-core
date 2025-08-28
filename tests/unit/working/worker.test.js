@@ -22,21 +22,24 @@ describe('WorkerProvider', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.resetModules(); // Reset module registry before each test
     mockEventEmitter = new EventEmitter();
     jest.spyOn(mockEventEmitter, 'emit');
-    // Re-import the module and its dependencies after resetting
-    getWorkerInstance = require('../../src/working');
+    // Import the module (keep using cached version for stability)
+    if (!getWorkerInstance) {
+      getWorkerInstance = require('../../../src/working');
+    }
     workerInstance = getWorkerInstance('default', {}, mockEventEmitter);
     MockWorker = require('worker_threads').Worker;
   });
 
   afterEach(() => {
-    workerInstance.stop(); // Ensure worker is stopped after each test
+    if (workerInstance && workerInstance.stop) {
+      workerInstance.stop(); // Ensure worker is stopped after each test
+    }
   });
 
   it('should be a singleton', () => {
-    const anotherInstance = getWorkerInstance(mockEventEmitter);
+    const anotherInstance = getWorkerInstance('default', {}, mockEventEmitter);
     expect(workerInstance).toBe(anotherInstance);
   });
 
@@ -47,7 +50,7 @@ describe('WorkerProvider', () => {
     );
     const mockCallback = jest.fn();
 
-    workerInstance.start(mockScriptPath, mockCallback);
+    workerInstance.start(mockScriptPath, {}, mockCallback);
 
     expect(MockWorker).toHaveBeenCalledTimes(1);
     const workerInstanceMock = MockWorker.mock.results[0].value;
@@ -79,7 +82,7 @@ describe('WorkerProvider', () => {
       '../../src/working/exampleTask.js',
     );
     const mockCallback = jest.fn();
-    workerInstance.start(mockScriptPath, mockCallback);
+    workerInstance.start(mockScriptPath, {}, mockCallback);
 
     const workerInstanceMock = MockWorker.mock.results[0].value;
     const messageHandler = workerInstanceMock.on.mock.calls[0][1];
@@ -110,7 +113,7 @@ describe('WorkerProvider', () => {
       '../../src/working/exampleTask.js',
     );
     const mockCallback = jest.fn();
-    workerInstance.start(mockScriptPath, mockCallback);
+    workerInstance.start(mockScriptPath, {}, mockCallback);
 
     const workerInstanceMock = MockWorker.mock.results[0].value;
     const errorHandler = workerInstanceMock.on.mock.calls[1][1];
@@ -132,7 +135,7 @@ describe('WorkerProvider', () => {
       '../../src/working/exampleTask.js',
     );
     const mockCallback = jest.fn();
-    workerInstance.start(mockScriptPath, mockCallback);
+    workerInstance.start(mockScriptPath, {}, mockCallback);
 
     const workerInstanceMock = MockWorker.mock.results[0].value;
     const exitHandler = workerInstanceMock.on.mock.calls[2][1];
@@ -155,9 +158,9 @@ describe('WorkerProvider', () => {
       __dirname,
       '../../src/working/exampleTask.js',
     );
-    workerInstance.start(mockScriptPath);
+    workerInstance.start(mockScriptPath, {});
     mockEventEmitter.emit.mockClear();
-    workerInstance.start(mockScriptPath); // Try to start again
+    workerInstance.start(mockScriptPath, {}); // Try to start again
 
     expect(MockWorker).toHaveBeenCalledTimes(1); // Should only be called once
     expect(mockEventEmitter.emit).toHaveBeenCalledWith('worker:start:error', {
@@ -168,7 +171,7 @@ describe('WorkerProvider', () => {
 
   it('should stop the worker', async () => {
     const mockScriptPath = path.resolve(__dirname, './exampleTask.js');
-    workerInstance.start(mockScriptPath);
+    workerInstance.start(mockScriptPath, {});
 
     const workerInstanceMock = MockWorker.mock.results[0].value;
     mockEventEmitter.emit.mockClear();
