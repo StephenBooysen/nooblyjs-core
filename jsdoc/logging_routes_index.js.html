@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: logging/routes/index.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: logging/routes/index.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * @fileoverview Logging API routes for Express.js application.
+ * Provides RESTful endpoints for structured logging operations including
+ * info, warning, error level logging, and service status monitoring.
+ *
+ * @author NooblyJS Core Team
+ * @version 1.0.14
+ * @since 1.0.0
+ */
+
+'use strict';
+
+/**
+ * Configures and registers logging routes with the Express application.
+ * Sets up endpoints for different log levels and service monitoring.
+ *
+ * @param {Object} options - Configuration options object
+ * @param {Object} options.express-app - The Express application instance
+ * @param {Object} eventEmitter - Event emitter for logging and notifications
+ * @param {Object} logger - The logging provider instance with level methods
+ * @return {void}
+ */
+module.exports = (options, eventEmitter, logger) => {
+  if (options['express-app'] &amp;&amp; logger) {
+    const app = options['express-app'];
+
+    /**
+     * POST /services/logging/api/info
+     * Logs an informational message through the logging system.
+     *
+     * @param {express.Request} req - Express request object
+     * @param {*} req.body - The message to log at info level
+     * @param {express.Response} res - Express response object
+     * @return {void}
+     */
+    app.post('/services/logging/api/info', (req, res) => {
+      const message = req.body;
+      if (message) {
+        logger
+          .info(message)
+          .then(() => res.status(200).send('OK'))
+          .catch((err) => res.status(500).send(err.message));
+      } else {
+        res.status(400).send('Bad Request: Missing message');
+      }
+    });
+
+    /**
+     * POST /services/logging/api/warn
+     * Logs a warning message through the logging system.
+     *
+     * @param {express.Request} req - Express request object
+     * @param {*} req.body - The message to log at warning level
+     * @param {express.Response} res - Express response object
+     * @return {void}
+     */
+    app.post('/services/logging/api/warn', (req, res) => {
+      const message = req.body;
+      if (message) {
+        logger
+          .warn(message)
+          .then(() => res.status(200).send('OK'))
+          .catch((err) => res.status(500).send(err.message));
+      } else {
+        res.status(400).send('Bad Request: Missing message');
+      }
+    });
+
+    /**
+     * POST /services/logging/api/error
+     * Logs an error message through the logging system.
+     *
+     * @param {express.Request} req - Express request object
+     * @param {*} req.body - The message to log at error level
+     * @param {express.Response} res - Express response object
+     * @return {void}
+     */
+    app.post('/services/logging/api/error', (req, res) => {
+      const message = req.body;
+      if (message) {
+        logger
+          .error(message)
+          .then(() => res.status(200).send('OK'))
+          .catch((err) => res.status(500).send(err.message));
+      } else {
+        res.status(400).send('Bad Request: Missing message');
+      }
+    });
+
+    /**
+     * GET /services/logging/api/status
+     * Returns the operational status of the logging service.
+     *
+     * @param {express.Request} req - Express request object
+     * @param {express.Response} res - Express response object
+     * @return {void}
+     */
+    app.get('/services/logging/api/status', (req, res) => {
+      eventEmitter.emit('api-logging-status', 'logging api running');
+      res.status(200).json('logging api running');
+    });
+  }
+};
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-CachingViews.html">CachingViews</a></li><li><a href="module-DataserveViews.html">DataserveViews</a></li><li><a href="module-FilingViews.html">FilingViews</a></li><li><a href="module-LoggingViews.html">LoggingViews</a></li><li><a href="module-MeasuringViews.html">MeasuringViews</a></li><li><a href="module-NotifyingViews.html">NotifyingViews</a></li><li><a href="module-QueueingViews.html">QueueingViews</a></li><li><a href="module-SchedulingViews.html">SchedulingViews</a></li><li><a href="module-SearchingViews.html">SearchingViews</a></li><li><a href="module-WorkflowViews.html">WorkflowViews</a></li><li><a href="module-WorkingViews.html">WorkingViews</a></li></ul><h3>Classes</h3><ul><li><a href="Cache.html">Cache</a></li><li><a href="CacheMemcached.html">CacheMemcached</a></li><li><a href="CacheRedis.html">CacheRedis</a></li><li><a href="CommitQueue.html">CommitQueue</a></li><li><a href="FileDataRingProvider.html">FileDataRingProvider</a></li><li><a href="FilingService.html">FilingService</a></li><li><a href="FtpFilingProvider.html">FtpFilingProvider</a></li><li><a href="GitFilingProvider.html">GitFilingProvider</a></li><li><a href="InMemoryDataServeProvider.html">InMemoryDataServeProvider</a></li><li><a href="InMemoryQueue.html">InMemoryQueue</a></li><li><a href="LocalFilingProvider.html">LocalFilingProvider</a></li><li><a href="LocalWorkingStore.html">LocalWorkingStore</a></li><li><a href="MeasuringService.html">MeasuringService</a></li><li><a href="MetadataStore.html">MetadataStore</a></li><li><a href="NotificationService.html">NotificationService</a></li><li><a href="S3FilingProvider.html">S3FilingProvider</a></li><li><a href="SchedulerProvider.html">SchedulerProvider</a></li><li><a href="SearchService.html">SearchService</a></li><li><a href="SimpleDbDataRingProvider.html">SimpleDbDataRingProvider</a></li><li><a href="SyncFilingProvider.html">SyncFilingProvider</a></li><li><a href="WorkerProvider.html">WorkerProvider</a></li><li><a href="WorkflowService.html">WorkflowService</a></li><li><a href="logging.html">logging</a></li><li><a href="loggingFile.html">loggingFile</a></li></ul><h3>Global</h3><ul><li><a href="global.html#FileStates">FileStates</a></li><li><a href="global.html#createApiKeyAuthMiddleware">createApiKeyAuthMiddleware</a></li><li><a href="global.html#createCache">createCache</a></li><li><a href="global.html#createDataserveService">createDataserveService</a></li><li><a href="global.html#createFilingService">createFilingService</a></li><li><a href="global.html#createLogger">createLogger</a></li><li><a href="global.html#createMeasuringService">createMeasuringService</a></li><li><a href="global.html#createNotificationService">createNotificationService</a></li><li><a href="global.html#createQueue">createQueue</a></li><li><a href="global.html#createSearchService">createSearchService</a></li><li><a href="global.html#createWorkflowService">createWorkflowService</a></li><li><a href="global.html#generateApiKey">generateApiKey</a></li><li><a href="global.html#getNestedValue">getNestedValue</a></li><li><a href="global.html#getSchedulerInstance">getSchedulerInstance</a></li><li><a href="global.html#getWorkerInstance">getWorkerInstance</a></li><li><a href="global.html#instance">instance</a></li><li><a href="global.html#isValidApiKeyFormat">isValidApiKeyFormat</a></li><li><a href="global.html#runStep">runStep</a></li><li><a href="global.html#status">status</a></li><li><a href="global.html#updateStatus">updateStatus</a></li><li><a href="global.html#userScript">userScript</a></li><li><a href="global.html#userScriptPath">userScriptPath</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Sat Aug 30 2025 08:13:29 GMT+0200 (South Africa Standard Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

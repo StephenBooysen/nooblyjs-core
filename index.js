@@ -73,6 +73,11 @@ class ServiceRegistry {
       res.sendFile(path.join(__dirname, 'src/views', 'index.html'));
     });
 
+    // Serve the service registry landing page
+    this.expressApp.get('/services/documentation', (req, res) => {
+      res.sendFile(path.join(__dirname, './jsdoc', 'index.html'));
+    });
+
     this.initialized = true;
     return this;
   }

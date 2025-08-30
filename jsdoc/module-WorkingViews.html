@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Module: WorkingViews</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Module: WorkingViews</h1>
+
+    
+
+
+
+
+<section>
+
+<header>
+    
+        
+            
+        
+            
+        
+    
+</header>
+
+<article>
+    <div class="container-overview">
+    
+        
+            <div class="description">Working service views module for noobly-core framework.
+This module provides Express.js view registration and static file serving 
+capabilities for the working service. It registers static routes to serve
+working-related view files and templates through the Express application.</div>
+        
+
+        
+            
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-version">Version:</dt>
+    <dd class="tag-version"><ul class="dummy"><li>1.0.14</li></ul></dd>
+    
+
+    
+    <dt class="tag-since">Since:</dt>
+    <dd class="tag-since"><ul class="dummy"><li>1.0.0</li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-author">Author:</dt>
+    <dd class="tag-author">
+        <ul>
+            <li>NooblyJS</li>
+        </ul>
+    </dd>
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="working_views_index.js.html">working/views/index.js</a>, <a href="working_views_index.js.html#line1">line 1</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="module:WorkingViews"><span class="type-signature"></span>(require("WorkingViews"))<span class="signature">(options, eventEmitter, worker)</span><span class="type-signature"> &rarr; {void}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Registers working service views with the Express application.
+Sets up static file serving for working-related view templates and assets.
+This function integrates the working service views into the main Express
+application by mounting static file middleware at the '/services/working' route.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>options</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Configuration options for the views setup
+                <h6>Properties</h6>
+                
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>express-app</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">express.Application</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The Express application instance</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+            </td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>eventEmitter</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Event emitter instance for inter-service communication</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>worker</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The working service provider instance</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="working_views_index.js.html">working/views/index.js</a>, <a href="working_views_index.js.html#line40">line 40</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">void</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+    <h5>Example</h5>
+    
+    <pre class="prettyprint"><code>const express = require('express');
+const app = express();
+const workingViews = require('./src/working/views');
+
+workingViews({
+  'express-app': app
+}, eventEmitter, workingService);</code></pre>
+
+
+
+        
+    
+    </div>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</article>
+
+</section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-CachingViews.html">CachingViews</a></li><li><a href="module-DataserveViews.html">DataserveViews</a></li><li><a href="module-FilingViews.html">FilingViews</a></li><li><a href="module-LoggingViews.html">LoggingViews</a></li><li><a href="module-MeasuringViews.html">MeasuringViews</a></li><li><a href="module-NotifyingViews.html">NotifyingViews</a></li><li><a href="module-QueueingViews.html">QueueingViews</a></li><li><a href="module-SchedulingViews.html">SchedulingViews</a></li><li><a href="module-SearchingViews.html">SearchingViews</a></li><li><a href="module-WorkflowViews.html">WorkflowViews</a></li><li><a href="module-WorkingViews.html">WorkingViews</a></li></ul><h3>Classes</h3><ul><li><a href="Cache.html">Cache</a></li><li><a href="CacheMemcached.html">CacheMemcached</a></li><li><a href="CacheRedis.html">CacheRedis</a></li><li><a href="CommitQueue.html">CommitQueue</a></li><li><a href="FileDataRingProvider.html">FileDataRingProvider</a></li><li><a href="FilingService.html">FilingService</a></li><li><a href="FtpFilingProvider.html">FtpFilingProvider</a></li><li><a href="GitFilingProvider.html">GitFilingProvider</a></li><li><a href="InMemoryDataServeProvider.html">InMemoryDataServeProvider</a></li><li><a href="InMemoryQueue.html">InMemoryQueue</a></li><li><a href="LocalFilingProvider.html">LocalFilingProvider</a></li><li><a href="LocalWorkingStore.html">LocalWorkingStore</a></li><li><a href="MeasuringService.html">MeasuringService</a></li><li><a href="MetadataStore.html">MetadataStore</a></li><li><a href="NotificationService.html">NotificationService</a></li><li><a href="S3FilingProvider.html">S3FilingProvider</a></li><li><a href="SchedulerProvider.html">SchedulerProvider</a></li><li><a href="SearchService.html">SearchService</a></li><li><a href="SimpleDbDataRingProvider.html">SimpleDbDataRingProvider</a></li><li><a href="SyncFilingProvider.html">SyncFilingProvider</a></li><li><a href="WorkerProvider.html">WorkerProvider</a></li><li><a href="WorkflowService.html">WorkflowService</a></li><li><a href="logging.html">logging</a></li><li><a href="loggingFile.html">loggingFile</a></li></ul><h3>Global</h3><ul><li><a href="global.html#FileStates">FileStates</a></li><li><a href="global.html#createApiKeyAuthMiddleware">createApiKeyAuthMiddleware</a></li><li><a href="global.html#createCache">createCache</a></li><li><a href="global.html#createDataserveService">createDataserveService</a></li><li><a href="global.html#createFilingService">createFilingService</a></li><li><a href="global.html#createLogger">createLogger</a></li><li><a href="global.html#createMeasuringService">createMeasuringService</a></li><li><a href="global.html#createNotificationService">createNotificationService</a></li><li><a href="global.html#createQueue">createQueue</a></li><li><a href="global.html#createSearchService">createSearchService</a></li><li><a href="global.html#createWorkflowService">createWorkflowService</a></li><li><a href="global.html#generateApiKey">generateApiKey</a></li><li><a href="global.html#getNestedValue">getNestedValue</a></li><li><a href="global.html#getSchedulerInstance">getSchedulerInstance</a></li><li><a href="global.html#getWorkerInstance">getWorkerInstance</a></li><li><a href="global.html#instance">instance</a></li><li><a href="global.html#isValidApiKeyFormat">isValidApiKeyFormat</a></li><li><a href="global.html#runStep">runStep</a></li><li><a href="global.html#status">status</a></li><li><a href="global.html#updateStatus">updateStatus</a></li><li><a href="global.html#userScript">userScript</a></li><li><a href="global.html#userScriptPath">userScriptPath</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Sat Aug 30 2025 08:13:29 GMT+0200 (South Africa Standard Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

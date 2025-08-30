@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: working/providers/working.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: working/providers/working.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * @fileoverview Provides a singleton worker thread for executing tasks
+ * with lifecycle management, status tracking, and event emission support.
+ * @author NooblyJS Team
+ * @version 1.0.14
+ * @since 1.0.0
+ */
+
+'use strict';
+
+const { Worker } = require('worker_threads');
+const path = require('path');
+
+/**
+ * A class that manages a single worker thread for executing tasks.
+ * Provides methods for starting, stopping, and monitoring worker status.
+ * @class
+ */
+class WorkerProvider {
+  /**
+   * Initializes the WorkerProvider with worker thread management.
+   * @param {Object=} options Configuration options for the worker.
+   * @param {EventEmitter=} eventEmitter Optional event emitter for worker events.
+   */
+  constructor(options, eventEmitter) {
+    /** @private {?Worker} */
+    this.worker_ = null;
+    /** @private {string} */
+    this.status_ = 'idle';
+    /** @private {?Function} */
+    this.completionCallback_ = null;
+    /** @private @const {EventEmitter} */
+    this.eventEmitter_ = eventEmitter;
+  }
+
+  /**
+   * Starts the worker thread and executes the provided script.
+   * @param {string} scriptPath The absolute path to the script to execute in the worker.
+   * @param {Object} data The data to be passed to the worker thread.
+   * @param {Function=} completionCallback Optional callback function to be called on completion.
+   * @return {Promise&lt;void>} A promise that resolves when the worker is started.
+   * @throws {Error} When a worker is already running.
+   */
+  async start(scriptPath, data, completionCallback) {
+    if (this.worker_) {
+      if (this.eventEmitter_)
+        this.eventEmitter_.emit('worker:start:error', {
+          scriptPath,
+          error: 'Worker already running.',
+        });
+      return;
+    }
+    this.completionCallback_ = completionCallback;
+
+    this.worker_ = new Worker(path.resolve(__dirname, './workerScript.js'));
+
+    if (this.eventEmitter_)
+      this.eventEmitter_.emit('worker:start', { scriptPath , data });
+
+    this.worker_.on('message', (message) => {
+      if (message.type === 'status') {
+        this.status_ = message.status;
+        if (this.eventEmitter_)
+          this.eventEmitter_.emit('worker:status', {
+            status: this.status_,
+            data: message.data,
+          });
+        if (this.status_ === 'completed' || this.status_ === 'error') {
+          if (this.completionCallback_) {
+            this.completionCallback_(this.status_, message.data);
+          }
+          this.stop(); // Automatically stop worker after completion or error
+        }
+      } else if (message.type === 'currentStatus') {
+        // This is a response to a getStatus call, not handled here directly
+      }
+    });
+
+    this.worker_.on('error', (err) => {
+      this.status_ = 'error';
+      console.error('Worker error:', err);
+      if (this.eventEmitter_)
+        this.eventEmitter_.emit('worker:error', { error: err.message });
+      if (this.completionCallback_) {
+        this.completionCallback_(this.status_, err.message);
+      }
+      this.stop();
+    });
+
+    this.worker_.on('exit', (code) => {
+      if (code !== 0 &amp;&amp; this.status_ !== 'error') {
+        this.status_ = 'error';
+        console.error(`Worker stopped with exit code ${code}`);
+        if (this.eventEmitter_)
+          this.eventEmitter_.emit('worker:exit:error', { code });
+        if (this.completionCallback_) {
+          this.completionCallback_(
+            this.status_, 
+            `Worker exited with code ${code}`,
+          );
+        }
+      }
+      if (this.eventEmitter_) this.eventEmitter_.emit('worker:exit', { code });
+      this.worker_ = null;
+    });
+
+    // send the data to the worker
+    //this.worker_.postMessage(data);
+    this.worker_.postMessage({
+      type: 'start',
+      scriptPath: scriptPath,
+      data: data,
+    });
+  }
+
+  /**
+   * Stops the worker thread and resets the status.
+   * @return {Promise&lt;void>} A promise that resolves when the worker is stopped.
+   */
+  async stop() {
+    if (this.worker_) {
+      this.worker_.terminate();
+      this.worker_ = null;
+      this.status_ = 'idle';
+      if (this.eventEmitter_) this.eventEmitter_.emit('worker:stop');
+    }
+  }
+
+  /**
+   * Gets the current status of the worker.
+   * @return {Promise&lt;string>} A promise that resolves to the current status of the worker.
+   */
+  async getStatus() {
+    return this.status_;
+  }
+}
+
+module.exports = WorkerProvider;
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-CachingViews.html">CachingViews</a></li><li><a href="module-DataserveViews.html">DataserveViews</a></li><li><a href="module-FilingViews.html">FilingViews</a></li><li><a href="module-LoggingViews.html">LoggingViews</a></li><li><a href="module-MeasuringViews.html">MeasuringViews</a></li><li><a href="module-NotifyingViews.html">NotifyingViews</a></li><li><a href="module-QueueingViews.html">QueueingViews</a></li><li><a href="module-SchedulingViews.html">SchedulingViews</a></li><li><a href="module-SearchingViews.html">SearchingViews</a></li><li><a href="module-WorkflowViews.html">WorkflowViews</a></li><li><a href="module-WorkingViews.html">WorkingViews</a></li></ul><h3>Classes</h3><ul><li><a href="Cache.html">Cache</a></li><li><a href="CacheMemcached.html">CacheMemcached</a></li><li><a href="CacheRedis.html">CacheRedis</a></li><li><a href="CommitQueue.html">CommitQueue</a></li><li><a href="FileDataRingProvider.html">FileDataRingProvider</a></li><li><a href="FilingService.html">FilingService</a></li><li><a href="FtpFilingProvider.html">FtpFilingProvider</a></li><li><a href="GitFilingProvider.html">GitFilingProvider</a></li><li><a href="InMemoryDataServeProvider.html">InMemoryDataServeProvider</a></li><li><a href="InMemoryQueue.html">InMemoryQueue</a></li><li><a href="LocalFilingProvider.html">LocalFilingProvider</a></li><li><a href="LocalWorkingStore.html">LocalWorkingStore</a></li><li><a href="MeasuringService.html">MeasuringService</a></li><li><a href="MetadataStore.html">MetadataStore</a></li><li><a href="NotificationService.html">NotificationService</a></li><li><a href="S3FilingProvider.html">S3FilingProvider</a></li><li><a href="SchedulerProvider.html">SchedulerProvider</a></li><li><a href="SearchService.html">SearchService</a></li><li><a href="SimpleDbDataRingProvider.html">SimpleDbDataRingProvider</a></li><li><a href="SyncFilingProvider.html">SyncFilingProvider</a></li><li><a href="WorkerProvider.html">WorkerProvider</a></li><li><a href="WorkflowService.html">WorkflowService</a></li><li><a href="logging.html">logging</a></li><li><a href="loggingFile.html">loggingFile</a></li></ul><h3>Global</h3><ul><li><a href="global.html#FileStates">FileStates</a></li><li><a href="global.html#createApiKeyAuthMiddleware">createApiKeyAuthMiddleware</a></li><li><a href="global.html#createCache">createCache</a></li><li><a href="global.html#createDataserveService">createDataserveService</a></li><li><a href="global.html#createFilingService">createFilingService</a></li><li><a href="global.html#createLogger">createLogger</a></li><li><a href="global.html#createMeasuringService">createMeasuringService</a></li><li><a href="global.html#createNotificationService">createNotificationService</a></li><li><a href="global.html#createQueue">createQueue</a></li><li><a href="global.html#createSearchService">createSearchService</a></li><li><a href="global.html#createWorkflowService">createWorkflowService</a></li><li><a href="global.html#generateApiKey">generateApiKey</a></li><li><a href="global.html#getNestedValue">getNestedValue</a></li><li><a href="global.html#getSchedulerInstance">getSchedulerInstance</a></li><li><a href="global.html#getWorkerInstance">getWorkerInstance</a></li><li><a href="global.html#instance">instance</a></li><li><a href="global.html#isValidApiKeyFormat">isValidApiKeyFormat</a></li><li><a href="global.html#runStep">runStep</a></li><li><a href="global.html#status">status</a></li><li><a href="global.html#updateStatus">updateStatus</a></li><li><a href="global.html#userScript">userScript</a></li><li><a href="global.html#userScriptPath">userScriptPath</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Sat Aug 30 2025 08:13:29 GMT+0200 (South Africa Standard Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

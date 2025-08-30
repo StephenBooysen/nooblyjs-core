@@ -6,7 +6,7 @@
   },
   "opts": {
     "encoding": "utf8",
-    "destination": "./jsdocs/",
+    "destination": "./jsdoc/",
     "recurse": true,
     "verbose": true
   },

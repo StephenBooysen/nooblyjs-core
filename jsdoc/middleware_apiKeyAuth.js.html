@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: middleware/apiKeyAuth.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: middleware/apiKeyAuth.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * @fileoverview API Key Authentication Middleware
+ * Provides secure API key validation for all NooblyJS service endpoints.
+ * 
+ * @author NooblyJS Core Team
+ * @version 1.0.0
+ * @since 1.2.1
+ */
+
+'use strict';
+
+/**
+ * API Key Authentication Middleware
+ * 
+ * This middleware validates API keys for secure access to service endpoints.
+ * API keys can be provided via:
+ * 1. x-api-key header
+ * 2. api-key header  
+ * 3. Authorization header with "Bearer &lt;api-key>" or "ApiKey &lt;api-key>" format
+ * 4. api_key query parameter
+ * 
+ * @param {Object} options - Configuration options
+ * @param {string[]} options.apiKeys - Array of valid API keys
+ * @param {boolean} options.requireApiKey - Whether API key is required (default: true)
+ * @param {string[]} options.excludePaths - Paths to exclude from API key validation
+ * @param {Object} eventEmitter - Event emitter for logging
+ * @returns {Function} Express middleware function
+ */
+function createApiKeyAuthMiddleware(options = {}, eventEmitter = null) {
+  const {
+    apiKeys = [],
+    requireApiKey = true,
+    excludePaths = ['/services/*/status', '/services/', '/services/*/views/*']
+  } = options;
+
+  return (req, res, next) => {
+    // Skip authentication if not required
+    if (!requireApiKey) {
+      return next();
+    }
+
+    // Check if path should be excluded from authentication
+    const shouldExclude = excludePaths.some(pattern => {
+      // Replace * with .* for matching any characters including slashes
+      const regex = new RegExp('^' + pattern.replace(/\*/g, '.*') + '$');
+      return regex.test(req.path);
+    });
+
+    if (shouldExclude) {
+      return next();
+    }
+
+    // Extract API key from various sources
+    let apiKey = null;
+
+    // 1. Check x-api-key header
+    apiKey = req.headers['x-api-key'];
+
+    // 2. Check api-key header
+    if (!apiKey) {
+      apiKey = req.headers['api-key'];
+    }
+
+    // 3. Check Authorization header
+    if (!apiKey &amp;&amp; req.headers.authorization) {
+      const authHeader = req.headers.authorization;
+      
+      // Bearer token format
+      if (authHeader.startsWith('Bearer ')) {
+        apiKey = authHeader.substring(7);
+      }
+      
+      // ApiKey format
+      if (authHeader.startsWith('ApiKey ')) {
+        apiKey = authHeader.substring(7);
+      }
+    }
+
+    // 4. Check query parameter
+    if (!apiKey) {
+      apiKey = req.query.api_key;
+    }
+
+    // Validate API key presence
+    if (!apiKey) {
+      if (eventEmitter) {
+        eventEmitter.emit('api-auth-failure', {
+          reason: 'missing-api-key',
+          ip: req.ip,
+          path: req.path,
+          method: req.method
+        });
+      }
+
+      return res.status(401).json({
+        error: 'Unauthorized',
+        message: 'API key is required. Provide it via x-api-key header, Authorization header, or api_key query parameter.',
+        code: 'MISSING_API_KEY'
+      });
+    }
+
+    // Validate API key
+    if (!apiKeys.includes(apiKey)) {
+      if (eventEmitter) {
+        eventEmitter.emit('api-auth-failure', {
+          reason: 'invalid-api-key',
+          ip: req.ip,
+          path: req.path,
+          method: req.method,
+          providedKey: apiKey.substring(0, 8) + '...' // Log only first 8 chars for security
+        });
+      }
+
+      return res.status(401).json({
+        error: 'Unauthorized',
+        message: 'Invalid API key provided.',
+        code: 'INVALID_API_KEY'
+      });
+    }
+
+    // API key is valid - log success and continue
+    if (eventEmitter) {
+      eventEmitter.emit('api-auth-success', {
+        ip: req.ip,
+        path: req.path,
+        method: req.method,
+        keyPrefix: apiKey.substring(0, 8) + '...'
+      });
+    }
+
+    // Store the validated API key in request for potential use by routes
+    req.apiKey = apiKey;
+    
+    next();
+  };
+}
+
+/**
+ * Generate a secure API key
+ * @param {number} length - Length of the API key (default: 32)
+ * @returns {string} Generated API key
+ */
+function generateApiKey(length = 32) {
+  const charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let apiKey = '';
+  
+  for (let i = 0; i &lt; length; i++) {
+    const randomIndex = Math.floor(Math.random() * charset.length);
+    apiKey += charset[randomIndex];
+  }
+  
+  return apiKey;
+}
+
+/**
+ * Validate API key format
+ * @param {string} apiKey - The API key to validate
+ * @returns {boolean} Whether the API key format is valid
+ */
+function isValidApiKeyFormat(apiKey) {
+  if (typeof apiKey !== 'string') {
+    return false;
+  }
+  
+  // API key should be at least 16 characters and contain only alphanumeric characters
+  return /^[A-Za-z0-9]{16,}$/.test(apiKey);
+}
+
+module.exports = {
+  createApiKeyAuthMiddleware,
+  generateApiKey,
+  isValidApiKeyFormat
+};</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-CachingViews.html">CachingViews</a></li><li><a href="module-DataserveViews.html">DataserveViews</a></li><li><a href="module-FilingViews.html">FilingViews</a></li><li><a href="module-LoggingViews.html">LoggingViews</a></li><li><a href="module-MeasuringViews.html">MeasuringViews</a></li><li><a href="module-NotifyingViews.html">NotifyingViews</a></li><li><a href="module-QueueingViews.html">QueueingViews</a></li><li><a href="module-SchedulingViews.html">SchedulingViews</a></li><li><a href="module-SearchingViews.html">SearchingViews</a></li><li><a href="module-WorkflowViews.html">WorkflowViews</a></li><li><a href="module-WorkingViews.html">WorkingViews</a></li></ul><h3>Classes</h3><ul><li><a href="Cache.html">Cache</a></li><li><a href="CacheMemcached.html">CacheMemcached</a></li><li><a href="CacheRedis.html">CacheRedis</a></li><li><a href="CommitQueue.html">CommitQueue</a></li><li><a href="FileDataRingProvider.html">FileDataRingProvider</a></li><li><a href="FilingService.html">FilingService</a></li><li><a href="FtpFilingProvider.html">FtpFilingProvider</a></li><li><a href="GitFilingProvider.html">GitFilingProvider</a></li><li><a href="InMemoryDataServeProvider.html">InMemoryDataServeProvider</a></li><li><a href="InMemoryQueue.html">InMemoryQueue</a></li><li><a href="LocalFilingProvider.html">LocalFilingProvider</a></li><li><a href="LocalWorkingStore.html">LocalWorkingStore</a></li><li><a href="MeasuringService.html">MeasuringService</a></li><li><a href="MetadataStore.html">MetadataStore</a></li><li><a href="NotificationService.html">NotificationService</a></li><li><a href="S3FilingProvider.html">S3FilingProvider</a></li><li><a href="SchedulerProvider.html">SchedulerProvider</a></li><li><a href="SearchService.html">SearchService</a></li><li><a href="SimpleDbDataRingProvider.html">SimpleDbDataRingProvider</a></li><li><a href="SyncFilingProvider.html">SyncFilingProvider</a></li><li><a href="WorkerProvider.html">WorkerProvider</a></li><li><a href="WorkflowService.html">WorkflowService</a></li><li><a href="logging.html">logging</a></li><li><a href="loggingFile.html">loggingFile</a></li></ul><h3>Global</h3><ul><li><a href="global.html#FileStates">FileStates</a></li><li><a href="global.html#createApiKeyAuthMiddleware">createApiKeyAuthMiddleware</a></li><li><a href="global.html#createCache">createCache</a></li><li><a href="global.html#createDataserveService">createDataserveService</a></li><li><a href="global.html#createFilingService">createFilingService</a></li><li><a href="global.html#createLogger">createLogger</a></li><li><a href="global.html#createMeasuringService">createMeasuringService</a></li><li><a href="global.html#createNotificationService">createNotificationService</a></li><li><a href="global.html#createQueue">createQueue</a></li><li><a href="global.html#createSearchService">createSearchService</a></li><li><a href="global.html#createWorkflowService">createWorkflowService</a></li><li><a href="global.html#generateApiKey">generateApiKey</a></li><li><a href="global.html#getNestedValue">getNestedValue</a></li><li><a href="global.html#getSchedulerInstance">getSchedulerInstance</a></li><li><a href="global.html#getWorkerInstance">getWorkerInstance</a></li><li><a href="global.html#instance">instance</a></li><li><a href="global.html#isValidApiKeyFormat">isValidApiKeyFormat</a></li><li><a href="global.html#runStep">runStep</a></li><li><a href="global.html#status">status</a></li><li><a href="global.html#updateStatus">updateStatus</a></li><li><a href="global.html#userScript">userScript</a></li><li><a href="global.html#userScriptPath">userScriptPath</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Sat Aug 30 2025 08:13:29 GMT+0200 (South Africa Standard Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
