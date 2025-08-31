@@ -35,7 +35,7 @@ serviceRegistry.initialize(app, eventEmitter);
 const log = serviceRegistry.logger('file');
 const cache = serviceRegistry.cache('file');
 const dataserve = serviceRegistry.dataServe('file');
-const filing = serviceRegistry.filing('local');
+const filing = serviceRegistry.filing('gcp',{bucketName: "nooblyjs-core"});
 const queue = serviceRegistry.queue('memory');
 const scheduling = serviceRegistry.scheduling('memory');
 const searching = serviceRegistry.searching('memory');
@@ -49,8 +49,10 @@ log.info(cache.get('currentdate'));
 queue.enqueue(new Date());
 
 filing.create("./.files/text.txt","Hello World");
+//filing.read("./.files/text.txt").then(results > console.log(results) );
 
-loadExampleDataserve(dataserve);
+
+loadExampleDataserve(dataserve);s
 loadExampleScheduling(scheduling);
 loadExampleSearching(searching);
 loadExampleMeasuring(measuring);
@@ -113,7 +115,6 @@ function loadExampleSearching(searchng){
  * Add sample measurements and retrieve aggregated data.
  */
 function loadExampleMeasuring(measuring){
-  console.log(measuring);
   measuring.add('example-measure', 300);
   measuring.add('example-measure', 150);
   measuring.add('example-measure', 200);
@@ -138,7 +139,6 @@ function loadExampleMeasuring(measuring){
  * Create a topic, add subscribers, and send notifications.
  */
 function loadExampleNotifying(notifying){
-    console.log(notifying);
     notifying.createTopic('example-topic');
     notifying.subscribe('example-topic', (message) => {
       console.log('Subscriber 1 Received message on example-topic:', message);

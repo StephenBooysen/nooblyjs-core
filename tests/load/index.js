@@ -17,6 +17,7 @@ const runCachingLoadTest = require('./caching/loadTest');
 const { runFileLoadTest } = require('./caching/fileLoadTest');
 const runDataserveLoadTest = require('./dataserve/loadTest');
 const { runMongoDBLoadTest } = require('./dataserve/mongodbLoadTest');
+const { runDocumentDBLoadTest } = require('./dataserve/documentdbLoadTest');
 const runFilingLoadTest = require('./filing/loadTest');
 const runLoggingLoadTest = require('./logging/loadTest');
 const runMeasuringLoadTest = require('./measuring/loadTest');
@@ -112,6 +113,7 @@ async function runProviderLoadTests(results) {
     results.push(await runDataserveLoadTest(iterations, 'memory'));
     results.push(await runDataserveLoadTest(iterations, 'file'));
     results.push(await runMongoDBLoadTest(iterations));
+    results.push(await runDocumentDBLoadTest(iterations));
     // results.push(await runDataserveLoadTest(iterations, 'simpledb', {region: 'us-east-1'})); // Uncomment if SimpleDB is set up
 
     results.push(await runFilingLoadTest(iterations, 'local'));

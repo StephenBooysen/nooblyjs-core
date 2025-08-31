@@ -63,6 +63,50 @@ jest.mock('aws-sdk', () => ({
   config: mockConfig,
 }));
 
+// Mock the Google Cloud Storage client BEFORE imports
+const mockGCSBucket = {
+  file: jest.fn().mockReturnValue({
+    save: jest.fn().mockResolvedValue(),
+    download: jest.fn().mockResolvedValue([Buffer.from('mock gcp content')]),
+    delete: jest.fn().mockResolvedValue(),
+    exists: jest.fn().mockResolvedValue([true]),
+    getMetadata: jest.fn().mockResolvedValue([{ 
+      name: 'test-file.txt', 
+      bucket: 'test-bucket',
+      size: '100',
+      contentType: 'text/plain',
+      timeCreated: '2023-01-01T00:00:00.000Z',
+      updated: '2023-01-01T00:00:00.000Z',
+      etag: 'abc123',
+      generation: '1234567890'
+    }]),
+    copy: jest.fn().mockResolvedValue(),
+    move: jest.fn().mockResolvedValue(),
+    getSignedUrl: jest.fn().mockResolvedValue(['https://signed-url.example.com']),
+  }),
+  exists: jest.fn().mockResolvedValue([true]),
+  create: jest.fn().mockResolvedValue(),
+  getFiles: jest.fn().mockResolvedValue([[
+    { name: 'file1.txt' },
+    { name: 'file2.txt' }
+  ]]),
+  getMetadata: jest.fn().mockResolvedValue([{ 
+    name: 'test-bucket', 
+    location: 'US',
+    storageClass: 'STANDARD',
+    timeCreated: '2023-01-01T00:00:00.000Z',
+    updated: '2023-01-01T00:00:00.000Z'
+  }]),
+};
+
+const mockGCS = {
+  bucket: jest.fn().mockReturnValue(mockGCSBucket),
+};
+
+jest.mock('@google-cloud/storage', () => ({
+  Storage: jest.fn(() => mockGCS),
+}));
+
 // Now import other modules
 const createFilingService = require('../../../src/filing');
 const AWS = require('aws-sdk');
@@ -305,6 +349,189 @@ describe('FilingService', () => {
         Body: content,
       });
       expect(mockS3Instance.upload().promise).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  // Test GCPFilingProvider
+  describe('GCPFilingProvider', () => {
+    const mockBucketName = 'test-gcp-bucket';
+    const mockKeyFilename = '.config/cloud-storage.json';
+
+    let gcpFilingService;
+    let mockGCSInstance;
+    let mockBucketInstance;
+    let mockFileInstance;
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      gcpFilingService = createFilingService('gcp', {
+        bucketName: mockBucketName,
+        keyFilename: mockKeyFilename,
+      });
+      mockGCSInstance = mockGCS;
+      mockBucketInstance = mockGCSBucket;
+      mockFileInstance = mockGCSBucket.file();
+    });
+
+    it('should initialize with correct GCS configuration', () => {
+      expect(require('@google-cloud/storage').Storage).toHaveBeenCalledWith({
+        keyFilename: mockKeyFilename,
+      });
+      expect(mockGCS.bucket).toHaveBeenCalledWith(mockBucketName);
+      expect(gcpFilingService.provider.bucketName_).toBe(mockBucketName);
+    });
+
+    it('should create a file in GCS bucket', async () => {
+      const filePath = 'path/to/file.txt';
+      const content = 'Hello GCS!';
+      await gcpFilingService.create(filePath, content);
+      expect(mockGCS.bucket).toHaveBeenCalledWith(mockBucketName);
+      expect(mockGCSBucket.file).toHaveBeenCalledWith(filePath);
+      expect(mockFileInstance.save).toHaveBeenCalledWith(content);
+    });
+
+    it('should read a file from GCS bucket', async () => {
+      const filePath = 'path/to/file.txt';
+      const result = await gcpFilingService.read(filePath, 'utf8');
+      expect(mockGCS.bucket).toHaveBeenCalledWith(mockBucketName);
+      expect(mockGCSBucket.file).toHaveBeenCalledWith(filePath);
+      expect(mockFileInstance.download).toHaveBeenCalledTimes(1);
+      expect(result).toBe('mock gcp content');
+    });
+
+    it('should delete a file from GCS bucket', async () => {
+      const filePath = 'path/to/file.txt';
+      await gcpFilingService.delete(filePath);
+      expect(mockGCS.bucket).toHaveBeenCalledWith(mockBucketName);
+      expect(mockGCSBucket.file).toHaveBeenCalledWith(filePath);
+      expect(mockFileInstance.delete).toHaveBeenCalledTimes(1);
+    });
+
+    it('should list files in GCS bucket', async () => {
+      const dirPath = 'path/to/dir/';
+      const result = await gcpFilingService.list(dirPath);
+      expect(mockGCS.bucket).toHaveBeenCalledWith(mockBucketName);
+      expect(mockGCSBucket.getFiles).toHaveBeenCalledWith({ 
+        prefix: dirPath,
+        delimiter: '/'
+      });
+      expect(result).toEqual(['file1.txt', 'file2.txt']);
+    });
+
+    it('should update a file in GCS bucket', async () => {
+      const filePath = 'path/to/file.txt';
+      const newContent = 'Updated GCS content!';
+      await gcpFilingService.update(filePath, newContent);
+      expect(mockGCS.bucket).toHaveBeenCalledWith(mockBucketName);
+      expect(mockGCSBucket.file).toHaveBeenCalledWith(filePath);
+      expect(mockFileInstance.save).toHaveBeenCalledWith(newContent);
+    });
+
+    it('should check if file exists', async () => {
+      const filePath = 'path/to/file.txt';
+      const result = await gcpFilingService.provider.exists(filePath);
+      expect(mockGCS.bucket).toHaveBeenCalledWith(mockBucketName);
+      expect(mockGCSBucket.file).toHaveBeenCalledWith(filePath);
+      expect(mockFileInstance.exists).toHaveBeenCalledTimes(1);
+      expect(result).toBe(true);
+    });
+
+    it('should get file metadata', async () => {
+      const filePath = 'path/to/file.txt';
+      const result = await gcpFilingService.provider.getMetadata(filePath);
+      expect(mockGCS.bucket).toHaveBeenCalledWith(mockBucketName);
+      expect(mockGCSBucket.file).toHaveBeenCalledWith(filePath);
+      expect(mockFileInstance.getMetadata).toHaveBeenCalledTimes(1);
+      expect(result).toEqual(expect.objectContaining({
+        name: 'test-file.txt',
+        size: 100,
+        bucket: expect.any(String),
+        contentType: expect.any(String),
+        created: expect.any(Date),
+        updated: expect.any(Date),
+        etag: expect.any(String),
+        generation: expect.any(String)
+      }));
+    });
+
+    it('should copy a file within GCS bucket', async () => {
+      const sourcePath = 'path/to/source.txt';
+      const destPath = 'path/to/dest.txt';
+      await gcpFilingService.provider.copy(sourcePath, destPath);
+      expect(mockGCS.bucket).toHaveBeenCalledWith(mockBucketName);
+      expect(mockGCSBucket.file).toHaveBeenCalledWith(sourcePath);
+      expect(mockFileInstance.copy).toHaveBeenCalledWith(mockGCSBucket.file(destPath));
+    });
+
+    it('should move a file within GCS bucket', async () => {
+      const sourcePath = 'path/to/source.txt';
+      const destPath = 'path/to/dest.txt';
+      await gcpFilingService.provider.move(sourcePath, destPath);
+      expect(mockGCS.bucket).toHaveBeenCalledWith(mockBucketName);
+      expect(mockGCSBucket.file).toHaveBeenCalledWith(sourcePath);
+      // Move calls copy then delete, so we expect copy to be called
+      expect(mockFileInstance.copy).toHaveBeenCalledWith(mockGCSBucket.file(destPath));
+      expect(mockFileInstance.delete).toHaveBeenCalledTimes(1);
+    });
+
+    it('should generate signed URL for a file', async () => {
+      const filePath = 'path/to/file.txt';
+      const options = { action: 'read', expires: '03-09-2491' };
+      const result = await gcpFilingService.provider.generateSignedUrl(filePath, options);
+      expect(mockGCS.bucket).toHaveBeenCalledWith(mockBucketName);
+      expect(mockGCSBucket.file).toHaveBeenCalledWith(filePath);
+      expect(mockFileInstance.getSignedUrl).toHaveBeenCalledWith(options);
+      expect(result).toBe('https://signed-url.example.com');
+    });
+
+    it('should get bucket info', async () => {
+      const result = await gcpFilingService.provider.getBucketInfo();
+      expect(mockGCS.bucket).toHaveBeenCalledWith(mockBucketName);
+      expect(mockGCSBucket.getMetadata).toHaveBeenCalledTimes(1);
+      expect(result).toEqual(expect.objectContaining({
+        name: 'test-bucket',
+        location: 'US',
+        storageClass: expect.any(String),
+        created: expect.any(Date),
+        updated: expect.any(Date)
+      }));
+    });
+
+    it('should create bucket if it does not exist', async () => {
+      // Mock bucket as not existing
+      mockGCSBucket.exists.mockResolvedValueOnce([false]);
+      
+      const newGcpService = createFilingService('gcp', {
+        bucketName: 'new-test-bucket',
+        keyFilename: mockKeyFilename,
+        location: 'EU',
+        storageClass: 'COLDLINE'
+      });
+
+      // Wait for bucket creation to complete
+      await new Promise(resolve => setTimeout(resolve, 10));
+
+      expect(mockGCSBucket.exists).toHaveBeenCalled();
+      expect(mockGCSBucket.create).toHaveBeenCalledWith({
+        location: 'EU',
+        storageClass: 'COLDLINE'
+      });
+    });
+
+    it('should not create bucket if it already exists', async () => {
+      // Mock bucket as existing (default behavior)
+      mockGCSBucket.exists.mockResolvedValueOnce([true]);
+      
+      const newGcpService = createFilingService('gcp', {
+        bucketName: 'existing-bucket',
+        keyFilename: mockKeyFilename
+      });
+
+      // Wait for bucket check to complete
+      await new Promise(resolve => setTimeout(resolve, 10));
+
+      expect(mockGCSBucket.exists).toHaveBeenCalled();
+      expect(mockGCSBucket.create).not.toHaveBeenCalled();
     });
   });
 });

@@ -143,10 +143,15 @@ class ServiceRegistry {
 
   /**
    * Get the data serving service
-   * @param {string} providerType - 'memory', 'simpledb', 'file', or 'mongodb'
+   * @param {string} providerType - 'memory', 'simpledb', 'file', 'mongodb', or 'documentdb'
    * @param {Object} options - Provider-specific options
-   * @param {Object} options.connectionString - MongoDB connection string (for mongodb provider)
-   * @param {Object} options.database - MongoDB database name (for mongodb provider)
+   * @param {string} options.connectionString - MongoDB/DocumentDB connection string (for mongodb/documentdb provider)
+   * @param {string} options.database - Database name (for mongodb/documentdb provider)
+   * @param {string} options.host - DocumentDB host (for documentdb provider, defaults to '127.0.0.1')
+   * @param {number} options.port - DocumentDB port (for documentdb provider, defaults to 10260)
+   * @param {string} options.username - Username for authentication (for documentdb provider)
+   * @param {string} options.password - Password for authentication (for documentdb provider)
+   * @param {boolean} options.ssl - Enable SSL connection (for documentdb provider)
    * @returns {Object} DataServe service instance
    */
   dataServe(providerType = 'memory', options = {}) {
