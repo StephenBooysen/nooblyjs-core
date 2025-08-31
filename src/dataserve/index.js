@@ -12,6 +12,7 @@
 const InMemoryDataServeProvider = require('./providers/dataserve');
 const FileDataRingProvider = require('./providers/dataservefiles');
 const SimpleDbDataRingProvider = require('./providers/dataserveSimpleDB');
+const MongoDBDataServeProvider = require('./providers/dataserveMongoDB');
 const Routes = require('./routes');
 const Views = require('./views');
 
@@ -30,7 +31,7 @@ function getNestedValue(obj, path) {
 /**
  * Creates a data service instance with the specified provider.
  * Automatically configures routes and views for the data service.
- * @param {string} type - The data provider type ('memory', 'file', 'simpledb')
+ * @param {string} type - The data provider type ('memory', 'file', 'simpledb', 'mongodb')
  * @param {Object} options - Provider-specific configuration options
  * @param {EventEmitter} eventEmitter - Global event emitter for inter-service communication
  * @return {Object} Data service wrapper with provider and methods
@@ -45,6 +46,9 @@ function createDataserveService(type, options, eventEmitter) {
       break;
     case 'simpledb':
       provider = new SimpleDbDataRingProvider(options, eventEmitter);
+      break;
+    case 'mongodb':
+      provider = new MongoDBDataServeProvider(options, eventEmitter);
       break;
     case 'memory':
     default:

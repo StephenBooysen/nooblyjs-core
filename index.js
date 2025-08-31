@@ -143,8 +143,10 @@ class ServiceRegistry {
 
   /**
    * Get the data serving service
-   * @param {string} providerType - 'memory', 'simpledb', or 'file'
+   * @param {string} providerType - 'memory', 'simpledb', 'file', or 'mongodb'
    * @param {Object} options - Provider-specific options
+   * @param {Object} options.connectionString - MongoDB connection string (for mongodb provider)
+   * @param {Object} options.database - MongoDB database name (for mongodb provider)
    * @returns {Object} DataServe service instance
    */
   dataServe(providerType = 'memory', options = {}) {

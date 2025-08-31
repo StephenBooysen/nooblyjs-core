@@ -26,7 +26,7 @@ class FileDataRingProvider {
    */
   constructor(options, eventEmitter) {
     /** @private @const {string} */
-    this.baseDir = path.resolve(options.baseDir || './dataserve_data');
+    this.baseDir = path.resolve(options.baseDir || './.data');
     /** @private @const {!Map<string, string>} */
     this.containers = new Map(); // Map<containerName, containerFilePath>
     /** @private @const {EventEmitter} */
@@ -96,7 +96,7 @@ class FileDataRingProvider {
     const containerFilePath = path.join(this.baseDir, `${containerName}.json`);
     try {
       await fs.access(containerFilePath);
-      throw new Error(`Container '${containerName}' already exists.`);
+      return;
     } catch (error) {
       if (error.code === 'ENOENT') {
         // Container does not exist, create an empty file for it

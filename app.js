@@ -32,129 +32,145 @@ serviceRegistry.initialize(app, eventEmitter);
  * Initialize core services from the registry.
  * Each service is configured with appropriate providers.
  */
-const log = serviceRegistry.logger('console');
-const cache = serviceRegistry.cache('memory');
-const dataserve = serviceRegistry.dataServe('memory');
+const log = serviceRegistry.logger('file');
+const cache = serviceRegistry.cache('file');
+const dataserve = serviceRegistry.dataServe('file');
 const filing = serviceRegistry.filing('local');
 const queue = serviceRegistry.queue('memory');
+const scheduling = serviceRegistry.scheduling('memory');
+const searching = serviceRegistry.searching('memory');
+const measuring = serviceRegistry.measuring('memory');
+const notifying = serviceRegistry.notifying('memory');
+const worker = serviceRegistry.working('memory');
+const workflow = serviceRegistry.workflow('memory');
 
-dataserve.status;
-filing.status;
-
-/**
- * Demonstrate basic service operations.
- * Test caching, logging, and queueing functionality.
- */
 cache.put('currentdate', new Date());
 log.info(cache.get('currentdate'));
 queue.enqueue(new Date());
 
+filing.create("./.files/text.txt","Hello World");
+
+loadExampleDataserve(dataserve);
+loadExampleScheduling(scheduling);
+loadExampleSearching(searching);
+loadExampleMeasuring(measuring);
+loadExampleNotifying(notifying);
+loadExampleWorker(worker);
+loadExampleWorflow(workflow);
+
+const PORT = process.env.PORT || 10100;
+app.use('/', express.static(__dirname + '/public'));
+app.listen(PORT, () => {
+  log.info(`Server is running on port ${PORT}`);
+});
+
+
 /**
- * Demonstrate scheduling service.
- * Schedule a task to run with a 5-second delay.
- */
-const scheduling = serviceRegistry.scheduling('memory');
-scheduling.start(
-  'Schedule task 1',
-  '../../../tests/unit/working/exampleTask.js',
-  { message: 'Life is fine' },
-  5,
-  (status, data) => {
-    console.log(
-      'Schedule task 1 executed with status:',
-      status,
-      'and data:',
-      data,
-    );
-  },
-);
+* Demonstrate dataserve service.
+* Same a user object
+*/
+function loadExampleDataserve(dataserve){
+  dataserve.createContainer('users');
+  var key = dataserve.add('users',{'username':'stephen','fullname':'Stephen Booysen'});
+  console.log(key);
+}
+
+/**
+* Demonstrate scheduling service.
+* Schedule a task to run with a 5-second delay.
+*/
+function loadExampleScheduling(scheduling){
+  scheduling.start(
+    'Schedule task 1',
+    '../../../tests/unit/working/exampleTask.js',
+    { message: 'Life is fine' },
+    5,
+    (status, data) => {
+      console.log(
+        'Schedule task 1 executed with status:',
+        status,
+        'and data:',
+        data,
+      );
+    },
+  );
+}
 
 /**
  * Demonstrate searching service.
  * Add sample users and perform a search operation.
  */
-const searching = serviceRegistry.searching('memory');
-searching.add(uuidv4(), { name: 'Jill', role: 'user', dob: '2025-02-01' });
-searching.add(uuidv4(), { name: 'Frank', role: 'user', dob: '2025-03-01' });
-searching.add(uuidv4(), { name: 'Bill', role: 'user', dob: '2025-04-01' });
-searching.add(uuidv4(), { name: 'Ted', role: 'user', dob: '2025-05-01' });
-searching.search('user');
+function loadExampleSearching(searchng){
+  searching.add(uuidv4(), { name: 'Jill', role: 'user', dob: '2025-02-01' });
+  searching.add(uuidv4(), { name: 'Frank', role: 'user', dob: '2025-03-01' });
+  searching.add(uuidv4(), { name: 'Bill', role: 'user', dob: '2025-04-01' });
+  searching.add(uuidv4(), { name: 'Ted', role: 'user', dob: '2025-05-01' });
+  searching.search('user');
+}
 
 /**
  * Demonstrate measuring service.
  * Add sample measurements and retrieve aggregated data.
  */
-const measuring = serviceRegistry.measuring('memory');
-console.log(measuring);
-measuring.add('example-measure', 300);
-measuring.add('example-measure', 150);
-measuring.add('example-measure', 200);
-const measureData = measuring.list(
-  'example-measure',
-  new Date('2025-01-01'),
-  new Date('2025-12-31'),
-);
-console.log('Measure data:', measureData);
+function loadExampleMeasuring(measuring){
+  console.log(measuring);
+  measuring.add('example-measure', 300);
+  measuring.add('example-measure', 150);
+  measuring.add('example-measure', 200);
+  const measureData = measuring.list(
+    'example-measure',
+    new Date('2025-01-01'),
+    new Date('2025-12-31'),
+  );
+  console.log('Measure data:', measureData);
 
-const totalData = measuring.total(
-  'example-measure',
-  new Date('2025-01-01'),
-  new Date('2025-12-31'),
-);
-console.log('Total measure data:', totalData);
+  const totalData = measuring.total(
+    'example-measure',
+    new Date('2025-01-01'),
+    new Date('2025-12-31'),
+  );
+  console.log('Total measure data:', totalData);
+}
+
 
 /**
  * Demonstrate notifying service.
  * Create a topic, add subscribers, and send notifications.
  */
-const notifying = serviceRegistry.notifying('memory');
-console.log(notifying);
-notifying.createTopic('example-topic');
-notifying.subscribe('example-topic', (message) => {
-  console.log('Subscriber 1 Received message on example-topic:', message);
-});
-notifying.subscribe('example-topic', (message) => {
-  console.log('Subscriber 2 Received message on example-topic:', message);
-});
-notifying.notify('example-topic', { text: 'Hello, World!' });
-notifying.notify('example-topic', { text: 'Hello, World 2!' });
+function loadExampleNotifying(notifying){
+    console.log(notifying);
+    notifying.createTopic('example-topic');
+    notifying.subscribe('example-topic', (message) => {
+      console.log('Subscriber 1 Received message on example-topic:', message);
+    });
+    notifying.subscribe('example-topic', (message) => {
+      console.log('Subscriber 2 Received message on example-topic:', message);
+    });
+    notifying.notify('example-topic', { text: 'Hello, World!' });
+    notifying.notify('example-topic', { text: 'Hello, World 2!' });
+  }
 
-/**
+  /**
  * Demonstrate working service (commented out).
  * This shows how to start background worker tasks.
  */
-const worker = serviceRegistry.working('memory');
-worker.start('../../../tests/working/exampleTask.js', () => {
-  console.log('Worker task ended');
-});
+function loadExampleWorker(worker){
+  worker.start('../../../tests/working/exampleTask.js', () => {
+    console.log('Worker task ended');
+  });
+}
 
 /**
  * Demonstrate workflow service.
  * Define a multi-step workflow and execute it.
  */
-const workflow = serviceRegistry.workflow('memory');
-const steps = [
-  path.resolve(__dirname, './tests/unit/workflow/steps/exampleStep1.js'),
-  path.resolve(__dirname, './tests/unit/workflow/steps/exampleStep2.js'),
-];
-workflow.defineWorkflow('example-workflow', steps);
-workflow.runWorkflow('example-workflow', {}, () => {
-  console.log('Workflow ended');
-});
-
-/**
- * Configure static file serving for multiple UI themes.docs/Noobly Core Technical Usage Guide.md
- * Each theme provides a different visual design for the web interface.
- */
-app.use('/', express.static(__dirname + '/public'));
-
-/** @type {number} Server port number */
-const PORT = process.env.PORT || 3000;
-
-/**
- * Start the Express server.
- * All services will be available via REST APIs and web interface.
- */
-app.listen(PORT, () => {
-  log.info(`Server is running on port ${PORT}`);
-});
+function loadExampleWorflow(workflow){
+  const steps = [
+    path.resolve(__dirname, './tests/unit/workflow/steps/exampleStep1.js'),
+    path.resolve(__dirname, './tests/unit/workflow/steps/exampleStep2.js'),
+  ];
+  workflow.defineWorkflow('example-workflow', steps);
+  workflow.runWorkflow('example-workflow', {}, () => {
+    console.log('Workflow ended');
+  });
+}

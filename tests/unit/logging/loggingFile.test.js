@@ -16,10 +16,12 @@ const EventEmitter = require('events');
 
 /**
  * Mock fs module for testing file operations.
- * Replaces fs.appendFileSync with a Jest mock function.
+ * Replaces fs.appendFileSync and other needed functions with Jest mock functions.
  */
 jest.mock('fs', () => ({
   appendFileSync: jest.fn(),
+  existsSync: jest.fn(() => false),
+  mkdirSync: jest.fn(),
 }));
 
 const fs = require('fs');
@@ -63,7 +65,47 @@ describe('loggingFile', () => {
     const message = 'Test message';
     await logger.log(message);
     expect(fs.appendFileSync).toHaveBeenCalledWith(
-      filename,
+      `.logs/${filename}`,
+      message + '\n',
+    );
+  });
+
+  /**
+   * Test default directory creation and date-based filename.
+   * 
+   * Verifies that when no filename is specified, a date-based filename
+   * is generated and the .logs directory is created.
+   */
+  it('should use default date-based filename and create .logs directory', async () => {
+    const loggerDefault = createLogger('file', {}, new EventEmitter());
+    const message = 'Default test message';
+    await loggerDefault.log(message);
+    
+    // Should attempt to create .logs directory
+    expect(fs.mkdirSync).toHaveBeenCalledWith('./.logs', { recursive: true });
+    
+    // Should use date-based filename pattern (we'll check if it starts with .logs/app.)
+    const calls = fs.appendFileSync.mock.calls;
+    const lastCall = calls[calls.length - 1];
+    expect(lastCall[0]).toMatch(/^\.logs\/app\.\d{4}-\d{2}-\d{2}\.log$/);
+    expect(lastCall[1]).toBe(message + '\n');
+  });
+
+  /**
+   * Test custom directory option.
+   * 
+   * Verifies that a custom log directory can be specified via options.
+   */
+  it('should use custom log directory when specified', async () => {
+    const customLogger = createLogger('file', { 
+      filename: 'custom.log',
+      logDir: './custom-logs'
+    }, new EventEmitter());
+    const message = 'Custom directory test';
+    await customLogger.log(message);
+    
+    expect(fs.appendFileSync).toHaveBeenCalledWith(
+      'custom-logs/custom.log',
       message + '\n',
     );
   });
