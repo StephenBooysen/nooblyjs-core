@@ -35,7 +35,7 @@ serviceRegistry.initialize(app, eventEmitter);
 const log = serviceRegistry.logger('file');
 const cache = serviceRegistry.cache('file');
 const dataserve = serviceRegistry.dataServe('file');
-const filing = serviceRegistry.filing('gcp',{bucketName: "nooblyjs-core"});
+const filing = serviceRegistry.filing('local');
 const queue = serviceRegistry.queue('memory');
 const scheduling = serviceRegistry.scheduling('memory');
 const searching = serviceRegistry.searching('memory');
@@ -49,10 +49,13 @@ log.info(cache.get('currentdate'));
 queue.enqueue(new Date());
 
 filing.create("./.files/text.txt","Hello World");
-//filing.read("./.files/text.txt").then(results > console.log(results) );
+filing.read("./.files/text.txt", "utf8").then(content => {
+    console.log("File content:", content);
+  }).catch(error => {
+    console.error("Error reading file:", error);
+  });
 
-
-loadExampleDataserve(dataserve);s
+loadExampleDataserve(dataserve);
 loadExampleScheduling(scheduling);
 loadExampleSearching(searching);
 loadExampleMeasuring(measuring);
