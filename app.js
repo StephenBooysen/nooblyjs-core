@@ -16,6 +16,7 @@ const bodyParser = require('body-parser');
 const { v4: uuidv4 } = require('uuid');
 const serviceRegistry = require('./index');
 const { EventEmitter } = require('events');
+const config = require('dotenv').config();
 
 /** @type {express.Application} Express application instance */
 const app = express();
@@ -33,7 +34,7 @@ serviceRegistry.initialize(app, eventEmitter);
  * Each service is configured with appropriate providers.
  */
 const log = serviceRegistry.logger('file');
-const cache = serviceRegistry.cache('file');
+const cache = serviceRegistry.cache('inmemory');
 const dataserve = serviceRegistry.dataServe('file');
 const filing = serviceRegistry.filing('local');
 const queue = serviceRegistry.queue('memory');
@@ -44,7 +45,7 @@ const notifying = serviceRegistry.notifying('memory');
 const worker = serviceRegistry.working('memory');
 const workflow = serviceRegistry.workflow('memory');
 const aiservice = serviceRegistry.aiservice('claude', {
-  apiKey: 'TO BE POPULATED'
+  apiKey: process.env.aiapikey
 });
 
 cache.put('currentdate', new Date());
