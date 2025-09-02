@@ -23,26 +23,66 @@ class CacheRedis {
    * @throws {Error} When Redis connection fails.
    */
   constructor(options, eventEmitter) {
+    const defaultOptions = {
+      port: 6379,
+      host: '127.0.0.1',
+      family: 4,
+      keepAlive: true,
+      lazyConnect: true,
+      maxRetriesPerRequest: 3,
+      retryDelayOnFailover: 100,
+      enableReadyCheck: true,
+      maxmemoryPolicy: 'noeviction',
+      connectTimeout: 10000,
+      commandTimeout: 5000,
+      poolSize: 10,
+      keyPrefix: '',
+      ...options
+    };
+
     /** @private @const {!Redis} */
-    this.client_ = new Redis(options);
+    this.client_ = new Redis({
+      ...defaultOptions,
+      // Connection pooling configuration
+      lazyConnect: true,
+      enableOfflineQueue: false,
+      maxRetriesPerRequest: 3,
+      retryDelayOnFailover: 100,
+      // Pool management
+      poolSize: defaultOptions.poolSize,
+      // Connection lifecycle
+      reconnectOnError: (err) => {
+        const targetError = 'READONLY';
+        return err.message.includes(targetError);
+      }
+    });
+
     this.eventEmitter_ = eventEmitter;
     /** @private @const {!Map<string, {key: string, hits: number, lastHit: Date}>} */
     this.analytics_ = new Map();
     /** @private @const {number} */
     this.maxAnalyticsEntries_ = 100;
+    
+    this.setupConnectionHandlers_();
   }
 
   /**
    * Adds a value to the cache.
    * @param {string} key The key to store the value under.
    * @param {*} value The value to store.
+   * @param {number=} ttl Optional time-to-live in seconds.
    * @return {!Promise<void>}
    */
-  async put(key, value) {
-    await this.client_.set(key, value);
+  async put(key, value, ttl) {
+    await this.ensureConnection_();
+    if (ttl) {
+      await this.client_.setex(key, ttl, value);
+    } else {
+      await this.client_.set(key, value);
+    }
     this.trackOperation_(key);
     if (this.eventEmitter_)
-      this.eventEmitter_.emit('cache:put', { key, value });
+      this.eventEmitter_.emit('cache:put', { key, value, ttl });
   }
 
   /**
@@ -51,6 +91,7 @@ class CacheRedis {
    * @return {!Promise<*|null>}
    */
   async get(key) {
+    await this.ensureConnection_();
     const value = await this.client_.get(key);
     this.trackOperation_(key);
     if (this.eventEmitter_)
@@ -64,6 +105,7 @@ class CacheRedis {
    * @return {!Promise<void>}
    */
   async delete(key) {
+    await this.ensureConnection_();
     await this.client_.del(key);
     if (this.eventEmitter_) this.eventEmitter_.emit('cache:delete', { key });
   }
@@ -129,6 +171,83 @@ class CacheRedis {
     if (oldestKey) {
       this.analytics_.delete(oldestKey);
     }
+  }
+
+  /**
+   * Sets up connection event handlers for the Redis client.
+   * @private
+   */
+  setupConnectionHandlers_() {
+    this.client_.on('connect', () => {
+      if (this.eventEmitter_) {
+        this.eventEmitter_.emit('redis:connect');
+      }
+    });
+
+    this.client_.on('ready', () => {
+      if (this.eventEmitter_) {
+        this.eventEmitter_.emit('redis:ready');
+      }
+    });
+
+    this.client_.on('error', (err) => {
+      if (this.eventEmitter_) {
+        this.eventEmitter_.emit('redis:error', err);
+      }
+    });
+
+    this.client_.on('close', () => {
+      if (this.eventEmitter_) {
+        this.eventEmitter_.emit('redis:close');
+      }
+    });
+
+    this.client_.on('reconnecting', () => {
+      if (this.eventEmitter_) {
+        this.eventEmitter_.emit('redis:reconnecting');
+      }
+    });
+
+    this.client_.on('end', () => {
+      if (this.eventEmitter_) {
+        this.eventEmitter_.emit('redis:end');
+      }
+    });
+  }
+
+  /**
+   * Ensures the Redis connection is established.
+   * @return {!Promise<void>}
+   * @private
+   */
+  async ensureConnection_() {
+    if (this.client_.status !== 'ready') {
+      await this.client_.connect();
+    }
+  }
+
+  /**
+   * Gracefully closes the Redis connection and cleans up resources.
+   * @return {!Promise<void>}
+   */
+  async disconnect() {
+    try {
+      await this.client_.quit();
+    } catch (err) {
+      await this.client_.disconnect();
+    }
+  }
+
+  /**
+   * Gets connection status information.
+   * @return {{status: string, poolSize: number, connectedClients: number}}
+   */
+  getConnectionInfo() {
+    return {
+      status: this.client_.status,
+      poolSize: this.client_.options.poolSize || 1,
+      connectedClients: this.client_.connector ? 1 : 0
+    };
   }
 }
 
