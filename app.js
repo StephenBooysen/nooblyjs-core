@@ -68,7 +68,7 @@ loadExampleWorker(worker);
 loadExampleWorflow(workflow);
 loadExampleAiService(aiservice);
 
-const PORT = process.env.PORT || 10100;
+const PORT = process.env.PORT || 3001;
 app.use('/', express.static(__dirname + '/public'));
 app.listen(PORT, () => {
   log.info(`Server is running on port ${PORT}`);
