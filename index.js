@@ -249,6 +249,18 @@ class ServiceRegistry {
   }
 
   /**
+   * Get the AI service
+   * @param {string} providerType - 'claude', 'chatgpt', or 'ollama'
+   * @param {Object} options - Provider-specific options
+   * @param {string} options.apiKey - API key for the provider (required for claude/chatgpt)
+   * @param {string} options.model - Model to use (optional)
+   * @returns {Object} AI service instance
+   */
+  aiservice(providerType = 'claude', options = {}) {
+    return this.getService('aiservice', providerType, options);
+  }
+
+  /**
    * Get the event emitter for inter-service communication
    * @returns {EventEmitter} The global event emitter
    */

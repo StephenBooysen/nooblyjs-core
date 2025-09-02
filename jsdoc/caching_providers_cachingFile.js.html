@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: caching/providers/cachingFile.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: caching/providers/cachingFile.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * @fileoverview A file-based cache implementation providing persistent caching
+ * functionality with analytics tracking for cache operations.
+ * @author NooblyJS Team
+ * @version 1.0.14
+ * @since 1.0.0
+ */
+
+'use strict';
+
+const fs = require('fs').promises;
+const path = require('path');
+const crypto = require('crypto');
+
+/**
+ * A class that implements a file-based cache with analytics tracking.
+ * Provides methods for storing, retrieving, and deleting cached values to/from disk.
+ * @class
+ */
+class CacheFile {
+  /**
+   * Initializes the file cache with storage directory and analytics.
+   * @param {Object=} options Configuration options for the file cache.
+   * @param {string=} options.cacheDir Directory to store cache files (defaults to './.cache').
+   * @param {number=} options.maxAnalyticsEntries Maximum analytics entries to keep.
+   * @param {EventEmitter=} eventEmitter Optional event emitter for cache events.
+   */
+  constructor(options = {}, eventEmitter) {
+    /** @private @const {string} */
+    this.cacheDir_ = options.cacheDir || './.cache';
+    this.eventEmitter_ = eventEmitter;
+    /** @private @const {!Map&lt;string, {key: string, hits: number, lastHit: Date}>} */
+    this.analytics_ = new Map();
+    /** @private @const {number} */
+    this.maxAnalyticsEntries_ = options.maxAnalyticsEntries || 100;
+    
+    this.initializeCacheDir_();
+  }
+
+  /**
+   * Initializes the cache directory if it doesn't exist.
+   * @private
+   */
+  async initializeCacheDir_() {
+    try {
+      await fs.access(this.cacheDir_);
+    } catch (error) {
+      if (error.code === 'ENOENT') {
+        await fs.mkdir(this.cacheDir_, { recursive: true });
+      }
+    }
+  }
+
+  /**
+   * Generates a safe filename for the given cache key.
+   * @param {string} key The cache key.
+   * @return {string} A safe filename.
+   * @private
+   */
+  getFilePath_(key) {
+    const hash = crypto.createHash('sha256').update(key).digest('hex');
+    return path.join(this.cacheDir_, `${hash}.json`);
+  }
+
+  /**
+   * Adds a value to the cache.
+   * @param {string} key The key to store the value under.
+   * @param {*} value The value to store.
+   * @return {Promise&lt;void>} A promise that resolves when the value is stored.
+   */
+  async put(key, value) {
+    const filePath = this.getFilePath_(key);
+    const cacheEntry = {
+      key,
+      value,
+      timestamp: new Date().toISOString(),
+    };
+
+    try {
+      await this.initializeCacheDir_();
+      await fs.writeFile(filePath, JSON.stringify(cacheEntry, null, 2), 'utf8');
+      this.trackOperation_(key);
+      if (this.eventEmitter_)
+        this.eventEmitter_.emit('cache:put', { key, value });
+    } catch (error) {
+      if (this.eventEmitter_)
+        this.eventEmitter_.emit('cache:error', { operation: 'put', key, error });
+      throw error;
+    }
+  }
+
+  /**
+   * Retrieves a value from the cache.
+   * @param {string} key The key to retrieve the value for.
+   * @return {Promise&lt;*>} A promise that resolves to the cached value, or undefined if not found.
+   */
+  async get(key) {
+    const filePath = this.getFilePath_(key);
+
+    try {
+      const data = await fs.readFile(filePath, 'utf8');
+      const cacheEntry = JSON.parse(data);
+      this.trackOperation_(key);
+      if (this.eventEmitter_)
+        this.eventEmitter_.emit('cache:get', { key, value: cacheEntry.value });
+      return cacheEntry.value;
+    } catch (error) {
+      if (error.code === 'ENOENT') {
+        this.trackOperation_(key);
+        if (this.eventEmitter_)
+          this.eventEmitter_.emit('cache:get', { key, value: undefined });
+        return undefined;
+      }
+      if (this.eventEmitter_)
+        this.eventEmitter_.emit('cache:error', { operation: 'get', key, error });
+      throw error;
+    }
+  }
+
+  /**
+   * Deletes a value from the cache.
+   * @param {string} key The key to delete.
+   * @return {Promise&lt;void>} A promise that resolves when the key is deleted.
+   */
+  async delete(key) {
+    const filePath = this.getFilePath_(key);
+
+    try {
+      await fs.unlink(filePath);
+      if (this.eventEmitter_) this.eventEmitter_.emit('cache:delete', { key });
+    } catch (error) {
+      if (error.code !== 'ENOENT') {
+        if (this.eventEmitter_)
+          this.eventEmitter_.emit('cache:error', { operation: 'delete', key, error });
+        throw error;
+      }
+    }
+  }
+
+  /**
+   * Gets analytics data for cache operations.
+   * @return {Array&lt;{key: string, hits: number, lastHit: string}>} Array of analytics data with key, hits, and last hit timestamp.
+   */
+  getAnalytics() {
+    const analytics = Array.from(this.analytics_.values());
+    return analytics.map((entry) => ({
+      key: entry.key,
+      hits: entry.hits,
+      lastHit: entry.lastHit.toISOString(),
+    }));
+  }
+
+  /**
+   * Clears all cached files from the cache directory.
+   * @return {Promise&lt;void>} A promise that resolves when all cache files are deleted.
+   */
+  async clear() {
+    try {
+      const files = await fs.readdir(this.cacheDir_);
+      const jsonFiles = files.filter(file => file.endsWith('.json'));
+      
+      await Promise.all(
+        jsonFiles.map(file => fs.unlink(path.join(this.cacheDir_, file)))
+      );
+
+      this.analytics_.clear();
+      if (this.eventEmitter_) this.eventEmitter_.emit('cache:clear');
+    } catch (error) {
+      if (this.eventEmitter_)
+        this.eventEmitter_.emit('cache:error', { operation: 'clear', error });
+      throw error;
+    }
+  }
+
+  /**
+   * Gets cache statistics including file count and directory size.
+   * @return {Promise&lt;{fileCount: number, totalSize: number}>} Cache statistics.
+   */
+  async getStats() {
+    try {
+      const files = await fs.readdir(this.cacheDir_);
+      const jsonFiles = files.filter(file => file.endsWith('.json'));
+      
+      let totalSize = 0;
+      for (const file of jsonFiles) {
+        const filePath = path.join(this.cacheDir_, file);
+        const stats = await fs.stat(filePath);
+        totalSize += stats.size;
+      }
+
+      return {
+        fileCount: jsonFiles.length,
+        totalSize,
+      };
+    } catch (error) {
+      return {
+        fileCount: 0,
+        totalSize: 0,
+      };
+    }
+  }
+
+  /**
+   * Tracks a cache operation for analytics.
+   * @param {string} key The cache key being accessed.
+   * @private
+   */
+  trackOperation_(key) {
+    const now = new Date();
+
+    if (this.analytics_.has(key)) {
+      const entry = this.analytics_.get(key);
+      entry.hits++;
+      entry.lastHit = now;
+    } else {
+      const entry = {
+        key: key,
+        hits: 1,
+        lastHit: now,
+      };
+
+      if (this.analytics_.size >= this.maxAnalyticsEntries_) {
+        this.removeLeastRecentlyUsed_();
+      }
+
+      this.analytics_.set(key, entry);
+    }
+  }
+
+  /**
+   * Removes the least recently used entry from analytics.
+   * @private
+   */
+  removeLeastRecentlyUsed_() {
+    let oldestKey = null;
+    let oldestTime = null;
+
+    for (const [key, entry] of this.analytics_) {
+      if (!oldestTime || entry.lastHit &lt; oldestTime) {
+        oldestTime = entry.lastHit;
+        oldestKey = key;
+      }
+    }
+
+    if (oldestKey) {
+      this.analytics_.delete(oldestKey);
+    }
+  }
+}
+
+module.exports = CacheFile;
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-CachingViews.html">CachingViews</a></li><li><a href="module-DataserveViews.html">DataserveViews</a></li><li><a href="module-FilingViews.html">FilingViews</a></li><li><a href="module-LoggingViews.html">LoggingViews</a></li><li><a href="module-MeasuringViews.html">MeasuringViews</a></li><li><a href="module-NotifyingViews.html">NotifyingViews</a></li><li><a href="module-QueueingViews.html">QueueingViews</a></li><li><a href="module-SchedulingViews.html">SchedulingViews</a></li><li><a href="module-SearchingViews.html">SearchingViews</a></li><li><a href="module-WorkflowViews.html">WorkflowViews</a></li><li><a href="module-WorkingViews.html">WorkingViews</a></li></ul><h3>Classes</h3><ul><li><a href="Cache.html">Cache</a></li><li><a href="CacheFile.html">CacheFile</a></li><li><a href="CacheMemcached.html">CacheMemcached</a></li><li><a href="CacheRedis.html">CacheRedis</a></li><li><a href="CommitQueue.html">CommitQueue</a></li><li><a href="DocumentDBDataServeProvider.html">DocumentDBDataServeProvider</a></li><li><a href="FileDataRingProvider.html">FileDataRingProvider</a></li><li><a href="FilingService.html">FilingService</a></li><li><a href="FtpFilingProvider.html">FtpFilingProvider</a></li><li><a href="GCPFilingProvider.html">GCPFilingProvider</a></li><li><a href="GitFilingProvider.html">GitFilingProvider</a></li><li><a href="InMemoryDataServeProvider.html">InMemoryDataServeProvider</a></li><li><a href="InMemoryQueue.html">InMemoryQueue</a></li><li><a href="LocalFilingProvider.html">LocalFilingProvider</a></li><li><a href="LocalWorkingStore.html">LocalWorkingStore</a></li><li><a href="MeasuringService.html">MeasuringService</a></li><li><a href="MetadataStore.html">MetadataStore</a></li><li><a href="MongoDBDataServeProvider.html">MongoDBDataServeProvider</a></li><li><a href="NotificationService.html">NotificationService</a></li><li><a href="S3FilingProvider.html">S3FilingProvider</a></li><li><a href="SchedulerProvider.html">SchedulerProvider</a></li><li><a href="SearchService.html">SearchService</a></li><li><a href="SimpleDbDataRingProvider.html">SimpleDbDataRingProvider</a></li><li><a href="SyncFilingProvider.html">SyncFilingProvider</a></li><li><a href="WorkerProvider.html">WorkerProvider</a></li><li><a href="WorkflowService.html">WorkflowService</a></li><li><a href="logging.html">logging</a></li><li><a href="loggingFile.html">loggingFile</a></li></ul><h3>Global</h3><ul><li><a href="global.html#FileStates">FileStates</a></li><li><a href="global.html#createApiKeyAuthMiddleware">createApiKeyAuthMiddleware</a></li><li><a href="global.html#createCache">createCache</a></li><li><a href="global.html#createDataserveService">createDataserveService</a></li><li><a href="global.html#createFilingService">createFilingService</a></li><li><a href="global.html#createLogger">createLogger</a></li><li><a href="global.html#createMeasuringService">createMeasuringService</a></li><li><a href="global.html#createNotificationService">createNotificationService</a></li><li><a href="global.html#createQueue">createQueue</a></li><li><a href="global.html#createSearchService">createSearchService</a></li><li><a href="global.html#createWorkflowService">createWorkflowService</a></li><li><a href="global.html#generateApiKey">generateApiKey</a></li><li><a href="global.html#getNestedValue">getNestedValue</a></li><li><a href="global.html#getSchedulerInstance">getSchedulerInstance</a></li><li><a href="global.html#getWorkerInstance">getWorkerInstance</a></li><li><a href="global.html#instance">instance</a></li><li><a href="global.html#isValidApiKeyFormat">isValidApiKeyFormat</a></li><li><a href="global.html#runStep">runStep</a></li><li><a href="global.html#status">status</a></li><li><a href="global.html#updateStatus">updateStatus</a></li><li><a href="global.html#userScript">userScript</a></li><li><a href="global.html#userScriptPath">userScriptPath</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Tue Sep 02 2025 12:14:25 GMT+0000 (Coordinated Universal Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

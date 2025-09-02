@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: filing/providers/filingGCP.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: filing/providers/filingGCP.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * @fileoverview Google Cloud Storage filing provider for file operations
+ * in Google Cloud Storage with event emission support.
+ * @author NooblyJS Team
+ * @version 1.0.14
+ * @since 1.0.0
+ */
+
+'use strict';
+
+const { Storage } = require('@google-cloud/storage');
+const path = require('path');
+const fs = require('fs');
+
+/**
+ * A class that implements a Google Cloud Storage-based file storage provider.
+ * Provides methods for creating, reading, updating, deleting, and listing files in GCS buckets.
+ * @class
+ */
+class GCPFilingProvider {
+  /**
+   * Initializes the Google Cloud Storage provider.
+   * @param {Object=} options Configuration options for GCS connection.
+   * @param {string=} options.bucketName GCS bucket name (required).
+   * @param {string=} options.projectId GCP project ID (optional, can be from service account).
+   * @param {string=} options.keyFilename Path to service account key file (defaults to './.config/cloud-storage.json').
+   * @param {Object=} options.credentials Service account credentials object (alternative to keyFilename).
+   * @param {string=} options.location Bucket location for creation (defaults to 'US').
+   * @param {string=} options.storageClass Bucket storage class for creation (defaults to 'STANDARD').
+   * @param {EventEmitter=} eventEmitter Optional event emitter for file operations.
+   */
+  constructor(options = {}, eventEmitter) {
+    if (!options.bucketName) {
+      throw new Error('GCP Filing Provider requires a bucketName in options');
+    }
+
+    /** @private @const {string} */
+    this.bucketName_ = options.bucketName;
+    
+    /** @private @const {string} */
+    this.location_ = options.location || 'US';
+    
+    /** @private @const {string} */
+    this.storageClass_ = options.storageClass || 'STANDARD';
+    
+    /** @private @const {EventEmitter} */
+    this.eventEmitter_ = eventEmitter;
+    
+    // Configure Google Cloud Storage client
+    const storageOptions = {};
+    
+    if (options.projectId) {
+      storageOptions.projectId = options.projectId;
+    }
+    
+    // Use either credentials object or key file
+    if (options.credentials) {
+      storageOptions.credentials = options.credentials;
+    } else {
+      storageOptions.keyFilename = options.keyFilename || './.config/cloud-storage.json';
+    }
+    
+    try {
+      /** @private @const {Storage} */
+      this.storage_ = new Storage(storageOptions);
+      
+      /** @private @const {Object} */
+      this.bucket_ = this.storage_.bucket(this.bucketName_);
+      
+      // Check if bucket exists and create if it doesn't
+      this._ensureBucketExists().catch(error => {
+        if (this.eventEmitter_) {
+          this.eventEmitter_.emit('filing:gcp:error', {
+            operation: 'ensureBucketExists',
+            error: error.message
+          });
+        }
+      });
+      
+      if (this.eventEmitter_) {
+        this.eventEmitter_.emit('filing:gcp:initialized', {
+          bucketName: this.bucketName_,
+          projectId: storageOptions.projectId,
+          keyFile: storageOptions.keyFilename
+        });
+      }
+    } catch (error) {
+      if (this.eventEmitter_) {
+        this.eventEmitter_.emit('filing:gcp:error', {
+          operation: 'initialize',
+          error: error.message
+        });
+      }
+      throw new Error(`GCP Storage initialization failed: ${error.message}`);
+    }
+  }
+
+  /**
+   * Ensures the bucket exists and creates it if it doesn't.
+   * @return {Promise&lt;void>} A promise that resolves when bucket exists or is created.
+   * @private
+   */
+  async _ensureBucketExists() {
+    try {
+      const [exists] = await this.bucket_.exists();
+      
+      if (!exists) {
+        await this.bucket_.create({
+          location: this.location_,
+          storageClass: this.storageClass_
+        });
+        
+        if (this.eventEmitter_) {
+          this.eventEmitter_.emit('filing:gcp:bucketCreated', {
+            bucketName: this.bucketName_,
+            location: this.location_,
+            storageClass: this.storageClass_
+          });
+        }
+      } else {
+        if (this.eventEmitter_) {
+          this.eventEmitter_.emit('filing:gcp:bucketExists', {
+            bucketName: this.bucketName_
+          });
+        }
+      }
+    } catch (error) {
+      throw new Error(`Failed to ensure bucket '${this.bucketName_}' exists: ${error.message}`);
+    }
+  }
+
+  /**
+   * Creates a new file in Google Cloud Storage.
+   * @param {string} filePath The path where the file should be created in the bucket.
+   * @param {Buffer|ReadableStream|string} content The content to write to the file.
+   * @return {Promise&lt;void>} A promise that resolves when the file is created.
+   * @throws {Error} When file creation fails.
+   */
+  async create(filePath, content) {
+    try {
+      const file = this.bucket_.file(filePath);
+      
+      if (content &amp;&amp; typeof content.pipe === 'function') {
+        // Handle ReadableStream
+        await this._uploadFromStream(file, content);
+      } else if (Buffer.isBuffer(content) || typeof content === 'string') {
+        // Handle Buffer or string
+        await file.save(content);
+      } else {
+        throw new Error('Unsupported content type. Must be Buffer, ReadableStream, or string');
+      }
+
+      if (this.eventEmitter_) {
+        this.eventEmitter_.emit('filing:create', {
+          filePath,
+          bucketName: this.bucketName_,
+          contentType: typeof content,
+          provider: 'gcp'
+        });
+      }
+    } catch (error) {
+      if (this.eventEmitter_) {
+        this.eventEmitter_.emit('filing:gcp:error', {
+          operation: 'create',
+          filePath,
+          error: error.message
+        });
+      }
+      throw new Error(`Failed to create file '${filePath}' in GCS: ${error.message}`);
+    }
+  }
+
+  /**
+   * Reads a file from Google Cloud Storage.
+   * @param {string} filePath The path of the file to read from the bucket.
+   * @param {string} [encoding] Optional encoding (e.g., 'utf8', 'base64'), defaults to Buffer.
+   * @return {Promise&lt;Buffer|string>} A promise that resolves to the file content.
+   * @throws {Error} When file reading fails.
+   */
+  async read(filePath, encoding) {
+    try {
+      const file = this.bucket_.file(filePath);
+      
+      // Check if file exists
+      const [exists] = await file.exists();
+      if (!exists) {
+        throw new Error(`File '${filePath}' does not exist in bucket '${this.bucketName_}'`);
+      }
+      
+      const [content] = await file.download();
+      
+      const result = encoding ? content.toString(encoding) : content;
+      
+      if (this.eventEmitter_) {
+        this.eventEmitter_.emit('filing:read', {
+          filePath,
+          bucketName: this.bucketName_,
+          encoding,
+          contentType: encoding ? 'string' : 'Buffer',
+          provider: 'gcp'
+        });
+      }
+      
+      return result;
+    } catch (error) {
+      if (this.eventEmitter_) {
+        this.eventEmitter_.emit('filing:gcp:error', {
+          operation: 'read',
+          filePath,
+          error: error.message
+        });
+      }
+      throw new Error(`Failed to read file '${filePath}' from GCS: ${error.message}`);
+    }
+  }
+
+  /**
+   * Deletes a file from Google Cloud Storage.
+   * @param {string} filePath The path of the file to delete from the bucket.
+   * @return {Promise&lt;void>} A promise that resolves when the file is deleted.
+   * @throws {Error} When file deletion fails.
+   */
+  async delete(filePath) {
+    try {
+      const file = this.bucket_.file(filePath);
+      
+      // Check if file exists
+      const [exists] = await file.exists();
+      if (!exists) {
+        throw new Error(`File '${filePath}' does not exist in bucket '${this.bucketName_}'`);
+      }
+      
+      await file.delete();
+      
+      if (this.eventEmitter_) {
+        this.eventEmitter_.emit('filing:delete', {
+          filePath,
+          bucketName: this.bucketName_,
+          provider: 'gcp'
+        });
+      }
+    } catch (error) {
+      if (this.eventEmitter_) {
+        this.eventEmitter_.emit('filing:gcp:error', {
+          operation: 'delete',
+          filePath,
+          error: error.message
+        });
+      }
+      throw new Error(`Failed to delete file '${filePath}' from GCS: ${error.message}`);
+    }
+  }
+
+  /**
+   * Lists files in a Google Cloud Storage bucket directory.
+   * @param {string} [dirPath=''] The path of the directory to list (defaults to root).
+   * @return {Promise&lt;Array&lt;string>>} A promise that resolves to an array of file names.
+   * @throws {Error} When directory listing fails.
+   */
+  async list(dirPath = '') {
+    try {
+      const prefix = dirPath ? (dirPath.endsWith('/') ? dirPath : dirPath + '/') : '';
+      const delimiter = '/';
+      
+      const [files] = await this.bucket_.getFiles({
+        prefix,
+        delimiter
+      });
+      
+      // Extract file names, removing the prefix
+      const fileNames = files.map(file => {
+        const fileName = file.name;
+        return prefix ? fileName.replace(prefix, '') : fileName;
+      }).filter(name => name.length > 0); // Remove empty names
+      
+      if (this.eventEmitter_) {
+        this.eventEmitter_.emit('filing:list', {
+          dirPath,
+          bucketName: this.bucketName_,
+          files: fileNames,
+          provider: 'gcp'
+        });
+      }
+      
+      return fileNames;
+    } catch (error) {
+      if (this.eventEmitter_) {
+        this.eventEmitter_.emit('filing:gcp:error', {
+          operation: 'list',
+          dirPath,
+          error: error.message
+        });
+      }
+      throw new Error(`Failed to list files in '${dirPath}' from GCS: ${error.message}`);
+    }
+  }
+
+  /**
+   * Updates an existing file in Google Cloud Storage.
+   * @param {string} filePath The path of the file to update in the bucket.
+   * @param {Buffer|ReadableStream|string} content The new content for the file.
+   * @return {Promise&lt;void>} A promise that resolves when the file is updated.
+   * @throws {Error} When file update fails.
+   */
+  async update(filePath, content) {
+    try {
+      const file = this.bucket_.file(filePath);
+      
+      if (content &amp;&amp; typeof content.pipe === 'function') {
+        // Handle ReadableStream
+        await this._uploadFromStream(file, content);
+      } else if (Buffer.isBuffer(content) || typeof content === 'string') {
+        // Handle Buffer or string
+        await file.save(content);
+      } else {
+        throw new Error('Unsupported content type. Must be Buffer, ReadableStream, or string');
+      }
+
+      if (this.eventEmitter_) {
+        this.eventEmitter_.emit('filing:update', {
+          filePath,
+          bucketName: this.bucketName_,
+          contentType: typeof content,
+          provider: 'gcp'
+        });
+      }
+    } catch (error) {
+      if (this.eventEmitter_) {
+        this.eventEmitter_.emit('filing:gcp:error', {
+          operation: 'update',
+          filePath,
+          error: error.message
+        });
+      }
+      throw new Error(`Failed to update file '${filePath}' in GCS: ${error.message}`);
+    }
+  }
+
+  /**
+   * Gets metadata for a file in Google Cloud Storage.
+   * @param {string} filePath The path of the file to get metadata for.
+   * @return {Promise&lt;Object>} A promise that resolves to file metadata.
+   * @throws {Error} When metadata retrieval fails.
+   */
+  async getMetadata(filePath) {
+    try {
+      const file = this.bucket_.file(filePath);
+      
+      // Check if file exists
+      const [exists] = await file.exists();
+      if (!exists) {
+        throw new Error(`File '${filePath}' does not exist in bucket '${this.bucketName_}'`);
+      }
+      
+      const [metadata] = await file.getMetadata();
+      
+      const result = {
+        name: metadata.name,
+        bucket: metadata.bucket,
+        size: parseInt(metadata.size, 10),
+        contentType: metadata.contentType,
+        created: new Date(metadata.timeCreated),
+        updated: new Date(metadata.updated),
+        etag: metadata.etag,
+        generation: metadata.generation
+      };
+      
+      if (this.eventEmitter_) {
+        this.eventEmitter_.emit('filing:gcp:metadata', {
+          filePath,
+          bucketName: this.bucketName_,
+          metadata: result
+        });
+      }
+      
+      return result;
+    } catch (error) {
+      if (this.eventEmitter_) {
+        this.eventEmitter_.emit('filing:gcp:error', {
+          operation: 'getMetadata',
+          filePath,
+          error: error.message
+        });
+      }
+      throw new Error(`Failed to get metadata for '${filePath}' from GCS: ${error.message}`);
+    }
+  }
+
+  /**
+   * Copies a file within Google Cloud Storage.
+   * @param {string} sourcePath The path of the source file.
+   * @param {string} destinationPath The path where the file should be copied.
+   * @return {Promise&lt;void>} A promise that resolves when the file is copied.
+   * @throws {Error} When file copying fails.
+   */
+  async copy(sourcePath, destinationPath) {
+    try {
+      const sourceFile = this.bucket_.file(sourcePath);
+      const destinationFile = this.bucket_.file(destinationPath);
+      
+      // Check if source file exists
+      const [exists] = await sourceFile.exists();
+      if (!exists) {
+        throw new Error(`Source file '${sourcePath}' does not exist in bucket '${this.bucketName_}'`);
+      }
+      
+      await sourceFile.copy(destinationFile);
+      
+      if (this.eventEmitter_) {
+        this.eventEmitter_.emit('filing:gcp:copy', {
+          sourcePath,
+          destinationPath,
+          bucketName: this.bucketName_
+        });
+      }
+    } catch (error) {
+      if (this.eventEmitter_) {
+        this.eventEmitter_.emit('filing:gcp:error', {
+          operation: 'copy',
+          sourcePath,
+          destinationPath,
+          error: error.message
+        });
+      }
+      throw new Error(`Failed to copy file from '${sourcePath}' to '${destinationPath}' in GCS: ${error.message}`);
+    }
+  }
+
+  /**
+   * Moves a file within Google Cloud Storage.
+   * @param {string} sourcePath The path of the source file.
+   * @param {string} destinationPath The path where the file should be moved.
+   * @return {Promise&lt;void>} A promise that resolves when the file is moved.
+   * @throws {Error} When file moving fails.
+   */
+  async move(sourcePath, destinationPath) {
+    try {
+      await this.copy(sourcePath, destinationPath);
+      await this.delete(sourcePath);
+      
+      if (this.eventEmitter_) {
+        this.eventEmitter_.emit('filing:gcp:move', {
+          sourcePath,
+          destinationPath,
+          bucketName: this.bucketName_
+        });
+      }
+    } catch (error) {
+      if (this.eventEmitter_) {
+        this.eventEmitter_.emit('filing:gcp:error', {
+          operation: 'move',
+          sourcePath,
+          destinationPath,
+          error: error.message
+        });
+      }
+      throw new Error(`Failed to move file from '${sourcePath}' to '${destinationPath}' in GCS: ${error.message}`);
+    }
+  }
+
+  /**
+   * Generates a signed URL for accessing a file.
+   * @param {string} filePath The path of the file to generate URL for.
+   * @param {Object} [options={}] URL generation options.
+   * @param {string} [options.action='read'] The action ('read', 'write', 'delete').
+   * @param {Date|number} [options.expires] Expiration time (Date object or timestamp).
+   * @return {Promise&lt;string>} A promise that resolves to the signed URL.
+   * @throws {Error} When URL generation fails.
+   */
+  async generateSignedUrl(filePath, options = {}) {
+    try {
+      const file = this.bucket_.file(filePath);
+      
+      const signedUrlOptions = {
+        action: options.action || 'read',
+        expires: options.expires || Date.now() + 15 * 60 * 1000 // Default: 15 minutes
+      };
+      
+      const [url] = await file.getSignedUrl(signedUrlOptions);
+      
+      if (this.eventEmitter_) {
+        this.eventEmitter_.emit('filing:gcp:signedUrl', {
+          filePath,
+          bucketName: this.bucketName_,
+          action: signedUrlOptions.action,
+          expires: signedUrlOptions.expires
+        });
+      }
+      
+      return url;
+    } catch (error) {
+      if (this.eventEmitter_) {
+        this.eventEmitter_.emit('filing:gcp:error', {
+          operation: 'generateSignedUrl',
+          filePath,
+          error: error.message
+        });
+      }
+      throw new Error(`Failed to generate signed URL for '${filePath}': ${error.message}`);
+    }
+  }
+
+  /**
+   * Checks if a file exists in Google Cloud Storage.
+   * @param {string} filePath The path of the file to check.
+   * @return {Promise&lt;boolean>} A promise that resolves to true if the file exists.
+   * @throws {Error} When existence check fails.
+   */
+  async exists(filePath) {
+    try {
+      const file = this.bucket_.file(filePath);
+      const [exists] = await file.exists();
+      
+      if (this.eventEmitter_) {
+        this.eventEmitter_.emit('filing:gcp:exists', {
+          filePath,
+          bucketName: this.bucketName_,
+          exists
+        });
+      }
+      
+      return exists;
+    } catch (error) {
+      if (this.eventEmitter_) {
+        this.eventEmitter_.emit('filing:gcp:error', {
+          operation: 'exists',
+          filePath,
+          error: error.message
+        });
+      }
+      throw new Error(`Failed to check existence of '${filePath}' in GCS: ${error.message}`);
+    }
+  }
+
+  /**
+   * Gets the bucket configuration and status.
+   * @return {Promise&lt;Object>} A promise that resolves to bucket information.
+   */
+  async getBucketInfo() {
+    try {
+      const [metadata] = await this.bucket_.getMetadata();
+      
+      const result = {
+        name: metadata.name,
+        location: metadata.location,
+        storageClass: metadata.storageClass,
+        created: new Date(metadata.timeCreated),
+        updated: new Date(metadata.updated)
+      };
+      
+      if (this.eventEmitter_) {
+        this.eventEmitter_.emit('filing:gcp:bucketInfo', result);
+      }
+      
+      return result;
+    } catch (error) {
+      if (this.eventEmitter_) {
+        this.eventEmitter_.emit('filing:gcp:error', {
+          operation: 'getBucketInfo',
+          error: error.message
+        });
+      }
+      throw new Error(`Failed to get bucket info: ${error.message}`);
+    }
+  }
+
+  /**
+   * Uploads a file from a ReadableStream.
+   * @param {Object} file GCS file object.
+   * @param {ReadableStream} stream The readable stream to upload.
+   * @return {Promise&lt;void>} A promise that resolves when the upload completes.
+   * @private
+   */
+  async _uploadFromStream(file, stream) {
+    return new Promise((resolve, reject) => {
+      const uploadStream = file.createWriteStream({
+        metadata: {
+          contentType: 'application/octet-stream' // Default content type
+        }
+      });
+
+      uploadStream.on('error', reject);
+      uploadStream.on('finish', resolve);
+
+      stream.pipe(uploadStream);
+      stream.on('error', reject);
+    });
+  }
+}
+
+module.exports = GCPFilingProvider;</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-CachingViews.html">CachingViews</a></li><li><a href="module-DataserveViews.html">DataserveViews</a></li><li><a href="module-FilingViews.html">FilingViews</a></li><li><a href="module-LoggingViews.html">LoggingViews</a></li><li><a href="module-MeasuringViews.html">MeasuringViews</a></li><li><a href="module-NotifyingViews.html">NotifyingViews</a></li><li><a href="module-QueueingViews.html">QueueingViews</a></li><li><a href="module-SchedulingViews.html">SchedulingViews</a></li><li><a href="module-SearchingViews.html">SearchingViews</a></li><li><a href="module-WorkflowViews.html">WorkflowViews</a></li><li><a href="module-WorkingViews.html">WorkingViews</a></li></ul><h3>Classes</h3><ul><li><a href="Cache.html">Cache</a></li><li><a href="CacheFile.html">CacheFile</a></li><li><a href="CacheMemcached.html">CacheMemcached</a></li><li><a href="CacheRedis.html">CacheRedis</a></li><li><a href="CommitQueue.html">CommitQueue</a></li><li><a href="DocumentDBDataServeProvider.html">DocumentDBDataServeProvider</a></li><li><a href="FileDataRingProvider.html">FileDataRingProvider</a></li><li><a href="FilingService.html">FilingService</a></li><li><a href="FtpFilingProvider.html">FtpFilingProvider</a></li><li><a href="GCPFilingProvider.html">GCPFilingProvider</a></li><li><a href="GitFilingProvider.html">GitFilingProvider</a></li><li><a href="InMemoryDataServeProvider.html">InMemoryDataServeProvider</a></li><li><a href="InMemoryQueue.html">InMemoryQueue</a></li><li><a href="LocalFilingProvider.html">LocalFilingProvider</a></li><li><a href="LocalWorkingStore.html">LocalWorkingStore</a></li><li><a href="MeasuringService.html">MeasuringService</a></li><li><a href="MetadataStore.html">MetadataStore</a></li><li><a href="MongoDBDataServeProvider.html">MongoDBDataServeProvider</a></li><li><a href="NotificationService.html">NotificationService</a></li><li><a href="S3FilingProvider.html">S3FilingProvider</a></li><li><a href="SchedulerProvider.html">SchedulerProvider</a></li><li><a href="SearchService.html">SearchService</a></li><li><a href="SimpleDbDataRingProvider.html">SimpleDbDataRingProvider</a></li><li><a href="SyncFilingProvider.html">SyncFilingProvider</a></li><li><a href="WorkerProvider.html">WorkerProvider</a></li><li><a href="WorkflowService.html">WorkflowService</a></li><li><a href="logging.html">logging</a></li><li><a href="loggingFile.html">loggingFile</a></li></ul><h3>Global</h3><ul><li><a href="global.html#FileStates">FileStates</a></li><li><a href="global.html#createApiKeyAuthMiddleware">createApiKeyAuthMiddleware</a></li><li><a href="global.html#createCache">createCache</a></li><li><a href="global.html#createDataserveService">createDataserveService</a></li><li><a href="global.html#createFilingService">createFilingService</a></li><li><a href="global.html#createLogger">createLogger</a></li><li><a href="global.html#createMeasuringService">createMeasuringService</a></li><li><a href="global.html#createNotificationService">createNotificationService</a></li><li><a href="global.html#createQueue">createQueue</a></li><li><a href="global.html#createSearchService">createSearchService</a></li><li><a href="global.html#createWorkflowService">createWorkflowService</a></li><li><a href="global.html#generateApiKey">generateApiKey</a></li><li><a href="global.html#getNestedValue">getNestedValue</a></li><li><a href="global.html#getSchedulerInstance">getSchedulerInstance</a></li><li><a href="global.html#getWorkerInstance">getWorkerInstance</a></li><li><a href="global.html#instance">instance</a></li><li><a href="global.html#isValidApiKeyFormat">isValidApiKeyFormat</a></li><li><a href="global.html#runStep">runStep</a></li><li><a href="global.html#status">status</a></li><li><a href="global.html#updateStatus">updateStatus</a></li><li><a href="global.html#userScript">userScript</a></li><li><a href="global.html#userScriptPath">userScriptPath</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Tue Sep 02 2025 12:14:25 GMT+0000 (Coordinated Universal Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

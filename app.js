@@ -43,6 +43,9 @@ const measuring = serviceRegistry.measuring('memory');
 const notifying = serviceRegistry.notifying('memory');
 const worker = serviceRegistry.working('memory');
 const workflow = serviceRegistry.workflow('memory');
+const aiservice = serviceRegistry.aiservice('claude', {
+  apiKey: 'TO BE POPULATED'
+});
 
 cache.put('currentdate', new Date());
 log.info(cache.get('currentdate'));
@@ -62,6 +65,7 @@ loadExampleMeasuring(measuring);
 loadExampleNotifying(notifying);
 loadExampleWorker(worker);
 loadExampleWorflow(workflow);
+loadExampleAiService(aiservice);
 
 const PORT = process.env.PORT || 10100;
 app.use('/', express.static(__dirname + '/public'));
@@ -176,4 +180,22 @@ function loadExampleWorflow(workflow){
   workflow.runWorkflow('example-workflow', {}, () => {
     console.log('Workflow ended');
   });
+}
+
+/**
+ * Demonstrate AI service.
+ * Send a test prompt to the Claude AI service.
+ */
+async function loadExampleAiService(aiservice) {
+  try {
+    console.log('Testing Claude AI service...');
+    const response = await aiservice.prompt('Hello, can you tell me what you are?', {
+      maxTokens: 150,
+      temperature: 0.7
+    });
+    console.log('AI Service Response:', response.content);
+    console.log('Token Usage:', response.usage);
+  } catch (error) {
+    console.error('AI Service Error:', error.message);
+  }
 }

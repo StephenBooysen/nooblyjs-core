@@ -1,0 +1,24 @@
+{
+  "sessions": [
+    {
+      "timestamp": "2025-09-02T16:57:16.420Z",
+      "provider": "claude",
+      "model": "claude-3-5-sonnet-20241022",
+      "promptTokens": 17,
+      "completionTokens": 54,
+      "totalTokens": 71,
+      "estimatedCost": 0.0008610000000000001
+    },
+    {
+      "timestamp": "2025-09-02T16:58:02.357Z",
+      "provider": "claude",
+      "model": "claude-3-5-sonnet-20241022",
+      "promptTokens": 14,
+      "completionTokens": 247,
+      "totalTokens": 261,
+      "estimatedCost": 0.003747
+    }
+  ],
+  "totalCost": 0.004608,
+  "totalTokens": 332
+}

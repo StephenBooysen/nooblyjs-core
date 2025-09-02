@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Service - Noobly JS Admin</title>
+    <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@4.15.5/swagger-ui.css">
+    <link rel="stylesheet" href="/services/style.css">
+    <style>
+        .prompt-container {
+            margin-bottom: 2rem;
+        }
+        
+        .prompt-textarea {
+            width: 100%;
+            min-height: 150px;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            resize: vertical;
+        }
+        
+        .provider-selector {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .provider-option {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1rem;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            min-width: 120px;
+        }
+        
+        .provider-option:hover {
+            border-color: #0366d6;
+            background-color: #f6f8fa;
+        }
+        
+        .provider-option.selected {
+            border-color: #0366d6;
+            background-color: #e3f2fd;
+        }
+        
+        .provider-option input[type="radio"] {
+            margin: 0;
+        }
+        
+        .provider-status {
+            font-size: 0.8em;
+            margin-left: auto;
+        }
+        
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-left: 0.5rem;
+        }
+        
+        .status-online {
+            background-color: #28a745;
+        }
+        
+        .status-offline {
+            background-color: #dc3545;
+        }
+        
+        .status-unknown {
+            background-color: #ffc107;
+        }
+        
+        .ai-response {
+            background-color: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-top: 1rem;
+            white-space: pre-wrap;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+        }
+        
+        .usage-info {
+            background-color: #e3f2fd;
+            border: 1px solid #bbdefb;
+            border-radius: 6px;
+            padding: 1rem;
+            margin-top: 1rem;
+            font-size: 0.9em;
+        }
+        
+        .usage-info h4 {
+            margin: 0 0 0.5rem 0;
+            color: #1976d2;
+        }
+        
+        .usage-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+        }
+        
+        .metric {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .advanced-options {
+            margin: 1rem 0;
+        }
+        
+        .advanced-toggle {
+            cursor: pointer;
+            color: #0366d6;
+            font-size: 0.9em;
+            margin-bottom: 0.5rem;
+        }
+        
+        .advanced-content {
+            display: none;
+            background-color: #f6f8fa;
+            border: 1px solid #e1e5e9;
+            border-radius: 6px;
+            padding: 1rem;
+            margin-top: 0.5rem;
+        }
+        
+        .advanced-content.show {
+            display: block;
+        }
+        
+        .option-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .loading-indicator {
+            display: none;
+            align-items: center;
+            gap: 0.5rem;
+            color: #666;
+            font-style: italic;
+        }
+        
+        .spinner {
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #0366d6;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .example-prompts {
+            margin-bottom: 1rem;
+        }
+
+        .example-buttons {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-top: 0.5rem;
+        }
+
+        .example-btn {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.85em;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .example-btn:hover {
+            background: #e9ecef;
+            border-color: #adb5bd;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <nav class="sidebar">
+            <div class="logo">
+                <h1>Noobly JS</h1>
+                <div class="subtitle">AI Service</div>
+            </div>
+            <a href="/services/ai/" class="nav-item active">AI Service</a>
+            <a href="/services/caching/" class="nav-item">Cache Management</a>
+            <a href="/services/dataserve/" class="nav-item">Data Serve</a>
+            <a href="/services/filing/" class="nav-item">File Management</a>
+            <a href="/services/logging/" class="nav-item">Logging</a>
+            <a href="/services/measuring/" class="nav-item">Measuring</a>
+            <a href="/services/notifying/" class="nav-item">Notifications</a>
+            <a href="/services/queueing/" class="nav-item">Queue Management</a>
+            <a href="/services/scheduling/" class="nav-item">Scheduling</a>
+            <a href="/services/searching/" class="nav-item">Search</a>
+            <a href="/services/working/" class="nav-item">Background Tasks</a>
+            <a href="/services/workflow/" class="nav-item">Workflows</a>
+        </nav>
+
+        <main class="main-content">
+            <div class="page-header">
+                <h1 class="page-title">AI Service</h1>
+                <p class="page-subtitle">Interact with Claude, OpenAI, and Ollama language models</p>
+            </div>
+
+            <div class="alert alert-success" id="successAlert">
+                <strong>Success!</strong> <span id="successMessage"></span>
+            </div>
+
+            <div class="alert alert-error" id="errorAlert">
+                <strong>Error!</strong> <span id="errorMessage"></span>
+            </div>
+
+            <!-- AI Prompt Interface -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">AI Prompt Interface</h2>
+                    <p class="card-subtitle">Send prompts to AI models and receive responses</p>
+                </div>
+                <div class="card-content">
+                    <!-- Provider Selection -->
+                    <div class="form-group">
+                        <label class="form-label">Select AI Provider</label>
+                        <div class="provider-selector">
+                            <div class="provider-option selected" data-provider="claude">
+                                <input type="radio" name="provider" value="claude" checked>
+                                <span>Claude</span>
+                                <div class="provider-status">
+                                    <span class="status-indicator status-unknown"></span>
+                                </div>
+                            </div>
+                            <div class="provider-option" data-provider="chatgpt">
+                                <input type="radio" name="provider" value="chatgpt">
+                                <span>ChatGPT</span>
+                                <div class="provider-status">
+                                    <span class="status-indicator status-unknown"></span>
+                                </div>
+                            </div>
+                            <div class="provider-option" data-provider="ollama">
+                                <input type="radio" name="provider" value="ollama">
+                                <span>Ollama</span>
+                                <div class="provider-status">
+                                    <span class="status-indicator status-unknown"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Example Prompts -->
+                    <div class="form-group example-prompts">
+                        <label class="form-label">Example Prompts</label>
+                        <div class="example-buttons">
+                            <button class="example-btn" data-prompt="Explain quantum computing in simple terms">Quantum Computing</button>
+                            <button class="example-btn" data-prompt="Write a short story about a robot learning to paint">Creative Story</button>
+                            <button class="example-btn" data-prompt="Generate a Python function to calculate fibonacci numbers">Code Generation</button>
+                            <button class="example-btn" data-prompt="What are the main differences between REST and GraphQL APIs?">Technical Q&A</button>
+                            <button class="example-btn" data-prompt="Translate 'Hello, how are you?' to French, Spanish, and German">Translation</button>
+                        </div>
+                    </div>
+
+                    <!-- Prompt Form -->
+                    <form id="promptForm">
+                        <div class="form-group">
+                            <label class="form-label" for="promptText">Your Prompt</label>
+                            <textarea 
+                                id="promptText" 
+                                class="prompt-textarea" 
+                                placeholder="Enter your prompt here... (e.g., 'Explain machine learning in simple terms' or 'Write a Python function to sort a list')"
+                                required
+                            ></textarea>
+                        </div>
+
+                        <!-- Advanced Options -->
+                        <div class="advanced-options">
+                            <div class="advanced-toggle" onclick="toggleAdvanced()">
+                                ⚙️ Advanced Options
+                            </div>
+                            <div class="advanced-content" id="advancedContent">
+                                <div class="option-group">
+                                    <div class="form-group">
+                                        <label class="form-label" for="maxTokens">Max Tokens</label>
+                                        <input type="number" id="maxTokens" class="form-input" value="1000" min="1" max="4000">
+                                        <div class="helper-text">Maximum tokens in response (1-4000)</div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label" for="temperature">Temperature</label>
+                                        <input type="range" id="temperature" class="form-input" value="0.7" min="0" max="1" step="0.1">
+                                        <div class="helper-text">Creativity level: <span id="temperatureValue">0.7</span></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="btn-group">
+                            <button type="submit" class="btn btn-primary" id="submitBtn">
+                                Send Prompt
+                            </button>
+                            <button type="button" class="btn btn-secondary" onclick="clearPrompt()">
+                                Clear
+                            </button>
+                            <div class="loading-indicator" id="loadingIndicator">
+                                <div class="spinner"></div>
+                                <span>Processing...</span>
+                            </div>
+                        </div>
+                    </form>
+
+                    <!-- AI Response -->
+                    <div id="responseContainer" style="display: none;">
+                        <h3>AI Response</h3>
+                        <div id="aiResponse" class="ai-response"></div>
+                        
+                        <!-- Usage Information -->
+                        <div id="usageInfo" class="usage-info" style="display: none;">
+                            <h4>Usage Information</h4>
+                            <div class="usage-metrics">
+                                <div class="metric">
+                                    <span>Prompt Tokens:</span>
+                                    <span id="promptTokens">0</span>
+                                </div>
+                                <div class="metric">
+                                    <span>Response Tokens:</span>
+                                    <span id="responseTokens">0</span>
+                                </div>
+                                <div class="metric">
+                                    <span>Total Tokens:</span>
+                                    <span id="totalTokens">0</span>
+                                </div>
+                                <div class="metric">
+                                    <span>Estimated Cost:</span>
+                                    <span id="estimatedCost">$0.00</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Service Status -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Service Status</h2>
+                    <p class="card-subtitle">Monitor AI service health and availability</p>
+                </div>
+                <div class="card-content">
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-secondary" onclick="checkStatus()">Check Status</button>
+                        <button type="button" class="btn btn-secondary" onclick="checkModels()">List Models</button>
+                        <button type="button" class="btn btn-secondary" onclick="checkHealth()">Health Check</button>
+                    </div>
+                    <div id="statusResponse" class="response-container" style="display: none;">
+                        <div class="response-title">Status Information:</div>
+                        <div id="statusResponseContent" class="response-content"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Usage Analytics -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Usage Analytics</h2>
+                    <p class="card-subtitle">View AI service usage statistics and token consumption</p>
+                </div>
+                <div class="card-content">
+                    <div class="analytics-controls">
+                        <div class="analytics-info">
+                            <span id="analyticsCount">Loading...</span> requests tracked
+                        </div>
+                        <button class="analytics-refresh" onclick="loadAnalytics()">
+                            Refresh Data
+                        </button>
+                    </div>
+                    <div id="analyticsData" class="response-container" style="display: none;">
+                        <div class="response-content" id="analyticsContent"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- API Documentation -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">API Documentation</h2>
+                    <p class="card-subtitle">Interactive API documentation for AI service</p>
+                </div>
+                <div class="card-content">
+                    <div id="swagger-ui"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://unpkg.com/swagger-ui-dist@4.15.5/swagger-ui-bundle.js"></script>
+    <script>
+        // Global state
+        let selectedProvider = 'claude';
+        let isProcessing = false;
+
+        // Utility functions
+        function showAlert(message, type = 'success') {
+            const alertElement = document.getElementById(type + 'Alert');
+            const messageElement = document.getElementById(type + 'Message');
+            messageElement.textContent = message;
+            alertElement.classList.add('show');
+            setTimeout(() => alertElement.classList.remove('show'), 5000);
+        }
+
+        function showResponse(containerId, contentId, data) {
+            const container = document.getElementById(containerId);
+            const content = document.getElementById(contentId);
+            content.textContent = typeof data === 'object' ? JSON.stringify(data, null, 2) : data;
+            container.style.display = 'block';
+        }
+
+        function setLoading(isLoading) {
+            isProcessing = isLoading;
+            const submitBtn = document.getElementById('submitBtn');
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            
+            if (isLoading) {
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Processing...';
+                loadingIndicator.style.display = 'flex';
+            } else {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Send Prompt';
+                loadingIndicator.style.display = 'none';
+            }
+        }
+
+        async function makeRequest(url, method = 'GET', body = null) {
+            const options = {
+                method,
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            };
+            
+            if (body) {
+                options.body = JSON.stringify(body);
+            }
+            
+            const response = await fetch(url, options);
+            const contentType = response.headers.get('content-type');
+            
+            if (contentType && contentType.includes('application/json')) {
+                return await response.json();
+            } else {
+                return await response.text();
+            }
+        }
+
+        // Provider selection
+        document.querySelectorAll('.provider-option').forEach(option => {
+            option.addEventListener('click', () => {
+                document.querySelectorAll('.provider-option').forEach(o => o.classList.remove('selected'));
+                option.classList.add('selected');
+                selectedProvider = option.dataset.provider;
+                option.querySelector('input').checked = true;
+                checkProviderStatus(selectedProvider);
+            });
+        });
+
+        // Example prompt buttons
+        document.querySelectorAll('.example-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.getElementById('promptText').value = btn.dataset.prompt;
+            });
+        });
+
+        // Advanced options toggle
+        function toggleAdvanced() {
+            const content = document.getElementById('advancedContent');
+            content.classList.toggle('show');
+        }
+
+        // Temperature slider update
+        document.getElementById('temperature').addEventListener('input', (e) => {
+            document.getElementById('temperatureValue').textContent = e.target.value;
+        });
+
+        // Clear prompt
+        function clearPrompt() {
+            document.getElementById('promptText').value = '';
+            document.getElementById('responseContainer').style.display = 'none';
+        }
+
+        // Check provider status
+        async function checkProviderStatus(provider) {
+            try {
+                const result = await makeRequest('/services/ai/api/health');
+                const indicator = document.querySelector(`[data-provider="${provider}"] .status-indicator`);
+                
+                if (result.healthy) {
+                    indicator.className = 'status-indicator status-online';
+                } else {
+                    indicator.className = 'status-indicator status-offline';
+                }
+            } catch (error) {
+                const indicator = document.querySelector(`[data-provider="${provider}"] .status-indicator`);
+                indicator.className = 'status-indicator status-offline';
+            }
+        }
+
+        // Main prompt form handler
+        document.getElementById('promptForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            if (isProcessing) return;
+            
+            const prompt = document.getElementById('promptText').value.trim();
+            const maxTokens = parseInt(document.getElementById('maxTokens').value);
+            const temperature = parseFloat(document.getElementById('temperature').value);
+            
+            if (!prompt) {
+                showAlert('Please enter a prompt', 'error');
+                return;
+            }
+            
+            try {
+                setLoading(true);
+                
+                const requestBody = {
+                    prompt: prompt,
+                    options: {
+                        maxTokens: maxTokens,
+                        temperature: temperature
+                    }
+                };
+                
+                const result = await makeRequest('/services/ai/api/prompt', 'POST', requestBody);
+                
+                // Show response
+                document.getElementById('responseContainer').style.display = 'block';
+                document.getElementById('aiResponse').textContent = result.content;
+                
+                // Show usage info if available
+                if (result.usage) {
+                    document.getElementById('usageInfo').style.display = 'block';
+                    document.getElementById('promptTokens').textContent = result.usage.promptTokens || 0;
+                    document.getElementById('responseTokens').textContent = result.usage.completionTokens || 0;
+                    document.getElementById('totalTokens').textContent = result.usage.totalTokens || 0;
+                    
+                    // Calculate estimated cost (basic estimation)
+                    const cost = calculateCost(result.usage, result.provider);
+                    document.getElementById('estimatedCost').textContent = '$' + cost.toFixed(6);
+                }
+                
+                showAlert(`Response received from ${result.provider || selectedProvider}`);
+                loadAnalytics(); // Refresh analytics
+                
+            } catch (error) {
+                showAlert('Error: ' + error.message, 'error');
+                console.error('Prompt error:', error);
+            } finally {
+                setLoading(false);
+            }
+        });
+
+        // Cost calculation
+        function calculateCost(usage, provider) {
+            const rates = {
+                claude: { input: 0.000003, output: 0.000015 },
+                chatgpt: { input: 0.0000005, output: 0.0000015 },
+                ollama: { input: 0, output: 0 }
+            };
+            
+            const rate = rates[provider] || rates.ollama;
+            return (usage.promptTokens * rate.input) + (usage.completionTokens * rate.output);
+        }
+
+        // Service status functions
+        async function checkStatus() {
+            try {
+                const result = await makeRequest('/services/ai/api/status');
+                showResponse('statusResponse', 'statusResponseContent', result);
+                showAlert('Status checked successfully');
+            } catch (error) {
+                showAlert('Error checking status: ' + error.message, 'error');
+                showResponse('statusResponse', 'statusResponseContent', 'Error: ' + error.message);
+            }
+        }
+
+        async function checkModels() {
+            try {
+                const result = await makeRequest('/services/ai/api/models');
+                showResponse('statusResponse', 'statusResponseContent', result);
+                showAlert('Models retrieved successfully');
+            } catch (error) {
+                showAlert('Error retrieving models: ' + error.message, 'error');
+                showResponse('statusResponse', 'statusResponseContent', 'Error: ' + error.message);
+            }
+        }
+
+        async function checkHealth() {
+            try {
+                const result = await makeRequest('/services/ai/api/health');
+                showResponse('statusResponse', 'statusResponseContent', result);
+                showAlert('Health check completed');
+            } catch (error) {
+                showAlert('Error during health check: ' + error.message, 'error');
+                showResponse('statusResponse', 'statusResponseContent', 'Error: ' + error.message);
+            }
+        }
+
+        // Analytics
+        async function loadAnalytics() {
+            try {
+                const result = await makeRequest('/services/ai/api/analytics');
+                document.getElementById('analyticsData').style.display = 'block';
+                document.getElementById('analyticsContent').textContent = JSON.stringify(result, null, 2);
+                
+                if (result.totalSessions !== undefined) {
+                    document.getElementById('analyticsCount').textContent = result.totalSessions;
+                }
+                
+            } catch (error) {
+                showAlert('Error loading analytics: ' + error.message, 'error');
+                document.getElementById('analyticsCount').textContent = 'Error';
+            }
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            // Check status of all providers
+            ['claude', 'chatgpt', 'ollama'].forEach(checkProviderStatus);
+            
+            // Load initial analytics
+            loadAnalytics();
+            
+            // Auto-refresh analytics every 30 seconds
+            setInterval(loadAnalytics, 30000);
+        });
+
+        // Swagger UI setup
+        const spec = {
+            openapi: '3.0.0',
+            info: {
+                title: 'AI Service API',
+                description: 'REST API for AI service operations with multiple provider support',
+                version: '1.0.0'
+            },
+            servers: [
+                { url: '/services/ai/api', description: 'AI Service API' }
+            ],
+            paths: {
+                '/prompt': {
+                    post: {
+                        summary: 'Send prompt to AI',
+                        description: 'Send a prompt to the configured AI provider and get a response',
+                        requestBody: {
+                            required: true,
+                            content: {
+                                'application/json': {
+                                    schema: {
+                                        type: 'object',
+                                        properties: {
+                                            prompt: { type: 'string', example: 'Explain quantum computing' },
+                                            options: {
+                                                type: 'object',
+                                                properties: {
+                                                    maxTokens: { type: 'integer', example: 1000 },
+                                                    temperature: { type: 'number', example: 0.7 }
+                                                }
+                                            }
+                                        },
+                                        required: ['prompt']
+                                    }
+                                }
+                            }
+                        },
+                        responses: {
+                            '200': {
+                                description: 'AI response received',
+                                content: {
+                                    'application/json': {
+                                        schema: {
+                                            type: 'object',
+                                            properties: {
+                                                content: { type: 'string' },
+                                                usage: {
+                                                    type: 'object',
+                                                    properties: {
+                                                        promptTokens: { type: 'integer' },
+                                                        completionTokens: { type: 'integer' },
+                                                        totalTokens: { type: 'integer' }
+                                                    }
+                                                },
+                                                model: { type: 'string' },
+                                                provider: { type: 'string' }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                '/status': {
+                    get: {
+                        summary: 'Service status',
+                        description: 'Check if the AI service is running',
+                        responses: {
+                            '200': {
+                                description: 'Service status',
+                                content: {
+                                    'application/json': {
+                                        schema: { type: 'object' }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                '/analytics': {
+                    get: {
+                        summary: 'Usage analytics',
+                        description: 'Get AI service usage statistics',
+                        responses: {
+                            '200': {
+                                description: 'Analytics data',
+                                content: {
+                                    'application/json': {
+                                        schema: { type: 'object' }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                '/models': {
+                    get: {
+                        summary: 'Available models',
+                        description: 'List available models (Ollama provider)',
+                        responses: {
+                            '200': {
+                                description: 'List of models',
+                                content: {
+                                    'application/json': {
+                                        schema: { type: 'object' }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                '/health': {
+                    get: {
+                        summary: 'Health check',
+                        description: 'Check provider health status',
+                        responses: {
+                            '200': {
+                                description: 'Health status',
+                                content: {
+                                    'application/json': {
+                                        schema: {
+                                            type: 'object',
+                                            properties: {
+                                                healthy: { type: 'boolean' },
+                                                provider: { type: 'string' }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        };
+
+        SwaggerUIBundle({
+            url: '',
+            spec: spec,
+            dom_id: '#swagger-ui',
+            presets: [
+                SwaggerUIBundle.presets.apis,
+                SwaggerUIBundle.presets.standalone
+            ],
+            layout: "BaseLayout",
+            deepLinking: true,
+            showExtensions: true,
+            showCommonExtensions: true
+        });
+    </script>
+</body>
+</html>
