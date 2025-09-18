@@ -559,6 +559,173 @@ console.log('Cache hit ratio:', analytics.hitRatio);
 console.log('Most accessed keys:', analytics.topKeys);
 ```
 
+#### Real-World Caching Examples
+
+**1. User Session Management**
+```javascript
+const cache = serviceRegistry.cache('redis', {
+  host: process.env.REDIS_HOST,
+  port: 6379,
+  enableAnalytics: true
+});
+
+// Store user session with 24-hour expiry
+const sessionData = {
+  userId: '12345',
+  username: 'john_doe',
+  roles: ['user', 'admin'],
+  lastActivity: new Date().toISOString()
+};
+
+await cache.put(`session:${sessionToken}`, sessionData, 86400); // 24 hours
+
+// Retrieve session for authentication
+const authenticateUser = async (sessionToken) => {
+  const session = await cache.get(`session:${sessionToken}`);
+  if (!session) {
+    throw new Error('Session expired or invalid');
+  }
+
+  // Update last activity
+  session.lastActivity = new Date().toISOString();
+  await cache.put(`session:${sessionToken}`, session, 86400);
+
+  return session;
+};
+```
+
+**2. API Response Caching**
+```javascript
+// Cache expensive database queries
+const cacheExpensiveQuery = async (queryKey, queryFunction, ttl = 1800) => {
+  // Try cache first
+  let result = await cache.get(queryKey);
+  if (result) {
+    console.log('Cache hit for:', queryKey);
+    return result;
+  }
+
+  // Execute expensive operation
+  console.log('Cache miss, executing query:', queryKey);
+  result = await queryFunction();
+
+  // Cache the result
+  await cache.put(queryKey, result, ttl);
+  return result;
+};
+
+// Usage example
+const getUserProfile = async (userId) => {
+  return cacheExpensiveQuery(
+    `user_profile:${userId}`,
+    () => database.getUserWithPermissions(userId),
+    3600 // 1 hour cache
+  );
+};
+```
+
+**3. Rate Limiting with Cache**
+```javascript
+// Implement rate limiting using cache
+const checkRateLimit = async (clientId, limit = 100, windowMs = 3600000) => {
+  const key = `rate_limit:${clientId}`;
+  const current = await cache.get(key) || 0;
+
+  if (current >= limit) {
+    throw new Error('Rate limit exceeded');
+  }
+
+  await cache.put(key, current + 1, Math.floor(windowMs / 1000));
+  return {
+    remaining: limit - current - 1,
+    resetTime: Date.now() + windowMs
+  };
+};
+
+// Usage in Express middleware
+app.use('/api/', async (req, res, next) => {
+  try {
+    const clientId = req.ip;
+    const rateInfo = await checkRateLimit(clientId);
+    res.set({
+      'X-RateLimit-Remaining': rateInfo.remaining,
+      'X-RateLimit-Reset': rateInfo.resetTime
+    });
+    next();
+  } catch (error) {
+    res.status(429).json({ error: error.message });
+  }
+});
+```
+
+**4. Cache Invalidation Patterns**
+```javascript
+// Tag-based cache invalidation
+const taggedCache = {
+  async put(key, value, ttl, tags = []) {
+    await cache.put(key, value, ttl);
+
+    // Store tag mappings
+    for (const tag of tags) {
+      const taggedKeys = await cache.get(`tag:${tag}`) || [];
+      taggedKeys.push(key);
+      await cache.put(`tag:${tag}`, taggedKeys, ttl);
+    }
+  },
+
+  async invalidateByTag(tag) {
+    const taggedKeys = await cache.get(`tag:${tag}`) || [];
+
+    // Delete all keys with this tag
+    for (const key of taggedKeys) {
+      await cache.delete(key);
+    }
+
+    // Delete the tag mapping
+    await cache.delete(`tag:${tag}`);
+
+    console.log(`Invalidated ${taggedKeys.length} keys with tag: ${tag}`);
+  }
+};
+
+// Usage
+await taggedCache.put('user:123:profile', userProfile, 3600, ['user:123', 'profiles']);
+await taggedCache.put('user:123:preferences', userPrefs, 3600, ['user:123', 'preferences']);
+
+// Invalidate all cache entries for a user
+await taggedCache.invalidateByTag('user:123');
+```
+
+**5. Cache Warming Strategies**
+```javascript
+// Pre-populate cache with frequently accessed data
+const warmCache = async () => {
+  console.log('Starting cache warming...');
+
+  // Warm popular user profiles
+  const popularUsers = await database.getPopularUsers(100);
+  for (const user of popularUsers) {
+    await cache.put(`user_profile:${user.id}`, user, 7200); // 2 hours
+  }
+
+  // Warm product categories
+  const categories = await database.getProductCategories();
+  await cache.put('product_categories', categories, 3600); // 1 hour
+
+  // Warm configuration data
+  const config = await database.getApplicationConfig();
+  await cache.put('app_config', config, 1800); // 30 minutes
+
+  console.log('Cache warming completed');
+};
+
+// Schedule cache warming
+setInterval(warmCache, 30 * 60 * 1000); // Every 30 minutes
+
+// Warm cache on application startup
+warmCache();
+```
+
 #### Database-Style Data Management
 
 ```javascript
@@ -629,6 +796,445 @@ try {
 const configUuid = await dataServe.add('config', appConfiguration);
 ```
 
+#### Real-World DataServe Examples
+
+**1. User Management System**
+```javascript
+const dataServe = serviceRegistry.dataServe('file', {
+  baseDir: './data/containers'
+});
+
+// Create user management functions
+const userManager = {
+  async createUser(userData) {
+    // Validate user data
+    if (!userData.email || !userData.username) {
+      throw new Error('Email and username are required');
+    }
+
+    // Check if user already exists
+    const existingUsers = await dataServe.jsonFindByPath('users', 'email', userData.email);
+    if (existingUsers.length > 0) {
+      throw new Error('User with this email already exists');
+    }
+
+    // Create user with metadata
+    const user = {
+      ...userData,
+      id: Date.now(), // Simple ID generation
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      status: 'active',
+      profile: {
+        ...userData.profile,
+        lastLogin: null,
+        loginCount: 0
+      }
+    };
+
+    // Store user and return UUID
+    const userUuid = await dataServe.add('users', user);
+    console.log(`User created with UUID: ${userUuid}`);
+
+    return { uuid: userUuid, user };
+  },
+
+  async updateUser(uuid, updates) {
+    // Get existing user
+    const user = await dataServe.getByUuid('users', uuid);
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    // Merge updates
+    const updatedUser = {
+      ...user,
+      ...updates,
+      updatedAt: new Date().toISOString()
+    };
+
+    // Remove and re-add (update operation)
+    await dataServe.remove('users', uuid);
+    const newUuid = await dataServe.add('users', updatedUser);
+
+    return { uuid: newUuid, user: updatedUser };
+  },
+
+  async findUsersByDepartment(department) {
+    return await dataServe.jsonFindByPath('users', 'profile.department', department);
+  },
+
+  async findActiveUsers() {
+    return await dataServe.jsonFindByCriteria('users', {
+      'status': 'active'
+    });
+  },
+
+  async findUsersByRole(role) {
+    return await dataServe.jsonFind('users', user => {
+      return user.profile && user.profile.roles && user.profile.roles.includes(role);
+    });
+  }
+};
+
+// Usage examples
+const newUser = await userManager.createUser({
+  email: 'jane.smith@company.com',
+  username: 'jane_smith',
+  firstName: 'Jane',
+  lastName: 'Smith',
+  profile: {
+    department: 'engineering',
+    roles: ['developer', 'team-lead'],
+    location: 'remote'
+  }
+});
+
+const engineers = await userManager.findUsersByDepartment('engineering');
+const teamLeads = await userManager.findUsersByRole('team-lead');
+```
+
+**2. Content Management System**
+```javascript
+// Article/blog management with categories and tags
+const contentManager = {
+  async createArticle(articleData) {
+    const article = {
+      ...articleData,
+      id: `article_${Date.now()}`,
+      slug: articleData.title.toLowerCase().replace(/\s+/g, '-'),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      published: false,
+      viewCount: 0,
+      author: {
+        id: articleData.authorId,
+        name: articleData.authorName
+      },
+      metadata: {
+        wordCount: articleData.content.split(' ').length,
+        readingTime: Math.ceil(articleData.content.split(' ').length / 200) // ~200 WPM
+      }
+    };
+
+    const articleUuid = await dataServe.add('articles', article);
+
+    // Create category mapping if provided
+    if (articleData.category) {
+      await this.addToCategory(articleUuid, articleData.category);
+    }
+
+    return { uuid: articleUuid, article };
+  },
+
+  async publishArticle(uuid) {
+    const article = await dataServe.getByUuid('articles', uuid);
+    if (!article) {
+      throw new Error('Article not found');
+    }
+
+    article.published = true;
+    article.publishedAt = new Date().toISOString();
+    article.updatedAt = new Date().toISOString();
+
+    await dataServe.remove('articles', uuid);
+    const newUuid = await dataServe.add('articles', article);
+
+    return { uuid: newUuid, article };
+  },
+
+  async addToCategory(articleUuid, categoryName) {
+    // Create or update category container
+    try {
+      await dataServe.createContainer('categories');
+    } catch (err) {
+      // Container exists
+    }
+
+    const categoryData = {
+      name: categoryName,
+      articleUuid: articleUuid,
+      addedAt: new Date().toISOString()
+    };
+
+    await dataServe.add('categories', categoryData);
+  },
+
+  async getArticlesByCategory(categoryName) {
+    const categoryEntries = await dataServe.jsonFindByPath('categories', 'name', categoryName);
+    const articles = [];
+
+    for (const entry of categoryEntries) {
+      const article = await dataServe.getByUuid('articles', entry.articleUuid);
+      if (article) {
+        articles.push(article);
+      }
+    }
+
+    return articles;
+  },
+
+  async searchPublishedArticles(searchTerm) {
+    return await dataServe.jsonFind('articles', article => {
+      if (!article.published) return false;
+
+      const searchFields = [
+        article.title,
+        article.content,
+        article.tags ? article.tags.join(' ') : '',
+        article.author.name
+      ].join(' ').toLowerCase();
+
+      return searchFields.includes(searchTerm.toLowerCase());
+    });
+  },
+
+  async getPopularArticles(limit = 10) {
+    const allArticles = await dataServe.jsonFind('articles', article => article.published);
+    return allArticles
+      .sort((a, b) => b.viewCount - a.viewCount)
+      .slice(0, limit);
+  }
+};
+
+// Usage
+const article = await contentManager.createArticle({
+  title: 'Getting Started with NooblyJS',
+  content: 'NooblyJS is a powerful backend framework...',
+  authorId: 'user_123',
+  authorName: 'John Developer',
+  category: 'tutorials',
+  tags: ['javascript', 'backend', 'tutorial']
+});
+
+const tutorialArticles = await contentManager.getArticlesByCategory('tutorials');
+const searchResults = await contentManager.searchPublishedArticles('javascript');
+```
+
+**3. E-commerce Product Catalog**
+```javascript
+// Product inventory and catalog management
+const productManager = {
+  async addProduct(productData) {
+    const product = {
+      ...productData,
+      id: `prod_${Date.now()}`,
+      sku: productData.sku || `SKU${Date.now()}`,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      inventory: {
+        quantity: productData.quantity || 0,
+        reserved: 0,
+        available: productData.quantity || 0
+      },
+      pricing: {
+        basePrice: productData.price,
+        salePrice: productData.salePrice || null,
+        currency: productData.currency || 'USD'
+      },
+      status: 'active'
+    };
+
+    const productUuid = await dataServe.add('products', product);
+
+    // Index by category
+    if (product.category) {
+      await this.indexByCategory(productUuid, product.category);
+    }
+
+    return { uuid: productUuid, product };
+  },
+
+  async updateInventory(productUuid, quantityChange) {
+    const product = await dataServe.getByUuid('products', productUuid);
+    if (!product) {
+      throw new Error('Product not found');
+    }
+
+    product.inventory.quantity += quantityChange;
+    product.inventory.available = product.inventory.quantity - product.inventory.reserved;
+    product.updatedAt = new Date().toISOString();
+
+    await dataServe.remove('products', productUuid);
+    const newUuid = await dataServe.add('products', product);
+
+    // Log inventory change
+    await dataServe.add('inventory_logs', {
+      productUuid: newUuid,
+      productId: product.id,
+      change: quantityChange,
+      newQuantity: product.inventory.quantity,
+      timestamp: new Date().toISOString(),
+      type: quantityChange > 0 ? 'restock' : 'sale'
+    });
+
+    return { uuid: newUuid, product };
+  },
+
+  async indexByCategory(productUuid, category) {
+    try {
+      await dataServe.createContainer('product_categories');
+    } catch (err) {
+      // Container exists
+    }
+
+    await dataServe.add('product_categories', {
+      category: category,
+      productUuid: productUuid,
+      indexedAt: new Date().toISOString()
+    });
+  },
+
+  async getProductsByCategory(category) {
+    const categoryEntries = await dataServe.jsonFindByPath('product_categories', 'category', category);
+    const products = [];
+
+    for (const entry of categoryEntries) {
+      const product = await dataServe.getByUuid('products', entry.productUuid);
+      if (product && product.status === 'active') {
+        products.push(product);
+      }
+    }
+
+    return products;
+  },
+
+  async findProductsInPriceRange(minPrice, maxPrice) {
+    return await dataServe.jsonFind('products', product => {
+      if (product.status !== 'active') return false;
+      const price = product.pricing.salePrice || product.pricing.basePrice;
+      return price >= minPrice && price <= maxPrice;
+    });
+  },
+
+  async getLowStockProducts(threshold = 10) {
+    return await dataServe.jsonFind('products', product => {
+      return product.status === 'active' && product.inventory.available <= threshold;
+    });
+  },
+
+  async searchProducts(query) {
+    return await dataServe.jsonFind('products', product => {
+      if (product.status !== 'active') return false;
+
+      const searchableText = [
+        product.name,
+        product.description || '',
+        product.category || '',
+        product.sku,
+        (product.tags || []).join(' ')
+      ].join(' ').toLowerCase();
+
+      return searchableText.includes(query.toLowerCase());
+    });
+  }
+};
+
+// Usage examples
+const laptop = await productManager.addProduct({
+  name: 'Gaming Laptop Pro',
+  description: 'High-performance gaming laptop with RTX graphics',
+  category: 'electronics',
+  price: 1299.99,
+  salePrice: 1199.99,
+  quantity: 50,
+  tags: ['gaming', 'laptop', 'electronics'],
+  brand: 'TechBrand'
+});
+
+// Update inventory after a sale
+await productManager.updateInventory(laptop.uuid, -1);
+
+// Find products
+const electronicsProducts = await productManager.getProductsByCategory('electronics');
+const budgetProducts = await productManager.findProductsInPriceRange(100, 500);
+const lowStockItems = await productManager.getLowStockProducts(5);
+```
+
+**4. Configuration and Settings Management**
+```javascript
+// Application configuration with versioning
+const configManager = {
+  async setConfig(configKey, configValue, metadata = {}) {
+    const configEntry = {
+      key: configKey,
+      value: configValue,
+      version: Date.now(),
+      createdAt: new Date().toISOString(),
+      createdBy: metadata.userId || 'system',
+      environment: metadata.environment || process.env.NODE_ENV || 'development',
+      description: metadata.description || '',
+      type: typeof configValue
+    };
+
+    // Archive previous version if it exists
+    const existing = await this.getConfig(configKey);
+    if (existing) {
+      existing.archived = true;
+      existing.archivedAt = new Date().toISOString();
+      await dataServe.add('config_archive', existing);
+    }
+
+    const configUuid = await dataServe.add('app_config', configEntry);
+    return { uuid: configUuid, config: configEntry };
+  },
+
+  async getConfig(configKey, defaultValue = null) {
+    const configs = await dataServe.jsonFindByCriteria('app_config', {
+      'key': configKey,
+      'environment': process.env.NODE_ENV || 'development'
+    });
+
+    if (configs.length === 0) {
+      return defaultValue;
+    }
+
+    // Return the most recent version
+    const latest = configs.sort((a, b) => b.version - a.version)[0];
+    return latest.value;
+  },
+
+  async getAllConfigs() {
+    const configs = await dataServe.jsonFindByPath('app_config', 'environment', process.env.NODE_ENV || 'development');
+    const configMap = {};
+
+    configs.forEach(config => {
+      if (!configMap[config.key] || config.version > configMap[config.key].version) {
+        configMap[config.key] = config;
+      }
+    });
+
+    return configMap;
+  },
+
+  async getConfigHistory(configKey) {
+    const current = await dataServe.jsonFindByCriteria('app_config', {
+      'key': configKey,
+      'environment': process.env.NODE_ENV || 'development'
+    });
+
+    const archived = await dataServe.jsonFindByPath('config_archive', 'key', configKey);
+
+    return [...current, ...archived].sort((a, b) => b.version - a.version);
+  }
+};
+
+// Usage
+await configManager.setConfig('app.maxUsers', 1000, {
+  userId: 'admin_123',
+  description: 'Maximum concurrent users allowed'
+});
+
+await configManager.setConfig('features.betaFeatures', true, {
+  userId: 'admin_123',
+  description: 'Enable beta features for testing'
+});
+
+const maxUsers = await configManager.getConfig('app.maxUsers', 500);
+const allConfigs = await configManager.getAllConfigs();
+const userLimitHistory = await configManager.getConfigHistory('app.maxUsers');
+```
+
 #### File Management
 
 ```javascript
@@ -647,6 +1253,456 @@ const downloadStream = await filing.read('documents/report.pdf');
 const exists = await filing.exists('documents/report.pdf');
 const metadata = await filing.getMetadata('documents/report.pdf');
 await filing.delete('documents/report.pdf');
+```
+
+#### Real-World Filing Service Examples
+
+**1. Document Management System**
+```javascript
+const fs = require('fs');
+const path = require('path');
+const filing = serviceRegistry.filing('local', {
+  baseDir: path.resolve(__dirname, 'uploads')
+});
+
+const documentManager = {
+  async uploadDocument(userId, file, metadata = {}) {
+    // Generate unique filename
+    const timestamp = Date.now();
+    const extension = path.extname(file.originalname);
+    const filename = `${timestamp}_${file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+    const filePath = `users/${userId}/documents/${filename}`;
+
+    try {
+      // Create file stream from buffer or path
+      const fileStream = file.buffer ?
+        require('stream').Readable.from(file.buffer) :
+        fs.createReadStream(file.path);
+
+      // Upload file
+      await filing.create(filePath, fileStream);
+
+      // Store document metadata in DataServe
+      const documentRecord = {
+        userId: userId,
+        originalName: file.originalname,
+        filename: filename,
+        filePath: filePath,
+        size: file.size,
+        mimeType: file.mimetype,
+        uploadedAt: new Date().toISOString(),
+        metadata: metadata,
+        status: 'active'
+      };
+
+      const documentUuid = await dataServe.add('documents', documentRecord);
+
+      return {
+        uuid: documentUuid,
+        filePath: filePath,
+        document: documentRecord
+      };
+    } catch (error) {
+      throw new Error(`Failed to upload document: ${error.message}`);
+    }
+  },
+
+  async downloadDocument(documentUuid) {
+    // Get document metadata
+    const document = await dataServe.getByUuid('documents', documentUuid);
+    if (!document) {
+      throw new Error('Document not found');
+    }
+
+    if (document.status !== 'active') {
+      throw new Error('Document is not available');
+    }
+
+    // Check if file exists
+    const exists = await filing.exists(document.filePath);
+    if (!exists) {
+      throw new Error('File not found on storage');
+    }
+
+    // Get file stream
+    const fileStream = await filing.read(document.filePath);
+    const metadata = await filing.getMetadata(document.filePath);
+
+    return {
+      stream: fileStream,
+      document: document,
+      metadata: metadata
+    };
+  },
+
+  async deleteDocument(documentUuid) {
+    const document = await dataServe.getByUuid('documents', documentUuid);
+    if (!document) {
+      throw new Error('Document not found');
+    }
+
+    try {
+      // Delete file from storage
+      await filing.delete(document.filePath);
+
+      // Mark document as deleted (soft delete)
+      document.status = 'deleted';
+      document.deletedAt = new Date().toISOString();
+
+      // Update document record
+      await dataServe.remove('documents', documentUuid);
+      await dataServe.add('documents', document);
+
+      return { success: true, message: 'Document deleted successfully' };
+    } catch (error) {
+      throw new Error(`Failed to delete document: ${error.message}`);
+    }
+  },
+
+  async getUserDocuments(userId) {
+    return await dataServe.jsonFindByCriteria('documents', {
+      'userId': userId,
+      'status': 'active'
+    });
+  },
+
+  async searchDocuments(searchTerm, userId = null) {
+    const criteria = { 'status': 'active' };
+    if (userId) {
+      criteria.userId = userId;
+    }
+
+    const documents = await dataServe.jsonFindByCriteria('documents', criteria);
+
+    return documents.filter(doc => {
+      const searchableText = [
+        doc.originalName,
+        doc.filename,
+        doc.metadata.title || '',
+        doc.metadata.description || '',
+        doc.metadata.tags ? doc.metadata.tags.join(' ') : ''
+      ].join(' ').toLowerCase();
+
+      return searchableText.includes(searchTerm.toLowerCase());
+    });
+  }
+};
+
+// Usage with Express.js
+app.post('/api/documents/upload', upload.single('file'), async (req, res) => {
+  try {
+    const { userId } = req.body;
+    const metadata = {
+      title: req.body.title,
+      description: req.body.description,
+      tags: req.body.tags ? req.body.tags.split(',') : []
+    };
+
+    const result = await documentManager.uploadDocument(userId, req.file, metadata);
+    res.json({ success: true, document: result });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get('/api/documents/:uuid/download', async (req, res) => {
+  try {
+    const { uuid } = req.params;
+    const result = await documentManager.downloadDocument(uuid);
+
+    res.set({
+      'Content-Type': result.document.mimeType,
+      'Content-Disposition': `attachment; filename="${result.document.originalName}"`,
+      'Content-Length': result.metadata.size
+    });
+
+    result.stream.pipe(res);
+  } catch (error) {
+    res.status(404).json({ error: error.message });
+  }
+});
+```
+
+**2. Image Gallery with Thumbnails**
+```javascript
+const sharp = require('sharp'); // For image processing
+const filing = serviceRegistry.filing('local', {
+  baseDir: path.resolve(__dirname, 'media')
+});
+
+const imageGallery = {
+  async uploadImage(userId, imageFile, albumId = 'default') {
+    const timestamp = Date.now();
+    const extension = path.extname(imageFile.originalname);
+    const baseFilename = `${timestamp}_${path.parse(imageFile.originalname).name}`;
+
+    const originalPath = `users/${userId}/albums/${albumId}/originals/${baseFilename}${extension}`;
+    const thumbnailPath = `users/${userId}/albums/${albumId}/thumbnails/${baseFilename}_thumb.jpg`;
+
+    try {
+      // Upload original image
+      const originalStream = require('stream').Readable.from(imageFile.buffer);
+      await filing.create(originalPath, originalStream);
+
+      // Generate and upload thumbnail
+      const thumbnailBuffer = await sharp(imageFile.buffer)
+        .resize(300, 300, { fit: 'inside', withoutEnlargement: true })
+        .jpeg({ quality: 80 })
+        .toBuffer();
+
+      const thumbnailStream = require('stream').Readable.from(thumbnailBuffer);
+      await filing.create(thumbnailPath, thumbnailStream);
+
+      // Store image metadata
+      const imageRecord = {
+        userId: userId,
+        albumId: albumId,
+        originalName: imageFile.originalname,
+        originalPath: originalPath,
+        thumbnailPath: thumbnailPath,
+        size: imageFile.size,
+        mimeType: imageFile.mimetype,
+        uploadedAt: new Date().toISOString(),
+        status: 'active'
+      };
+
+      const imageUuid = await dataServe.add('images', imageRecord);
+
+      return {
+        uuid: imageUuid,
+        image: imageRecord
+      };
+    } catch (error) {
+      throw new Error(`Failed to upload image: ${error.message}`);
+    }
+  },
+
+  async getImageThumbnail(imageUuid) {
+    const image = await dataServe.getByUuid('images', imageUuid);
+    if (!image || image.status !== 'active') {
+      throw new Error('Image not found');
+    }
+
+    const thumbnailStream = await filing.read(image.thumbnailPath);
+    return { stream: thumbnailStream, image: image };
+  },
+
+  async getFullImage(imageUuid) {
+    const image = await dataServe.getByUuid('images', imageUuid);
+    if (!image || image.status !== 'active') {
+      throw new Error('Image not found');
+    }
+
+    const imageStream = await filing.read(image.originalPath);
+    return { stream: imageStream, image: image };
+  },
+
+  async getAlbumImages(userId, albumId) {
+    return await dataServe.jsonFindByCriteria('images', {
+      'userId': userId,
+      'albumId': albumId,
+      'status': 'active'
+    });
+  },
+
+  async createAlbum(userId, albumName, description = '') {
+    const album = {
+      userId: userId,
+      name: albumName,
+      description: description,
+      createdAt: new Date().toISOString(),
+      imageCount: 0,
+      status: 'active'
+    };
+
+    const albumUuid = await dataServe.add('albums', album);
+    return { uuid: albumUuid, album: album };
+  }
+};
+
+// Usage
+const uploadedImage = await imageGallery.uploadImage('user123', imageFile, 'vacation2023');
+const albumImages = await imageGallery.getAlbumImages('user123', 'vacation2023');
+```
+
+**3. Cloud Storage Integration (S3)**
+```javascript
+const filing = serviceRegistry.filing('s3', {
+  bucket: 'my-app-files',
+  region: 'us-east-1',
+  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+});
+
+const cloudFileManager = {
+  async uploadToCloud(localFilePath, cloudPath, metadata = {}) {
+    try {
+      // Read local file
+      const fileStream = fs.createReadStream(localFilePath);
+
+      // Upload to S3
+      await filing.create(cloudPath, fileStream);
+
+      // Store file record
+      const fileRecord = {
+        localPath: localFilePath,
+        cloudPath: cloudPath,
+        uploadedAt: new Date().toISOString(),
+        metadata: metadata,
+        status: 'uploaded'
+      };
+
+      const fileUuid = await dataServe.add('cloud_files', fileRecord);
+
+      return { uuid: fileUuid, cloudPath: cloudPath };
+    } catch (error) {
+      throw new Error(`Cloud upload failed: ${error.message}`);
+    }
+  },
+
+  async downloadFromCloud(cloudPath, localPath) {
+    try {
+      const cloudStream = await filing.read(cloudPath);
+      const writeStream = fs.createWriteStream(localPath);
+
+      return new Promise((resolve, reject) => {
+        cloudStream.pipe(writeStream);
+        writeStream.on('finish', () => resolve(localPath));
+        writeStream.on('error', reject);
+      });
+    } catch (error) {
+      throw new Error(`Cloud download failed: ${error.message}`);
+    }
+  },
+
+  async syncDirectory(localDir, cloudPrefix) {
+    const files = fs.readdirSync(localDir);
+    const results = [];
+
+    for (const file of files) {
+      const localPath = path.join(localDir, file);
+      const cloudPath = `${cloudPrefix}/${file}`;
+
+      if (fs.statSync(localPath).isFile()) {
+        try {
+          const result = await this.uploadToCloud(localPath, cloudPath);
+          results.push({ file, status: 'success', ...result });
+        } catch (error) {
+          results.push({ file, status: 'error', error: error.message });
+        }
+      }
+    }
+
+    return results;
+  },
+
+  async getSignedUrl(cloudPath, expiresIn = 3600) {
+    // This would integrate with S3's signed URL functionality
+    // Implementation depends on the S3 provider implementation
+    return `https://signed-url-for-${cloudPath}?expires=${Date.now() + expiresIn * 1000}`;
+  }
+};
+
+// Usage
+await cloudFileManager.uploadToCloud('./backup.zip', 'backups/2025/backup.zip');
+await cloudFileManager.downloadFromCloud('backups/2025/backup.zip', './restored-backup.zip');
+const syncResults = await cloudFileManager.syncDirectory('./reports', 'reports/2025');
+```
+
+**4. File Versioning System**
+```javascript
+const versioningFileManager = {
+  async uploadVersionedFile(filePath, content, userId, comment = '') {
+    // Get existing versions
+    const existingVersions = await dataServe.jsonFindByPath('file_versions', 'filePath', filePath);
+    const nextVersion = existingVersions.length + 1;
+
+    const versionedPath = `${filePath}.v${nextVersion}`;
+
+    try {
+      // Upload new version
+      const contentStream = typeof content === 'string' ?
+        require('stream').Readable.from(content) : content;
+
+      await filing.create(versionedPath, contentStream);
+
+      // Create version record
+      const versionRecord = {
+        filePath: filePath,
+        versionPath: versionedPath,
+        version: nextVersion,
+        userId: userId,
+        comment: comment,
+        createdAt: new Date().toISOString(),
+        size: typeof content === 'string' ? Buffer.byteLength(content) : content.length || 0
+      };
+
+      const versionUuid = await dataServe.add('file_versions', versionRecord);
+
+      // Update current file pointer
+      await filing.create(filePath, require('stream').Readable.from(content));
+
+      return {
+        uuid: versionUuid,
+        version: nextVersion,
+        path: versionedPath
+      };
+    } catch (error) {
+      throw new Error(`Version upload failed: ${error.message}`);
+    }
+  },
+
+  async getFileVersion(filePath, version) {
+    const versionRecord = await dataServe.jsonFindByCriteria('file_versions', {
+      'filePath': filePath,
+      'version': version
+    });
+
+    if (versionRecord.length === 0) {
+      throw new Error(`Version ${version} not found for ${filePath}`);
+    }
+
+    const record = versionRecord[0];
+    const fileStream = await filing.read(record.versionPath);
+
+    return {
+      stream: fileStream,
+      version: record
+    };
+  },
+
+  async getFileHistory(filePath) {
+    const versions = await dataServe.jsonFindByPath('file_versions', 'filePath', filePath);
+    return versions.sort((a, b) => b.version - a.version);
+  },
+
+  async restoreVersion(filePath, version) {
+    const { stream } = await this.getFileVersion(filePath, version);
+
+    // Read version content
+    const chunks = [];
+    for await (const chunk of stream) {
+      chunks.push(chunk);
+    }
+    const content = Buffer.concat(chunks);
+
+    // Upload as new current version
+    await filing.create(filePath, require('stream').Readable.from(content));
+
+    return { success: true, restoredVersion: version };
+  }
+};
+
+// Usage
+await versioningFileManager.uploadVersionedFile(
+  'documents/project-spec.md',
+  'Updated project specification...',
+  'user123',
+  'Added new requirements section'
+);
+
+const history = await versioningFileManager.getFileHistory('documents/project-spec.md');
+await versioningFileManager.restoreVersion('documents/project-spec.md', 2);
 ```
 
 #### Workflow Orchestration
@@ -699,6 +1755,303 @@ notifying.notify('user-events', {
 });
 ```
 
+#### Real-World Notifying Service Examples
+
+**1. E-commerce Event System**
+```javascript
+const notifying = serviceRegistry.notifying('memory');
+
+// Create topics for different business domains
+notifying.createTopic('orders');
+notifying.createTopic('inventory');
+notifying.createTopic('payments');
+notifying.createTopic('notifications');
+
+const ecommerceEvents = {
+  setupSubscribers() {
+    // Order processing subscribers
+    notifying.subscribe('orders', async (event) => {
+      switch (event.type) {
+        case 'order_placed':
+          await this.handleOrderPlaced(event.data);
+          break;
+        case 'order_cancelled':
+          await this.handleOrderCancelled(event.data);
+          break;
+        case 'order_shipped':
+          await this.handleOrderShipped(event.data);
+          break;
+      }
+    });
+
+    // Inventory management subscribers
+    notifying.subscribe('inventory', async (event) => {
+      if (event.type === 'stock_low') {
+        await this.notifySuppliers(event.data);
+      } else if (event.type === 'product_sold') {
+        await this.updateInventory(event.data);
+      }
+    });
+
+    // Payment processing subscribers
+    notifying.subscribe('payments', async (event) => {
+      switch (event.type) {
+        case 'payment_completed':
+          notifying.notify('orders', {
+            type: 'payment_confirmed',
+            orderId: event.data.orderId,
+            amount: event.data.amount
+          });
+          break;
+        case 'payment_failed':
+          await this.handleFailedPayment(event.data);
+          break;
+      }
+    });
+
+    // Notification system subscriber
+    notifying.subscribe('notifications', async (event) => {
+      await this.sendUserNotification(event.data);
+    });
+  },
+
+  async handleOrderPlaced(orderData) {
+    // Reduce inventory
+    notifying.notify('inventory', {
+      type: 'product_sold',
+      productId: orderData.productId,
+      quantity: orderData.quantity,
+      orderId: orderData.orderId
+    });
+
+    // Send user notification
+    notifying.notify('notifications', {
+      userId: orderData.userId,
+      type: 'order_confirmation',
+      message: `Your order #${orderData.orderId} has been placed successfully.`,
+      orderId: orderData.orderId
+    });
+
+    // Log business metrics
+    businessMetrics.trackSalesMetrics(orderData.orderId, orderData.amount, orderData.quantity);
+  },
+
+  async handleOrderCancelled(orderData) {
+    // Restore inventory
+    notifying.notify('inventory', {
+      type: 'product_returned',
+      productId: orderData.productId,
+      quantity: orderData.quantity,
+      orderId: orderData.orderId
+    });
+
+    // Process refund if payment was completed
+    if (orderData.paymentStatus === 'completed') {
+      notifying.notify('payments', {
+        type: 'refund_requested',
+        orderId: orderData.orderId,
+        amount: orderData.amount
+      });
+    }
+  },
+
+  publishOrderEvent(type, orderData) {
+    notifying.notify('orders', {
+      type: type,
+      data: orderData,
+      timestamp: new Date().toISOString(),
+      source: 'order_service'
+    });
+  },
+
+  publishInventoryEvent(type, inventoryData) {
+    notifying.notify('inventory', {
+      type: type,
+      data: inventoryData,
+      timestamp: new Date().toISOString(),
+      source: 'inventory_service'
+    });
+  }
+};
+
+// Initialize the event system
+ecommerceEvents.setupSubscribers();
+
+// Usage in order processing
+async function placeOrder(orderData) {
+  try {
+    // Process order logic...
+    const order = await createOrder(orderData);
+
+    // Publish order placed event
+    ecommerceEvents.publishOrderEvent('order_placed', {
+      orderId: order.id,
+      userId: order.userId,
+      productId: order.productId,
+      quantity: order.quantity,
+      amount: order.total
+    });
+
+    return order;
+  } catch (error) {
+    logger.error('Order placement failed', { error: error.message, orderData });
+    throw error;
+  }
+}
+```
+
+**2. Real-time System Monitoring**
+```javascript
+const systemMonitoring = {
+  setupSystemMonitoring() {
+    // Create monitoring topics
+    notifying.createTopic('system_health');
+    notifying.createTopic('performance_alerts');
+    notifying.createTopic('security_events');
+
+    // System health monitoring
+    notifying.subscribe('system_health', (event) => {
+      this.handleSystemHealthEvent(event);
+    });
+
+    // Performance alert handling
+    notifying.subscribe('performance_alerts', (event) => {
+      this.handlePerformanceAlert(event);
+    });
+
+    // Security event monitoring
+    notifying.subscribe('security_events', (event) => {
+      this.handleSecurityEvent(event);
+    });
+
+    // Start monitoring checks
+    this.startHealthChecks();
+  },
+
+  startHealthChecks() {
+    setInterval(() => {
+      this.checkSystemHealth();
+    }, 30000); // Every 30 seconds
+
+    setInterval(() => {
+      this.checkPerformanceMetrics();
+    }, 60000); // Every minute
+  },
+
+  checkSystemHealth() {
+    const healthData = {
+      memory: process.memoryUsage(),
+      uptime: process.uptime(),
+      timestamp: new Date().toISOString()
+    };
+
+    // Check memory usage
+    if (healthData.memory.heapUsed > 512 * 1024 * 1024) { // 512MB
+      notifying.notify('performance_alerts', {
+        type: 'high_memory_usage',
+        severity: 'warning',
+        data: healthData
+      });
+    }
+
+    // Publish health status
+    notifying.notify('system_health', {
+      type: 'health_check',
+      status: 'healthy',
+      data: healthData
+    });
+  },
+
+  checkPerformanceMetrics() {
+    const now = new Date();
+    const oneMinuteAgo = new Date(now.getTime() - 60000);
+
+    const avgResponseTime = measuring.average('api.response_time', oneMinuteAgo, now);
+    const errorRate = performanceMonitor.calculateErrorRate(oneMinuteAgo, now);
+
+    if (avgResponseTime > 1000) { // 1 second
+      notifying.notify('performance_alerts', {
+        type: 'slow_response_time',
+        severity: 'warning',
+        averageResponseTime: avgResponseTime,
+        threshold: 1000
+      });
+    }
+
+    if (errorRate > 5) { // 5% error rate
+      notifying.notify('performance_alerts', {
+        type: 'high_error_rate',
+        severity: 'critical',
+        errorRate: errorRate,
+        threshold: 5
+      });
+    }
+  },
+
+  handleSystemHealthEvent(event) {
+    logger.info('System Health Event', {
+      type: event.type,
+      status: event.status,
+      timestamp: event.timestamp
+    });
+
+    // Store health metrics
+    if (event.data) {
+      measuring.add('system.memory.heap_used', event.data.memory.heapUsed);
+      measuring.add('system.uptime', event.data.uptime);
+    }
+  },
+
+  handlePerformanceAlert(event) {
+    logger.warn('Performance Alert', {
+      type: event.type,
+      severity: event.severity,
+      data: event
+    });
+
+    // Send alert to monitoring system
+    if (event.severity === 'critical') {
+      // In a real system, this would send to PagerDuty, Slack, etc.
+      console.error('CRITICAL ALERT:', event);
+    }
+  },
+
+  handleSecurityEvent(event) {
+    logger.error('Security Event', {
+      type: event.type,
+      severity: event.severity || 'high',
+      data: event
+    });
+
+    // Store security event for analysis
+    dataServe.add('security_events', {
+      ...event,
+      investigationStatus: 'pending',
+      createdAt: new Date().toISOString()
+    });
+  }
+};
+
+// Initialize monitoring
+systemMonitoring.setupSystemMonitoring();
+
+// Usage: Publish security events from authentication middleware
+app.use((req, res, next) => {
+  // Check for suspicious activity
+  if (req.headers['user-agent'].includes('bot') && req.path.includes('/admin')) {
+    notifying.notify('security_events', {
+      type: 'suspicious_admin_access',
+      ip: req.ip,
+      userAgent: req.headers['user-agent'],
+      path: req.path,
+      timestamp: new Date().toISOString()
+    });
+  }
+
+  next();
+});
+```
+
 #### Background Task Processing
 
 ```javascript
@@ -721,6 +2074,584 @@ queue.enqueue({
 // Start worker to process tasks
 worker.start('./workers/taskProcessor.js', (result) => {
   console.log('Task completed:', result);
+});
+```
+
+#### Real-World Queue and Background Processing Examples
+
+**1. Email Processing System**
+```javascript
+const queue = serviceRegistry.queueing('memory');
+const worker = serviceRegistry.working('memory');
+
+const emailProcessor = {
+  async sendWelcomeEmail(data) {
+    queue.enqueue({
+      type: 'email',
+      template: 'welcome',
+      recipient: data.email,
+      userId: data.userId,
+      personalizations: {
+        firstName: data.firstName,
+        activationUrl: `https://app.example.com/activate/${data.activationToken}`
+      },
+      priority: 'normal'
+    });
+  },
+
+  async sendPasswordResetEmail(data) {
+    queue.enqueue({
+      type: 'email',
+      template: 'password_reset',
+      recipient: data.email,
+      personalizations: {
+        resetUrl: `https://app.example.com/reset/${data.resetToken}`,
+        expiresIn: '1 hour'
+      },
+      priority: 'high' // High priority for security-related emails
+    });
+  },
+
+  async sendBulkNewsletter(subscribers, newsletterData) {
+    // Break down bulk email into smaller batches
+    const batchSize = 100;
+    for (let i = 0; i < subscribers.length; i += batchSize) {
+      const batch = subscribers.slice(i, i + batchSize);
+
+      queue.enqueue({
+        type: 'bulk_email',
+        template: 'newsletter',
+        batch: batch,
+        content: newsletterData,
+        priority: 'low',
+        batchId: `newsletter_${Date.now()}_${i / batchSize}`
+      });
+    }
+  },
+
+  async processEmailQueue() {
+    // Start worker to process email tasks
+    worker.start('./workers/emailWorker.js', (result) => {
+      if (result.success) {
+        logger.info('Email sent successfully', {
+          recipient: result.recipient,
+          template: result.template,
+          messageId: result.messageId
+        });
+
+        // Track email metrics
+        measuring.add('emails.sent', 1);
+        measuring.add(`emails.${result.template}.sent`, 1);
+      } else {
+        logger.error('Email sending failed', {
+          recipient: result.recipient,
+          template: result.template,
+          error: result.error
+        });
+
+        measuring.add('emails.failed', 1);
+
+        // Retry failed emails with exponential backoff
+        if (result.retryCount < 3) {
+          setTimeout(() => {
+            queue.enqueue({
+              ...result.task,
+              retryCount: (result.retryCount || 0) + 1
+            });
+          }, Math.pow(2, result.retryCount || 0) * 1000); // 1s, 2s, 4s delays
+        }
+      }
+    });
+  },
+
+  getQueueStatus() {
+    return {
+      queueSize: queue.size(),
+      isWorkerRunning: worker.status === 'running'
+    };
+  }
+};
+
+// Usage
+emailProcessor.sendWelcomeEmail({
+  email: 'newuser@example.com',
+  firstName: 'John',
+  userId: 'user123',
+  activationToken: 'abc123'
+});
+
+emailProcessor.processEmailQueue();
+```
+
+**2. Image Processing Pipeline**
+```javascript
+const imageQueue = serviceRegistry.queueing('memory');
+const imageWorker = serviceRegistry.working('memory');
+
+const imageProcessor = {
+  async processUploadedImage(imageData) {
+    // Queue image processing tasks
+    imageQueue.enqueue({
+      type: 'resize_image',
+      imageId: imageData.id,
+      imagePath: imageData.path,
+      sizes: [
+        { name: 'thumbnail', width: 150, height: 150 },
+        { name: 'medium', width: 500, height: 500 },
+        { name: 'large', width: 1200, height: 1200 }
+      ],
+      userId: imageData.userId
+    });
+
+    imageQueue.enqueue({
+      type: 'extract_metadata',
+      imageId: imageData.id,
+      imagePath: imageData.path
+    });
+
+    imageQueue.enqueue({
+      type: 'generate_ai_tags',
+      imageId: imageData.id,
+      imagePath: imageData.path
+    });
+  },
+
+  startImageProcessing() {
+    imageWorker.start('./workers/imageWorker.js', async (result) => {
+      if (result.success) {
+        switch (result.type) {
+          case 'resize_image':
+            await this.handleImageResizeComplete(result);
+            break;
+          case 'extract_metadata':
+            await this.handleMetadataExtraction(result);
+            break;
+          case 'generate_ai_tags':
+            await this.handleAITagging(result);
+            break;
+        }
+      } else {
+        logger.error('Image processing failed', {
+          type: result.type,
+          imageId: result.imageId,
+          error: result.error
+        });
+      }
+    });
+  },
+
+  async handleImageResizeComplete(result) {
+    // Update image record with resized versions
+    const imageRecord = await dataServe.getByUuid('images', result.imageId);
+    if (imageRecord) {
+      imageRecord.variants = result.variants;
+      imageRecord.processingStatus = 'resize_complete';
+
+      await dataServe.remove('images', result.imageId);
+      await dataServe.add('images', imageRecord);
+
+      // Notify user that image is processed
+      notifying.notify('user_notifications', {
+        userId: result.userId,
+        type: 'image_processed',
+        message: 'Your image has been processed and is ready to view.',
+        imageId: result.imageId
+      });
+    }
+  },
+
+  async handleMetadataExtraction(result) {
+    // Store extracted metadata
+    await dataServe.add('image_metadata', {
+      imageId: result.imageId,
+      metadata: result.metadata,
+      extractedAt: new Date().toISOString()
+    });
+  },
+
+  async handleAITagging(result) {
+    // Store AI-generated tags
+    const imageRecord = await dataServe.getByUuid('images', result.imageId);
+    if (imageRecord) {
+      imageRecord.aiTags = result.tags;
+      imageRecord.confidence = result.confidence;
+
+      await dataServe.remove('images', result.imageId);
+      await dataServe.add('images', imageRecord);
+    }
+  }
+};
+
+// Usage when user uploads image
+app.post('/api/images/upload', upload.single('image'), async (req, res) => {
+  try {
+    const imageData = await saveImageToStorage(req.file);
+    await imageProcessor.processUploadedImage(imageData);
+
+    res.json({
+      success: true,
+      imageId: imageData.id,
+      message: 'Image uploaded and queued for processing'
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+imageProcessor.startImageProcessing();
+```
+
+#### Complete Integration Example
+
+**Real-World E-commerce Application Integration**
+```javascript
+const express = require('express');
+const serviceRegistry = require('noobly-core');
+
+const app = express();
+app.use(express.json());
+
+// Initialize service registry with API key security
+serviceRegistry.initialize(app, {
+  apiKeys: [process.env.API_KEY],
+  requireApiKey: true,
+  excludePaths: [
+    '/services/*/status',
+    '/services/',
+    '/health'
+  ]
+});
+
+// Initialize all services
+const cache = serviceRegistry.cache(process.env.CACHE_PROVIDER || 'memory', {
+  host: process.env.REDIS_HOST,
+  port: parseInt(process.env.REDIS_PORT) || 6379
+});
+
+const dataServe = serviceRegistry.dataServe(process.env.DATA_PROVIDER || 'memory');
+const filing = serviceRegistry.filing(process.env.FILE_PROVIDER || 'local', {
+  baseDir: './uploads'
+});
+
+const logger = serviceRegistry.logger(process.env.LOG_PROVIDER || 'console');
+const measuring = serviceRegistry.measuring('memory');
+const notifying = serviceRegistry.notifying('memory');
+const queue = serviceRegistry.queueing('memory');
+const workflow = serviceRegistry.workflow('memory');
+
+// Complete e-commerce application
+const ecommerceApp = {
+  async initializeApplication() {
+    // Setup event subscriptions
+    this.setupEventHandlers();
+
+    // Initialize background workers
+    this.startBackgroundProcessing();
+
+    // Setup monitoring
+    this.setupMonitoring();
+
+    logger.info('E-commerce application initialized');
+  },
+
+  setupEventHandlers() {
+    // Setup all the event handlers from previous examples
+    notifying.createTopic('orders');
+    notifying.createTopic('inventory');
+    notifying.createTopic('users');
+
+    notifying.subscribe('orders', async (event) => {
+      await this.handleOrderEvent(event);
+    });
+
+    notifying.subscribe('inventory', async (event) => {
+      await this.handleInventoryEvent(event);
+    });
+  },
+
+  startBackgroundProcessing() {
+    // Start email processing
+    emailProcessor.processEmailQueue();
+
+    // Start image processing
+    imageProcessor.startImageProcessing();
+
+    // Process general queue items
+    setInterval(async () => {
+      const queueSize = queue.size();
+      if (queueSize > 0) {
+        const task = queue.dequeue();
+        if (task) {
+          await this.processTask(task);
+        }
+      }
+    }, 1000); // Process queue every second
+  },
+
+  setupMonitoring() {
+    // Setup health checks
+    setInterval(() => {
+      const health = {
+        cache: cache.status || 'unknown',
+        queue: queue.size(),
+        memory: process.memoryUsage(),
+        uptime: process.uptime()
+      };
+
+      measuring.add('system.queue_size', queue.size());
+      measuring.add('system.memory_usage', process.memoryUsage().heapUsed);
+
+      if (health.memory.heapUsed > 512 * 1024 * 1024) {
+        logger.warn('High memory usage detected', health);
+      }
+    }, 30000);
+  },
+
+  async processTask(task) {
+    const startTime = Date.now();
+
+    try {
+      switch (task.type) {
+        case 'send_notification':
+          await this.sendUserNotification(task.data);
+          break;
+        case 'update_inventory':
+          await this.updateProductInventory(task.data);
+          break;
+        case 'generate_report':
+          await this.generateReport(task.data);
+          break;
+        default:
+          logger.warn('Unknown task type', { type: task.type });
+      }
+
+      measuring.add('tasks.completed', 1);
+      measuring.add(`tasks.${task.type}.completed`, 1);
+      measuring.add('tasks.duration', Date.now() - startTime);
+
+    } catch (error) {
+      logger.error('Task processing failed', {
+        task: task,
+        error: error.message
+      });
+
+      measuring.add('tasks.failed', 1);
+    }
+  },
+
+  // API Endpoints
+  setupRoutes() {
+    // User registration
+    app.post('/api/register', async (req, res) => {
+      try {
+        const user = await this.createUser(req.body);
+
+        // Cache user data
+        await cache.put(`user:${user.id}`, user, 3600);
+
+        // Send welcome email
+        emailProcessor.sendWelcomeEmail(user);
+
+        // Track user registration
+        measuring.add('users.registered', 1);
+        businessMetrics.trackUserEngagement(user.id, 'registration');
+
+        res.json({ success: true, user: user });
+      } catch (error) {
+        logger.error('User registration failed', { error: error.message });
+        res.status(500).json({ error: error.message });
+      }
+    });
+
+    // Product search with caching
+    app.get('/api/products/search', async (req, res) => {
+      try {
+        const { query, category } = req.query;
+        const cacheKey = `search:${query}:${category}`;
+
+        // Try cache first
+        let results = await cache.get(cacheKey);
+        if (results) {
+          measuring.add('search.cache_hit', 1);
+          return res.json(results);
+        }
+
+        // Search products
+        results = await this.searchProducts(query, category);
+
+        // Cache results for 15 minutes
+        await cache.put(cacheKey, results, 900);
+
+        measuring.add('search.cache_miss', 1);
+        measuring.add('search.queries', 1);
+
+        res.json(results);
+      } catch (error) {
+        logger.error('Product search failed', { error: error.message });
+        res.status(500).json({ error: error.message });
+      }
+    });
+
+    // Order placement
+    app.post('/api/orders', async (req, res) => {
+      try {
+        const order = await this.createOrder(req.body);
+
+        // Publish order event
+        notifying.notify('orders', {
+          type: 'order_placed',
+          data: order
+        });
+
+        res.json({ success: true, order: order });
+      } catch (error) {
+        logger.error('Order creation failed', { error: error.message });
+        res.status(500).json({ error: error.message });
+      }
+    });
+
+    // Health check endpoint
+    app.get('/health', (req, res) => {
+      const health = {
+        status: 'healthy',
+        timestamp: new Date().toISOString(),
+        services: {
+          cache: cache.status || 'ok',
+          queue: queue.size(),
+          uptime: process.uptime()
+        }
+      };
+
+      res.json(health);
+    });
+  }
+};
+
+// Initialize and start the application
+ecommerceApp.initializeApplication();
+ecommerceApp.setupRoutes();
+
+app.listen(3000, () => {
+  logger.info('E-commerce application started on port 3000');
+});
+
+module.exports = app;
+```
+
+#### Logging Service Examples
+
+**1. Application Logging with Multiple Levels**
+```javascript
+const logger = serviceRegistry.logger('file', {
+  filename: './logs/app.log',
+  maxFiles: 5,
+  maxSize: '10m'
+});
+
+// Different log levels
+logger.info('Application started', { port: 3000, environment: 'production' });
+logger.warn('Rate limit approaching', { userId: '123', requests: 95 });
+logger.error('Database connection failed', {
+  error: 'Connection timeout',
+  host: 'db.example.com',
+  retryAttempt: 3
+});
+logger.debug('Cache hit', { key: 'user:123', hitRatio: 0.85 });
+
+// Structured logging for monitoring
+const requestLogger = {
+  logRequest(req, res, responseTime) {
+    logger.info('HTTP Request', {
+      method: req.method,
+      url: req.url,
+      userAgent: req.get('User-Agent'),
+      ip: req.ip,
+      responseTime: responseTime,
+      statusCode: res.statusCode,
+      contentLength: res.get('Content-Length')
+    });
+  },
+
+  logError(error, req) {
+    logger.error('Request Error', {
+      message: error.message,
+      stack: error.stack,
+      url: req.url,
+      method: req.method,
+      body: req.body,
+      headers: req.headers
+    });
+  },
+
+  logSecurity(event, details) {
+    logger.warn('Security Event', {
+      event: event,
+      timestamp: new Date().toISOString(),
+      ...details
+    });
+  }
+};
+
+// Usage in Express middleware
+app.use((req, res, next) => {
+  const start = Date.now();
+
+  res.on('finish', () => {
+    requestLogger.logRequest(req, res, Date.now() - start);
+  });
+
+  next();
+});
+```
+
+**2. Business Logic Logging**
+```javascript
+const businessLogger = {
+  logUserAction(userId, action, details = {}) {
+    logger.info('User Action', {
+      userId: userId,
+      action: action,
+      timestamp: new Date().toISOString(),
+      ...details
+    });
+  },
+
+  logBusinessEvent(eventType, data) {
+    logger.info('Business Event', {
+      eventType: eventType,
+      data: data,
+      timestamp: new Date().toISOString()
+    });
+  },
+
+  logPerformanceMetric(operation, duration, metadata = {}) {
+    logger.info('Performance Metric', {
+      operation: operation,
+      duration: duration,
+      timestamp: new Date().toISOString(),
+      ...metadata
+    });
+  }
+};
+
+// Usage examples
+businessLogger.logUserAction('user123', 'purchase', {
+  orderId: 'order456',
+  amount: 99.99,
+  items: ['item1', 'item2']
+});
+
+businessLogger.logBusinessEvent('inventory_low', {
+  productId: 'prod789',
+  currentStock: 5,
+  threshold: 10
+});
+
+const start = Date.now();
+await expensiveOperation();
+businessLogger.logPerformanceMetric('database_query', Date.now() - start, {
+  query: 'getUserOrders',
+  userId: 'user123'
 });
 ```
 
@@ -747,8 +2678,145 @@ const totalRequests = measuring.total(
   endDate
 );
 
-console.log('Average response time:', 
+console.log('Average response time:',
   measuring.average('api.response.time', startDate, endDate));
+```
+
+#### Real-World Measuring Service Examples
+
+**1. API Performance Monitoring**
+```javascript
+const measuring = serviceRegistry.measuring('memory');
+
+const performanceMonitor = {
+  trackApiCall(endpoint, method, duration, statusCode) {
+    // Track response times
+    measuring.add(`api.${endpoint}.response_time`, duration);
+
+    // Track request counts
+    measuring.add(`api.${endpoint}.requests`, 1);
+
+    // Track status codes
+    measuring.add(`api.${endpoint}.status.${statusCode}`, 1);
+
+    // Track errors
+    if (statusCode >= 400) {
+      measuring.add(`api.${endpoint}.errors`, 1);
+    }
+  },
+
+  trackCachePerformance(operation, hitOrMiss, duration) {
+    measuring.add(`cache.${operation}.${hitOrMiss}`, 1);
+    measuring.add(`cache.${operation}.duration`, duration);
+  },
+
+  trackDatabaseQuery(queryType, duration, resultCount) {
+    measuring.add(`db.${queryType}.duration`, duration);
+    measuring.add(`db.${queryType}.result_count`, resultCount);
+    measuring.add(`db.queries.total`, 1);
+  },
+
+  getPerformanceReport(startDate, endDate) {
+    return {
+      apiMetrics: {
+        totalRequests: measuring.total('api.requests', startDate, endDate),
+        averageResponseTime: measuring.average('api.response_time', startDate, endDate),
+        errorRate: this.calculateErrorRate(startDate, endDate)
+      },
+      cacheMetrics: {
+        hitRate: this.calculateCacheHitRate(startDate, endDate),
+        averageCacheDuration: measuring.average('cache.duration', startDate, endDate)
+      },
+      databaseMetrics: {
+        totalQueries: measuring.total('db.queries.total', startDate, endDate),
+        averageQueryTime: measuring.average('db.duration', startDate, endDate)
+      }
+    };
+  },
+
+  calculateErrorRate(startDate, endDate) {
+    const totalRequests = measuring.total('api.requests', startDate, endDate);
+    const totalErrors = measuring.total('api.errors', startDate, endDate);
+    return totalRequests > 0 ? (totalErrors / totalRequests) * 100 : 0;
+  },
+
+  calculateCacheHitRate(startDate, endDate) {
+    const hits = measuring.total('cache.hit', startDate, endDate);
+    const misses = measuring.total('cache.miss', startDate, endDate);
+    const total = hits + misses;
+    return total > 0 ? (hits / total) * 100 : 0;
+  }
+};
+
+// Usage in middleware
+app.use((req, res, next) => {
+  const start = Date.now();
+
+  res.on('finish', () => {
+    const duration = Date.now() - start;
+    const endpoint = req.route ? req.route.path : req.path;
+    performanceMonitor.trackApiCall(endpoint, req.method, duration, res.statusCode);
+  });
+
+  next();
+});
+```
+
+**2. Business Metrics Collection**
+```javascript
+const businessMetrics = {
+  trackUserEngagement(userId, action, duration = null) {
+    measuring.add('users.active', 1);
+    measuring.add(`users.actions.${action}`, 1);
+
+    if (duration) {
+      measuring.add(`users.session_duration.${action}`, duration);
+    }
+  },
+
+  trackSalesMetrics(orderId, amount, itemCount) {
+    measuring.add('sales.orders', 1);
+    measuring.add('sales.revenue', amount);
+    measuring.add('sales.items', itemCount);
+  },
+
+  trackInventoryChanges(productId, changeType, quantity) {
+    measuring.add(`inventory.${changeType}`, quantity);
+    measuring.add('inventory.transactions', 1);
+  },
+
+  getDashboardMetrics(period = '24h') {
+    const endDate = new Date();
+    const startDate = new Date(endDate.getTime() - (24 * 60 * 60 * 1000)); // 24 hours ago
+
+    return {
+      users: {
+        activeUsers: measuring.total('users.active', startDate, endDate),
+        averageSessionDuration: measuring.average('users.session_duration', startDate, endDate)
+      },
+      sales: {
+        totalOrders: measuring.total('sales.orders', startDate, endDate),
+        totalRevenue: measuring.total('sales.revenue', startDate, endDate),
+        averageOrderValue: measuring.average('sales.revenue', startDate, endDate)
+      },
+      inventory: {
+        totalTransactions: measuring.total('inventory.transactions', startDate, endDate),
+        stockMovements: {
+          additions: measuring.total('inventory.add', startDate, endDate),
+          removals: measuring.total('inventory.remove', startDate, endDate)
+        }
+      }
+    };
+  }
+};
+
+// Usage examples
+businessMetrics.trackUserEngagement('user123', 'product_view', 45000); // 45 seconds
+businessMetrics.trackSalesMetrics('order456', 199.99, 3);
+businessMetrics.trackInventoryChanges('prod789', 'remove', 1);
+
+const dashboard = businessMetrics.getDashboardMetrics();
+console.log('Dashboard Metrics:', dashboard);
 ```
 
 ### Event-Driven Architecture
