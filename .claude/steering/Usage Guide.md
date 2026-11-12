@@ -294,6 +294,8 @@ Enqueue the first attempt with `attempts: 0`.
 
 A workflow is a named list of step scripts. The steps run in order. Each step receives the original input and the outputs of the steps before it. Relative step paths resolve against the working service's activities folder.
 
+Only code you deploy can run. A step, scheduled task or `working.start()` path must be a `.js`, `.mjs` or `.cjs` file inside the activities folder (symlinks are followed and checked), or one of the package's built-in activities. Over HTTP, absolute paths and `..` segments are refused, and with an activity registry (`working({ activities: { 'resize-image': './activities/resize-image.js' } })`) only registered names are accepted. Scripts inside a filing store never run, and start-up fails if the activities folder overlaps a filing `baseDir`. Existing code that runs absolute paths elsewhere can list their folders in `trustedRoots`, or set the deprecated `allowAbsolutePaths: true` for one release. Workers get `resourceLimits` (`workerMaxHeapMb`, default 512; `workerStackSizeMb`, default 4).
+
 #### Simple Workflow
 
 ```javascript
@@ -382,6 +384,22 @@ await filing.delete('documents/report.txt');
 
 Filing stores files under `FILING_BASE_DIR` (default `./.application/files`), never in the application root. Paths are checked, so a path cannot leave that folder.
 
+The storage root (`baseDir`, and the bucket, remote or working copy of the other providers) is fixed when the provider is created; `saveSettings()` changes only the listed operational settings (`maxFileSize`, `allowedTypes`, intervals) and rejects anything else with a 400. To use another folder, create another named instance. `allowedTypes` defaults to documents and images (`md, txt, pdf, png, jpg, jpeg, gif, webp, csv, json, docx, xlsx, pptx`).
+
+The REST API checks roles per route: any signed-in user can read (`download`, `browse`, `file-tree`); `upload` and `remove` need `editor` or `admin`; `settings`, `git/*`, `sync/*`, `instances` and `analytics` need `admin`. Static API keys pass every tier. Change the defaults, or add path rules, with the `access` option:
+
+```javascript
+serviceRegistry.filing('local', {
+  baseDir: './.application/files',
+  access: {
+    writeRoles: ['admin', 'editor', 'user'],                 // '*' means any signed-in user
+    acl: { 'private/': ['admin'], 'teams/finance/': ['finance'] },
+  },
+});
+```
+
+Downloads of HTML, SVG, XML, JavaScript and unknown types are always sent as `application/octet-stream` attachments. Anything shown inline gets a sandboxing `Content-Security-Policy`, so a stored file can never run script in the application origin.
+
 #### S3 Cloud Storage
 
 ```javascript
@@ -457,19 +475,36 @@ app.get('/profile', requireUser, (req, res) => {
 
 #### Invitations
 
-An invitation is a one-time code that lets someone create a password and become an active user:
+An invitation is a one-time code that lets someone create a password and become an active user. How people get one depends on `invitations.mode`:
+
+| Mode | What a public request does |
+|---|---|
+| `admin-approval` (default) | Creates a pending invitation. No code is returned. An admin approves it and gets the code to send (or it is emailed through `sendCode`). |
+| `admin-only` | Refused (403). Admins create invitations. |
+| `domain-allowlist` | Emails a code through `sendCode` to addresses in `allowedDomains`; others wait for approval. |
+| `open` | Returns the code to the requester. For demos only; logs a warning in production. |
 
 ```javascript
-const invite = await auth.requestInvitation({
-  name: 'Grace Hopper',
-  email: 'grace@example.com',
-  mobile: '+27820000000',          // optional
+const auth = serviceRegistry.authservice('file', {
+  invitations: {
+    mode: 'admin-approval',
+    allowedDomains: ['example.com'],                 // domain-allowlist mode
+    sendCode: async ({ email, name, code, expiresAt }) => { /* send an email */ },
+    ttlDays: 7,
+  },
 });
 
-// The current implementation issues codes that are usable immediately (auto-approved).
-// approveInvitation(code) is available for flows where an admin approves first.
+// Admin or trusted app code: approved straight away, code returned once.
+const invite = await auth.createInvitation({ name: 'Grace Hopper', email: 'grace@example.com' });
 await auth.redeemInvitation(invite.code, 'a-strong-passphrase');   // a code can be redeemed once
+
+// Public request: pending until an admin approves it by id.
+await auth.requestInvitation({ name: 'Ada', email: 'ada@example.com' });   // { status: 'pending' }
+const [pending] = (await auth.listInvitations()).filter((i) => i.status === 'pending');
+const approved = await auth.approveInvitation(pending.id);                // includes approved.code
 ```
+
+Codes are stored only as SHA-256 hashes, so `listInvitations()` shows a `codeHint` (last four characters), never the code. `recreateInvitation(id)` issues a fresh code and invalidates the old one. The file provider persists invitations in `invitations.json`. Public request, lookup and redeem endpoints are rate limited per IP (`INVITATION_RATE_LIMIT_MAX`, `INVITATION_REDEEM_RATE_LIMIT_MAX`, `INVITATION_RATE_WINDOW_MS`). An optional `invitations.verifyHuman: async (req) => boolean` hook on the route options adds a CAPTCHA check.
 
 #### Google Sign-In
 

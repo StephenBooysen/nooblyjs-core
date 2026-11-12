@@ -16,6 +16,8 @@ Rank work by **impact ÷ effort**, but treat anything that blocks safe release a
 
 **Goal:** close every critical and high finding and get CI green. **Exit:** the review's reproduction fails at every step, `npm audit --omit=dev --audit-level=high` passes, and the security regression tests are in the suite.
 
+**Status (2026-11-12): implemented, not yet released.** 20a, 15, 16, 17a, 18 and 22a are in the working tree. `npm audit --omit=dev --audit-level=high` reports 0 advisories, and `tests/unit/security/exploitChain.test.js` (31 tests, 24 of which fail on the pre-fix code) passes with the full Jest suite. Still open before tagging 1.0.11: the Playwright UI run (not run, because Chromium wasn't installed), email delivery for invitation codes (the `sendCode` hook exists; the notifying mail transport does not), the per-code failed-redeem counter, and the `TRUST_PROXY` rate-limiter IP test from 20a.
+
 | # | Change | Impact | Effort |
 |---|---|---|---|
 | 20a | [Fix dependency advisories](../specs/features/20.%20Feature%20Dependency%20and%20Supply-Chain%20Hygiene.md) (`npm audit fix`, `simple-git` 4, `proxy-addr`) | CI green again; removes command-execution and IP-spoofing advisories | S |
