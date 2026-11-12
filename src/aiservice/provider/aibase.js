@@ -29,10 +29,12 @@ class AIServiceBase {
     this.options_ = options;
     this.eventEmitter_ = eventEmitter;
     this.instanceName_ = options.instanceName || 'default';
+    // NOOBLYJS_DATA_DIR lets a host (or the Jest setup) move the default, so
+    // test runs never write outside .temp/ (review finding L-2).
+    const defaultDataDir = process.env.NOOBLYJS_DATA_DIR
+      || path.join(process.cwd(), '.application', 'data');
     this.tokensStorePath_ = options.tokensStorePath
-      || (options.dataDir
-        ? path.join(options.dataDir, 'ai-tokens.json')
-        : path.join(process.cwd(), '.application', 'data', 'ai-tokens.json'));
+      || path.join(options.dataDir || defaultDataDir, 'ai-tokens.json');
     this.analytics_ = new Map();
     this.maxAnalyticsEntries_ = 1000;
 
