@@ -1,6 +1,7 @@
 # NooblyJS Core — CI gate (N-1 / P0-6).
 # Runs unit tests with a coverage threshold, Playwright UI tests, a production
-# dependency audit and a Docker build on every push and pull request.
+# dependency audit, a Docker build with a live security probe and a ZAP
+# baseline scan, and a gitleaks secret scan on every push and pull request.
 # To block merges on failure, mark these jobs as required status checks in the
 # repository's branch protection settings.
 name: CI
@@ -113,3 +114,42 @@ jobs:
           done
           docker logs app
           exit 1
+      # Feature 22: the live security probe against the production image.
+      - name: Security probe
+        run: |
+          docker rm -f app
+          KEY="$(openssl rand -hex 32)"
+          ADMIN_KEY="$(openssl rand -hex 32)"
+          docker run -d --name app -p 9000:9000 -e SESSION_SECRET="$(openssl rand -hex 32)" \
+            -e API_KEYS="$KEY" -e ADMIN_API_KEYS="$ADMIN_KEY" nooblyjs-core:ci
+          for i in $(seq 1 30); do curl -sf http://localhost:9000/health/live >/dev/null && break; sleep 2; done
+          node scripts/probe.js --url http://localhost:9000 --api-key "$ADMIN_KEY" --data-key "$KEY" --invasive
+      # Feature 22: OWASP ZAP passive baseline scan; rules in .zap/rules.tsv
+      # decide which alerts fail the build (-I: warnings never do).
+      - name: ZAP baseline scan
+        run: |
+          mkdir -p zap && chmod 777 zap && cp .zap/rules.tsv zap/
+          docker run --rm --network host -v "$PWD/zap:/zap/wrk:rw" ghcr.io/zaproxy/zaproxy:stable \
+            zap-baseline.py -t http://localhost:9000/services/authservice/views/login.html \
+            -c rules.tsv -I -r zap-report.html -J zap-report.json
+      - name: Upload ZAP report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: zap-report
+          path: zap/zap-report.*
+          retention-days: 14
+
+  secrets:
+    name: Secret scan (gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      # Findings already in history are listed (redacted) in
+      # .gitleaks-baseline.json; any new one fails the build.
+      - name: gitleaks
+        run: |
+          docker run --rm -v "$PWD:/repo" zricethezav/gitleaks:v8.21.2 detect --source /repo \
+            --redact --no-banner --baseline-path /repo/.gitleaks-baseline.json

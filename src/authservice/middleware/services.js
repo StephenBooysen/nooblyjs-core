@@ -346,5 +346,6 @@ function redirectToLogin(req, res) {
 }
 
 module.exports = {
-  createServicesAuthMiddleware
+  createServicesAuthMiddleware,
+  isPathPublic
 };

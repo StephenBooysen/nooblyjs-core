@@ -42,6 +42,7 @@
     "kill": "node scripts/kill-port.js",
     "kill-test": "node scripts/kill-test-port.js",
     "test": "node --experimental-vm-modules --disable-warning=ExperimentalWarning node_modules/jest/bin/jest.js",
+    "probe": "node scripts/probe.js",
     "check:types": "tsc -p types/tests",
     "test:ai-common": "node --test \"tests/unit/aiservice/common/**/*.test.js\"",
     "check:ai-common": "tsc -p src/aiservice/common",
@@ -86,7 +87,9 @@
     },
     "setupFiles": [
       "<rootDir>/tests/helpers/jestSetup.js"
-    ]
+    ],
+    "globalSetup": "<rootDir>/tests/helpers/globalSetup.js",
+    "globalTeardown": "<rootDir>/tests/helpers/globalTeardown.js"
   },
   "overrides": {
     "uuid": "$uuid",

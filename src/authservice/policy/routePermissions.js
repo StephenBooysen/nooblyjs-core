@@ -136,7 +136,9 @@ const SPECIFIC = {
     rule(ANY, /^\/workflow\/api\/state\/?$/, 'workflows:admin')
   ],
   ai: [
-    rule(READ, /^\/ai\/api\/[^/]+\/(status|health)\/?$/, 'public'),
+    // Feature 22 matrix: only an instance's status is public (the API-key
+    // layer exempts '/services/*/status'); its health check needs ai:read.
+    rule(READ, /^\/ai\/api\/[^/]+\/status\/?$/, 'public'),
     rule(['POST'], /^\/ai\/api(?:\/[^/]+)?\/(prompt|complete|stream|object|embed)\/?$/, 'ai:prompt'),
     rule(['POST', 'PUT', 'DELETE'], /^\/ai\/api(?:\/[^/]+)?\/train(\/.*)?$/, 'ai:admin')
   ],

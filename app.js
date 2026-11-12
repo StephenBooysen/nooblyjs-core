@@ -146,6 +146,10 @@ const configuredApiKeys = parseCommaSeparated(
   process.env.NOOBLYJS_API_KEYS || process.env.API_KEYS || process.env.API_KEY || ''
 );
 
+// Admin keys (M-1 / feature 19): the only keys that open the /services admin
+// API in production. Data-plane API_KEYS reach the public and filing routes only.
+const configuredAdminApiKeys = parseCommaSeparated(process.env.ADMIN_API_KEYS || '');
+
 // Enforce strict security in production
 if (configuredApiKeys.length === 0 && isProduction) {
   console.error('FATAL ERROR: No API keys configured for production.');
@@ -174,8 +178,9 @@ if (configuredApiKeys.length === 0 && !isProduction) {
 const options = {
   logDir: path.join(__dirname, './.application/', 'logs'),
   dataDir: path.join(__dirname, './.application/', 'data'),
-  apiKeys: configuredApiKeys,
-  requireApiKey: configuredApiKeys.length > 0,
+  apiKeys: [...configuredApiKeys, ...configuredAdminApiKeys],
+  adminApiKeys: configuredAdminApiKeys,
+  requireApiKey: configuredApiKeys.length + configuredAdminApiKeys.length > 0,
   excludePaths: [
     '/services/*/status',
     '/services/',
