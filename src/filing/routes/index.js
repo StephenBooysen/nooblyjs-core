@@ -20,6 +20,8 @@ const { createUploadMiddleware, limitStream, resolveUploadLimits } = require('..
 const analytics = require('../modules/analytics');
 const { getServiceInstance } = require('../../appservice/utils/routeUtils');
 const { parseLimit, parseOffset } = require('../../shared/utils/validation');
+const { createFilingAccessGuard } = require('../modules/access');
+const { sendFileContent } = require('../modules/contentServing');
 
 /**
  * Extracts the uploaded bytes from a request: the multipart file, or a raw
@@ -69,7 +71,9 @@ module.exports = (options, eventEmitter, filing) => {
     // an authenticated Passport session in lieu of an API key); without it these
     // routes were reachable anonymously.
     const requireApiAuth = options.authMiddleware || ((req, res, next) => next());
-    app.use('/services/filing/api', requireApiAuth);
+    // Feature 15: the portal exemption must not hand every signed-in user the
+    // whole API. Route tiers (read / write / admin) are enforced here.
+    app.use('/services/filing/api', requireApiAuth, createFilingAccessGuard(options, eventEmitter));
 
     /**
      * POST /services/filing/api/upload/:key
@@ -125,107 +129,14 @@ module.exports = (options, eventEmitter, filing) => {
       try {
         const data = await filing.download(key, encoding);
         analytics.trackRead(key);
-
-        // Determine MIME type based on file extension
-        const mimeType = getMimeTypeForFile(key);
-
-        if (isAttachment) {
-          // Set headers for file download
-          const filename = key.split('/').pop() || 'download';
-          res.setHeader(
-            'Content-Disposition',
-            `attachment; filename="${filename}"`,
-          );
-
-          if (Buffer.isBuffer(data)) {
-            res.setHeader('Content-Type', mimeType);
-            res.send(data);
-          } else {
-            res.setHeader('Content-Type', 'text/plain');
-            res.send(data);
-          }
-        } else {
-          // Return as inline data for viewing in browser
-          if (Buffer.isBuffer(data)) {
-            res.setHeader('Content-Type', mimeType);
-            // For inline viewing, use Content-Disposition: inline
-            res.setHeader('Content-Disposition', 'inline');
-            res.send(data);
-          } else {
-            res.status(200).json({ data, encoding: encoding || 'buffer' });
-          }
-        }
+        // Feature 17: active types are always opaque downloads; inline
+        // responses are sandboxed.
+        sendFileContent(res, key, data, { attachment: isAttachment, encoding });
       } catch (err) {
         sendSafeError(res, err, { status: 500, eventEmitter });
       }
     });
 
-    /**
-     * Helper function to determine MIME type based on file extension
-     * @param {string} filePath - The file path
-     * @return {string} - The MIME type
-     */
-    function getMimeTypeForFile(filePath) {
-      const mimeTypes = {
-        // Documents
-        'pdf': 'application/pdf',
-        'doc': 'application/msword',
-        'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        'xls': 'application/vnd.ms-excel',
-        'xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        'ppt': 'application/vnd.ms-powerpoint',
-        'pptx': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-        'odt': 'application/vnd.oasis.opendocument.text',
-        'ods': 'application/vnd.oasis.opendocument.spreadsheet',
-
-        // Images
-        'jpg': 'image/jpeg',
-        'jpeg': 'image/jpeg',
-        'png': 'image/png',
-        'gif': 'image/gif',
-        'webp': 'image/webp',
-        'svg': 'image/svg+xml',
-        'ico': 'image/x-icon',
-        'tiff': 'image/tiff',
-        'bmp': 'image/bmp',
-
-        // Text
-        'txt': 'text/plain',
-        'md': 'text/markdown',
-        'log': 'text/plain',
-        'csv': 'text/csv',
-        'json': 'application/json',
-        'xml': 'application/xml',
-        'html': 'text/html',
-        'htm': 'text/html',
-        'css': 'text/css',
-        'js': 'application/javascript',
-        'ts': 'application/typescript',
-        'yaml': 'text/yaml',
-        'yml': 'text/yaml',
-
-        // Media
-        'mp4': 'video/mp4',
-        'webm': 'video/webm',
-        'mkv': 'video/x-matroska',
-        'avi': 'video/x-msvideo',
-        'mov': 'video/quicktime',
-        'mp3': 'audio/mpeg',
-        'wav': 'audio/wav',
-        'flac': 'audio/flac',
-        'ogg': 'audio/ogg',
-
-        // Archives
-        'zip': 'application/zip',
-        'tar': 'application/x-tar',
-        'gz': 'application/gzip',
-        'rar': 'application/x-rar-compressed',
-        '7z': 'application/x-7z-compressed'
-      };
-
-      const ext = filePath.split('.').pop().toLowerCase();
-      return mimeTypes[ext] || 'application/octet-stream';
-    }
 
     /**
      * DELETE /services/filing/api/remove/:key
@@ -396,32 +307,7 @@ module.exports = (options, eventEmitter, filing) => {
       try {
         const data = await filingInstance.download(key, encoding);
         analytics.trackRead(key);
-
-        const mimeType = getMimeTypeForFile(key);
-
-        if (isAttachment) {
-          const filename = key.split('/').pop() || 'download';
-          res.setHeader(
-            'Content-Disposition',
-            `attachment; filename="${filename}"`,
-          );
-
-          if (Buffer.isBuffer(data)) {
-            res.setHeader('Content-Type', mimeType);
-            res.send(data);
-          } else {
-            res.setHeader('Content-Type', 'text/plain');
-            res.send(data);
-          }
-        } else {
-          if (Buffer.isBuffer(data)) {
-            res.setHeader('Content-Type', mimeType);
-            res.setHeader('Content-Disposition', 'inline');
-            res.send(data);
-          } else {
-            res.status(200).json({ data, encoding: encoding || 'buffer' });
-          }
-        }
+        sendFileContent(res, key, data, { attachment: isAttachment, encoding });
       } catch (err) {
         sendSafeError(res, err, { status: 500, eventEmitter });
       }

@@ -7,7 +7,10 @@
 
 'use strict';
 
-const simpleGit = require('simple-git');
+const { applySettings } = require('../modules/settingsGuard');
+const { registerFilingRoot } = require('../../working/modules/activityPath');
+
+const { simpleGit } = require('simple-git');
 const path = require('node:path');
 const fs = require('node:fs').promises;
 const CommitQueue = require('../sync/CommitQueue');
@@ -41,6 +44,8 @@ class GitFilingProvider {
 
     this.repoUrl = options.repoUrl;
     this.localPath = path.resolve(options.localPath || './git-repo');
+    // Feature 18: files in the working copy must never run as activities.
+    registerFilingRoot(this.localPath);
     this.branch = options.branch || 'main';
     this.userId = options.userId || 'default-user';
     this.userEmail = options.userEmail || 'user@example.com';
@@ -766,12 +771,9 @@ class GitFilingProvider {
    * Save/update settings
    */
   async saveSettings(settings){
-    for (let i = 0; i < this.settings.list.length; i++){
-      if (settings[this.settings.list[i].setting] != null){
-        this.settings[this.settings.list[i].setting] = settings[this.settings.list[i].setting];
-        this.logger?.info(`[${this.constructor.name}] Setting changed`, { setting: this.settings.list[i].setting, newValue: settings[this.settings.list[i].setting], operation: 'saveSettings' });
-      }
-    }
+    // Feature 15: only listed operational settings change at runtime; the
+    // storage identity (root, bucket, remote) is fixed at construction.
+    return applySettings(this, settings, this.logger);
   }
 }
 

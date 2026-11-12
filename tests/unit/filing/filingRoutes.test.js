@@ -66,10 +66,11 @@ describe('Filing routes (local provider)', () => {
 
     const inline = await request(app).get('/services/filing/api/download/docs/b.png').expect(200);
     expect(inline.headers['content-type']).toBe('image/png');
-    expect(inline.headers['content-disposition']).toBe('inline');
+    expect(inline.headers['content-disposition']).toMatch(/^inline; filename="b\.png"/);
+    expect(inline.headers['content-security-policy']).toMatch(/^sandbox/);
 
     const attachment = await request(app).get('/services/filing/api/download/docs/b.png?attachment=true').expect(200);
-    expect(attachment.headers['content-disposition']).toBe('attachment; filename="b.png"');
+    expect(attachment.headers['content-disposition']).toBe('attachment; filename="b.png"; filename*=UTF-8\'\'b.png');
 
     await request(app).get('/services/filing/api/download/docs/missing.txt').expect(404);
   });

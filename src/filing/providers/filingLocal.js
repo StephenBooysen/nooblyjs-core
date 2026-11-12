@@ -8,10 +8,16 @@
 
 'use strict';
 
+const { applySettings, SAFE_ALLOWED_TYPES } = require('../modules/settingsGuard');
+
 const fs = require('node:fs').promises;
 const fsSync = require('fs');
 const path = require('node:path');
 const { resolveWithin } = require('../modules/pathSafety');
+const { registerFilingRoot } = require('../../working/modules/activityPath');
+
+/** Default storage root: never the application directory itself. */
+const DEFAULT_BASE_DIR = './.application/files';
 
 /**
  * A class that implements a local file system-based file storage provider.
@@ -21,7 +27,9 @@ const { resolveWithin } = require('../modules/pathSafety');
 class LocalFilingProvider {
   /**
    * Initializes the local file system provider.
-   * @param {Object=} options Configuration options (unused in this implementation).
+   * @param {Object=} options Configuration options: `baseDir` (fixed for the
+   *     life of the provider; default ./.application/files), `maxFileSize`,
+   *     `allowedTypes` (default: a safe document and image list).
    * @param {EventEmitter=} eventEmitter Optional event emitter for file operations.
    */
   constructor(options, eventEmitter) {
@@ -31,14 +39,28 @@ class LocalFilingProvider {
     // Settings for filing service
     this.settings = {};
     this.settings.description = "Configuration settings for the Filing Service";
+    // baseDir is not in the editable list: the storage root is fixed at
+    // construction (feature 15). It stays on `settings` for display only.
     this.settings.list = [
-      {setting: "baseDir", type: "string", values: ['./']},
       {setting: "maxFileSize", type: "number", values: [10485760]},
-      {setting: "allowedTypes", type: "string", values: ['*']}
+      {setting: "allowedTypes", type: "string", values: [SAFE_ALLOWED_TYPES]}
     ];
-    this.settings.baseDir = options.baseDir || this.settings.baseDir || './';
-    this.settings.maxFileSize = options.maxFileSize || this.settings.maxFileSize || 10485760;
-    this.settings.allowedTypes = options.allowedTypes || this.settings.allowedTypes || '*';
+    options = options || {};
+    this.settings.baseDir = options.baseDir || DEFAULT_BASE_DIR;
+    this.settings.maxFileSize = options.maxFileSize || 10485760;
+    this.settings.allowedTypes = options.allowedTypes || SAFE_ALLOWED_TYPES;
+
+    /**
+     * The resolved storage root. Set once here and used for every path check,
+     * so nothing that changes `settings` at runtime can move the store.
+     * @private @const {string}
+     */
+    this.rootDir_ = path.resolve(this.settings.baseDir);
+    Object.defineProperty(this, 'rootDir_', { writable: false, configurable: false });
+
+    // Feature 18: nothing in a filing store may ever run as an activity, and a
+    // store must not overlap a working activities folder.
+    registerFilingRoot(this.rootDir_);
   }
 
   /**
@@ -49,7 +71,7 @@ class LocalFilingProvider {
    * @private
    */
   _resolveAndVerifyPath(filePath) {
-    const baseDir = path.resolve(this.settings.baseDir);
+    const baseDir = this.rootDir_;
     try {
       // resolveWithin fixes the prefix-bypass of the previous
       // startsWith(baseDir) check (e.g. /srv/data vs /srv/data-secrets).
@@ -341,16 +363,9 @@ class LocalFilingProvider {
    * Save/update settings
    */
   async saveSettings(settings){
-    for (let i = 0; i < this.settings.list.length; i++){
-      if (settings[this.settings.list[i].setting] != null){
-        this.settings[this.settings.list[i].setting] = settings[this.settings.list[i].setting];
-        this.logger?.info(`[${this.constructor.name}] Setting changed`, {
-          setting: this.settings.list[i].setting,
-          newValue: settings[this.settings.list[i].setting],
-          operation: 'saveSettings'
-        });
-      }
-    }
+    // Feature 15: only listed operational settings change at runtime; the
+    // storage identity (root, bucket, remote) is fixed at construction.
+    return applySettings(this, settings, this.logger);
   }
 }
 

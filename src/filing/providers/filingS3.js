@@ -8,6 +8,8 @@
 
 'use strict';
 
+const { applySettings } = require('../modules/settingsGuard');
+
 const { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand, ListObjectsV2Command } = require('@aws-sdk/client-s3');
 const { assertSafeRelativePath } = require('../modules/pathSafety');
 
@@ -57,13 +59,12 @@ class S3FilingProvider {
     this.settings = {};
     this.settings.description = "Configuration settings for the Filing S3 Provider";
     this.settings.list = [
-      {setting: "bucket", type: "string", values: [this.bucketName]},
-      {setting: "region", type: "string", values: [options.region]},
       {setting: "maxUploadSize", type: "number", values: [104857600]}
     ];
-    this.settings.bucket = options.bucket || this.settings.list[0].values[0];
-    this.settings.region = options.region || this.settings.list[1].values[0];
-    this.settings.maxUploadSize = options.maxUploadSize || this.settings.list[2].values[0];
+    // Bucket and region are shown for reference but are not editable.
+    this.settings.bucket = options.bucket || this.bucketName;
+    this.settings.region = options.region;
+    this.settings.maxUploadSize = options.maxUploadSize || this.settings.list[0].values[0];
   }
 
   /**
@@ -222,12 +223,9 @@ class S3FilingProvider {
    * Save/update settings
    */
   async saveSettings(settings){
-    for (let i = 0; i < this.settings.list.length; i++){
-      if (settings[this.settings.list[i].setting] != null){
-        this.settings[this.settings.list[i].setting] = settings[this.settings.list[i].setting];
-        this.logger?.info(`[${this.constructor.name}] Setting changed`, { setting: this.settings.list[i].setting, newValue: settings[this.settings.list[i].setting], operation: 'saveSettings' });
-      }
-    }
+    // Feature 15: only listed operational settings change at runtime; the
+    // storage identity (root, bucket, remote) is fixed at construction.
+    return applySettings(this, settings, this.logger);
   }
 }
 

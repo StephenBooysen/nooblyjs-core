@@ -137,7 +137,7 @@ describe('FilingService', () => {
     let localFilingService;
 
     beforeEach(() => {
-      localFilingService = createFilingService('local', {});
+      localFilingService = createFilingService('local', { baseDir: testDir });
     });
 
     afterEach(async () => {

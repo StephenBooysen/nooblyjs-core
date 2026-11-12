@@ -8,6 +8,8 @@
 
 'use strict';
 
+const { applySettings } = require('../modules/settingsGuard');
+
 const axios = require('axios');
 
 /**
@@ -41,13 +43,13 @@ class FilingApi {
     this.settings = {};
     this.settings.description = "Configuration settings for the Filing API Provider";
     this.settings.list = [
-      {setting: "apiUrl", type: "string", values: ["http://localhost:3000"]},
       {setting: "timeout", type: "number", values: [30000]},
       {setting: "retryLimit", type: "number", values: [3]}
     ];
-    this.settings.apiUrl = options.apiUrl || this.settings.list[0].values[0];
-    this.settings.timeout = options.timeout || this.settings.list[1].values[0];
-    this.settings.retryLimit = options.retryLimit || this.settings.list[2].values[0];
+    // The remote URL is fixed at construction and is not editable.
+    this.settings.apiUrl = options.apiUrl || 'http://localhost:3000';
+    this.settings.timeout = options.timeout || this.settings.list[0].values[0];
+    this.settings.retryLimit = options.retryLimit || this.settings.list[1].values[0];
   }
 
   /**
@@ -150,12 +152,9 @@ class FilingApi {
    * Save/update settings
    */
   async saveSettings(settings){
-    for (let i = 0; i < this.settings.list.length; i++){
-      if (settings[this.settings.list[i].setting] != null){
-        this.settings[this.settings.list[i].setting] = settings[this.settings.list[i].setting];
-        this.logger?.info(`[${this.constructor.name}] Setting changed`, { setting: this.settings.list[i].setting, newValue: settings[this.settings.list[i].setting], operation: 'saveSettings' });
-      }
-    }
+    // Feature 15: only listed operational settings change at runtime; the
+    // storage identity (root, bucket, remote) is fixed at construction.
+    return applySettings(this, settings, this.logger);
   }
 }
 

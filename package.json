@@ -80,7 +80,10 @@
         "functions": 50,
         "lines": 51
       }
-    }
+    },
+    "setupFiles": [
+      "<rootDir>/tests/helpers/jestSetup.js"
+    ]
   },
   "overrides": {
     "uuid": "$uuid",
@@ -131,7 +134,7 @@
     "passport-google-oauth20": "^2.0.0",
     "passport-local": "^1.0.0",
     "pdf-parse": "^1.1.4",
-    "simple-git": "^3.28.0",
+    "simple-git": "^4.0.2",
     "stompit": "^1.0.0",
     "uuid": "^11.1.0"
   },

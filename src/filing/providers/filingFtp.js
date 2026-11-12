@@ -8,6 +8,8 @@
 
 'use strict';
 
+const { applySettings } = require('../modules/settingsGuard');
+
 const Client = require('ftp');
 const { assertSafeRelativePath } = require('../modules/pathSafety');
 
@@ -326,16 +328,9 @@ class FtpFilingProvider {
    * Save/update settings
    */
   async saveSettings(settings){
-    for (let i = 0; i < this.settings.list.length; i++){
-      if (settings[this.settings.list[i].setting] != null){
-        this.settings[this.settings.list[i].setting] = settings[this.settings.list[i].setting];
-        this.logger?.info(`[${this.constructor.name}] Setting changed`, {
-          setting: this.settings.list[i].setting,
-          newValue: settings[this.settings.list[i].setting],
-          operation: 'saveSettings'
-        });
-      }
-    }
+    // Feature 15: only listed operational settings change at runtime; the
+    // storage identity (root, bucket, remote) is fixed at construction.
+    return applySettings(this, settings, this.logger);
   }
 }
 

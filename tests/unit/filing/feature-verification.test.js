@@ -221,10 +221,20 @@ describe('Filing Service - Feature Verification', () => {
   });
 
   describe('Settings Management - saveSettings()', () => {
-    it('should save settings', async () => {
-      const testSetting = { key: 'value' };
-      await filing.saveSettings(testSetting);
-      expect(true).toBe(true);
+    it('should save a listed setting', async () => {
+      await filing.saveSettings({ maxFileSize: '2048' });
+      const settings = await filing.getSettings();
+      expect(settings.maxFileSize).toBe(2048);
+    });
+
+    it('should reject unknown settings', async () => {
+      await expect(filing.saveSettings({ key: 'value' })).rejects.toMatchObject({ statusCode: 400 });
+    });
+
+    it('should never change the storage root at runtime', async () => {
+      await expect(filing.saveSettings({ baseDir: '/' })).rejects.toMatchObject({ statusCode: 400 });
+      const settings = await filing.getSettings();
+      expect(settings.baseDir).toBe(testDir);
     });
 
     it('should return promise', async () => {
@@ -234,8 +244,10 @@ describe('Filing Service - Feature Verification', () => {
     });
 
     it('should handle partial updates', async () => {
-      await filing.saveSettings({ timeout: 5000 });
-      expect(true).toBe(true);
+      await filing.saveSettings({ allowedTypes: 'txt,md' });
+      const settings = await filing.getSettings();
+      expect(settings.allowedTypes).toBe('txt,md');
+      expect(settings.maxFileSize).toBe(10485760);
     });
   });
 

@@ -49,9 +49,10 @@ const mockGit = {
   log: jest.fn().mockResolvedValue({ all: [{ hash: 'abc123' }] })
 };
 
-jest.mock('simple-git', () => {
-  return jest.fn().mockImplementation(() => mockGit);
-});
+// simple-git 4 exports `{ simpleGit }` from its CommonJS build.
+jest.mock('simple-git', () => ({
+  simpleGit: jest.fn().mockImplementation(() => mockGit)
+}));
 
 // Mock fs.promises
 jest.mock('fs', () => ({

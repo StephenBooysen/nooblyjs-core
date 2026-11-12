@@ -53,11 +53,11 @@ describe('Filing upload limits (P2-2)', () => {
     const { app, baseDir } = buildApp({ maxFileSize: 1024 });
     dirs.push(baseDir);
     const res = await request(app)
-      .post('/services/filing/api/upload/big.bin')
-      .attach('file', Buffer.alloc(4096, 97), 'big.bin');
+      .post('/services/filing/api/upload/big.txt')
+      .attach('file', Buffer.alloc(4096, 97), 'big.txt');
     expect(res.status).toBe(413);
     expect(res.body.error).toMatch(/maximum upload size/);
-    expect(fs.existsSync(path.join(baseDir, 'big.bin'))).toBe(false);
+    expect(fs.existsSync(path.join(baseDir, 'big.txt'))).toBe(false);
   });
 
   it('rejects early from Content-Length before buffering', async () => {
@@ -92,8 +92,8 @@ describe('Filing upload limits (P2-2)', () => {
     const { app, baseDir } = buildApp({ maxFileSize: 1024 });
     dirs.push(baseDir);
     const res = await request(app)
-      .post('/services/filing/api/default/upload/big.bin')
-      .attach('file', Buffer.alloc(4096, 97), 'big.bin');
+      .post('/services/filing/api/default/upload/big.txt')
+      .attach('file', Buffer.alloc(4096, 97), 'big.txt');
     expect(res.status).toBe(413);
   });
 
