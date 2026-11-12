@@ -137,7 +137,7 @@ const SPECIFIC = {
   ],
   ai: [
     rule(READ, /^\/ai\/api\/[^/]+\/(status|health)\/?$/, 'public'),
-    rule(['POST'], /^\/ai\/api(?:\/[^/]+)?\/prompt\/?$/, 'ai:prompt'),
+    rule(['POST'], /^\/ai\/api(?:\/[^/]+)?\/(prompt|complete|stream|object|embed)\/?$/, 'ai:prompt'),
     rule(['POST', 'PUT', 'DELETE'], /^\/ai\/api(?:\/[^/]+)?\/train(\/.*)?$/, 'ai:admin')
   ],
   settings: [

@@ -6,11 +6,20 @@
     "version": "1.0.0"
   },
   "servers": [
-    { "url": "/services/ai/api", "description": "AI Service API" }
+    {
+      "url": "/services/ai/api",
+      "description": "AI Service API"
+    }
   ],
   "tags": [
-    { "name": "Default Instance", "description": "Operations on the default AI service instance" },
-    { "name": "Named Instance", "description": "Operations on a named AI service instance" }
+    {
+      "name": "Default Instance",
+      "description": "Operations on the default AI service instance"
+    },
+    {
+      "name": "Named Instance",
+      "description": "Operations on a named AI service instance"
+    }
   ],
   "components": {
     "parameters": {
@@ -19,7 +28,10 @@
         "in": "path",
         "required": true,
         "description": "Name of the AI service instance",
-        "schema": { "type": "string", "example": "default" }
+        "schema": {
+          "type": "string",
+          "example": "default"
+        }
       }
     },
     "requestBodies": {
@@ -29,7 +41,9 @@
           "application/json": {
             "schema": {
               "type": "object",
-              "required": ["prompt"],
+              "required": [
+                "prompt"
+              ],
               "properties": {
                 "prompt": {
                   "type": "string",
@@ -43,8 +57,14 @@
                 "options": {
                   "type": "object",
                   "properties": {
-                    "maxTokens": { "type": "integer", "example": 1000 },
-                    "temperature": { "type": "number", "example": 0.7 }
+                    "maxTokens": {
+                      "type": "integer",
+                      "example": 1000
+                    },
+                    "temperature": {
+                      "type": "number",
+                      "example": 0.7
+                    }
                   }
                 }
               }
@@ -65,177 +85,781 @@
       }
     },
     "responses": {
-      "Success": { "description": "Successful response" },
-      "BadRequest": { "description": "Invalid request" },
-      "ServiceDisabled": { "description": "AI service is disabled - API key not configured" },
-      "ServerError": { "description": "Internal server error" }
+      "Success": {
+        "description": "Successful response"
+      },
+      "BadRequest": {
+        "description": "Invalid request"
+      },
+      "ServiceDisabled": {
+        "description": "AI service is disabled - API key not configured"
+      },
+      "ServerError": {
+        "description": "Internal server error"
+      }
+    },
+    "schemas": {
+      "AIRequest": {
+        "type": "object",
+        "properties": {
+          "messages": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "role": {
+                  "type": "string",
+                  "enum": [
+                    "user",
+                    "assistant"
+                  ]
+                },
+                "content": {}
+              }
+            }
+          },
+          "prompt": {
+            "type": "string"
+          },
+          "system": {
+            "type": "string"
+          },
+          "tools": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "maxTokens": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 200000
+          },
+          "temperature": {
+            "type": "number"
+          },
+          "model": {
+            "type": "string"
+          }
+        }
+      }
     }
   },
   "paths": {
     "/instances": {
       "get": {
-        "tags": ["Default Instance"],
+        "tags": [
+          "Default Instance"
+        ],
         "summary": "List all AI service instances",
         "description": "Returns every registered AI service instance, including the default.",
         "responses": {
-          "200": { "$ref": "#/components/responses/Success" },
-          "500": { "$ref": "#/components/responses/ServerError" }
+          "200": {
+            "$ref": "#/components/responses/Success"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
         }
       }
     },
     "/status": {
       "get": {
-        "tags": ["Default Instance"],
+        "tags": [
+          "Default Instance"
+        ],
         "summary": "Get service status",
         "responses": {
-          "200": { "$ref": "#/components/responses/Success" }
+          "200": {
+            "$ref": "#/components/responses/Success"
+          }
         }
       }
     },
     "/prompt": {
       "post": {
-        "tags": ["Default Instance"],
+        "tags": [
+          "Default Instance"
+        ],
         "summary": "Send a prompt to the default instance",
-        "requestBody": { "$ref": "#/components/requestBodies/PromptBody" },
+        "requestBody": {
+          "$ref": "#/components/requestBodies/PromptBody"
+        },
         "responses": {
-          "200": { "$ref": "#/components/responses/Success" },
-          "400": { "$ref": "#/components/responses/BadRequest" },
-          "503": { "$ref": "#/components/responses/ServiceDisabled" },
-          "500": { "$ref": "#/components/responses/ServerError" }
+          "200": {
+            "$ref": "#/components/responses/Success"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "503": {
+            "$ref": "#/components/responses/ServiceDisabled"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
         }
       }
     },
     "/analytics": {
       "get": {
-        "tags": ["Default Instance"],
+        "tags": [
+          "Default Instance"
+        ],
         "summary": "Get prompt analytics",
         "parameters": [
-          { "name": "limit", "in": "query", "required": false, "schema": { "type": "integer" } },
-          { "name": "recentLimit", "in": "query", "required": false, "schema": { "type": "integer" } }
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "recentLimit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          }
         ],
         "responses": {
-          "200": { "$ref": "#/components/responses/Success" }
+          "200": {
+            "$ref": "#/components/responses/Success"
+          }
         }
       }
     },
     "/models": {
       "get": {
-        "tags": ["Default Instance"],
+        "tags": [
+          "Default Instance"
+        ],
         "summary": "List available models",
         "responses": {
-          "200": { "$ref": "#/components/responses/Success" },
-          "500": { "$ref": "#/components/responses/ServerError" }
+          "200": {
+            "$ref": "#/components/responses/Success"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
         }
       }
     },
     "/health": {
       "get": {
-        "tags": ["Default Instance"],
+        "tags": [
+          "Default Instance"
+        ],
         "summary": "Health check",
         "responses": {
-          "200": { "$ref": "#/components/responses/Success" }
+          "200": {
+            "$ref": "#/components/responses/Success"
+          }
         }
       }
     },
     "/settings": {
       "get": {
-        "tags": ["Default Instance"],
+        "tags": [
+          "Default Instance"
+        ],
         "summary": "Get service settings",
         "responses": {
-          "200": { "$ref": "#/components/responses/Success" },
-          "500": { "$ref": "#/components/responses/ServerError" }
+          "200": {
+            "$ref": "#/components/responses/Success"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
         }
       },
       "post": {
-        "tags": ["Default Instance"],
+        "tags": [
+          "Default Instance"
+        ],
         "summary": "Save service settings",
-        "requestBody": { "$ref": "#/components/requestBodies/SettingsBody" },
+        "requestBody": {
+          "$ref": "#/components/requestBodies/SettingsBody"
+        },
         "responses": {
-          "200": { "$ref": "#/components/responses/Success" },
-          "400": { "$ref": "#/components/responses/BadRequest" },
-          "500": { "$ref": "#/components/responses/ServerError" }
+          "200": {
+            "$ref": "#/components/responses/Success"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
         }
       }
     },
     "/{instanceName}/status": {
       "get": {
-        "tags": ["Named Instance"],
+        "tags": [
+          "Named Instance"
+        ],
         "summary": "Get status for an instance",
-        "parameters": [{ "$ref": "#/components/parameters/InstanceName" }],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/InstanceName"
+          }
+        ],
         "responses": {
-          "200": { "$ref": "#/components/responses/Success" }
+          "200": {
+            "$ref": "#/components/responses/Success"
+          }
         }
       }
     },
     "/{instanceName}/prompt": {
       "post": {
-        "tags": ["Named Instance"],
+        "tags": [
+          "Named Instance"
+        ],
         "summary": "Send a prompt to a named instance",
-        "parameters": [{ "$ref": "#/components/parameters/InstanceName" }],
-        "requestBody": { "$ref": "#/components/requestBodies/PromptBody" },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/InstanceName"
+          }
+        ],
+        "requestBody": {
+          "$ref": "#/components/requestBodies/PromptBody"
+        },
         "responses": {
-          "200": { "$ref": "#/components/responses/Success" },
-          "400": { "$ref": "#/components/responses/BadRequest" },
-          "503": { "$ref": "#/components/responses/ServiceDisabled" },
-          "500": { "$ref": "#/components/responses/ServerError" }
+          "200": {
+            "$ref": "#/components/responses/Success"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "503": {
+            "$ref": "#/components/responses/ServiceDisabled"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
         }
       }
     },
     "/{instanceName}/analytics": {
       "get": {
-        "tags": ["Named Instance"],
+        "tags": [
+          "Named Instance"
+        ],
         "summary": "Get analytics for an instance",
         "parameters": [
-          { "$ref": "#/components/parameters/InstanceName" },
-          { "name": "limit", "in": "query", "required": false, "schema": { "type": "integer" } },
-          { "name": "recentLimit", "in": "query", "required": false, "schema": { "type": "integer" } }
+          {
+            "$ref": "#/components/parameters/InstanceName"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "recentLimit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          }
         ],
         "responses": {
-          "200": { "$ref": "#/components/responses/Success" }
+          "200": {
+            "$ref": "#/components/responses/Success"
+          }
         }
       }
     },
     "/{instanceName}/models": {
       "get": {
-        "tags": ["Named Instance"],
+        "tags": [
+          "Named Instance"
+        ],
         "summary": "List models for an instance",
-        "parameters": [{ "$ref": "#/components/parameters/InstanceName" }],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/InstanceName"
+          }
+        ],
         "responses": {
-          "200": { "$ref": "#/components/responses/Success" },
-          "500": { "$ref": "#/components/responses/ServerError" }
+          "200": {
+            "$ref": "#/components/responses/Success"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
         }
       }
     },
     "/{instanceName}/health": {
       "get": {
-        "tags": ["Named Instance"],
+        "tags": [
+          "Named Instance"
+        ],
         "summary": "Health check for an instance",
-        "parameters": [{ "$ref": "#/components/parameters/InstanceName" }],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/InstanceName"
+          }
+        ],
         "responses": {
-          "200": { "$ref": "#/components/responses/Success" }
+          "200": {
+            "$ref": "#/components/responses/Success"
+          }
         }
       }
     },
     "/{instanceName}/settings": {
       "get": {
-        "tags": ["Named Instance"],
+        "tags": [
+          "Named Instance"
+        ],
         "summary": "Get settings for an instance",
-        "parameters": [{ "$ref": "#/components/parameters/InstanceName" }],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/InstanceName"
+          }
+        ],
         "responses": {
-          "200": { "$ref": "#/components/responses/Success" },
-          "500": { "$ref": "#/components/responses/ServerError" }
+          "200": {
+            "$ref": "#/components/responses/Success"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
         }
       },
       "post": {
-        "tags": ["Named Instance"],
+        "tags": [
+          "Named Instance"
+        ],
         "summary": "Save settings for an instance",
-        "parameters": [{ "$ref": "#/components/parameters/InstanceName" }],
-        "requestBody": { "$ref": "#/components/requestBodies/SettingsBody" },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/InstanceName"
+          }
+        ],
+        "requestBody": {
+          "$ref": "#/components/requestBodies/SettingsBody"
+        },
         "responses": {
-          "200": { "$ref": "#/components/responses/Success" },
-          "400": { "$ref": "#/components/responses/BadRequest" },
-          "500": { "$ref": "#/components/responses/ServerError" }
+          "200": {
+            "$ref": "#/components/responses/Success"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
         }
+      }
+    },
+    "/complete": {
+      "post": {
+        "tags": [
+          "AI Service v2"
+        ],
+        "summary": "Complete a request",
+        "description": "One request, whole reply. Needs ai:prompt.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AIRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "{ text, toolCalls, stopReason, usage, cost, model, content }"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "429": {
+            "description": "Over maxTokensPerRequest or maxCostPerDay"
+          },
+          "501": {
+            "description": "The instance uses a legacy provider"
+          }
+        }
+      }
+    },
+    "/{instanceName}/complete": {
+      "post": {
+        "tags": [
+          "AI Service v2"
+        ],
+        "summary": "Complete a request",
+        "description": "One request, whole reply. Needs ai:prompt.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AIRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "{ text, toolCalls, stopReason, usage, cost, model, content }"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "429": {
+            "description": "Over maxTokensPerRequest or maxCostPerDay"
+          },
+          "501": {
+            "description": "The instance uses a legacy provider"
+          }
+        },
+        "parameters": [
+          {
+            "name": "instanceName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/stream": {
+      "post": {
+        "tags": [
+          "AI Service v2"
+        ],
+        "summary": "Stream a reply (SSE)",
+        "description": "Server-Sent Events: message_start, text_delta, thinking_delta, message, usage, done or error. Needs ai:prompt.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AIRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "text/event-stream",
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "429": {
+            "description": "Over maxTokensPerRequest or maxCostPerDay"
+          },
+          "501": {
+            "description": "The instance uses a legacy provider"
+          }
+        }
+      }
+    },
+    "/{instanceName}/stream": {
+      "post": {
+        "tags": [
+          "AI Service v2"
+        ],
+        "summary": "Stream a reply (SSE)",
+        "description": "Server-Sent Events: message_start, text_delta, thinking_delta, message, usage, done or error. Needs ai:prompt.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AIRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "text/event-stream",
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "429": {
+            "description": "Over maxTokensPerRequest or maxCostPerDay"
+          },
+          "501": {
+            "description": "The instance uses a legacy provider"
+          }
+        },
+        "parameters": [
+          {
+            "name": "instanceName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/object": {
+      "post": {
+        "tags": [
+          "AI Service v2"
+        ],
+        "summary": "Structured output",
+        "description": "Reply validated against a JSON Schema; one retry on invalid output, then 422. Needs ai:prompt.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/AIRequest"
+                  },
+                  {
+                    "type": "object",
+                    "required": [
+                      "schema"
+                    ],
+                    "properties": {
+                      "schema": {
+                        "type": "object"
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "{ object, usage, cost, model }"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "429": {
+            "description": "Over maxTokensPerRequest or maxCostPerDay"
+          },
+          "501": {
+            "description": "The instance uses a legacy provider"
+          }
+        }
+      }
+    },
+    "/{instanceName}/object": {
+      "post": {
+        "tags": [
+          "AI Service v2"
+        ],
+        "summary": "Structured output",
+        "description": "Reply validated against a JSON Schema; one retry on invalid output, then 422. Needs ai:prompt.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/AIRequest"
+                  },
+                  {
+                    "type": "object",
+                    "required": [
+                      "schema"
+                    ],
+                    "properties": {
+                      "schema": {
+                        "type": "object"
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "{ object, usage, cost, model }"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "429": {
+            "description": "Over maxTokensPerRequest or maxCostPerDay"
+          },
+          "501": {
+            "description": "The instance uses a legacy provider"
+          }
+        },
+        "parameters": [
+          {
+            "name": "instanceName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/embed": {
+      "post": {
+        "tags": [
+          "AI Service v2"
+        ],
+        "summary": "Embeddings",
+        "description": "One vector per input. Anthropic instances need embeddingProvider. Needs ai:prompt.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "input"
+                ],
+                "properties": {
+                  "input": {
+                    "oneOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        },
+                        "maxItems": 256
+                      }
+                    ]
+                  },
+                  "dimensions": {
+                    "type": "integer"
+                  },
+                  "model": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "{ vectors: number[][] }"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "429": {
+            "description": "Over maxTokensPerRequest or maxCostPerDay"
+          },
+          "501": {
+            "description": "The instance uses a legacy provider"
+          }
+        }
+      }
+    },
+    "/{instanceName}/embed": {
+      "post": {
+        "tags": [
+          "AI Service v2"
+        ],
+        "summary": "Embeddings",
+        "description": "One vector per input. Anthropic instances need embeddingProvider. Needs ai:prompt.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "input"
+                ],
+                "properties": {
+                  "input": {
+                    "oneOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        },
+                        "maxItems": 256
+                      }
+                    ]
+                  },
+                  "dimensions": {
+                    "type": "integer"
+                  },
+                  "model": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "{ vectors: number[][] }"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "429": {
+            "description": "Over maxTokensPerRequest or maxCostPerDay"
+          },
+          "501": {
+            "description": "The instance uses a legacy provider"
+          }
+        },
+        "parameters": [
+          {
+            "name": "instanceName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
       }
     }
   }

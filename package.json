@@ -39,13 +39,13 @@
     "dev:noauth": "nodemon --watch ./src ./app-noauth.js",
     "kill": "node scripts/kill-port.js",
     "kill-test": "node scripts/kill-test-port.js",
-    "test": "jest",
+    "test": "node --experimental-vm-modules --disable-warning=ExperimentalWarning node_modules/jest/bin/jest.js",
     "test:ai-common": "node --test \"tests/unit/aiservice/common/**/*.test.js\"",
     "check:ai-common": "tsc -p src/aiservice/common",
     "test:ui": "playwright test",
     "test:ui:headed": "playwright test --headed --project=chromium",
     "test:ui:report": "playwright show-report .temp/tests/playwright/report",
-    "coverage": "jest --coverage"
+    "coverage": "node --experimental-vm-modules --disable-warning=ExperimentalWarning node_modules/jest/bin/jest.js --coverage"
   },
   "jest": {
     "modulePaths": [

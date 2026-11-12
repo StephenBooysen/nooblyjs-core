@@ -4,6 +4,7 @@
 // area at a time from its subpath, e.g. 'nooblyjs-ai-common/sse'.
 export { ApiError, explainError, retryAfterMs } from './errors.js';
 export { addUsage, costOf, emptyUsage, formatCost, hasPrice, normalizeUsage, priceUsage } from './cost.js';
+export { EMBEDDING_MODELS, embed } from './embeddings.js';
 export { formatFrontmatter, parseFrontmatter } from './frontmatter.js';
 export { availableModels, describeModel, discoverModels, forgetAvailableModels, modelKey, openRouterPrices, suggestedTier } from './discovery.js';
 export { CLOUD_HOSTS, CONTEXT_WINDOWS, DEFAULT_CONTEXT_WINDOW, DIRECT_APIS, MODELS, PRICES, PROVIDERS, cloudModelId, getModel, modelsFor, providerForModel } from './models.js';

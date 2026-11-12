@@ -17,6 +17,18 @@ const AIOpenAIKv = require('./provider/aiopenaikv');
 const AIOllama = require('./provider/aiollama');
 const AIGemini = require('./provider/gemini');
 const AITensorFlow = require('./provider/aitensorflow');
+const AICommon = require('./provider/aicommon');
+
+/**
+ * Feature 02: provider names served by AI Service v2 (nooblyjs-ai-common).
+ * The pre-v2 names (claude, openai, chatgpt, ollama, gemini) keep their
+ * legacy classes in 1.x unless `legacy: false` is passed; 2.0 removes them.
+ * @const {!Set<string>}
+ */
+const V2_PROVIDERS = new Set([
+  'anthropic', 'openai-compatible', 'grok', 'deepseek', 'bedrock', 'vertex', 'azure', 'mock'
+]);
+const LEGACY_NAMES = new Set(['claude', 'openai', 'chatgpt', 'ollama', 'gemini']);
 
 // Analytics Object
 const Analytics = require('./modules/analytics');
@@ -76,7 +88,10 @@ function createAIService(type, options, eventEmitter) {
   let aiservice;
 
   // Create AI service instance based on provider type
-  switch (type) {
+  const useV2 = V2_PROVIDERS.has(type) || (LEGACY_NAMES.has(type) && providerOptions.legacy === false);
+  if (useV2) {
+    aiservice = new AICommon({ ...providerOptions, providerName: type }, eventEmitter);
+  } else switch (type) {
     case 'claude':
       aiservice = new AIClaude(providerOptions, eventEmitter);
       break;
@@ -108,6 +123,11 @@ function createAIService(type, options, eventEmitter) {
         logger[level](`[AI:${type.toUpperCase()}] ${message}`, meta);
       }
     };
+
+    if (!useV2 && LEGACY_NAMES.has(type)) {
+      aiservice.log('warn', `The "${type}" provider uses the legacy AI layer, removed in 2.0. `
+        + 'Pass legacy: false (or use anthropic/openai-compatible/mock/...) for AI Service v2.', { provider: type });
+    }
 
     // Log AI service initialization
     aiservice.log('info', 'AI service initialized', {

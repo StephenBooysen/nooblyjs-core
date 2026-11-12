@@ -367,7 +367,118 @@ module.exports = (options, eventEmitter, aiService, analytics) => {
   };
 
   // Default-instance routes.
+
+  /**
+   * Feature 02: shared input checks for the v2 endpoints. Returns an error
+   * message, or null when the body is usable.
+   * @param {Object} body - Request body
+   * @return {?string}
+   */
+  const checkV2Body = (body) => {
+    if (!body || typeof body !== 'object') return 'A JSON body is required';
+    const { messages, prompt, maxTokens, tools } = body;
+    if (messages === undefined && (typeof prompt !== 'string' || !prompt)) return 'Provide messages or a prompt';
+    if (messages !== undefined && (!Array.isArray(messages) || messages.length === 0 || messages.length > 500)) {
+      return 'messages must be a non-empty array of at most 500 entries';
+    }
+    if (maxTokens !== undefined && (!Number.isInteger(maxTokens) || maxTokens < 1 || maxTokens > 200000)) {
+      return 'maxTokens must be an integer between 1 and 200000';
+    }
+    if (tools !== undefined && (!Array.isArray(tools) || tools.length > 128)) return 'tools must be an array of at most 128';
+    return null;
+  };
+
+  /** Fields a client may set on a v2 request; everything else is dropped. */
+  const pickRequest = (body) => {
+    const out = {};
+    for (const key of ['messages', 'prompt', 'system', 'tools', 'maxTokens', 'temperature', 'model']) {
+      if (body[key] !== undefined) out[key] = body[key];
+    }
+    return out;
+  };
+
+  /** 501 for a legacy provider that lacks a v2 method. */
+  const needsV2 = (svc, method, res) => {
+    if (typeof svc[method] === 'function') return false;
+    res.status(501).json({
+      error: `This AI instance uses a legacy provider without ${method}(). Use an AI Service v2 provider (anthropic, openai-compatible, mock, ...) or legacy: false.`,
+      code: 'AI_V2_REQUIRED'
+    });
+    return true;
+  };
+
+  /**
+   * POST /services/ai/api/complete — `{ messages | prompt, system?, tools?, maxTokens?, temperature?, model? }`
+   * → `{ text, toolCalls, stopReason, usage, cost, model }`.
+   */
+  const createCompleteHandler = (svc) => async (req, res) => {
+    try {
+      if (needsV2(svc, 'complete', res)) return;
+      const problem = checkV2Body(req.body);
+      if (problem) return res.status(400).json({ error: problem });
+      const reply = await svc.complete(pickRequest(req.body));
+      const { message, ...rest } = reply;
+      res.status(200).json({ ...rest, content: message ? message.content : undefined });
+    } catch (error) {
+      sendSafeError(res, error, { status: 502, eventEmitter });
+    }
+  };
+
+  /** POST /services/ai/api/stream — the same body, answered as Server-Sent Events. */
+  const createStreamHandler = (svc) => async (req, res) => {
+    if (needsV2(svc, 'streamToResponse', res)) return;
+    const problem = checkV2Body(req.body);
+    if (problem) return res.status(400).json({ error: problem });
+    await svc.streamToResponse(res, pickRequest(req.body));
+  };
+
+  /** POST /services/ai/api/object — the same body plus `schema`; → `{ object, usage, cost, model }`. */
+  const createObjectHandler = (svc) => async (req, res) => {
+    try {
+      if (needsV2(svc, 'generateObject', res)) return;
+      const problem = checkV2Body(req.body);
+      if (problem) return res.status(400).json({ error: problem });
+      if (!req.body.schema || typeof req.body.schema !== 'object') {
+        return res.status(400).json({ error: 'schema (a JSON Schema object) is required' });
+      }
+      res.status(200).json(await svc.generateObject({ ...pickRequest(req.body), schema: req.body.schema }));
+    } catch (error) {
+      sendSafeError(res, error, { status: 502, eventEmitter });
+    }
+  };
+
+  /** POST /services/ai/api/embed — `{ input: string | string[], dimensions?, model? }` → `{ vectors }`. */
+  const createEmbedHandler = (svc) => async (req, res) => {
+    try {
+      if (needsV2(svc, 'embed', res)) return;
+      const { input, dimensions, model } = req.body || {};
+      const list = Array.isArray(input) ? input : [input];
+      if (!list.length || list.length > 256 || list.some((t) => typeof t !== 'string' || t.length > 100000)) {
+        return res.status(400).json({ error: 'input must be a string or up to 256 strings of at most 100000 characters' });
+      }
+      if (dimensions !== undefined && (!Number.isInteger(dimensions) || dimensions < 1 || dimensions > 8192)) {
+        return res.status(400).json({ error: 'dimensions must be an integer between 1 and 8192' });
+      }
+      const vectors = await svc.embed(input, { dimensions, model: typeof model === 'string' ? model : undefined });
+      res.status(200).json({ vectors });
+    } catch (error) {
+      sendSafeError(res, error, { status: 502, eventEmitter });
+    }
+  };
+
   app.get('/services/ai/api/status', createStatusHandler(aiService));
+  app.post('/services/ai/api/complete', createCompleteHandler(aiService));
+  app.post('/services/ai/api/stream', createStreamHandler(aiService));
+  app.post('/services/ai/api/object', createObjectHandler(aiService));
+  app.post('/services/ai/api/embed', createEmbedHandler(aiService));
+  app.post('/services/ai/api/:instanceName/complete', (req, res) =>
+    createCompleteHandler(resolveInstance(req.params.instanceName))(req, res));
+  app.post('/services/ai/api/:instanceName/stream', (req, res) =>
+    createStreamHandler(resolveInstance(req.params.instanceName))(req, res));
+  app.post('/services/ai/api/:instanceName/object', (req, res) =>
+    createObjectHandler(resolveInstance(req.params.instanceName))(req, res));
+  app.post('/services/ai/api/:instanceName/embed', (req, res) =>
+    createEmbedHandler(resolveInstance(req.params.instanceName))(req, res));
   app.post('/services/ai/api/prompt', createPromptHandler(aiService));
   app.get('/services/ai/api/analytics', createAnalyticsHandler(aiService));
   app.get('/services/ai/api/models', createModelsHandler(aiService));

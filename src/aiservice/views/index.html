@@ -73,6 +73,11 @@
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="playground-tab" data-bs-toggle="tab" data-bs-target="#playground" type="button" role="tab">
+                        <i class="bi bi-chat-square-text"></i> Playground
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
                     <button class="nav-link" id="data-tab" data-bs-toggle="tab" data-bs-target="#data" type="button" role="tab">
                         <i class="bi bi-database"></i> Data
                     </button>
@@ -193,6 +198,57 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Playground Tab (feature 02: AI Service v2) -->
+                <div class="tab-pane fade" id="playground" role="tabpanel" aria-labelledby="playground-tab">
+                    <div class="row g-4">
+                        <div class="col-lg-5">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h2 class="card-title">Playground</h2>
+                                    <p class="card-subtitle">Streams from the selected instance (AI Service v2 providers)</p>
+                                </div>
+                                <div class="card-body">
+                                    <form id="playgroundForm">
+                                        <label class="form-label" for="playgroundModel">Model</label>
+                                        <select class="form-select mb-3" id="playgroundModel"><option value="">Instance default</option></select>
+                                        <label class="form-label" for="playgroundSystem">System prompt</label>
+                                        <textarea class="form-control mb-3" id="playgroundSystem" rows="2" maxlength="20000"></textarea>
+                                        <label class="form-label" for="playgroundPrompt">Message</label>
+                                        <textarea class="form-control mb-3" id="playgroundPrompt" rows="5" maxlength="100000" required></textarea>
+                                        <label class="form-label" for="playgroundMaxTokens">Max output tokens</label>
+                                        <input class="form-control mb-3" id="playgroundMaxTokens" type="number" min="1" max="200000" value="1000">
+                                        <div class="d-flex flex-wrap gap-2">
+                                            <button type="submit" class="btn btn-primary" id="playgroundSend"><i class="bi bi-send"></i> Send</button>
+                                            <button type="button" class="btn btn-secondary" id="playgroundStop" disabled>Stop</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-7">
+                            <div class="card mb-4">
+                                <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+                                    <h2 class="card-title mb-0">Reply</h2>
+                                    <span class="badge text-bg-light" id="playgroundUsage">No call yet</span>
+                                </div>
+                                <div class="card-body">
+                                    <pre class="core-response-content mb-0" id="playgroundOutput" style="white-space: pre-wrap; min-height: 8rem;"></pre>
+                                </div>
+                            </div>
+                            <div class="card">
+                                <div class="card-header"><h2 class="card-title mb-0">Usage by model (this session)</h2></div>
+                                <div class="card-body table-responsive">
+                                    <table class="table table-sm mb-0">
+                                        <thead><tr><th>Model</th><th class="text-end">Calls</th><th class="text-end">Input</th><th class="text-end">Output</th><th class="text-end">Cost</th></tr></thead>
+                                        <tbody id="playgroundUsageTable"><tr><td colspan="5" class="text-muted">No calls yet</td></tr></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- End Playground Tab -->
 
                 <div class="tab-pane fade" id="data" role="tabpanel" aria-labelledby="data-tab">
                     <div class="card">

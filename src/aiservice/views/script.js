@@ -1001,3 +1001,143 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
+
+// ---------------------------------------------------------------------------
+// Playground (feature 02): streams from POST /services/ai/api/stream, which
+// answers as Server-Sent Events. Authenticated by the session cookie.
+// ---------------------------------------------------------------------------
+const playgroundUsage = new Map();
+let playgroundController = null;
+
+function formatCostUsd(value) {
+    const n = Number(value) || 0;
+    return n < 0.01 ? `$${n.toFixed(4)}` : `$${n.toFixed(2)}`;
+}
+
+async function loadPlaygroundModels() {
+    const select = document.getElementById('playgroundModel');
+    if (!select) return;
+    try {
+        const response = await fetch(buildAiUrl('/services/ai/api/models'), { credentials: 'same-origin' });
+        if (!response.ok) return;
+        const data = await response.json();
+        const models = Array.isArray(data) ? data : (data.models || []);
+        select.innerHTML = '<option value="">Instance default</option>';
+        for (const m of models) {
+            const option = document.createElement('option');
+            option.value = typeof m === 'string' ? m : (m.id || m.name);
+            option.textContent = typeof m === 'string' ? m : (m.name || m.id);
+            select.appendChild(option);
+        }
+    } catch (error) {
+        console.error('Error loading models:', error);
+    }
+}
+
+function renderPlaygroundUsage() {
+    const tbody = document.getElementById('playgroundUsageTable');
+    if (!tbody) return;
+    if (playgroundUsage.size === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="text-muted">No calls yet</td></tr>';
+        return;
+    }
+    tbody.innerHTML = Array.from(playgroundUsage.entries()).map(([model, u]) => `
+        <tr><td>${escapeHtml(model)}</td><td class="text-end">${formatNumber(u.calls)}</td>
+        <td class="text-end">${formatNumber(u.input)}</td><td class="text-end">${formatNumber(u.output)}</td>
+        <td class="text-end">${formatCostUsd(u.cost)}</td></tr>`).join('');
+}
+
+/** Reads an SSE body and calls onEvent(name, data) per event. */
+async function readServerSentEvents(response, onEvent) {
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    for (;;) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        let index;
+        while ((index = buffer.indexOf('\n\n')) >= 0) {
+            const raw = buffer.slice(0, index);
+            buffer = buffer.slice(index + 2);
+            let name = 'message';
+            const data = [];
+            for (const line of raw.split('\n')) {
+                if (line.startsWith('event:')) name = line.slice(6).trim();
+                else if (line.startsWith('data:')) data.push(line.slice(5).trimStart());
+            }
+            if (data.length) {
+                try { onEvent(name, JSON.parse(data.join('\n'))); } catch (_) { /* ignore a malformed event */ }
+            }
+        }
+    }
+}
+
+async function sendPlaygroundPrompt(event) {
+    event.preventDefault();
+    const output = document.getElementById('playgroundOutput');
+    const usageBadge = document.getElementById('playgroundUsage');
+    const send = document.getElementById('playgroundSend');
+    const stop = document.getElementById('playgroundStop');
+    const prompt = document.getElementById('playgroundPrompt').value.trim();
+    if (!prompt) return;
+    const body = {
+        messages: [{ role: 'user', content: prompt }],
+        maxTokens: parseInt(document.getElementById('playgroundMaxTokens').value, 10) || 1000
+    };
+    const system = document.getElementById('playgroundSystem').value.trim();
+    const model = document.getElementById('playgroundModel').value;
+    if (system) body.system = system;
+    if (model) body.model = model;
+
+    output.textContent = '';
+    usageBadge.textContent = 'Streaming…';
+    send.disabled = true;
+    stop.disabled = false;
+    playgroundController = new AbortController();
+    try {
+        const response = await fetch(buildAiUrl('/services/ai/api/stream'), {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
+            signal: playgroundController.signal
+        });
+        if (!response.ok) {
+            const err = await response.json().catch(() => ({}));
+            throw new Error(err.error || err.message || `HTTP ${response.status}`);
+        }
+        await readServerSentEvents(response, (name, data) => {
+            if (name === 'text_delta') output.textContent += data.text;
+            else if (name === 'error') throw new Error(data.message || 'The model request failed');
+            else if (name === 'usage') {
+                const u = data.usage || {};
+                usageBadge.textContent = `${formatNumber(u.input_tokens || 0)} in · ${formatNumber(u.output_tokens || 0)} out · ${formatCostUsd(data.cost)}`;
+                const row = playgroundUsage.get(data.model) || { calls: 0, input: 0, output: 0, cost: 0 };
+                row.calls += 1;
+                row.input += u.input_tokens || 0;
+                row.output += u.output_tokens || 0;
+                row.cost += Number(data.cost) || 0;
+                playgroundUsage.set(data.model, row);
+                renderPlaygroundUsage();
+            }
+        });
+    } catch (error) {
+        if (error.name !== 'AbortError') {
+            usageBadge.textContent = 'Failed';
+            showAlert(error.message, 'error');
+        } else {
+            usageBadge.textContent = 'Stopped';
+        }
+    } finally {
+        send.disabled = false;
+        stop.disabled = true;
+        playgroundController = null;
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('playgroundForm')?.addEventListener('submit', sendPlaygroundPrompt);
+    document.getElementById('playgroundStop')?.addEventListener('click', () => playgroundController?.abort());
+    document.getElementById('playground-tab')?.addEventListener('shown.bs.tab', loadPlaygroundModels);
+});
