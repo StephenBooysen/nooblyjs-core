@@ -27,7 +27,7 @@ This document describes the architecture of NooblyJS Core, a modular Node.js bac
 │  │  └─────────────────────────────────────────────────────────────────────┘││
 │  └─────────────────────────────────────────────────────────────────────────┘│
 │  ┌─────────────────────────────────────────────────────────────────────────┐│
-│  │                           Services (17 total)                           ││
+│  │                           Services (16 total)                           ││
 │  │  ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐            ││
 │  │  │ logging │ │ caching │ │  data   │ │workflow │ │   ai    │  ...       ││
 │  │  └─────────┘ └─────────┘ └─────────┘ └─────────┘ └─────────┘            ││
@@ -64,19 +64,19 @@ const dataCache = registry.cache('redis', { instanceName: 'data-cache' });
 
 ### Dependency Hierarchy (5 Levels)
 
-Dependencies are defined in `initializeServiceDependencies()` and form a directed acyclic graph:
+Dependencies are defined in `initializeServiceDependencies()` (`index.js`), which is the source of truth, and form a directed acyclic graph:
 
 ```
 Level 0 (Foundation)
-├── logging          []
-└── uiservice        []
+└── logging          []
 
 Level 1 (Infrastructure)
 ├── caching          [logging]
 ├── queueing         [logging]
 ├── notifying        [logging]
 ├── appservice       [logging]
-└── fetching         [logging]
+├── fetching         [logging]
+└── settings         [logging]
 
 Level 2 (Business Logic)
 ├── dataservice      [logging, queueing]
@@ -85,7 +85,7 @@ Level 2 (Business Logic)
 
 Level 3 (Application)
 ├── scheduling       [logging, working]
-├── searching        [logging, caching, dataservice, queueing, working, scheduling]
+├── searching        [logging]
 ├── workflow         [logging, queueing, scheduling, measuring, working]
 └── filing           [logging, queueing, dataservice]
 
@@ -94,21 +94,44 @@ Level 4 (Integration)
 └── aiservice        [logging, caching, workflow, queueing]
 ```
 
+`searching` declares only `logging` as a registry dependency. Its other collaborators (caching, dataservice, and so on) are chosen by the application, not injected by the registry. `validateDependencies()` rejects a circular graph (`getServiceInitializationOrder()` throws "Circular dependency detected").
+
 ### Dependency Resolution
 
-When a service is requested, the registry:
-1. Checks if instance already exists in the Map
-2. Resolves dependencies recursively (topological sort)
-3. Creates dependency instances with default providers
-4. Injects dependencies via the `options.dependencies` object
-5. Creates the requested service with all dependencies available
+When a service is requested, `getService(serviceName, providerType, options)` does the following:
+1. Builds the key `serviceName:providerType:instanceName` (`instanceName` defaults to `'default'`) and returns the cached instance if it exists
+2. Resolves dependencies recursively with `resolveDependencies()`; each dependency uses its default provider (see below)
+3. Merges `globalOptions`, the call-site options, `dependencies`, `instanceName`, a `ServiceRegistry` reference and `providerType` into one options object
+4. Loads `src/{serviceName}` and calls its factory; a failure emits `service:creation-error` and is re-thrown with context
+5. Caches the instance and emits `service:created` with the dependency names
+
+Injected dependencies use `getDefaultProviderType()`, not the provider of the service being created. The built-in defaults are `memory` for most services, with exceptions such as `filing` → `local`, `authservice` and `settings` → `file`, `aiservice` → `claude` and `fetching` → `node`. Call `setDefaultProvider(serviceName, providerType, options)` before anything that depends on the service is created, because resolved dependencies are cached.
 
 ```javascript
-// In service factory (e.g., caching/index.js)
+// In a service factory (e.g., src/caching/index.js)
 function createCache(type, options, eventEmitter) {
   const { dependencies = {}, ...providerOptions } = options;
   const logger = dependencies.logging;  // Injected dependency
-  // ...
+
+  let cache;
+  switch (type) {
+    case 'redis': cache = new CacheRedis(providerOptions, eventEmitter); break;
+    // ... other providers ...
+    case 'memory':
+    default:      cache = new Cache(providerOptions, eventEmitter); break;
+  }
+
+  if (logger) {
+    cache.logger = logger;   // plus a cache.log() wrapper that tags messages with [CACHE:<TYPE>]
+  }
+  cache.dependencies = dependencies;
+
+  const instanceName = providerOptions.instanceName || 'default';
+  cache.analytics = new CacheAnalytics(eventEmitter, instanceName);
+
+  Routes(options, eventEmitter, cache);
+  Views(options, eventEmitter, cache);
+  return cache;
 }
 ```
 
@@ -118,24 +141,26 @@ Each service follows a consistent structure:
 
 ```
 src/{serviceName}/
-├── index.js              # Factory function (entry point)
+├── index.js              # Factory function (entry point), switches on provider type
+├── providers/
+│   ├── {service}.js      # Default (memory) provider
+│   ├── {service}Redis.js # Redis provider (also {service}AWS.js, {service}Api.js, ...)
+│   └── ...               # Additional providers
 ├── routes/
-│   └── index.js          # REST API endpoints
+│   ├── index.js          # REST API under /services/{service}/api
+│   └── swagger/          # Swagger docs for the API
 ├── views/
-│   ├── index.js          # View registration
-│   ├── index.html        # Dashboard UI
-│   └── script.js         # Client-side JavaScript
+│   ├── index.js          # Static mount of the dashboard assets
+│   └── index.html        # Dashboard UI
 ├── scripts/
-│   ├── index.js          # Script registration
-│   └── js/index.js       # Client-side library
+│   ├── index.js          # Static mount of the browser client library
+│   └── js/index.js       # Browser client library (where the service has one)
 ├── modules/
-│   └── analytics.js      # Analytics tracking
-└── providers/
-    ├── {service}.js      # Default (memory) provider
-    ├── {service}Redis.js # Redis provider
-    ├── {service}Api.js   # Remote API provider
-    └── ...               # Additional providers
+│   └── analytics.js      # Analytics tracker subscribed to the shared event bus
+└── services/             # Optional service-level helpers (e.g. caching)
 ```
+
+Not every service has every folder. Known exceptions: `aiservice` keeps its provider classes in `provider/` (singular) and its AI module in `common/`; `settings` has a single `providers/settings.js` serving both the `file` and `encrypted` types; `appservice` has `baseClasses/` and `utils/` for building custom app services and has no providers directory of its own. Each service's `index.js` is the authoritative list of provider names.
 
 ### Factory Function Pattern
 
@@ -319,8 +344,9 @@ dependencies:initialized
 │                                                                             │
 │  ┌─────────────────────────────────────────────────────────────────────┐   │
 │  │                    Services Authentication                           │   │
-│  │  • Session-based login for UI dashboards                            │   │
-│  │  • Passport.js integration (local, Google OAuth)                    │   │
+│  │  • Session-based login for UI dashboards (authservice)              │   │
+│  │  • Sign-in providers: Passport.js, Google, Azure, secure email      │   │
+│  │  • User stores: file, memory, API                                   │   │
 │  │  • Configurable via security.servicesAuth.requireLogin              │   │
 │  └─────────────────────────────────────────────────────────────────────┘   │
 └─────────────────────────────────────────────────────────────────────────────┘
@@ -352,7 +378,7 @@ app.post('/services/caching/api/put/:key', authMiddleware, handler);
 │                         Service Consumer                                     │
 │                                                                             │
 │  const dataService = registry.dataService('mongodb');                       │
-│  await dataService.create('users', { name: 'John' });                       │
+│  await dataService.add('users', { name: 'John' });                          │
 └────────────────────────────────────┬────────────────────────────────────────┘
                                      │
                                      │ Unified Interface
@@ -382,8 +408,8 @@ app.post('/services/caching/api/put/:key', authMiddleware, handler);
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                         Workflow Service                                     │
 │                                                                             │
-│  1. defineWorkflow('order', [step1.js, step2.js, step3.js])                │
-│  2. runWorkflow('order', { orderId: 123 })                                 │
+│  1. POST /services/workflow/api/defineworkflow  (name + steps)            │
+│  2. POST /services/workflow/api/start           (workflow + input)         │
 └────────────────────────────────────┬────────────────────────────────────────┘
                                      │
                                      ▼
@@ -424,33 +450,48 @@ Every service typically exposes:
 
 | Endpoint | Method | Auth | Description |
 |----------|--------|------|-------------|
-| `/services/{service}/api/status` | GET | No | Health check |
-| `/services/{service}/api/analytics` | GET | Yes | Service metrics |
-| `/services/{service}/api/settings` | GET | Yes | Configuration |
-| `/services/{service}/api/settings` | POST | Yes | Update config |
-| `/services/{service}/api/instances` | GET | Yes | List instances |
+| `/services/{service}/api/status` | GET | No | Health check (every service) |
+| `/services/{service}/api/analytics` | GET | Yes | Service metrics (most services) |
+| `/services/{service}/api/settings` | GET | Yes | Configuration (most services) |
+| `/services/{service}/api/settings` | POST | Yes | Update config (most services) |
+| `/services/{service}/api/instances` | GET | Yes | List instances (where the service supports named instances, e.g. caching, logging, filing) |
+
+Routes are not uniform across services, so check each service's `routes/index.js` or its Swagger document for the exact paths.
 
 ### Service-Specific Examples
 
 ```
-# Caching
-POST /services/caching/api/put/:key
-GET  /services/caching/api/get/:key
+# Caching (the :instanceName segment is optional)
+POST   /services/caching/api/put/:key
+POST   /services/caching/api/:instanceName/put/:key
+GET    /services/caching/api/get/:key
+GET    /services/caching/api/:instanceName/get/:key
 DELETE /services/caching/api/delete/:key
-GET  /services/caching/api/:instanceName/get/:key  # Named instance
+GET    /services/caching/api/:instanceName/list
 
-# DataService
-GET  /services/dataservice/api/:collection
-POST /services/dataservice/api/:collection
-GET  /services/dataservice/api/:collection/:id
-PUT  /services/dataservice/api/:collection/:id
-DELETE /services/dataservice/api/:collection/:id
+# DataService (containers are created with POST; records are addressed by uuid)
+POST   /services/dataservice/api/:container
+GET    /services/dataservice/api/find/:container
+GET    /services/dataservice/api/count/:container
+GET    /services/dataservice/api/:container/:uuid
+PUT    /services/dataservice/api/:container/:uuid
+DELETE /services/dataservice/api/:container/:uuid
+POST   /services/dataservice/api/jsonFind/:containerName
 
-# Workflow
-POST /services/workflow/api/define
-POST /services/workflow/api/run/:workflowName
+# Workflow (run API)
+POST /services/workflow/api/defineworkflow
+POST /services/workflow/api/start
 GET  /services/workflow/api/definitions
 GET  /services/workflow/api/executions/:workflowName
+
+# Workflow manager (used by the dashboard UI; BASE = /services/workflow/api)
+GET|POST       /services/workflow/api/workflows
+GET|PUT|DELETE /services/workflow/api/workflows/:name
+POST           /services/workflow/api/workflows/:name/execute
+GET            /services/workflow/api/runs        (plus /runs/:id, /runs/stats, /runs/running; POST /runs/clear, POST /runs/:id/cancel)
+GET|POST       /services/workflow/api/schedules   (plus /schedules/:id, /:id/toggle, /:id/run-now)
+GET            /services/workflow/api/cron/preview
+GET|PUT        /services/workflow/api/state       (export / import the in-memory snapshot)
 ```
 
 ## UI Dashboard Architecture
@@ -519,6 +560,24 @@ class ServiceAnalytics {
 }
 ```
 
+## Shared Building Blocks
+
+Some modules are used by more than one service, or by the NooblyJS AI host that consumes this package. They are not services and are not registered in the dependency graph.
+
+| Module | Purpose |
+|--------|---------|
+| `src/shell/` | `createShell()` (rail, sidebar, status cards and the frame page handler) and `css-scope.js`. `scripts/scope-css.js` scopes an app's stylesheet under `[data-module="<name>"]`. Used by the NooblyJS host and by hosted apps' standalone servers; not mounted by `app.js`. |
+| `public/ui/` | The UI kit served at `/ui/`: tokens, base, component and shell CSS, `frame.html` and ES modules (`html`, `icons`, `api`, `router`, `sse`, `chat`, `components/`). Figtree, Bricolage Grotesque and JetBrains Mono are self-hosted under SIL OFL. |
+| `src/store/fs-store.js` | `FsStore`, a files-only store: Markdown with YAML front matter, YAML config, atomic tmp-and-rename writes, per-path locks and path-segment validation. |
+| `src/aiservice/common/` | `nooblyjs-ai-common`, an ESM package inside this CommonJS repo with its own `package.json`. It gives one way to call every model provider (Anthropic, OpenAI, OpenAI-compatible, mock, AWS Bedrock, Google Vertex AI, Azure), plus the model catalogue, discovery, tokens, cost, retry and SSE. It has no dependencies. Projects link it with `file:<path>/src/aiservice/common`. Tests: `npm run test:ai-common`; type check: `npm run check:ai-common`. |
+| `src/shared/utils/routePattern.js` | `route()` turns an Express 4 pattern (`*`, `:name(*)`, `:opt?`) into patterns that Express 4 and 5 both accept. Use it for any route with a wildcard or optional parameter. |
+| `src/shared/utils/httpErrors.js`, `safeError.js` | `ClientError` for client-safe 4xx errors and `sendSafeError()` / `toClientResponse()` so that server faults never leak `err.message`. |
+| `src/shared/utils/validation.js` | `validate({ body, query, params })` and the list-size helpers `parseLimit`, `capLimit` and `parseOffset`. |
+| `src/shared/utils/contentSecurityPolicy.js` | The CSP policy applied by `app.js` / `app-noauth.js`. A new external script, style or font origin must be added here. |
+| `src/shared/utils/sessionStore.js`, `createServer.js`, `trustSystemCa.js` | Session stores (a pruning in-process store, or Redis when `SESSION_REDIS_URL` / `REDIS_URL` is set), the HTTP/HTTPS server factory (`HTTPS_ENABLED`), and trust of the operating-system CA store for outbound TLS behind inspecting proxies. |
+| `src/authservice/modules/redirect.js` | `safeReturnUrl()` and `postLoginRedirect()`: after sign-in a person returns to the page they were heading to (same-origin paths only), then `loginSuccessRedirectUrl`, then `/services`. |
+| `src/views/js/navigation.js` | The dashboard's service navigation list (`NooblyJSNavigation`). A new service must be added here to appear in the dashboard. |
+
 ## Extension Points
 
 ### Adding a New Service
@@ -526,10 +585,12 @@ class ServiceAnalytics {
 1. Create service directory: `src/newservice/`
 2. Implement factory function: `src/newservice/index.js`
 3. Add providers: `src/newservice/providers/`
-4. Register routes: `src/newservice/routes/index.js`
+4. Register routes: `src/newservice/routes/index.js` (with Swagger docs under `routes/swagger/`)
 5. Add views: `src/newservice/views/`
 6. Define dependencies in `index.js:initializeServiceDependencies()`
 7. Add factory method in `ServiceRegistry` class
+8. Add the service to the navigation list in `src/views/js/navigation.js`
+9. Set `service.analytics` on the instance when the factory subscribes to the shared EventEmitter, so `ServiceRegistry` can call `analytics.destroy()` on reset or shutdown (`tests/unit/registryListenerLeak.test.js` guards this)
 
 ### Adding a New Provider
 

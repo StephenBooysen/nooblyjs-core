@@ -5,7 +5,7 @@
 - Don't leave new `.md` files in the repo root or service folders, or scratch test files in `tests/`.
 
 Exceptions:
-- Product documents go in `.claude/specs/`: specs, feature requirements (`product/`, `features/`) and go-to-market material such as production-readiness reviews and tests (`go-to-market/`).
+- Product documents go in `.claude/steering/`: steering docs (architecture, requirements, usage guides), feature requirements (`product/`, `features/`) and go-to-market material such as production-readiness reviews and tests (`go-to-market/`).
 - Edits to existing project docs (`README.md`, `CLAUDE.md`) stay in place.
 - Permanent Jest tests that belong in the suite still go under `tests/` (e.g. `tests/unit/{service}/`), and permanent Playwright UI specs go in `tests/ui/`. Ask if it's unclear whether a test is permanent or ad-hoc.
 - Playwright run output (results, traces, screenshots, HTML report) is configured to land in `.temp/tests/playwright/`.

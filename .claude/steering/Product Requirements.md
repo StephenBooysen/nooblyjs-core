@@ -98,7 +98,7 @@ The framework implements a 5-level hierarchical architecture where services are 
 ┌─────────────────────────────────────────────────────┐
 │ Level 4: Integration Layer                          │
 │ ┌─────────────────────────────────────────────────┐ │
-│ │ AuthService | AIService | Requesting Service   │ │
+│ │ AuthService | AIService                         │ │
 │ └─────────────────────────────────────────────────┘ │
 └─────────────────────────────────────────────────────┘
              ↑ Depends on
@@ -120,7 +120,7 @@ The framework implements a 5-level hierarchical architecture where services are 
 │ Level 1: Infrastructure Layer                       │
 │ ┌─────────────────────────────────────────────────┐ │
 │ │ Caching | Queueing | Notifying | Fetching      │ │
-│ │ AppService                                      │ │
+│ │ AppService | Settings                           │ │
 │ └─────────────────────────────────────────────────┘ │
 └─────────────────────────────────────────────────────┘
              ↑ Depends on
@@ -264,27 +264,29 @@ High-performance data caching with multiple backend support.
 
 **Purpose**: Reduce latency and load on downstream services through intelligent caching
 
-**Providers Available** (5):
+**Providers Available** (8):
 1. **Memory** - In-process LRU cache, ideal for single-instance apps
 2. **Redis** - Distributed cache for multi-instance deployments
 3. **Memcached** - High-performance distributed caching
 4. **File** - Persistent file-based cache with TTL support
 5. **API** - Remote caching service integration
+6. **AWS** - AWS ElastiCache (Redis and Memcached engines)
+7. **Azure** - Azure Cache for Redis, with managed authentication
+8. **GCP** - Google Cloud Memorystore (Redis and Memcached engines), with IAM authentication
 
 **Core Capabilities**:
 - Key-value storage with configurable TTL
 - Cache statistics (hit rate, eviction count)
 - Automatic expiration handling
-- Bulk operations support
-- Cache invalidation patterns
+- Named instances (`instanceName`) with per-instance analytics
+- Cache invalidation (delete by key; list and clear through the REST API)
 
-**Key Methods**:
-- `set(key, value, ttl)` - Set cache entry
+**Key Methods** (the provider interface; see `src/caching/providers/caching.js`):
+- `put(key, value)` - Set cache entry
 - `get(key)` - Retrieve cache entry
 - `delete(key)` - Remove cache entry
-- `clear()` - Clear all cache
-- `getStats()` - Get cache statistics
-- `exists(key)` - Check existence
+- `getAnalytics()` - Get cache statistics
+- `getSettings()` / `saveSettings(settings)` - Read and persist service settings
 
 **Performance Characteristics**:
 - Memory: <1ms latency
@@ -308,14 +310,15 @@ Asynchronous message processing and task distribution.
 
 **Purpose**: Enable reliable, asynchronous processing of long-running tasks and event distribution
 
-**Providers Available** (7):
+**Providers Available** (8):
 1. **Memory** - In-process queue for development/testing
 2. **Redis** - Distributed queue with pub/sub
 3. **RabbitMQ** - Message broker with advanced routing
-4. **AWS SQS** - Cloud-native queue service
-5. **Azure Queue Storage** - Azure-managed queue
-6. **GCP Pub/Sub** - Google Cloud event streaming
-7. **API** - Remote queue service
+4. **ActiveMQ** - Apache ActiveMQ-backed FIFO queue with analytics
+5. **AWS SQS** - Cloud-native queue service
+6. **Azure Queue Storage** - Azure-managed queue
+7. **GCP Pub/Sub** - Google Cloud event streaming
+8. **API** - Remote queue service
 
 **Core Capabilities**:
 - FIFO message ordering
@@ -442,6 +445,24 @@ Foundation for custom application services.
 - Extending framework with custom services
 - Creating domain-specific services
 - Implementing custom business logic
+
+---
+
+#### **Settings Service** (`src/settings/`)
+Grouped key/value settings, with the option to store them encrypted.
+
+**Purpose**: Hold application configuration and secrets in one place, with an embeddable management UI
+
+**Providers Available** (2):
+1. **File** - Settings in a JSON file
+2. **Encrypted** - The same store, AES-256-GCM encrypted. The master secret comes from `options.secret`, `SETTINGS_SECRET` or `SESSION_SECRET`.
+
+**Capabilities**:
+- Grouped settings, with validation on the REST API (400 for invalid input)
+- Embeddable UI: `new SettingsUIManager({ containerId }).initialize()` from `/services/settings/scripts/js/index.js`
+- Reload from disk through the REST API
+
+**Dependencies**: Logging
 
 ---
 
@@ -651,7 +672,7 @@ Full-text search with result caching and intelligent indexing.
 - Index search: <100ms for large datasets
 - Full reindex: Variable based on dataset size
 
-**Dependencies**: Logging, Caching, DataService, Queueing, Working, Scheduling
+**Dependencies**: Logging. The registry injects no other service. Caching, DataService, Queueing, Working and Scheduling are optional collaborators that an application wires in itself.
 
 **Use Cases**:
 - Product catalog search
@@ -723,13 +744,14 @@ File operations across multiple storage backends.
 
 **Purpose**: Provide unified file operations API across local and cloud storage
 
-**Providers Available** (6):
+**Providers Available** (7):
 1. **Local** - Local filesystem operations
 2. **FTP** - Remote FTP server access
 3. **S3** - Amazon S3 storage
 4. **Git** - Git repository operations
 5. **GCP Storage** - Google Cloud Storage
 6. **Sync Provider** - Bidirectional file synchronization
+7. **API** - Remote filing service
 
 **Core Capabilities**:
 - File upload/download
@@ -773,12 +795,14 @@ User authentication and authorization system.
 
 **Purpose**: Provide comprehensive authentication and session management
 
-**Providers Available** (5):
+**Providers Available** (7):
 1. **File** - JSON file-based user storage
 2. **Memory** - In-process user storage
-3. **Passport** - Extensible authentication framework
+3. **Passport** - Passport.js authentication framework
 4. **Google OAuth** - Google OAuth 2.0 integration
-5. **API** - Remote authentication service
+5. **Azure** - Azure AD (Entra ID) sign-in
+6. **Secure Email** - Email plus pre-shared secure key sign-in for Teams and Edge extensions
+7. **API** - Remote authentication service
 
 **Core Capabilities**:
 - User registration and login
@@ -828,11 +852,14 @@ AI model integration and prompting service.
 
 **Purpose**: Provide unified interface to multiple AI/LLM providers
 
-**Providers Available** (4):
-1. **Claude** - Anthropic's Claude models
-2. **OpenAI** - GPT-3, GPT-4 models
+**Providers Available** (7):
+1. **Claude** - Anthropic's Claude models (default for `aiservice`)
+2. **OpenAI** - GPT-3, GPT-4 models (`openai`, with `chatgpt` as an alias)
 3. **Ollama** - Local open-source models
-4. **API** - Remote AI service
+4. **Gemini** - Google Gemini models
+5. **OpenAI-KV** - Azure OpenAI, authenticated through Azure Key Vault
+6. **TensorFlow** - Experimental progressive LSTM provider (optional `@tensorflow/tfjs-node`)
+7. Shared AI module - `src/aiservice/common/` (`nooblyjs-ai-common`), one way to call every model provider including AWS Bedrock, Google Vertex AI and Azure
 
 **Core Capabilities**:
 - Text generation
@@ -881,19 +908,7 @@ AI model integration and prompting service.
 
 ---
 
-#### **Requesting Service** (`src/requesting/`)
-Central request handling and routing.
-
-**Purpose**: Manage and route HTTP requests to appropriate handlers
-
-**Capabilities**:
-- Request routing
-- Request validation
-- Response formatting
-- Error handling
-- Request logging
-
-**Dependencies**: Logging
+> Note: the earlier "Requesting Service" entry described a planned request router. It was never built and has been removed. Request routing is provided by Express and the per-service routes.
 
 ---
 
