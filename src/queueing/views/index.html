@@ -76,6 +76,11 @@
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="jobs-tab" data-bs-toggle="tab" data-bs-target="#jobs" type="button" role="tab">
+                        <i class="bi bi-arrow-repeat"></i> Jobs
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
                     <button class="nav-link" id="data-tab" data-bs-toggle="tab" data-bs-target="#data" type="button" role="tab">
                         <i class="bi bi-database"></i> Data
                     </button>
@@ -213,6 +218,38 @@
                 </div>
 
                 <!-- Data  Tab -->
+                <!-- Jobs Tab (feature 06: reliable jobs) -->
+                <div class="tab-pane fade" id="jobs" role="tabpanel">
+                    <div class="card mb-4">
+                        <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+                            <div>
+                                <h2 class="card-title mb-0">Reliable jobs</h2>
+                                <p class="card-subtitle mb-0" id="jobsStoreNote">Counts by state for each job queue</p>
+                            </div>
+                            <button class="btn btn-sm btn-outline-secondary" id="jobsRefreshBtn" type="button"><i class="bi bi-arrow-clockwise"></i> Refresh</button>
+                        </div>
+                        <div class="card-body table-responsive">
+                            <table class="table table-sm mb-0">
+                                <thead><tr><th>Queue</th><th class="text-end">Waiting</th><th class="text-end">Delayed</th><th class="text-end">Active</th><th class="text-end">Dead</th><th class="text-end">Completed</th><th class="text-end">Failed attempts</th><th></th></tr></thead>
+                                <tbody id="jobsQueueTable"><tr><td colspan="8" class="text-muted">No job queues yet</td></tr></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+                            <h2 class="card-title mb-0">Dead letters <span class="text-muted" id="jobsDeadQueue"></span></h2>
+                            <button class="btn btn-sm btn-primary" id="jobsRetryAllBtn" type="button" disabled>Retry all</button>
+                        </div>
+                        <div class="card-body table-responsive">
+                            <table class="table table-sm mb-0">
+                                <thead><tr><th>Job</th><th class="text-end">Attempts</th><th>Last error</th><th>Finished</th><th></th></tr></thead>
+                                <tbody id="jobsDeadTable"><tr><td colspan="5" class="text-muted">Choose a queue above</td></tr></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <!-- End Jobs Tab -->
+
                 <div class="tab-pane fade" id="data" role="tabpanel">
 
                     <!-- Enqueue Form -->
@@ -1333,6 +1370,103 @@
                 }
             }
         });
+    </script>
+
+    <script>
+        // Feature 06: reliable jobs panel. Uses the session cookie; a named
+        // instance is chosen with ?instance=.
+        (function () {
+            let deadQueue = null;
+            const esc = (t) => String(t ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+            const jobsUrl = (path) => {
+                const inst = (typeof selectedInstance !== 'undefined' && selectedInstance !== 'default') ? `?instance=${encodeURIComponent(selectedInstance)}` : '';
+                return `/services/queueing/api/jobs${path}${inst}`;
+            };
+            const call = async (path, init = {}) => {
+                const res = await fetch(jobsUrl(path), { credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, ...init });
+                const body = await res.json().catch(() => ({}));
+                if (!res.ok) throw new Error(body.error || `HTTP ${res.status}`);
+                return body;
+            };
+            const notify = (msg, type) => (typeof showAlert === 'function' ? showAlert(msg, type) : console.log(msg));
+
+            async function loadJobQueues() {
+                const tbody = document.getElementById('jobsQueueTable');
+                try {
+                    const data = await call('');
+                    document.getElementById('jobsStoreNote').textContent = data.durable
+                        ? 'Counts by state (durable, shared job store)'
+                        : 'Counts by state (in-process job store: not shared, lost on restart)';
+                    if (!data.queues.length) {
+                        tbody.innerHTML = '<tr><td colspan="8" class="text-muted">No job queues yet</td></tr>';
+                        return;
+                    }
+                    tbody.innerHTML = data.queues.map((q) => `<tr>
+                        <td>${esc(q.name)}</td><td class="text-end">${q.waiting}</td><td class="text-end">${q.delayed}</td>
+                        <td class="text-end">${q.active}</td><td class="text-end">${q.dead}</td>
+                        <td class="text-end">${q.processed.completed}</td><td class="text-end">${q.processed.failed}</td>
+                        <td class="text-end"><button class="btn btn-sm btn-outline-secondary" data-dead="${esc(q.name)}">Dead letters</button></td></tr>`).join('');
+                } catch (error) {
+                    tbody.innerHTML = `<tr><td colspan="8" class="text-muted">${esc(error.message)}</td></tr>`;
+                }
+            }
+
+            async function loadDead(queue) {
+                deadQueue = queue;
+                document.getElementById('jobsDeadQueue').textContent = `· ${queue}`;
+                const tbody = document.getElementById('jobsDeadTable');
+                const retryAll = document.getElementById('jobsRetryAllBtn');
+                try {
+                    const { jobs } = await call(`/${encodeURIComponent(queue)}/dead`);
+                    retryAll.disabled = jobs.length === 0;
+                    tbody.innerHTML = jobs.length ? jobs.map((j) => `<tr>
+                        <td><code>${esc(j.id)}</code></td><td class="text-end">${j.attempts}</td>
+                        <td class="text-truncate" style="max-width: 20rem;">${esc(j.lastError)}</td>
+                        <td>${j.finishedAt ? new Date(j.finishedAt).toLocaleString() : ''}</td>
+                        <td class="text-end text-nowrap">
+                            <button class="btn btn-sm btn-outline-primary" data-retry="${esc(j.id)}">Retry</button>
+                            <button class="btn btn-sm btn-outline-danger" data-delete="${esc(j.id)}">Delete</button>
+                        </td></tr>`).join('') : '<tr><td colspan="5" class="text-muted">No dead letters</td></tr>';
+                } catch (error) {
+                    tbody.innerHTML = `<tr><td colspan="5" class="text-muted">${esc(error.message)}</td></tr>`;
+                }
+            }
+
+            document.addEventListener('click', async (event) => {
+                const el = event.target.closest('[data-dead],[data-retry],[data-delete]');
+                if (!el) return;
+                try {
+                    if (el.dataset.dead) return loadDead(el.dataset.dead);
+                    if (el.dataset.retry) {
+                        await call(`/${encodeURIComponent(deadQueue)}/dead/retry`, { method: 'POST', body: JSON.stringify({ ids: [el.dataset.retry] }) });
+                        notify('Job requeued', 'success');
+                    } else if (el.dataset.delete) {
+                        await call(`/${encodeURIComponent(deadQueue)}/job/${encodeURIComponent(el.dataset.delete)}`, { method: 'DELETE' });
+                        notify('Job deleted', 'success');
+                    }
+                    await loadDead(deadQueue);
+                    await loadJobQueues();
+                } catch (error) {
+                    notify(error.message, 'error');
+                }
+            });
+
+            document.addEventListener('DOMContentLoaded', () => {
+                document.getElementById('jobs-tab')?.addEventListener('shown.bs.tab', loadJobQueues);
+                document.getElementById('jobsRefreshBtn')?.addEventListener('click', loadJobQueues);
+                document.getElementById('jobsRetryAllBtn')?.addEventListener('click', async () => {
+                    if (!deadQueue) return;
+                    try {
+                        const { retried } = await call(`/${encodeURIComponent(deadQueue)}/dead/retry`, { method: 'POST', body: '{}' });
+                        notify(`${retried} job(s) requeued`, 'success');
+                        await loadDead(deadQueue);
+                        await loadJobQueues();
+                    } catch (error) {
+                        notify(error.message, 'error');
+                    }
+                });
+            });
+        })();
     </script>
 
 </body>

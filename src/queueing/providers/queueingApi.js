@@ -128,13 +128,15 @@ class QueueingApi {
     }
   }
 
-  async enqueue(queueName, task, options = {}) {
+  async enqueue(queueName, task, options) {
     this.validateQueueName_(queueName, 'enqueue');
     try {
-      const response = await this.client.post(`/services/queueing/api/enqueue/${queueName}`, { task, options });
+      // Feature 06: options make the remote side create a reliable job.
+      const body = options && typeof options === 'object' ? { task, options } : { task };
+      const response = await this.client.post(`/services/queueing/api/enqueue/${queueName}`, body);
       if (this.eventEmitter_)
         this.eventEmitter_.emit(`queue:enqueue:${this.instanceName_}`, { queueName, item: task });
-      return response.data;
+      return body.options && response.data ? response.data.jobId : response.data;
     } catch (error) {
       if (this.eventEmitter_)
         this.eventEmitter_.emit(`queue:error:${this.instanceName_}`, { operation: 'enqueue', queueName, error: error.message });

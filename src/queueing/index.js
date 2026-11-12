@@ -18,6 +18,7 @@ const QueueingApi = require('./providers/queueingApi');
 const QueueAnalytics = require('./modules/analytics');
 const Routes = require('./routes');
 const Views = require('./views');
+const { attachJobs } = require('./modules/attachJobs');
 
 /**
  * Creates a queue service instance with the specified provider and dependency injection.
@@ -96,6 +97,10 @@ function createQueue(type, options, eventEmitter) {
       queue = new Queueing(providerOptions, eventEmitter);
       break;
   }
+
+  // Feature 06: retries, backoff, dead letters, delays and a consumer API.
+  const brokerTypes = ['rabbitmq', 'activemq', 'redis', 'api', 'aws', 'azure', 'gcp'];
+  attachJobs(queue, brokerTypes.includes(type) ? type : 'memory', providerOptions, eventEmitter);
 
   // Inject dependencies into queue service
   if (logger) {

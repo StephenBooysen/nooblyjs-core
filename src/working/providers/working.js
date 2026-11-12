@@ -58,6 +58,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const crypto = require('node:crypto');
 const { resolveActivityScript, registerActivitiesRoot } = require('../modules/activityPath');
+const { backoffDelay } = require('../../queueing/modules/reliableJobs');
 
 /** @const {number} Queue processor poll interval in ms. */
 const QUEUE_TICK_MS = 1000;
@@ -117,7 +118,10 @@ class WorkerManager {
       workerTimeout: this.coerceNumber_(options.workerTimeout, 120000000, 1000),
       maxQueueSize:  this.coerceNumber_(options.maxQueueSize,  1000,   1),
       enableLogging: options.enableLogging !== undefined ? !!options.enableLogging : true,
-      callbackTimeout: 0 // resolved just below, once workerTimeout is known
+      callbackTimeout: 0, // resolved just below, once workerTimeout is known
+      // Feature 06: default retries for start() (1 = no retry) and their backoff.
+      attempts: Number.isInteger(options.attempts) && options.attempts >= 1 ? options.attempts : 1,
+      backoff: { type: 'exponential', baseMs: 1000, maxMs: 60000, ...(options.backoff || {}) }
     };
     this.settings.list.push({ setting: 'callbackTimeout', type: 'number', values: null });
     this.settings.callbackTimeout = this.coerceNumber_(
@@ -209,6 +213,8 @@ class WorkerManager {
 
     /** @private {?NodeJS.Timeout} Queue processing interval. */
     this.queueProcessorInterval_ = null;
+    /** @private {!Set} Pending retry timers (feature 06), cleared on stop. */
+    this.retryTimers_ = new Set();
 
     /** @private {boolean} Whether a queue-processor pass is still running (see startQueueProcessor_). */
     this.tickInFlight_ = false;
@@ -580,11 +586,14 @@ class WorkerManager {
    * @param {string} scriptPath Absolute or activities-relative script path.
    * @param {*=} data Payload passed to the worker script's `run` function.
    * @param {Function=} completionCallback Optional `(status, data) => void` callback.
+   * @param {Object=} options Feature 06: `{ attempts, backoff: { type, baseMs, maxMs } }`.
+   *     A task that errors is queued again with backoff until `attempts` are
+   *     used up (default 1: no retry); the callback fires once, at the end.
    * @return {Promise<string>} The newly assigned task ID.
    * @throws {Error} If the manager is stopped, the queue is full, or the
    *   activity path cannot be resolved.
    */
-  async start(scriptPath, data, completionCallback) {
+  async start(scriptPath, data, completionCallback, options = {}) {
     if (!this.isRunning_) {
       const error = 'Worker manager is stopped';
       this.eventEmitter_?.emit('worker:start:error', { scriptPath, error });
@@ -625,6 +634,10 @@ class WorkerManager {
       throw err;
     }
 
+    const attempts = options.attempts ?? this.settings.attempts;
+    if (!Number.isInteger(attempts) || attempts < 1 || attempts > 100) {
+      throw new Error('attempts must be an integer from 1 to 100');
+    }
     const taskId = this.generateTaskId_();
 
     // The task must be SERIALISABLE — it may cross a process boundary. The
@@ -636,7 +649,10 @@ class WorkerManager {
       originalScriptPath: scriptPath,
       data,
       origin: this.originId_,
-      queuedAt: new Date()
+      queuedAt: new Date(),
+      attempt: 1,
+      maxAttempts: attempts,
+      backoff: { ...this.settings.backoff, ...(options.backoff || {}) }
     };
 
     this.registerWaiter_(taskId, completionCallback, resolvedScriptPath);
@@ -880,6 +896,24 @@ class WorkerManager {
     }
 
     const { task } = workerInfo;
+
+    // Feature 06: retry an errored task with backoff while attempts remain.
+    if (status === 'error' && this.isRunning_ && (task.attempt || 1) < (task.maxAttempts || 1)) {
+      const delay = backoffDelay(task.backoff || this.settings.backoff, task.attempt || 1);
+      this.eventEmitter_?.emit('worker:retry', { taskId: task.id, attempt: task.attempt || 1, delayMs: delay, error: data });
+      this.logIf_('warn', 'Task failed; retrying', { taskId: task.id, attempt: task.attempt || 1, delayMs: delay });
+      this.cleanupWorker_(task.id);
+      const timer = setTimeout(() => {
+        this.retryTimers_.delete(timer);
+        if (!this.isRunning_ || !this.queueService_) return;
+        this.queueService_.enqueue(this.QUEUE_INCOMING_, { ...task, attempt: (task.attempt || 1) + 1 })
+          .catch((err) => this.settleWaiter_(task.id, 'error', `Retry could not be queued: ${err.message}`));
+      }, delay);
+      if (timer.unref) timer.unref();
+      this.retryTimers_.add(timer);
+      return;
+    }
+
     const taskResult = {
       taskId: task.id,
       scriptPath: task.scriptPath,
@@ -1064,6 +1098,8 @@ class WorkerManager {
   async stop() {
     this.isRunning_ = false;
     this.stopQueueProcessor_();
+    for (const timer of this.retryTimers_) clearTimeout(timer);
+    this.retryTimers_.clear();
 
     let incomingQueueSize = 0;
     if (this.queueService_) {

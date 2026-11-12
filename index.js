@@ -929,8 +929,12 @@ class ServiceRegistry {
         }
         // Call the first teardown method the service exposes.
         const method = TEARDOWN_METHODS.find((m) => typeof service[m] === 'function');
-        if (method) {
-          shutdownPromises.push(withTimeout(service[method](), key));
+        // Feature 06: queue consumers drain (or hand their jobs back) first.
+        const drain = typeof service.stopConsumers === 'function'
+          ? () => service.stopConsumers({ timeoutMs: Math.max(100, perServiceTimeoutMs - 500) })
+          : () => undefined;
+        if (method || typeof service.stopConsumers === 'function') {
+          shutdownPromises.push(withTimeout(Promise.resolve().then(drain).then(() => method && service[method]()), key));
         }
       } catch (error) {
         reportError(key, error);
@@ -961,6 +965,9 @@ class ServiceRegistry {
     try {
       if (service.analytics && typeof service.analytics.destroy === 'function') {
         service.analytics.destroy();
+      }
+      if (typeof service.stopConsumers === 'function') {
+        Promise.resolve(service.stopConsumers({ timeoutMs: 0 })).catch(() => {});
       }
       if (typeof service.destroy === 'function') {
         service.destroy();

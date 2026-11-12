@@ -15,6 +15,7 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
+const { parseLimit } = require('../../shared/utils/validation');
 const { getServiceInstance } = require('../../appservice/utils/routeUtils');
 const { sendSafeError } = require('../../shared/utils/safeError');
 const { toClientResponse } = require('../../shared/utils/httpErrors');
@@ -47,6 +48,77 @@ module.exports = (options, eventEmitter, queue) => {
     // public. Falls back to a pass-through only when no auth is configured.
     const requireApiAuth = authMiddleware || ((req, res, next) => next());
     app.use('/services/queueing/api', requireApiAuth);
+
+    // ---- Feature 06: reliable jobs ---------------------------------------
+    // Registered before the instance-aware routes so `/jobs/...` is never read
+    // as an instance name. A named instance is chosen with `?instance=`.
+    const jobsQueue = (req) => (req.query.instance
+      ? getServiceInstance('queueing', String(req.query.instance), queue, options, providerType)
+      : queue);
+    const jobsRoute = (handler) => async (req, res) => {
+      const q = jobsQueue(req);
+      if (!q || !q.supportsJobs) {
+        return res.status(501).json({ error: 'This queue provider does not support reliable jobs', code: 'JOBS_UNSUPPORTED' });
+      }
+      try {
+        await handler(q, req, res);
+      } catch (err) {
+        sendSafeError(res, err, { status: 500, eventEmitter });
+      }
+    };
+    const QUEUE_NAME = /^[A-Za-z0-9._:-]{1,200}$/;
+    const checkQueueName = (req, res) => {
+      if (!QUEUE_NAME.test(req.params.queueName)) {
+        res.status(400).json({ error: 'Invalid queue name' });
+        return false;
+      }
+      return true;
+    };
+
+    /** GET /services/queueing/api/jobs — job queues with counts by state. */
+    app.get('/services/queueing/api/jobs', jobsRoute(async (q, req, res) => {
+      const names = await q.jobQueues();
+      const queues = await Promise.all(names.slice(0, 500).map(async (name) => ({ name, ...(await q.jobCounts(name)) })));
+      res.json({ queues, durable: Boolean(q.jobsDurable) });
+    }));
+
+    /** GET /services/queueing/api/jobs/:queueName/counts */
+    app.get('/services/queueing/api/jobs/:queueName/counts', jobsRoute(async (q, req, res) => {
+      if (!checkQueueName(req, res)) return;
+      res.json(await q.jobCounts(req.params.queueName));
+    }));
+
+    /** GET /services/queueing/api/jobs/:queueName/dead?limit= — dead-letter list. */
+    app.get('/services/queueing/api/jobs/:queueName/dead', jobsRoute(async (q, req, res) => {
+      if (!checkQueueName(req, res)) return;
+      const limit = parseLimit(req.query.limit, { defaultValue: 100, max: 1000 });
+      res.json({ jobs: await q.listDeadLetters(req.params.queueName, limit) });
+    }));
+
+    /** POST /services/queueing/api/jobs/:queueName/dead/retry — `{ ids? }`; all when omitted. */
+    app.post('/services/queueing/api/jobs/:queueName/dead/retry', jobsRoute(async (q, req, res) => {
+      if (!checkQueueName(req, res)) return;
+      const ids = req.body && Array.isArray(req.body.ids) ? req.body.ids.filter((i) => typeof i === 'string').slice(0, 10000) : undefined;
+      const retried = await q.retryDeadLetters(req.params.queueName, ids ? { ids } : {});
+      eventEmitter.emit('api-queueing-dead-retry', { queueName: req.params.queueName, retried });
+      res.json({ retried });
+    }));
+
+    /** GET /services/queueing/api/jobs/:queueName/job/:jobId */
+    app.get('/services/queueing/api/jobs/:queueName/job/:jobId', jobsRoute(async (q, req, res) => {
+      if (!checkQueueName(req, res)) return;
+      const job = await q.getJob(req.params.jobId);
+      if (!job || job.queue !== req.params.queueName) return res.status(404).json({ error: 'Job not found' });
+      res.json(job);
+    }));
+
+    /** DELETE /services/queueing/api/jobs/:queueName/job/:jobId */
+    app.delete('/services/queueing/api/jobs/:queueName/job/:jobId', jobsRoute(async (q, req, res) => {
+      if (!checkQueueName(req, res)) return;
+      const removed = await q.removeJob(req.params.queueName, req.params.jobId);
+      if (!removed) return res.status(404).json({ error: 'Job not found' });
+      res.json({ removed: true });
+    }));
 
     /**
      * GET /services/queueing/scripts
@@ -106,9 +178,15 @@ module.exports = (options, eventEmitter, queue) => {
         }
         if (task) {
           try {
-            await queue.enqueue(queueName, task);
+            // Feature 06: `options` ({ attempts, delayMs, backoff, priority,
+            // idempotencyKey }) makes it a reliable job and returns its id.
+            const jobOptions = req.body.options;
+            if (jobOptions !== undefined && (typeof jobOptions !== 'object' || jobOptions === null || Array.isArray(jobOptions))) {
+              return res.status(400).json({ error: 'options must be an object' });
+            }
+            const jobId = await queue.enqueue(queueName, task, jobOptions);
             eventEmitter.emit('api-queueing-enqueue', { queueName });
-            res.status(200).json({ success: true });
+            res.status(200).json(jobId ? { success: true, jobId } : { success: true });
           } catch (err) {
             eventEmitter.emit('api-queueing-enqueue-error', { error: err.message });
             sendSafeError(res, err, { status: 500, eventEmitter });
