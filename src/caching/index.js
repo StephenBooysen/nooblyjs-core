@@ -11,7 +11,6 @@
 
 const Cache = require('./providers/caching');
 const CacheRedis = require('./providers/cachingRedis');
-const CacheMemcached = require('./providers/cachingMemcached');
 const CacheFile = require('./providers/cachingFile');
 const CacheApi = require('./providers/cachingApi');
 const CacheAWS = require('./providers/cachingAWS');
@@ -69,7 +68,8 @@ function createCache(type, options, eventEmitter) {
       cache = new CacheRedis(providerOptions, eventEmitter);
       break;
     case 'memcached':
-      cache = new CacheMemcached(providerOptions, eventEmitter);
+      // Feature 20b: loaded on demand; memjs is an optional peer dependency.
+      cache = new (require('./providers/cachingMemcached'))(providerOptions, eventEmitter);
       break;
     case 'file':
       cache = new CacheFile(providerOptions, eventEmitter);

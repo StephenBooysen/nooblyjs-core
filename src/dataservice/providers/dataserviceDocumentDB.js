@@ -9,7 +9,9 @@
 
 'use strict';
 
-const { MongoClient } = require('mongodb');
+const { requireOptional } = require('../../shared/utils/requireOptional');
+
+const { MongoClient } = requireOptional('mongodb', "dataService('documentdb')");
 const MongoBaseProvider = require('./MongoBaseProvider');
 
 /**

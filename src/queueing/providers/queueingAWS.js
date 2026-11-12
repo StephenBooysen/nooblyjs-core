@@ -10,8 +10,10 @@
 
 'use strict';
 
+const { requireOptional } = require('../../shared/utils/requireOptional');
+
 const { SQSClient, SendMessageCommand, ReceiveMessageCommand, DeleteMessageCommand,
-        PurgeQueueCommand, GetQueueAttributesCommand, ListQueuesCommand } = require('@aws-sdk/client-sqs');
+        PurgeQueueCommand, GetQueueAttributesCommand, ListQueuesCommand } = requireOptional('@aws-sdk/client-sqs', "queue('aws')");
 
 /**
  * AWS SQS queue provider

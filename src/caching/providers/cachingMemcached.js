@@ -8,7 +8,9 @@
 
 'use strict';
 
-const { Client } = require('memjs');
+const { requireOptional } = require('../../shared/utils/requireOptional');
+
+const { Client } = requireOptional('memjs', "cache('memcached')");
 
 /**
  * A class that implements a Memcached-backed cache with analytics tracking.

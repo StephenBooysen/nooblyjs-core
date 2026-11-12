@@ -8,9 +8,11 @@
 
 'use strict';
 
+const { requireOptional } = require('../../shared/utils/requireOptional');
+
 const { applySettings } = require('../modules/settingsGuard');
 
-const Client = require('ftp');
+const Client = requireOptional('ftp', "filing('ftp')");
 const { assertSafeRelativePath } = require('../modules/pathSafety');
 
 /**

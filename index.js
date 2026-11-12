@@ -452,9 +452,12 @@ class ServiceRegistry {
         instanceName,
         error: error.message
       });
-      throw new Error(
+      const wrapped = new Error(
         `Failed to create service '${serviceName}' with provider '${providerType}' instance '${instanceName}': ${error.message}`,
+        { cause: error },
       );
+      if (error && error.code) wrapped.code = error.code; // e.g. OPTIONAL_DEPENDENCY_MISSING (feature 20b)
+      throw wrapped;
     }
 
     this.services.set(serviceKey, service);

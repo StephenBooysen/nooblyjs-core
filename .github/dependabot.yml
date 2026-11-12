@@ -1,0 +1,32 @@
+# Weekly dependency updates (feature 20b). Minor and patch versions are grouped
+# into one pull request per ecosystem; .github/workflows/dependabot-automerge.yml
+# merges them once CI is green. Majors arrive one by one for review.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 10
+    groups:
+      npm-minor-and-patch:
+        update-types: [minor, patch]
+    commit-message:
+      prefix: chore
+      include: scope
+  - package-ecosystem: npm
+    directory: /src/aiservice/common
+    schedule:
+      interval: weekly
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ['*']
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: weekly

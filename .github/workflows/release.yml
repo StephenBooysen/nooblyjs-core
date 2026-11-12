@@ -1,0 +1,37 @@
+# Publishes nooblyjs-core to npm with provenance and attaches a CycloneDX SBOM
+# to the GitHub release (feature 20b). Runs when a release is published; needs
+# an NPM_TOKEN repository secret with publish rights.
+name: Release
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          registry-url: https://registry.npmjs.org
+      - run: npm ci
+      - run: npm test
+      - run: npm audit --omit=dev --audit-level=high
+      - name: CycloneDX SBOM (production dependencies)
+        run: npm sbom --omit=dev --sbom-format cyclonedx > sbom.cdx.json
+      - name: Attach the SBOM to the release
+        run: gh release upload "$TAG" sbom.cdx.json --clobber
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+          GH_TOKEN: ${{ github.token }}
+      - name: Publish with provenance
+        run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

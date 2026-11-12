@@ -8,6 +8,8 @@
 
 'use strict';
 
+const { requireOptional } = require('../../shared/utils/requireOptional');
+
 // Lazy load amqplib only when needed (when RabbitMQ provider is instantiated)
 let amqp;
 
@@ -320,7 +322,7 @@ class QueueingRabbitMQ {
     try {
       // Lazy load amqplib only when first connection is needed
       if (!amqp) {
-        amqp = require('amqplib');
+        amqp = requireOptional('amqplib', "queue('rabbitmq')");
       }
 
       // Connect to RabbitMQ

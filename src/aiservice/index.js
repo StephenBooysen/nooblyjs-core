@@ -13,7 +13,6 @@
 // Providers
 const AIClaude = require('./provider/aiclaude');
 const AIOpenAI = require('./provider/aiopenai');
-const AIOpenAIKv = require('./provider/aiopenaikv');
 const AIOllama = require('./provider/aiollama');
 const AIGemini = require('./provider/gemini');
 const AITensorFlow = require('./provider/aitensorflow');
@@ -100,7 +99,8 @@ function createAIService(type, options, eventEmitter) {
       aiservice = new AIOpenAI(providerOptions, eventEmitter);
       break;
     case 'openai-kv':
-      aiservice = new AIOpenAIKv(providerOptions, eventEmitter);
+      // Feature 20b: loaded on demand; the Azure SDKs are optional peer dependencies.
+      aiservice = new (require('./provider/aiopenaikv'))(providerOptions, eventEmitter);
       break;
     case 'ollama':
       aiservice = new AIOllama(providerOptions, eventEmitter);

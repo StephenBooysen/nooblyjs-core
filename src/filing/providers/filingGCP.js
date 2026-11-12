@@ -8,9 +8,11 @@
 
 'use strict';
 
+const { requireOptional } = require('../../shared/utils/requireOptional');
+
 const { applySettings } = require('../modules/settingsGuard');
 
-const { Storage } = require('@google-cloud/storage');
+const { Storage } = requireOptional('@google-cloud/storage', "filing('gcp')");
 const path = require('node:path');
 const fs = require('node:fs');
 const { assertSafeRelativePath } = require('../modules/pathSafety');

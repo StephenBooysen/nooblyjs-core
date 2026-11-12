@@ -8,6 +8,8 @@
 
 'use strict';
 
+const { requireOptional } = require('../../shared/utils/requireOptional');
+
 const { postLoginRedirect, safeReturnUrl } = require('../modules/redirect');
 const AuthBase = require('./authBase');
 
@@ -81,7 +83,7 @@ class AuthGoogle extends AuthBase {
   initializePassport_() {
     try {
       this.passport_ = require('passport');
-      this.GoogleStrategy_ = require('passport-google-oauth20').Strategy;
+      this.GoogleStrategy_ = requireOptional('passport-google-oauth20', "authservice('google')").Strategy;
 
       if (!this.clientID_ || !this.clientSecret_) {
         if (this.eventEmitter_) {

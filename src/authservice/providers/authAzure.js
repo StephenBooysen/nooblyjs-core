@@ -10,6 +10,8 @@
 
 'use strict';
 
+const { requireOptional } = require('../../shared/utils/requireOptional');
+
 const { postLoginRedirect, safeReturnUrl } = require('../modules/redirect');
 const AuthBase = require('./authBase');
 
@@ -159,7 +161,7 @@ class AuthAzure extends AuthBase {
       // the host's app.use(passport.initialize()) / authenticate(). Falling back
       // to require('passport') keeps the standalone case working.
       this.passport_ = this.options_.passport || require('passport');
-      const { OIDCStrategy } = require('passport-azure-ad');
+      const { OIDCStrategy } = requireOptional('passport-azure-ad', "authservice('azure')");
       this.AzureStrategy_ = OIDCStrategy;
 
       if (!this.clientID_ || !this.clientSecret_ || !this.tenantID_) {

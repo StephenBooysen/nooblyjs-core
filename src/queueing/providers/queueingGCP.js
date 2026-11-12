@@ -10,7 +10,9 @@
 
 'use strict';
 
-const { CloudTasksClient } = require('@google-cloud/tasks');
+const { requireOptional } = require('../../shared/utils/requireOptional');
+
+const { CloudTasksClient } = requireOptional('@google-cloud/tasks', "queue('gcp')");
 const { v4: uuidv4 } = require('uuid');
 
 /**

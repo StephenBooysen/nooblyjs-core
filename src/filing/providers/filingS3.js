@@ -8,9 +8,11 @@
 
 'use strict';
 
+const { requireOptional } = require('../../shared/utils/requireOptional');
+
 const { applySettings } = require('../modules/settingsGuard');
 
-const { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand, ListObjectsV2Command } = require('@aws-sdk/client-s3');
+const { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand, ListObjectsV2Command } = requireOptional('@aws-sdk/client-s3', "filing('s3')");
 const { assertSafeRelativePath } = require('../modules/pathSafety');
 
 /**

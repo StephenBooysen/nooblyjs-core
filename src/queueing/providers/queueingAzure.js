@@ -10,7 +10,9 @@
 
 'use strict';
 
-const { QueueClient, QueueServiceClient } = require('@azure/storage-queue');
+const { requireOptional } = require('../../shared/utils/requireOptional');
+
+const { QueueClient, QueueServiceClient } = requireOptional('@azure/storage-queue', "queue('azure')");
 
 /**
  * Azure Queue Storage provider

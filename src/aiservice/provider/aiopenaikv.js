@@ -17,10 +17,12 @@
 
 'use strict';
 
+const { requireOptional } = require('../../shared/utils/requireOptional');
+
 const AIServiceBase = require('./aibase');
 const { AzureOpenAI } = require('openai');
-const { ClientSecretCredential } = require('@azure/identity');
-const { SecretClient } = require('@azure/keyvault-secrets');
+const { ClientSecretCredential } = requireOptional('@azure/identity', "aiservice('openai-kv')");
+const { SecretClient } = requireOptional('@azure/keyvault-secrets', "aiservice('openai-kv')");
 
 /**
  * Default Key Vault secret names holding App Registration #2 credentials.
