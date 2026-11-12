@@ -16,7 +16,7 @@ Rank work by **impact ÷ effort**, but treat anything that blocks safe release a
 
 **Goal:** close every critical and high finding and get CI green. **Exit:** the review's reproduction fails at every step, `npm audit --omit=dev --audit-level=high` passes, and the security regression tests are in the suite.
 
-**Status (2026-11-12): implemented, not yet released.** 20a, 15, 16, 17a, 18 and 22a are in the working tree. `npm audit --omit=dev --audit-level=high` reports 0 advisories, and `tests/unit/security/exploitChain.test.js` (31 tests, 24 of which fail on the pre-fix code) passes with the full Jest suite. Still open before tagging 1.0.11: the Playwright UI run (not run, because Chromium wasn't installed), email delivery for invitation codes (the `sendCode` hook exists; the notifying mail transport does not), the per-code failed-redeem counter, and the `TRUST_PROXY` rate-limiter IP test from 20a.
+**Status (2026-11-12): implemented on branch `security/phase-0` (pushed), not yet released.** 20a, 15, 16, 17a, 18 and 22a are done. `npm audit --omit=dev --audit-level=high` reports 0 advisories, and `tests/unit/security/exploitChain.test.js` (31 tests, 24 of which fail on the pre-fix code) passes with the full Jest suite. Still open before tagging 1.0.11: the Playwright UI run (not run, because Chromium wasn't installed), email delivery for invitation codes (the `sendCode` hook exists; the notifying mail transport does not), the per-code failed-redeem counter, and the `TRUST_PROXY` rate-limiter IP test from 20a.
 
 | # | Change | Impact | Effort |
 |---|---|---|---|
@@ -32,6 +32,15 @@ Rank work by **impact ÷ effort**, but treat anything that blocks safe release a
 ## Next — Phase 1: Foundations (weeks 3–8)
 
 **Goal:** the building blocks every later feature needs, plus least-privilege access. **Exit:** one AI API with streaming, tools and embeddings; at-least-once jobs; typed public API; every route declares a permission.
+
+**Status (2026-11-12): in progress on branch `feature/phase-1`, stacked on `security/phase-0`.**
+
+| # | State | Notes |
+|---|---|---|
+| 19 | **Done** | One permission table (`src/authservice/policy/routePermissions.js`) covers all 301 registered `/services` API routes, enforced in front of every service whether or not the portal guard is on. Scoped static keys (`{ key, name, scopes }`), scoped personal tokens, custom roles (`security.roles`), `verifyRoutePermissions()` with `strictAuth` (default in production), and no data-plane-key access to the portal in production (closes M-1, L-1). Also closes a hole where the default `excludePaths` pattern `/services/*/status` exempted any path ending in `/status` (for example a file named `status`) from API-key auth. 26 tests in `tests/unit/security/routePermissions.test.js`. Not done: per-route `requirePermission` in the CLI templates (waits for feature 09), and moving the filing tiers (`src/filing/modules/access.js`) onto the permission map. |
+| 23 | Next | Builds directly on 19: drops `?authToken=` and adds idle timeouts. |
+| 02, 06, 08 | Not started | 02 (AI Service v2) is the biggest unblocker after 23. |
+| 22b, 20b | Not started | 22b can now generate the authorization matrix from the permission table. |
 
 | # | Change | Impact | Effort |
 |---|---|---|---|
@@ -106,9 +115,9 @@ The package version is still 1.0.10. Tag 1.0.11 only when CI is green.
 
 | Measure | Today (2026-11-12) | Target |
 |---|---|---|
-| Open critical / high review findings | 2 / 3 | 0 / 0 by end of Phase 0 |
-| Production advisories, high or critical | 11 | 0, held by a nightly audit |
-| Routes with a declared permission | 0 | 100% by end of Phase 1 |
+| Open critical / high review findings | 2 / 3 → 0 / 0 on `security/phase-0` | 0 / 0 by end of Phase 0 |
+| Production advisories, high or critical | 11 → 0 on `security/phase-0` | 0, held by a nightly audit |
+| Routes with a declared permission | 0 → 100% (301 / 301) on `feature/phase-1` | 100% by end of Phase 1 |
 | Statement coverage threshold | 51% | 65% by end of Phase 2 |
 | Time from `npx nooblyjs create` to a running app with auth | not possible | under 10 minutes |
 | AI providers behind one API | 6 legacy + 7 in common, split | 1 API, 9 providers |
@@ -117,5 +126,5 @@ The package version is still 1.0.10. Tag 1.0.11 only when CI is green.
 ## Housekeeping
 
 - **Docs:** update `Application Architecture.md`, `Product Requirements.md` and both usage guides at the end of each phase. They were last checked against the code on 2026-11-12.
-- **Trackers:** record Phase 0 progress in `go-to-market/REMEDIATION_TODO.md` (P2-8 is already reopened) and `DEPENDENCY_STATUS.md`.
+- **Trackers:** `go-to-market/REMEDIATION_TODO.md` and `DEPENDENCY_STATUS.md` are not in this repository; progress is recorded in the status notes on this page until they are restored.
 - **Spec locations:** feature specs 02–23 and the 2026-11-12 review live in `.claude/specs/`, while CLAUDE.md and `.claude/rules/output-locations.md` name `.claude/steering/` as the home for product docs. Pick one location and move the other set.

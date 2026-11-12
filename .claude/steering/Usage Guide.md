@@ -420,6 +420,31 @@ The `git` provider keeps the file store in a Git repository. The filing service 
 
 ### 9. Authentication Service
 
+#### Permissions and scoped keys
+
+Every `/services/*/api` route needs a permission named `{area}:{action}`, such as `filing:read`, `jobs:run`, `workflows:define` or `users:manage`. The table is `src/authservice/policy/routePermissions.js`, and the registry checks it in front of every service, whether or not the `/services` portal guard is on. Roles map to permissions. The defaults are `admin: ['*']`, `editor: ['filing:read', 'filing:write', 'profile:manage']` and `user: ['filing:read', 'profile:manage']`. Grants may use `*` or `{area}:*`.
+
+```javascript
+serviceRegistry.initialize(app, emitter, {
+  security: {
+    apiKeyAuth: {
+      apiKeys: [
+        { key: process.env.QUEUE_WORKER_KEY, name: 'queue-worker', scopes: ['queue:*'] },
+        { key: process.env.REPORTS_KEY, name: 'reports', scopes: ['data:read', 'search:read'] },
+      ],
+    },
+    servicesAuth: { apiKeys: [process.env.ADMIN_KEY] },   // the only keys that open the portal in production
+    roles: { auditor: ['log:read', 'metrics:read'] },     // custom roles, merged over the defaults
+    strictAuth: true,                                     // default in production
+  },
+});
+
+// After creating every service, before listen():
+serviceRegistry.verifyRoutePermissions();   // throws in strict mode if a /services route has no permission
+```
+
+A plain string key still has full access, but logs a warning in production. A personal access token can be narrowed to some of its owner's permissions: `POST /services/authservice/api/profile/tokens` with `{ name, scopes: ['filing:read'], expiresInDays: 30 }`. A denied request gets `403` with `code: 'PERMISSION_DENIED'` and the `permission` it needed. To protect your own routes, use `requirePermission('reports:run', serviceRegistry.roleMap)` from `src/authservice/middleware/permission.js`.
+
 #### File-Based Authentication
 
 ```javascript
