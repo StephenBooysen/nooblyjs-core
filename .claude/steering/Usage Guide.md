@@ -94,6 +94,17 @@ Set `SESSION_SECRET` and `SETTINGS_SECRET` in the environment. Behind a TLS-term
 
 ---
 
+## Phase 1 APIs (1.1)
+
+These arrived on `feature/phase-1` (2026-11-12). Short examples are in `Usage Guide Concise.md`; the types in `types/index.d.ts` list every option.
+
+- **AI Service v2:** `serviceRegistry.aiservice('anthropic' | 'openai-compatible' | 'grok' | 'deepseek' | 'bedrock' | 'vertex' | 'azure' | 'mock', options)` → `complete()`, `stream()`, `streamToResponse(res, request)`, `generateObject({ schema })`, `embed()`, with cost per call and `maxCostPerDay` / `maxTokensPerRequest` budgets. REST: `POST /services/ai/api/{complete,stream,object,embed}`. The pre-v2 names keep `prompt()` until 2.0 unless you pass `legacy: false`.
+- **Reliable jobs:** `queue.enqueue(name, data, { attempts, backoff, delayMs, idempotencyKey, priority })` returns a job id; `queue.process(name, handler, { concurrency, visibilityTimeoutMs })` delivers at least once, retries, and dead-letters (`listDeadLetters`, `retryDeadLetters`). Memory and Redis providers. REST under `/services/queueing/api/jobs`.
+- **Typed, validated options:** misspelt option keys warn with a suggestion, wrong types throw, and `strictOptions: true` makes warnings errors. Canonical names: `redisUrl`, `redisPort`, `memcachedUrl` (the lowercase spellings still work and warn).
+- **Permissions:** every `/services` API route declares a permission. Scoped keys: `apiKeys: ['full-access-key', { key, name, scopes: ['queue:*'] }]`; custom roles: `security.roles`. In production only `adminApiKeys` (`ADMIN_API_KEYS` in `app.js`) reach the admin API.
+- **Sessions:** idle and absolute timeouts (`authservice` option `session`), personal tokens expire after 90 days (`tokens`), and session tokens are never accepted in URLs.
+- **Optional SDKs:** install the SDK your provider needs (`@aws-sdk/client-s3`, `@aws-sdk/client-sqs`, `@azure/storage-queue`, `@google-cloud/storage`, `@google-cloud/tasks`, `amqplib`, `stompit`, `memjs`, `mongodb`, `ftp`, `passport-google-oauth20`, `passport-azure-ad`, `pdf-parse`).
+
 ## Service Usage Examples
 
 ### 1. Logging Service

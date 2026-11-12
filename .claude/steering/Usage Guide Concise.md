@@ -94,14 +94,27 @@ const names = await queue.listQueues();
 await queue.purge('emails');
 ```
 
-Queues are not consumed by a callback. Read them from a worker loop, or hand background work to the Working service:
+For work that must not be lost, use reliable jobs (memory and Redis providers): retries with backoff, a dead-letter queue, and at-least-once delivery, so handlers must be safe to run twice.
 
 ```javascript
-setInterval(async () => {
-  const job = await queue.dequeue('emails');
-  if (job) await sendEmail(job);
-}, 1000);
+const jobId = await queue.enqueue('emails', { to: 'ada@example.com' }, {
+  attempts: 5,
+  backoff: { type: 'exponential', baseMs: 1000 },
+  idempotencyKey: 'welcome:ada',      // a duplicate within the window returns the same id
+  priority: 'high',                  // or delayMs: 60_000
+});
+
+const consumer = queue.process('emails', async (job) => {
+  await sendEmail(job.data);         // throw to retry; after the last attempt it goes to the dead-letter queue
+}, { concurrency: 4 });
+
+await queue.getJob(jobId);           // { state: 'waiting' | 'active' | 'completed' | 'dead', attempts, lastError, ... }
+await queue.listDeadLetters('emails');
+await queue.retryDeadLetters('emails');
+await consumer.stop();               // serviceRegistry.shutdown() drains consumers for you
 ```
+
+Plain `enqueue(name, item)` / `dequeue(name)` still work for simple fire-and-forget queues.
 
 ### Background Work (Working Service)
 
@@ -176,7 +189,34 @@ const answer = await ai.prompt('What is machine learning?');
 const summary = await ai.prompt(text, { maxTokens: 500, temperature: 0.7 });
 ```
 
-`aiservice` is backed by the provider you choose (`claude`, `openai`, `ollama`, `gemini`, `openai-kv`, `tensorflow`). For one client across providers, see the shared module in `src/aiservice/common/` (`nooblyjs-ai-common`).
+AI Service v2 gives every provider one API: `anthropic`, `openai-compatible`, `grok`, `deepseek`, `bedrock`, `vertex`, `azure` and `mock` (for tests). The older names (`claude`, `openai`, `chatgpt`, `ollama`, `gemini`) use it with `legacy: false`; without it they keep the pre-v2 `prompt()`-only classes until 2.0.
+
+```javascript
+const ai = serviceRegistry.aiservice('anthropic', { model: 'claude-sonnet-5-5', maxCostPerDay: 20 });
+
+const reply = await ai.complete({ system: 'Be brief.', messages: [{ role: 'user', content: 'Hi' }] });
+reply.text; reply.usage; reply.cost;   // cost in USD; toolCalls when you pass tools
+
+for await (const event of ai.stream({ prompt: 'Tell me a story' })) {
+  if (event.type === 'text_delta') process.stdout.write(event.text);
+}
+app.post('/chat', (req, res) => ai.streamToResponse(res, { prompt: req.body.prompt }));   // Server-Sent Events
+
+const { object } = await ai.generateObject({ prompt: 'Extract the name', schema: { type: 'object', required: ['name'], properties: { name: { type: 'string' } } } });
+const vectors = await ai.embed(['first text', 'second text']);   // Anthropic has no embeddings: set embeddingProvider
+```
+
+REST: `POST /services/ai/api/{complete,stream,object,embed}` (permission `ai:prompt`).
+
+### Typed options
+
+`types/index.d.ts` ships with the package, so editors autocomplete provider names and options. Options are also checked at runtime: a misspelt key warns with a suggestion (`caching('redis'): unknown option "redisUrll"; did you mean "redisUrl"?`), a wrong type throws, and `strictOptions: true` makes every warning an error:
+
+```javascript
+serviceRegistry.initialize(app, eventEmitter, { strictOptions: process.env.CI === 'true' });
+```
+
+Cloud SDKs and broker clients are optional: install the one your provider needs (for example `npm install @aws-sdk/client-s3` for `filing('s3')`, `memjs` for `cache('memcached')`, `mongodb` for `dataService('mongodb')`). The error message names the package if it is missing.
 
 ## Patterns
 

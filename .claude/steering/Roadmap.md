@@ -33,14 +33,17 @@ Rank work by **impact ÷ effort**, but treat anything that blocks safe release a
 
 **Goal:** the building blocks every later feature needs, plus least-privilege access. **Exit:** one AI API with streaming, tools and embeddings; at-least-once jobs; typed public API; every route declares a permission.
 
-**Status (2026-11-12): in progress on branch `feature/phase-1`, stacked on `security/phase-0`.**
+**Status (2026-11-12): done on branch `feature/phase-1`, stacked on `security/phase-0`; not yet released.** All seven features are in, the full Jest suite passes (2,374 tests, 80 skipped), and the exit criteria are met. Details per feature, including what was left out:
 
 | # | State | Notes |
 |---|---|---|
-| 19 | **Done** | One permission table (`src/authservice/policy/routePermissions.js`) covers all 301 registered `/services` API routes, enforced in front of every service whether or not the portal guard is on. Scoped static keys (`{ key, name, scopes }`), scoped personal tokens, custom roles (`security.roles`), `verifyRoutePermissions()` with `strictAuth` (default in production), and no data-plane-key access to the portal in production (closes M-1, L-1). Also closes a hole where the default `excludePaths` pattern `/services/*/status` exempted any path ending in `/status` (for example a file named `status`) from API-key auth. 26 tests in `tests/unit/security/routePermissions.test.js`. Not done: per-route `requirePermission` in the CLI templates (waits for feature 09), and moving the filing tiers (`src/filing/modules/access.js`) onto the permission map. |
-| 23 | Next | Builds directly on 19: drops `?authToken=` and adds idle timeouts. |
-| 02, 06, 08 | Not started | 02 (AI Service v2) is the biggest unblocker after 23. |
-| 22b, 20b | Not started | 22b can now generate the authorization matrix from the permission table. |
+| 19 | **Done** | One permission table (`src/authservice/policy/routePermissions.js`) covers every registered `/services` API route (319 today), enforced whether or not the portal guard is on. Scoped static keys (`{ key, name, scopes }`), scoped personal tokens, custom roles (`security.roles`), `verifyRoutePermissions()` with `strictAuth` (default in production), and no data-plane-key access to the portal in production (closes M-1, L-1). Also closed the `excludePaths` `/services/*/status` hole. Not done: `requirePermission` in CLI templates (feature 09); moving the filing tiers onto the permission map. |
+| 23 | **Done** | No session tokens in URLs or `localStorage`: the query `authToken` is gone from every middleware and dashboard, and the login pages use the cookie session plus `GET /services/authservice/api/session` and a one-time `POST …/session/handoff`. Idle timeouts (8 h, 30 min for admins) and a 24 h absolute lifetime for cookie and token sessions; sessions are revoked when a password, role or active flag changes. CSRF defence by Origin/Referer check on cookie-authenticated writes, `Referrer-Policy: no-referrer`. Personal tokens expire after 90 days by default (`tokens.*`), and admins can list and revoke a user's tokens. Closes M-2. 14 tests in `sessionHygiene.test.js`. |
+| 02 | **Done** | `aiservice('anthropic' \| 'openai-compatible' \| 'grok' \| 'deepseek' \| 'bedrock' \| 'vertex' \| 'azure' \| 'mock')` runs on nooblyjs-ai-common: `complete`, `stream` (SSE via `streamToResponse`), tools, `generateObject` (JSON Schema checked, one repair retry, 422 `AI_INVALID_OBJECT`), `embed` (OpenAI, Gemini, Ollama, Bedrock, Vertex, mock; new `embeddings.js` in ai-common), cost per call, `maxCostPerDay` and `maxTokensPerRequest` budgets. REST: `POST /services/ai/api/{complete,stream,object,embed}`. A Playground tab with streaming and usage by model. The legacy names (`claude`, `openai`, …) keep their classes until 2.0, or use v2 with `legacy: false`. Jest now runs with `--experimental-vm-modules` so CommonJS can import the ESM package. Not done: live checks against real providers; removing the legacy SDKs (2.0). |
+| 06 | **Done** | `queue.enqueue(name, data, { delayMs, attempts, backoff, idempotencyKey, priority })` returns a job id; `queue.process(name, handler, { concurrency, visibilityTimeoutMs })` gives at-least-once delivery with visibility timeouts, keep-alive, retries with backoff, a dead-letter queue (`listDeadLetters`, `retryDeadLetters`), and graceful drain on `shutdown()`. Memory and Redis stores (atomic claim in Lua), one contract suite run against memory, ioredis-mock and a real Redis (in CI). REST under `/services/queueing/api/jobs` and a Jobs tab. `working.start(…, { attempts, backoff })` retries. Not done: native SQS, Azure, RabbitMQ, GCP and ActiveMQ job stores (they throw clearly, or opt into the in-process store), and running the working service fully on the job queue. |
+| 08 | **Done** | `types/index.d.ts`: per-provider overloads for every factory and interfaces for every service, including AI v2 and jobs (`package.json` `types`). `npm run check:types` compiles every concise usage-guide example plus the Phase 1 APIs with `strict: true`, with `@ts-expect-error` cases for bad provider names, option types and priorities. Every service with provider options has an `options.schema.js`; `getService()` warns on a misspelt key with a suggestion ("did you mean `redisUrl`?"), throws on a wrong type, and `strictOptions: true` makes warnings errors. Canonical camelCase names (`redisUrl`, `redisPort`, `memcachedUrl`) map onto the legacy spellings, which now warn. |
+| 22b | **Done** | `authorizationMatrix.test.js` calls all 319 API routes as anonymous, user, admin, a scoped key and an unscoped key, with handlers stubbed so only the gates are measured; it runs with the permission layer alone and in the `app.js` configuration. `npm run probe -- --url …` runs 48 live checks (passes 48/48 against the production image, fails 29/40 against `app-noauth`) and runs in CI against the Docker image together with an OWASP ZAP baseline (`.zap/rules.tsv`, 0 failing alerts today). gitleaks scans history in CI against a redacted baseline. Jest fails the run if it creates files outside `.temp/`. Found and fixed: the AI `health` route was declared public but needed a key, and in production `app.js` could not configure admin keys at all (new `ADMIN_API_KEYS`). The September 70-check list is not in the repository, so the probe was rebuilt from the 2026-11-12 review. |
+| 20b | **Done** | 17 cloud SDKs and broker clients are optional peer dependencies loaded only when their provider is chosen, with an install hint when missing (`requireOptional`). A clean install adds 132 packages instead of 494. Nightly audit of `main` opens a `security` issue on failure; Dependabot (grouped weekly minor/patch, auto-merged when CI passes; needs auto-merge and required checks turned on in GitHub); release workflow with a CycloneDX SBOM and `npm publish --provenance` (needs an `NPM_TOKEN` secret). Not done: replacing abandoned `ftp`, `stompit`, `pdf-parse@1` and `@google-cloud/storage@5`; the nightly job has not run yet, because it runs only once the workflow is on the default branch. |
 
 | # | Change | Impact | Effort |
 |---|---|---|---|
@@ -50,7 +53,7 @@ Rank work by **impact ÷ effort**, but treat anything that blocks safe release a
 | 19 | [Route-level RBAC and scoped API keys](../specs/features/19.%20Feature%20Route-Level%20RBAC%20and%20Scoped%20API%20Keys.md) | Least privilege everywhere; no single guard to get wrong | M–L |
 | 23 | [Session and token hygiene](../specs/features/23.%20Feature%20Session%20and%20Token%20Hygiene.md) | No tokens in URLs or script; idle timeouts | S–M |
 | 22b | [Authorization matrix, ZAP baseline, secret scanning](../specs/features/22.%20Feature%20Security%20Regression%20Suite%20and%20Continuous%20Verification.md) | Authorization is tested on every pull request | M |
-| 20b | [Nightly audit, Renovate, optional cloud SDKs](../specs/features/20.%20Feature%20Dependency%20and%20Supply-Chain%20Hygiene.md) | Advisories are noticed within a day; much smaller install | M |
+| 20b | [Nightly audit, Dependabot, optional cloud SDKs](../specs/features/20.%20Feature%20Dependency%20and%20Supply-Chain%20Hygiene.md) | Advisories are noticed within a day; much smaller install | M |
 
 ## Then — Phase 2: What engineers will notice (weeks 8–16)
 
@@ -116,12 +119,13 @@ The package version is still 1.0.10. Tag 1.0.11 only when CI is green.
 | Measure | Today (2026-11-12) | Target |
 |---|---|---|
 | Open critical / high review findings | 2 / 3 → 0 / 0 on `security/phase-0` | 0 / 0 by end of Phase 0 |
-| Production advisories, high or critical | 11 → 0 on `security/phase-0` | 0, held by a nightly audit |
-| Routes with a declared permission | 0 → 100% (301 / 301) on `feature/phase-1` | 100% by end of Phase 1 |
-| Statement coverage threshold | 51% | 65% by end of Phase 2 |
+| Production advisories, high or critical | 11 → 0 on `security/phase-0`, held by a nightly audit on `feature/phase-1` | 0, held by a nightly audit |
+| Routes with a declared permission | 0 → 100% (319 / 319), each tested for five callers, on `feature/phase-1` | 100% by end of Phase 1 |
+| Statement coverage threshold | 51% → 75% (measured 77.1%) on `feature/phase-1` | 65% by end of Phase 2 (passed) |
 | Time from `npx nooblyjs create` to a running app with auth | not possible | under 10 minutes |
-| AI providers behind one API | 6 legacy + 7 in common, split | 1 API, 9 providers |
-| Providers passing a contract suite | 0 | caching, queueing, dataservice, filing |
+| AI providers behind one API | 6 legacy + 7 in common, split → one v2 API (8 provider names, plus the 5 legacy names with `legacy: false`) on `feature/phase-1` | 1 API, 9 providers |
+| Providers passing a contract suite | 0 → queueing jobs (memory, Redis) | caching, queueing, dataservice, filing |
+| Packages in a clean install | 494 → 132 (cloud SDKs optional) on `feature/phase-1` | Only what the chosen providers need |
 
 ## Housekeeping
 
