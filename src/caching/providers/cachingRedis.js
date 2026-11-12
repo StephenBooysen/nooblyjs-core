@@ -133,9 +133,7 @@ class CacheRedis {
       throw new Error('Invalid value: cannot be undefined');
     }
     await this.ensureConnection_();
-    // Redis stores strings; without this, objects would be stored as
-    // "[object Object]". Mirrors the memcached provider.
-    const stored = value !== null && typeof value === 'object' ? JSON.stringify(value) : value;
+    const stored = CacheRedis.encode_(value);
     if (ttl) {
       await this.client_.setex(key, ttl, stored);
     } else {
@@ -162,18 +160,47 @@ class CacheRedis {
   }
 
   /**
-   * Restores objects and arrays that put() stored as JSON. Other strings
-   * (including numeric or boolean text) are returned unchanged.
+   * Turns a value into the string Redis stores. Strings are stored as they are.
+   * Every other value (numbers, booleans, null, objects, arrays) is stored as
+   * JSON behind a marker, so it reads back with its own type. A string that
+   * happens to start with the marker is stored as JSON too, so it is not
+   * mistaken for one.
+   *
+   * @param {*} value
+   * @return {string}
+   * @throws {TypeError} When the value has no JSON form (a function, say)
+   * @private
+   */
+  static encode_(value) {
+    if (typeof value === 'string' && !value.startsWith(CacheRedis.JSON_MARK_)) {
+      return value;
+    }
+    const json = JSON.stringify(value);
+    if (json === undefined) {
+      throw new TypeError('Cannot cache a value that has no JSON form');
+    }
+    return `${CacheRedis.JSON_MARK_}${json}`;
+  }
+
+  /**
+   * Reads a stored string back to the value that was put. Entries written by
+   * earlier versions (objects and arrays stored as bare JSON) still decode.
+   * Any other string comes back unchanged.
+   *
    * @param {?string} raw The stored value.
    * @return {*} The decoded value.
    * @private
    */
   static decode_(raw) {
-    if (typeof raw !== 'string' || !/^\s*[[{]/.test(raw)) {
+    if (typeof raw !== 'string') {
+      return raw;
+    }
+    const isMarked = raw.startsWith(CacheRedis.JSON_MARK_);
+    if (!isMarked && !/^\s*[[{]/.test(raw)) {
       return raw;
     }
     try {
-      return JSON.parse(raw);
+      return JSON.parse(isMarked ? raw.slice(CacheRedis.JSON_MARK_.length) : raw);
     } catch (error) {
       return raw;
     }
@@ -331,5 +358,8 @@ class CacheRedis {
     };
   }
 }
+
+/** Marks a value stored as JSON (see encode_). \u0001 cannot start normal text. */
+CacheRedis.JSON_MARK_ = '\u0001json:';
 
 module.exports = CacheRedis;

@@ -50,5 +50,8 @@ module.exports = (options, eventEmitter, notifier) => {
     app.get('/services/notifying/', (req, res) => {
       res.sendFile(path.join(__dirname, 'index.html'));
     });
+
+    // The page's own scripts (feature 17b). Only this folder is public, not the server source beside it.
+    app.use('/services/notifying/pages', express.static(path.join(__dirname, 'pages')));
   }
 };

@@ -28,8 +28,8 @@
  */
 const DEFAULT_ROLE_PERMISSIONS = Object.freeze({
   admin: ['*'],
-  editor: ['filing:read', 'filing:write', 'profile:manage'],
-  user: ['filing:read', 'profile:manage'],
+  editor: ['filing:read', 'filing:write', 'knowledge:read', 'profile:manage'],
+  user: ['filing:read', 'knowledge:read', 'profile:manage'],
   guest: []
 });
 

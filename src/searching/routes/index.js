@@ -582,5 +582,87 @@ module.exports = (options, eventEmitter, search) => {
       }
     });
 
+
+
+    /**
+     * Semantic search (feature 01). Available on the vector provider only; the
+     * other providers answer 409 so a client knows to pick a semantic one.
+     *
+     * @param {express.Response} res
+     * @return {boolean} True when the provider supports semantic search
+     */
+    const semanticReady = (res) => {
+      if (typeof search.semanticStatus === 'function' && typeof search.similar === 'function') return true;
+      res.status(409).json({ error: 'Semantic search needs the vector searching provider (searching(\'vector\'))' });
+      return false;
+    };
+
+    /**
+     * GET /services/searching/api/semantic/status
+     * Embedding backend, model, dimensions, pending embeddings and the last error.
+     */
+    app.get('/services/searching/api/semantic/status', (req, res) => {
+      if (!semanticReady(res)) return;
+      res.status(200).json(search.semanticStatus());
+    });
+
+    /**
+     * POST /services/searching/api/semantic/search
+     * Body: { query, containerName?, mode?: 'semantic'|'hybrid'|'keyword', k?, minScore? }.
+     * Returns the ranked hits with their scores.
+     */
+    app.post('/services/searching/api/semantic/search',
+      validate({
+        body: {
+          query: { type: 'string', required: true, maxLength: 1000 },
+          mode: { type: 'string', enum: ['semantic', 'hybrid', 'keyword'] },
+          containerName: { type: 'string', maxLength: 128 },
+          k: { type: 'number', min: 1, max: 200 },
+          minScore: { type: 'number', min: -1, max: 1 }
+        }
+      }),
+      async (req, res) => {
+        if (!semanticReady(res)) return;
+        try {
+          const { query, containerName, ...opts } = req.body;
+          const results = await search.search(query, { ...opts, containerName: containerName || 'default' });
+          res.status(200).json({ query, mode: opts.mode || null, results });
+        } catch (error) {
+          sendSafeError(res, error, { status: 500, eventEmitter });
+        }
+      });
+
+    /**
+     * POST /services/searching/api/semantic/flush
+     * Body: { containerName? }. Waits until queued embeddings are applied.
+     */
+    app.post('/services/searching/api/semantic/flush', async (req, res) => {
+      if (!semanticReady(res)) return;
+      try {
+        const containerName = req.body && typeof req.body.containerName === 'string' ? req.body.containerName : undefined;
+        await search.flushEmbeddings(containerName);
+        res.status(200).json({ success: true, pending: search.semanticStatus().pendingEmbeddings });
+      } catch (error) {
+        sendSafeError(res, error, { status: 500, eventEmitter });
+      }
+    });
+
+    /**
+     * GET /services/searching/api/semantic/similar/:id?containerName=
+     * Documents nearest to a stored document, by vector.
+     */
+    app.get('/services/searching/api/semantic/similar/:id', async (req, res) => {
+      if (!semanticReady(res)) return;
+      try {
+        const containerName = typeof req.query.containerName === 'string' ? req.query.containerName : 'default';
+        const results = await search.similar(req.params.id, { containerName });
+        res.status(200).json({ id: req.params.id, results });
+      } catch (error) {
+        // Unknown or not yet embedded documents are a client question, not a fault.
+        if (/no vector for/.test(error.message)) return res.status(404).json({ error: 'No vector for that document yet' });
+        sendSafeError(res, error, { status: 500, eventEmitter });
+      }
+    });
+
   }
 };

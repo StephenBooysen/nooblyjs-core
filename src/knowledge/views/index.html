@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Knowledge - NooblyJS Core</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="/services/css/styles.css">
+    <link rel="stylesheet" href="/services/css/core.css">
+</head>
+<body>
+<div class="core-app">
+    <header class="navbar core-topbar">
+        <div class="core-brand">
+            <img src="/images/nooblyjs-logo.png" alt="NooblyJS Logo" class="logo">
+            <span>Knowledge</span>
+        </div>
+    </header>
+
+    <main class="container-fluid py-3 px-3 px-md-4">
+        <div id="knowledge-message" class="alert alert-danger d-none" role="alert"></div>
+
+        <div class="row g-3">
+            <section class="col-lg-5" aria-labelledby="sources-heading">
+                <div class="card h-100">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span id="sources-heading">Sources</span>
+                        <button type="button" class="btn btn-outline-primary btn-sm" id="knowledge-sync">
+                            <i class="bi bi-arrow-repeat"></i> Sync
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <dl class="row small mb-3">
+                            <dt class="col-5">Documents</dt><dd class="col-7" data-field="documents">—</dd>
+                            <dt class="col-5">Chunks</dt><dd class="col-7" data-field="chunks">—</dd>
+                            <dt class="col-5">Last sync</dt><dd class="col-7" data-field="lastSync">Never</dd>
+                            <dt class="col-5">Answers</dt><dd class="col-7" data-field="answers">—</dd>
+                        </dl>
+                        <div class="table-responsive">
+                            <table class="table table-sm align-middle mb-0">
+                                <thead><tr><th>Path</th><th>Title</th><th class="text-end">Chunks</th></tr></thead>
+                                <tbody id="knowledge-sources"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="col-lg-7" aria-labelledby="ask-heading">
+                <div class="card h-100">
+                    <div class="card-header" id="ask-heading">Ask</div>
+                    <div class="card-body">
+                        <form id="knowledge-form" class="mb-3">
+                            <label class="form-label small" for="knowledge-question">Question</label>
+                            <div class="input-group">
+                                <input id="knowledge-question" class="form-control" type="text" maxlength="1000" required placeholder="e.g. how do I rotate the settings secret?">
+                                <button type="submit" class="btn btn-primary" id="knowledge-ask">Ask</button>
+                            </div>
+                            <p class="form-text">Answers use only the indexed sources and cite them as [1], [2]. Click a citation to read the passage.</p>
+                        </form>
+                        <div id="knowledge-answer" class="mb-3" aria-live="polite"></div>
+                        <div id="knowledge-citations"></div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+</div>
+<script src="/services/js/navigation.js"></script>
+<script src="/services/knowledge/knowledge.js"></script>
+</body>
+</html>

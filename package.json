@@ -19,12 +19,16 @@
     "public",
     "README.md",
     "package.json",
-    "index.js"
+    "index.js",
+    "bin"
   ],
   "license": "ISC",
   "author": "NooblyJS Contributors",
   "type": "commonjs",
   "main": "index.js",
+  "bin": {
+    "nooblyjs": "bin/nooblyjs.js"
+  },
   "types": "types/index.d.ts",
   "engines": {
     "node": ">=18"
@@ -96,6 +100,7 @@
     "qs": "^6.15.3"
   },
   "devDependencies": {
+    "@apidevtools/swagger-parser": "^13.1.0",
     "@aws-sdk/client-s3": "^3.614.0",
     "@azure/identity": "^4.13.1",
     "@azure/keyvault-secrets": "^4.11.2",

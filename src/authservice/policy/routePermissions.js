@@ -17,6 +17,8 @@
 
 'use strict';
 
+const { routePathOf } = require('../../shared/utils/routePattern');
+
 /**
  * Permission area for each service path segment.
  * @const {!Object<string, string>}
@@ -37,7 +39,8 @@ const SERVICE_AREAS = Object.freeze({
   settings: 'settings',
   workflow: 'workflows',
   working: 'jobs',
-  appservice: 'app'
+  appservice: 'app',
+  knowledge: 'knowledge'
 });
 
 const READ = ['GET', 'HEAD', 'OPTIONS'];
@@ -91,6 +94,11 @@ function defaultRules(svc, area) {
 
 /** Specific rules per service, before the common and default rules. */
 const SPECIFIC = {
+  knowledge: [
+    // Asking questions and retrieving passages only reads; evaluation calls the model for every case.
+    rule(['POST'], /^\/knowledge\/api\/(ask|ask\/stream|retrieve)\/?$/, 'knowledge:read'),
+    rule(['GET'], /^\/knowledge\/api\/(status|sources)\/?$/, 'knowledge:read'),
+  ],
   authservice: [
     // Signing in and out, and what the login page needs.
     rule(['POST'], /^\/authservice\/api\/(login|logout|validate|register)\/?$/, 'public'),
@@ -158,7 +166,11 @@ const WRITE_PERMISSION = {
  */
 const RULES = (() => {
   const rules = [
-    rule(READ, /^\/api\/monitoring\/.*/, 'monitoring:read')
+    rule(READ, /^\/api\/monitoring\/.*/, 'monitoring:read'),
+    // The MCP endpoint (feature 03) gives an agent the app's tools; administrators only by default.
+    rule(['GET', 'POST'], /^\/api\/mcp$/, 'mcp:use'),
+    // The API inventory (feature 10) is read-only metadata, granted with monitoring.
+    rule(READ, /^\/api\/(openapi\.(json|yaml)|docs(\/app\.js)?)$/, 'monitoring:read')
   ];
   for (const [svc, area] of Object.entries(SERVICE_AREAS)) {
     rules.push(...commonRules(svc, area));
@@ -220,10 +232,13 @@ function listRoutes(app) {
   const stack = (router && router.stack) || [];
   const routes = [];
   for (const layer of stack) {
-    if (!layer.route || typeof layer.route.path !== 'string') continue;
+    if (!layer.route) continue;
+    // Routes registered through route() are RegExps; route() keeps their pattern (feature 19 audit).
+    const routePath = routePathOf(layer.route.path);
+    if (!routePath) continue;
     for (const method of Object.keys(layer.route.methods || {})) {
       if (method === '_all') continue;
-      routes.push({ method: method.toUpperCase(), path: layer.route.path });
+      routes.push({ method: method.toUpperCase(), path: routePath });
     }
   }
   return routes;

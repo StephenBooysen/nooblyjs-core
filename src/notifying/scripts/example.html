@@ -211,6 +211,7 @@
         }
     </style>
     <script src="/services/notifying/scripts"></script>
+    <script src="/services/js/csp-actions.js"></script>
 </head>
 <body>
     <div class="container">
@@ -231,7 +232,7 @@
                         <option value="staging">staging</option>
                     </select>
                 </div>
-                <button onclick="initializeService()">Initialize Service</button>
+                <button data-onclick="initializeService">Initialize Service</button>
                 <div id="initStatus" class="status" style="display: none;"></div>
             </div>
 
@@ -242,7 +243,7 @@
                     <label for="topicName">Topic Name:</label>
                     <input type="text" id="topicName" placeholder="e.g., user-events">
                 </div>
-                <button onclick="createTopic()">Create Topic</button>
+                <button data-onclick="createTopic">Create Topic</button>
                 <div id="topicStatus" class="status" style="display: none;"></div>
             </div>
 
@@ -254,8 +255,8 @@
                     <input type="text" id="subscribeTopic" placeholder="e.g., user-events">
                 </div>
                 <div class="button-group">
-                    <button onclick="subscribeToTopic()">Subscribe</button>
-                    <button onclick="unsubscribeFromTopic()">Unsubscribe All</button>
+                    <button data-onclick="subscribeToTopic">Subscribe</button>
+                    <button data-onclick="unsubscribeFromTopic">Unsubscribe All</button>
                 </div>
                 <div id="subscriptionStatus" class="status" style="display: none;"></div>
 
@@ -276,7 +277,7 @@
                     <label for="messageData">Message (JSON):</label>
                     <input type="text" id="messageData" placeholder='{"type": "test", "data": "hello"}'>
                 </div>
-                <button onclick="publishNotification()">Publish</button>
+                <button data-onclick="publishNotification">Publish</button>
                 <div id="publishStatus" class="status" style="display: none;"></div>
             </div>
 
@@ -286,7 +287,7 @@
                 <div id="messagesList" class="messages">
                     <div class="empty-state">No messages received yet</div>
                 </div>
-                <button onclick="clearMessages()" style="margin-top: 10px;">Clear Messages</button>
+                <button data-onclick="clearMessages" style="margin-top: 10px;">Clear Messages</button>
             </div>
         </div>
     </div>
@@ -359,7 +360,7 @@
                             <div class="subscription-topic">📌 ${topic}</div>
                             <div class="subscription-id">${subId}</div>
                         </div>
-                        <button class="btn-small" onclick="unsubscribe('${topic}', '${subId}')">Remove</button>
+                        <button class="btn-small" data-onclick="unsubscribe" data-args='[&quot;${topic}&quot;,&quot;${subId}&quot;]'>Remove</button>
                     `;
                     container.appendChild(item);
                 }

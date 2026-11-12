@@ -17,6 +17,8 @@ const {
 
 // Implement monitoring
 const systemMonitoring = require('./src/views/modules/monitoring');
+const { mountOpenApiRoutes } = require('./src/shared/utils/openapiRoutes');
+const { mountMcpRoutes } = require('./src/mcp/routes');
 const { sendSafeError } = require('./src/shared/utils/safeError');
 const { createPermissionMiddleware } = require('./src/authservice/middleware/permission');
 const { buildRoleMap, normalizeApiKeys } = require('./src/authservice/modules/permissions');
@@ -344,6 +346,23 @@ class ServiceRegistry {
       }
     });
 
+    // Feature 03: MCP endpoint for coding agents. Off unless `mcp: { enabled: true }`.
+    const mcpConfig = (this.globalOptions && this.globalOptions.mcp) || {};
+    if (mcpConfig.enabled === true) {
+      mountMcpRoutes(this.expressApp, {
+        registry: this,
+        eventEmitter: this.eventEmitter,
+        config: mcpConfig,
+        serverInfo: { name: 'nooblyjs-core', version: require('./package.json').version }
+      });
+    }
+
+    // Feature 10: one OpenAPI document for every mounted API route, plus a reference page.
+    mountOpenApiRoutes(this.expressApp, {
+      version: require('./package.json').version,
+      eventEmitter: this.eventEmitter
+    });
+
     this.initialized = true;
     return this;
   }
@@ -381,6 +400,8 @@ class ServiceRegistry {
     // Level 3 services (Application - Use business logic services)
     this.serviceDependencies.set('scheduling', ['logging', 'working']);
     this.serviceDependencies.set('searching', ['logging']);
+    // Knowledge (feature 05) takes its filing, search and AI instances as options; only logging is injected.
+    this.serviceDependencies.set('knowledge', ['logging']);
     this.serviceDependencies.set('workflow', ['logging', 'queueing', 'scheduling', 'measuring', 'working']);
     this.serviceDependencies.set('filing', ['logging', 'queueing', 'dataservice']);
 
@@ -761,6 +782,16 @@ class ServiceRegistry {
    */
   searching(providerType = 'memory', options = {}) {
     return this.getService('searching', providerType, options);
+  }
+
+  /**
+   * Get the knowledge service (feature 05): answers with citations over a filing source.
+   * @param {string} providerType - 'default'
+   * @param {Object} options - `filing`, `search` (a searching instance), `ai` (an aiservice instance), `source: { path }`
+   * @returns {Object} Knowledge service instance
+   */
+  knowledge(providerType = 'default', options = {}) {
+    return this.getService('knowledge', providerType, options);
   }
 
   /**

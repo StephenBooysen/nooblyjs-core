@@ -74,7 +74,29 @@ function route(pattern) {
     });
     next();
   };
+  // Keep the source pattern so the OpenAPI listing (feature 10) can name the route.
+  regexp.nooblyjsPattern = pattern;
   return [regexp, nameParams];
 }
 
-module.exports = { route, compileRoute };
+/**
+ * Express path of a mounted route, for listing and auditing. A route registered
+ * through `route()` has a RegExp path that carries its source pattern; its `*`
+ * wildcards become named `(*)` parameters (`:wildcard0(*)`, `:wildcard1(*)`, …).
+ *
+ * @param {*} routePath String, or RegExp from `route()`
+ * @return {?string} The Express-style path, or null when it cannot be recovered
+ */
+function routePathOf(routePath) {
+  if (typeof routePath === 'string') return routePath;
+  if (routePath && typeof routePath.nooblyjsPattern === 'string') {
+    let i = 0;
+    return routePath.nooblyjsPattern
+      .split('/')
+      .map((seg) => (seg === '*' ? `:wildcard${i++}(*)` : seg))
+      .join('/');
+  }
+  return null;
+}
+
+module.exports = { route, compileRoute, routePathOf };
