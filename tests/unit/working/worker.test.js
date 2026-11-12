@@ -38,6 +38,8 @@ describe('WorkerProvider', () => {
       getWorkerInstance = require('../../../src/working');
     }
     workerInstance = getWorkerInstance('default', {
+      // Fixture scripts live beside this test, outside the activities folder (feature 18).
+      trustedRoots: [__dirname],
       dependencies: {
         queueing: mockQueueService
       }

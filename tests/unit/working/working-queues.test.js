@@ -41,6 +41,8 @@ describe('Working Service with Named Queues', () => {
     // Create working service with queue dependency
     workingService = createWorkingService('default', {
       maxThreads: 2,
+      // Fixture scripts live outside the activities folder (feature 18).
+      trustedRoots: [path.resolve(__dirname, '../../../src/working/providers')],
       dependencies: {
         queueing: queueService
       }

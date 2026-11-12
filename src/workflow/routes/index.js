@@ -16,6 +16,56 @@ const registerManagerRoutes = require('./manager');
 const { sendSafeError } = require('../../shared/utils/safeError');
 const { route } = require('../../shared/utils/routePattern');
 const { parseLimit, parseOffset } = require('../../shared/utils/validation');
+const { assertActivityReference } = require('../../working/modules/activityPath');
+
+/**
+ * Collects every step list in a workflow request body: `steps` on a
+ * definition, and each definition's `steps` in an imported state snapshot.
+ *
+ * @param {*} body - Request body
+ * @return {!Array<!Array<*>>} Step arrays found
+ */
+function stepListsIn(body) {
+  const lists = [];
+  if (!body || typeof body !== 'object') return lists;
+  if (Array.isArray(body.steps)) lists.push(body.steps);
+  const nested = body.workflows || body.definitions;
+  const defs = Array.isArray(nested) ? nested : (nested && typeof nested === 'object' ? Object.values(nested) : []);
+  for (const def of defs) {
+    if (def && Array.isArray(def.steps)) lists.push(def.steps);
+  }
+  return lists;
+}
+
+/**
+ * Feature 18: workflows defined over HTTP may only reference scripts inside the
+ * activities folder (or registered activities). Absolute paths, `..` segments
+ * and non-JavaScript files are refused before they can be stored and run.
+ *
+ * @param {Object} workflow - Workflow service (for its working service's registry)
+ * @return {function(express.Request, express.Response, Function): void}
+ */
+function createStepGuard(workflow) {
+  return (req, res, next) => {
+    if (req.method !== 'POST' && req.method !== 'PUT') return next();
+    const working = workflow && workflow.workingService_;
+    const registry = working && typeof working.getActivityRegistry === 'function'
+      ? working.getActivityRegistry()
+      : null;
+    try {
+      for (const steps of stepListsIn(req.body)) {
+        steps.forEach((step, i) => {
+          if (typeof step === 'string') {
+            assertActivityReference(step, { registry, field: `step ${i + 1}` });
+          }
+        });
+      }
+    } catch (err) {
+      return res.status(400).json({ error: err.message });
+    }
+    return next();
+  };
+}
 
 /**
  * Configures and registers workflow routes with the Express application.
@@ -39,6 +89,8 @@ module.exports = (options, eventEmitter, workflow, analytics) => {
     const auth = typeof options.authMiddleware === 'function'
       ? options.authMiddleware
       : (req, res, next) => next();
+
+    app.use('/services/workflow/api', createStepGuard(workflow));
 
     // Manager endpoints (workflows, runs, schedules, state) - registered first
     // so the legacy wildcard routes below can never shadow them.

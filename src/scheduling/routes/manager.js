@@ -15,6 +15,7 @@
 'use strict';
 
 const { parseCron, nextMatch } = require('../providers/cronExpression');
+const { assertActivityReference } = require('../../working/modules/activityPath');
 
 /**
  * Explains why a cron expression is rejected.
@@ -70,6 +71,23 @@ function httpError(message, statusCode) {
  * @return {void}
  */
 module.exports = (app, eventEmitter, scheduler) => {
+  /**
+   * Feature 18: a schedule created over HTTP may only name a script inside the
+   * activities folder (or a registered activity).
+   * @param {string} scriptPath - Submitted script path
+   * @return {string} The validated reference
+   */
+  const checkScript = (scriptPath) => {
+    const worker = scheduler && scheduler.worker_;
+    try {
+      return assertActivityReference(scriptPath, {
+        registry: worker && typeof worker.getActivityRegistry === 'function' ? worker.getActivityRegistry() : null
+      });
+    } catch (err) {
+      throw httpError(err.message, 400);
+    }
+  };
+
   if (!app || !scheduler || typeof scheduler.pause !== 'function') return;
 
   /**
@@ -166,6 +184,7 @@ module.exports = (app, eventEmitter, scheduler) => {
     const scriptPath = typeof body.scriptPath === 'string' ? body.scriptPath.trim() : '';
     if (!name) throw httpError('name is required', 400);
     if (!scriptPath) throw httpError('scriptPath is required', 400);
+    checkScript(scriptPath);
     if (await scheduler.getSchedule(name)) throw httpError(`Schedule "${name}" already exists`, 409);
     const { cron, intervalSeconds } = cadenceOf(body, true);
     const data = body.data === undefined ? null : body.data;
@@ -201,7 +220,7 @@ module.exports = (app, eventEmitter, scheduler) => {
     const changes = {};
     if (cron) changes.cron = cron;
     if (intervalSeconds) changes.intervalSeconds = intervalSeconds;
-    if (body.scriptPath !== undefined) changes.scriptPath = String(body.scriptPath).trim();
+    if (body.scriptPath !== undefined) changes.scriptPath = checkScript(String(body.scriptPath));
     if (body.data !== undefined) changes.data = body.data;
     if (body.description !== undefined) changes.description = body.description ? String(body.description).trim() : null;
     if (body.group !== undefined) changes.group = body.group ? String(body.group).trim() : null;

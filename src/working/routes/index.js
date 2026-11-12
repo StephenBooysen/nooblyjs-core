@@ -16,6 +16,7 @@
 const path = require('node:path');
 const express = require('express');
 const { route } = require('../../shared/utils/routePattern');
+const { assertActivityReference } = require('../modules/activityPath');
 
 /**
  * Returns true for plain integer-coercible positive numbers (used by query
@@ -86,13 +87,32 @@ module.exports = (options, eventEmitter, worker, analytics) => {
       return res.status(400).json({ error: 'Bad Request: Missing scriptPath' });
     }
 
+    // Feature 18: over HTTP only a relative path inside the activities folder,
+    // or a registered activity name, may be run.
+    let reference;
     try {
-      const taskId = await worker.start(scriptPath, data, (status, result) => {
+      reference = assertActivityReference(scriptPath, {
+        registry: typeof worker.getActivityRegistry === 'function' ? worker.getActivityRegistry() : null
+      });
+    } catch (err) {
+      return res.status(err.statusCode || 400).json({ error: err.message });
+    }
+    eventEmitter?.emit('worker:run-requested', {
+      scriptPath: reference,
+      source: 'http',
+      user: (req.user && req.user.email) || (req.apiKey ? 'api-key' : null)
+    });
+
+    try {
+      const taskId = await worker.start(reference, data, (status, result) => {
         eventEmitter?.emit('worker-complete', { status, result });
       });
       res.status(201).json({ status: 'OK', taskId, message: 'Task queued successfully' });
     } catch (err) {
       const message = err?.message || String(err);
+      if (err && err.statusCode === 400) {
+        return res.status(400).json({ error: message });
+      }
       if (/queue at capacity/i.test(message)) {
         return res.status(429).json({ error: message });
       }

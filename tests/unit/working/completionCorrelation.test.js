@@ -52,7 +52,8 @@ class JsonRoundTripQueue {
 /** Builds a manager that never actually spawns a worker thread. */
 function makeManager(queueService, options = {}) {
   const manager = new WorkerManager(
-    { dependencies: { queueing: queueService }, enableLogging: false, ...options },
+    // Fixture scripts live beside this test, outside the activities folder (feature 18).
+    { dependencies: { queueing: queueService }, enableLogging: false, trustedRoots: [__dirname], ...options },
     new EventEmitter()
   );
   // The queue processor is not wanted in most tests — drive it explicitly.
