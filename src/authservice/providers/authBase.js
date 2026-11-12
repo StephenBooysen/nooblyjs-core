@@ -669,7 +669,8 @@ class AuthBase {
       tokenPrefix: t.tokenPrefix,
       createdAt: t.createdAt,
       lastUsed: t.lastUsed,
-      expiresAt: t.expiresAt
+      expiresAt: t.expiresAt,
+      scopes: Array.isArray(t.scopes) ? t.scopes.slice() : null
     };
   }
 
@@ -754,6 +755,18 @@ class AuthBase {
       expiresAt = new Date(Date.now() + Number(options.expiresInDays) * 24 * 60 * 60 * 1000);
     }
 
+    // Feature 19: an optional list of permissions narrows what the token can
+    // do; it never adds to the owner's own permissions.
+    let scopes = null;
+    if (options.scopes !== undefined && options.scopes !== null) {
+      const list = Array.isArray(options.scopes) ? options.scopes : String(options.scopes).split(',');
+      scopes = list.map((sc) => String(sc).trim()).filter(Boolean);
+      if (scopes.length === 0 || scopes.length > 50
+        || scopes.some((sc) => sc.length > 100 || !/^(\*|[a-z][a-z0-9-]*:(\*|[a-z][a-z0-9-]*))$/.test(sc))) {
+        throw new Error('Token scopes must be permissions such as "filing:read" or "filing:*"');
+      }
+    }
+
     const token = {
       id: tokenId,
       name: tokenName,
@@ -761,7 +774,8 @@ class AuthBase {
       tokenPrefix: tokenPrefix,
       createdAt: new Date(),
       lastUsed: null,
-      expiresAt: expiresAt
+      expiresAt: expiresAt,
+      scopes
     };
 
     user.apiTokens.push(token);
@@ -787,7 +801,8 @@ class AuthBase {
       tokenPrefix: token.tokenPrefix,
       name: token.name,
       createdAt: token.createdAt,
-      expiresAt: token.expiresAt
+      expiresAt: token.expiresAt,
+      scopes: token.scopes
     };
   }
 

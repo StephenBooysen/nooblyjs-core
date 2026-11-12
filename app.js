@@ -280,6 +280,13 @@ app.get('/', (req, res) => {
 const errorHandler = require('./src/middleware/errorHandler');
 app.use(errorHandler);
 
+// Feature 19: every /services API route must declare a permission. In
+// production (strictAuth) an undeclared route stops start-up here.
+const undeclaredRoutes = serviceRegistry.verifyRoutePermissions();
+if (undeclaredRoutes.length > 0) {
+  console.warn(`⚠️  ${undeclaredRoutes.length} /services route(s) have no declared permission:`, undeclaredRoutes);
+}
+
 // Build an HTTP or HTTPS server depending on HTTPS_ENABLED in .env.
 const PORT = process.env.PORT || 11000;
 const { server, protocol, httpsEnabled } = createServer(app, { baseDir: __dirname });

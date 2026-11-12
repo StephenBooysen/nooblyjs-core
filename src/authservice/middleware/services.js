@@ -8,6 +8,7 @@
  */
 
 const { matchesAnyKey } = require('./apiKey');
+const { normalizeApiKeys } = require('../modules/permissions');
 
 /**
  * Creates authentication middleware for protecting the services page.
@@ -67,9 +68,11 @@ function createServicesAuthMiddleware(serviceRegistry) {
       const apiKey = extractApiKey(req);
       if (apiKey) {
         const adminKeys = getConfiguredAdminApiKeys(serviceRegistry);
+        // M-1 / feature 19: in production a data-plane key never opens the
+        // portal. Outside production the old fallback remains for convenience.
         const portalKeys = adminKeys.length > 0
           ? adminKeys
-          : getConfiguredApiKeys(serviceRegistry);
+          : (process.env.NODE_ENV === 'production' ? [] : getConfiguredApiKeys(serviceRegistry));
         if (matchesAnyKey(apiKey, portalKeys)) {
           req.apiKey = apiKey;
           return next();
@@ -317,12 +320,12 @@ function getConfiguredAdminApiKeys(serviceRegistry) {
 
   const fromGlobal = serviceRegistry.globalOptions
     && serviceRegistry.globalOptions.adminApiKeys;
-  if (Array.isArray(fromGlobal)) return fromGlobal;
+  if (Array.isArray(fromGlobal)) return normalizeApiKeys(fromGlobal).keys;
 
   const fromSecurity = serviceRegistry.securityConfig
     && serviceRegistry.securityConfig.servicesAuth
     && serviceRegistry.securityConfig.servicesAuth.apiKeys;
-  return Array.isArray(fromSecurity) ? fromSecurity : [];
+  return Array.isArray(fromSecurity) ? normalizeApiKeys(fromSecurity).keys : [];
 }
 
 /**

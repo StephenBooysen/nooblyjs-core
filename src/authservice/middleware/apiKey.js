@@ -78,11 +78,18 @@ function createApiKeyAuthMiddleware(options = {}, eventEmitter = null) {
     requireApiKey = true,
     excludePaths = ['/services/*/status', '/services/', '/services/*/views/*'],
     validateApiToken = null,
-    validateSession = null
+    validateSession = null,
+    apiKeyScopes = null
   } = options;
 
   return (req, res, next) => {
     if (!requireApiKey) {
+      return next();
+    }
+
+    // Already authenticated earlier in this request (the feature 19 permission
+    // layer runs this check first): don't validate the credential twice.
+    if (req.nooblyjsAuthenticated === true) {
       return next();
     }
 
@@ -128,6 +135,7 @@ function createApiKeyAuthMiddleware(options = {}, eventEmitter = null) {
     // browser history and Referer headers.
 
     const emitSuccess = (extra) => {
+      req.nooblyjsAuthenticated = true;
       if (eventEmitter) {
         eventEmitter.emit('api-auth-success', {
           ip: req.ip,
@@ -198,6 +206,10 @@ function createApiKeyAuthMiddleware(options = {}, eventEmitter = null) {
       if (matchesAnyKey(apiKey, apiKeys)) {
         emitSuccess({ keyPrefix: apiKey.substring(0, 8) + '...' });
         req.apiKey = apiKey;
+        // Feature 19: a scoped key carries its scopes; null means full access.
+        req.apiKeyScopes = apiKeyScopes && typeof apiKeyScopes.get === 'function'
+          ? (apiKeyScopes.get(apiKey) || null)
+          : null;
         return next();
       }
 
@@ -219,6 +231,8 @@ function createApiKeyAuthMiddleware(options = {}, eventEmitter = null) {
             req.userEmail = result.email;
             req.userRoles = result.roles || (result.user && result.user.roles) || [];
             req.apiTokenId = result.token && result.token.id;
+            // Feature 19: a token may be limited to a subset of its owner's permissions.
+            req.tokenScopes = (result.token && Array.isArray(result.token.scopes)) ? result.token.scopes : null;
             if (!req.user) {
               req.user = result.user || { email: result.email, roles: req.userRoles };
             }

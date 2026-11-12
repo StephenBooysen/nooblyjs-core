@@ -886,8 +886,16 @@ module.exports = (options, eventEmitter, auth, analytics) => {
           });
         }
 
-        const { name, expiresInDays, expiresAt } = req.body;
-        const token = await auth.createApiToken(email, name, { expiresInDays, expiresAt });
+        const { name, expiresInDays, expiresAt, scopes } = req.body;
+        let token;
+        try {
+          token = await auth.createApiToken(email, name, { expiresInDays, expiresAt, scopes });
+        } catch (error) {
+          if (/scopes|required/i.test(error.message)) {
+            return res.status(400).json({ success: false, error: error.message });
+          }
+          throw error;
+        }
         eventEmitter.emit('auth:api-token-created-api', { email, name });
 
         res.status(201).json({

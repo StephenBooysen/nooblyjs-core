@@ -18,6 +18,9 @@ const {
 // Implement monitoring
 const systemMonitoring = require('./src/views/modules/monitoring');
 const { sendSafeError } = require('./src/shared/utils/safeError');
+const { createPermissionMiddleware } = require('./src/authservice/middleware/permission');
+const { buildRoleMap, normalizeApiKeys } = require('./src/authservice/modules/permissions');
+const { listRoutes, listUndeclaredRoutes } = require('./src/authservice/policy/routePermissions');
 
 const ensureArray = (value) => {
   if (Array.isArray(value)) {
@@ -79,11 +82,15 @@ class ServiceRegistry {
       ...(incomingSecurityConfig.servicesAuth || {})
     };
 
-    const apiKeys = ensureArray(
+    // Feature 19: entries may be plain strings (full access) or scoped
+    // objects ({ key, name, scopes }). `apiKeys` stays a list of strings for
+    // matching; the scopes travel separately.
+    const keyConfig = normalizeApiKeys(ensureArray(
       apiKeyAuthConfig.apiKeys !== undefined
         ? apiKeyAuthConfig.apiKeys
         : legacyOptions.apiKeys
-    );
+    ));
+    const apiKeys = keyConfig.keys;
 
     const requireApiKey =
       typeof apiKeyAuthConfig.requireApiKey === 'boolean'
@@ -181,10 +188,43 @@ class ServiceRegistry {
         return auth.validateSession(rawToken);
       };
 
+      middlewareOptions.apiKeyScopes = keyConfig.scopes;
+
       this.authMiddleware = createApiKeyAuthMiddleware(
         middlewareOptions,
         this.eventEmitter,
       );
+
+      // The permission layer authenticates every protected API request itself,
+      // ignoring excludePaths (whose '*' patterns match across segments, e.g.
+      // '/services/*/status' also matched '/services/filing/api/download/status').
+      // Admin portal keys are accepted here with full access.
+      const adminKeys = normalizeApiKeys(ensureArray(
+        Array.isArray(legacyOptions.adminApiKeys)
+          ? legacyOptions.adminApiKeys
+          : servicesAuthConfig.apiKeys
+      ));
+      const policyScopes = new Map(keyConfig.scopes);
+      for (const key of adminKeys.keys) {
+        if (!policyScopes.has(key)) policyScopes.set(key, adminKeys.scopes.get(key));
+      }
+      this.permissionAuthMiddleware_ = createApiKeyAuthMiddleware(
+        {
+          ...middlewareOptions,
+          apiKeys: Array.from(new Set([...apiKeys, ...adminKeys.keys])),
+          apiKeyScopes: policyScopes,
+          excludePaths: []
+        },
+        this.eventEmitter,
+      );
+
+      const unscoped = keyConfig.keys.filter((k) => keyConfig.scopes.get(k) === null);
+      if (process.env.NODE_ENV === 'production' && unscoped.length > 0) {
+        const message = `${unscoped.length} API key(s) have no scopes and grant full access. ` +
+          'Configure apiKeys as [{ key, name, scopes }] (feature 19).';
+        process.emitWarning(message, { code: 'NOOBLYJS_UNSCOPED_API_KEYS' });
+        this.eventEmitter.emit('api-auth-warning', { message, unscopedKeys: unscoped.length });
+      }
 
       // Store auth config for services to use
       this.globalOptions.authMiddleware = this.authMiddleware;
@@ -223,6 +263,22 @@ class ServiceRegistry {
     // Apply authentication middleware to all /services routes
     // This enforces both authentication and admin role requirement across all service endpoints
     this.expressApp.use('/services', this.servicesAuthMiddleware);
+
+    // Feature 19: every /services/*/api route needs a declared permission,
+    // checked here in front of every service's own routes, so authorization
+    // no longer depends on the portal guard alone.
+    this.roleMap = buildRoleMap(normalizedSecurityConfig.roles);
+    this.strictAuth = typeof normalizedSecurityConfig.strictAuth === 'boolean'
+      ? normalizedSecurityConfig.strictAuth
+      : process.env.NODE_ENV === 'production';
+    this.permissionMiddleware = createPermissionMiddleware({
+      authenticate: this.permissionAuthMiddleware_ || ((req, res, next) => next()),
+      roleMap: this.roleMap,
+      enabled: Boolean(this.authMiddleware) && requireApiKey !== false,
+      strict: this.strictAuth,
+      eventEmitter: this.eventEmitter
+    });
+    this.expressApp.use('/services', this.permissionMiddleware);
 
     // Serve the service registry landing page
     this.expressApp.get('/services/', (req, res) => {
@@ -893,6 +949,35 @@ class ServiceRegistry {
         this.eventEmitter.emit('registry:dispose-error', { error: error?.message });
       }
     }
+  }
+
+  /**
+   * Checks that every registered /services API route has a declared
+   * permission (feature 19). Call it once all services are created, before
+   * the server starts listening.
+   *
+   * @param {Object=} options - Options
+   * @param {boolean=} options.strict - Throw on undeclared routes (default:
+   *     `security.strictAuth`, which defaults to true in production)
+   * @return {!Array<string>} Undeclared routes as 'METHOD /path'
+   * @throws {Error} In strict mode, when any route is undeclared
+   *
+   * @example
+   * serviceRegistry.verifyRoutePermissions(); // after wiring, before listen()
+   */
+  verifyRoutePermissions(options = {}) {
+    const undeclared = listUndeclaredRoutes(listRoutes(this.expressApp));
+    const strict = typeof options.strict === 'boolean' ? options.strict : Boolean(this.strictAuth);
+    if (undeclared.length > 0) {
+      this.eventEmitter?.emit('auth:permission-undeclared-routes', { routes: undeclared });
+      if (strict) {
+        throw new Error(
+          `${undeclared.length} /services route(s) have no declared permission: ${undeclared.slice(0, 10).join(', ')}` +
+          '. Add them to src/authservice/policy/routePermissions.js.'
+        );
+      }
+    }
+    return undeclared;
   }
 
   /**
