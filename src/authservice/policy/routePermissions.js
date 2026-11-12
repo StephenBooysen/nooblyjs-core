@@ -95,6 +95,9 @@ const SPECIFIC = {
     // Signing in and out, and what the login page needs.
     rule(['POST'], /^\/authservice\/api\/(login|logout|validate|register)\/?$/, 'public'),
     rule(['GET', 'POST'], /^\/authservice\/api\/logout\/?$/, 'public'),
+    // Feature 23: one-time hand-off of a session token for the cookie.
+    rule(['POST'], /^\/authservice\/api\/session\/handoff\/?$/, 'public'),
+    rule(READ, /^\/authservice\/api\/session\/?$/, 'public'),
     rule(READ, /^\/authservice\/api\/(branding|sso-config)\/?$/, 'public'),
     rule(ANY, /^\/authservice\/api\/auth\/.*/, 'public'),
     rule(ANY, /^\/authservice\/api\/azure(\/.*)?$/, 'public'),

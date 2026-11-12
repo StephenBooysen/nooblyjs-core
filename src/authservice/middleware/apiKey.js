@@ -279,16 +279,13 @@ function createApiKeyAuthMiddleware(options = {}, eventEmitter = null) {
     // 5. No API key and no Passport session — accept a valid browser session
     // token. The service dashboards authenticate with an `authToken` session
     // token rather than a Passport login session; their same-origin fetch()
-    // calls carry it via the session cookie or the authToken query param (the
-    // Authorization: Bearer form is handled by the apiKey branch above). An
+    // calls carry it via the session cookie (never the query string, feature
+    // 23; the Authorization: Bearer form is handled by the apiKey branch above). An
     // invalid or absent token still yields the 401 below.
     if (typeof validateSession === 'function') {
       let sessionToken = null;
       if (req.session && typeof req.session.authToken === 'string') {
         sessionToken = req.session.authToken;
-      }
-      if (!sessionToken && typeof req.query.authToken === 'string') {
-        sessionToken = req.query.authToken;
       }
 
       if (sessionToken) {

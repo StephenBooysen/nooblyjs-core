@@ -195,26 +195,19 @@
         loadBranding();
 
         async function signOut() {
-            const authToken = localStorage.getItem('authToken');
-
-            // Call logout API if token exists
-            if (authToken) {
-                try {
-                    await fetch('/services/authservice/api/logout', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({ token: authToken })
-                    });
-                } catch (error) {
-                    // Ignore errors, proceed with local cleanup
-                    console.error('Logout error:', error);
-                }
+            // Feature 23: the session lives in the httpOnly cookie only.
+            try {
+                await fetch('/services/authservice/api/logout', {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: '{}'
+                });
+            } catch (error) {
+                // Ignore errors, proceed with local cleanup
+                console.error('Logout error:', error);
             }
 
-            // Clear stored authentication data
-            localStorage.removeItem('authToken');
             localStorage.removeItem('currentUser');
 
             // Redirect to login page

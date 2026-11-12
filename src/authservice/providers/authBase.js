@@ -290,7 +290,8 @@ class AuthBase {
       fullName: user.fullName,
       roles: userRoles,
       createdAt: new Date(),
-      expiresAt: new Date(Date.now() + (24 * 60 * 60 * 1000)) // 24 hours
+      lastActivityAt: Date.now(),
+      expiresAt: new Date(Date.now() + this.sessionConfig_().absoluteTimeoutMs)
     };
 
     this.sessions_.set(sessionToken, session);
@@ -335,7 +336,65 @@ class AuthBase {
       throw new Error('Session expired');
     }
 
+    // Feature 23: idle timeout (shorter for admins) next to the absolute
+    // lifetime. Each successful validation counts as activity.
+    const idleMs = this.idleTimeoutFor(session.roles);
+    const now = Date.now();
+    if (idleMs > 0 && session.lastActivityAt && now - session.lastActivityAt > idleMs) {
+      this.sessions_.delete(token);
+      this.eventEmitter_?.emit('auth:session-idle-expired', { email: session.email });
+      throw new Error('Session expired');
+    }
+    session.lastActivityAt = now;
+
     return session;
+  }
+
+  /**
+   * Session lifetime settings (feature 23), from `options.session`.
+   * @return {{idleTimeoutMs: number, adminIdleTimeoutMs: number, absoluteTimeoutMs: number}}
+   */
+  sessionConfig_() {
+    const cfg = (this.options_ && this.options_.session) || {};
+    const num = (v, d) => (Number.isFinite(Number(v)) && Number(v) >= 0 ? Number(v) : d);
+    return {
+      idleTimeoutMs: num(cfg.idleTimeoutMs, 8 * 60 * 60 * 1000),
+      adminIdleTimeoutMs: num(cfg.adminIdleTimeoutMs, 30 * 60 * 1000),
+      absoluteTimeoutMs: num(cfg.absoluteTimeoutMs, 24 * 60 * 60 * 1000) || 24 * 60 * 60 * 1000
+    };
+  }
+
+  /**
+   * Idle timeout for a set of roles: the admin timeout when the user is an
+   * admin, otherwise the general one. 0 disables the idle check.
+   * @param {Array<string>=} roles Session roles.
+   * @return {number} Milliseconds.
+   */
+  idleTimeoutFor(roles) {
+    const cfg = this.sessionConfig_();
+    return Array.isArray(roles) && roles.includes('admin') ? cfg.adminIdleTimeoutMs : cfg.idleTimeoutMs;
+  }
+
+  /**
+   * Ends every session a user holds and records the time, so cookie
+   * (Passport) sessions established earlier are refused too. Called on
+   * password and role changes (feature 23).
+   * @param {string} email User email.
+   * @param {string} reason Why, for the event.
+   * @return {number} Number of token sessions removed.
+   */
+  revokeUserSessions(email, reason) {
+    let removed = 0;
+    for (const [token, session] of this.sessions_.entries()) {
+      if (session.email === email) {
+        this.sessions_.delete(token);
+        removed += 1;
+      }
+    }
+    const user = this.users_.get(email);
+    if (user) user.sessionsValidAfter = Date.now();
+    this.eventEmitter_?.emit('auth:sessions-revoked', { email, reason, removed });
+    return removed;
   }
 
   /**
@@ -426,7 +485,15 @@ class AuthBase {
       allowedUpdates.password = await this.hashPassword_(allowedUpdates.password);
     }
 
+    const before = JSON.stringify([user.role, user.roles, user.isActive]);
     Object.assign(user, allowedUpdates);
+
+    // Feature 23: a new password, role or deactivation ends existing sessions.
+    if (allowedUpdates.password) {
+      this.revokeUserSessions(email, 'password-changed');
+    } else if (JSON.stringify([user.role, user.roles, user.isActive]) !== before) {
+      this.revokeUserSessions(email, 'role-changed');
+    }
 
     if (this.eventEmitter_) {
       this.eventEmitter_.emit('auth:user-updated', { email, updates: Object.keys(allowedUpdates) });
@@ -487,6 +554,7 @@ class AuthBase {
     if (!userRoles.includes(role)) {
       userRoles.push(role);
       user.roles = userRoles;
+      this.revokeUserSessions(email, 'role-changed');
     }
 
     if (this.eventEmitter_) {
@@ -637,6 +705,7 @@ class AuthBase {
     }
 
     user.password = await this.hashPassword_(newPassword);
+    this.revokeUserSessions(email, 'password-changed');
 
     if (this.eventEmitter_) {
       this.eventEmitter_.emit('auth:password-changed', { email });
@@ -753,6 +822,17 @@ class AuthBase {
       }
     } else if (options.expiresInDays != null && Number(options.expiresInDays) > 0) {
       expiresAt = new Date(Date.now() + Number(options.expiresInDays) * 24 * 60 * 60 * 1000);
+    }
+    // Feature 23: tokens expire by default (tokens.defaultExpiryDays, 90).
+    // A token with no expiry needs tokens.allowNonExpiring: true.
+    const tokenCfg = (this.options_ && this.options_.tokens) || {};
+    const maxDays = Number(tokenCfg.maxExpiryDays) > 0 ? Number(tokenCfg.maxExpiryDays) : 0;
+    if (!expiresAt && !(tokenCfg.allowNonExpiring === true && options.expiresInDays === 0)) {
+      const days = Number(tokenCfg.defaultExpiryDays) > 0 ? Number(tokenCfg.defaultExpiryDays) : 90;
+      expiresAt = new Date(Date.now() + days * 24 * 60 * 60 * 1000);
+    }
+    if (expiresAt && maxDays && expiresAt.getTime() > Date.now() + maxDays * 24 * 60 * 60 * 1000) {
+      throw new Error(`Token expiry cannot be more than ${maxDays} days away`);
     }
 
     // Feature 19: an optional list of permissions narrows what the token can

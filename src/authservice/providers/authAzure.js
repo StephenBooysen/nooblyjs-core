@@ -347,7 +347,8 @@ class AuthAzure extends AuthBase {
       roles: userRoles,
       provider: 'azure',
       createdAt: new Date(),
-      expiresAt: new Date(Date.now() + (24 * 60 * 60 * 1000)) // 24 hours
+      lastActivityAt: Date.now(),
+      expiresAt: new Date(Date.now() + this.sessionConfig_().absoluteTimeoutMs)
     };
 
     this.sessions_.set(sessionToken, session);

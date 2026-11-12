@@ -110,6 +110,9 @@ app.use(session({
   secret: sessionSecret || 'dev-only-insecure-secret-change-in-production',
   resave: false,
   saveUninitialized: false,
+  // Feature 23: the cookie is renewed on activity; the registry enforces the
+  // idle timeout (30 minutes for admins) and the absolute 24-hour lifetime.
+  rolling: true,
   cookie: {
     secure: isProduction,
     httpOnly: true,

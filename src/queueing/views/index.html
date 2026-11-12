@@ -1230,19 +1230,17 @@
             if (headerLogoutBtn) {
                 headerLogoutBtn.addEventListener('click', async (e) => {
                     e.preventDefault();
-                    const token = localStorage.getItem('authToken');
-                    if (token) {
-                        try {
-                            await fetch('/services/authservice/api/logout', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ token })
-                            });
-                        } catch (error) {
-                            console.error('Logout error:', error);
-                        }
+                    // Feature 23: the session lives in the httpOnly cookie only.
+                    try {
+                        await fetch('/services/authservice/api/logout', {
+                            method: 'POST',
+                            credentials: 'same-origin',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: '{}'
+                        });
+                    } catch (error) {
+                        console.error('Logout error:', error);
                     }
-                    localStorage.removeItem('authToken');
                     localStorage.removeItem('currentUser');
                     window.location.href = '/services/authservice/views/login.html';
                 });

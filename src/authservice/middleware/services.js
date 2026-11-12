@@ -29,7 +29,10 @@ function createServicesAuthMiddleware(serviceRegistry) {
       // STEP 2: Special handling for login/register pages
       if (req.path.includes('/login') || req.path.includes('/register')) {
         if (req.path.includes('/login')) {
-          const token = req.query.authToken || req.headers.authorization?.substring(7);
+          // Feature 23: never from the query string.
+          const token = (req.headers.authorization || '').startsWith('Bearer ')
+            ? req.headers.authorization.substring(7)
+            : (req.session && req.session.authToken);
 
           if (token) {
             try {
@@ -87,10 +90,6 @@ function createServicesAuthMiddleware(serviceRegistry) {
         token = authHeader.substring(7);
       }
 
-      if (!token && req.query.authToken) {
-        token = req.query.authToken;
-      }
-
       if (!token && req.session && req.session.authToken) {
         token = req.session.authToken;
       }
@@ -129,55 +128,10 @@ function createServicesAuthMiddleware(serviceRegistry) {
         }
       }
 
-      // STEP 5: No valid token or no admin role - handle unauthenticated request
-      if (req.method === 'GET' && req.headers.accept && req.headers.accept.includes('text/html')) {
-        // HTML request without valid auth - serve client-side redirect page
-        return res.send(`
-          <!DOCTYPE html>
-          <html>
-          <head>
-            <title>Authenticating...</title>
-            <style>
-              body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
-              .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 40px; height: 40px; animation: spin 2s linear infinite; margin: 20px auto; }
-              @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-            </style>
-          </head>
-          <body>
-            <h2>Checking authentication...</h2>
-            <div class="spinner"></div>
-            <script>
-              const authToken = localStorage.getItem('authToken');
-              if (!authToken) {
-                window.location.href = '/services/authservice/views/login.html?returnUrl=' + encodeURIComponent(window.location.pathname);
-              } else {
-                fetch('/services/authservice/api/validate', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ token: authToken })
-                })
-                .then(response => response.json())
-                .then(result => {
-                  if (result.success) {
-                    window.location.href = window.location.pathname + '?authToken=' + authToken;
-                  } else {
-                    localStorage.removeItem('authToken');
-                    localStorage.removeItem('currentUser');
-                    window.location.href = '/services/authservice/views/login.html?returnUrl=' + encodeURIComponent(window.location.pathname);
-                  }
-                })
-                .catch(() => {
-                  localStorage.removeItem('authToken');
-                  localStorage.removeItem('currentUser');
-                  window.location.href = '/services/authservice/views/login.html?returnUrl=' + encodeURIComponent(window.location.pathname);
-                });
-              }
-            </script>
-          </body>
-          </html>
-        `);
-      }
-
+      // STEP 6: No valid credential. Browsers go to the login page (which
+      // sends them back here afterwards); API callers get 401. Feature 23
+      // removed the old client-side page that re-sent a script-held token
+      // in the URL.
       // For API requests or other non-HTML requests, redirect to login
       return redirectToLogin(req, res);
     } catch (error) {
@@ -208,6 +162,8 @@ function isPathPublic(path, method) {
   if (path.startsWith('/authservice/api/login')) return true;
   if (path.startsWith('/authservice/api/logout')) return true;
   if (path.startsWith('/authservice/api/validate')) return true;
+  if (method === 'POST' && path === '/authservice/api/session/handoff') return true;
+  if (path === '/authservice/api/session') return true;
   if (path.startsWith('/authservice/api/register')) return true;
   if (path.startsWith('/authservice/api/branding')) return true;
   if (path.startsWith('/authservice/api/auth/')) return true;

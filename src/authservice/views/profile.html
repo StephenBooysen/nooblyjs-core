@@ -315,7 +315,7 @@
 
         async function loadProfile() {
             try {
-                const response = await fetch('/services/authservice/api/auth/check');
+                const response = await fetch('/services/authservice/api/session', { credentials: 'same-origin' });
                 const result = await response.json();
                 if (result.success && result.user) {
                     currentEmail = result.user.email;
@@ -519,21 +519,16 @@
         // local state and return to login. The API endpoint also tears down the
         // Passport / Express session and clears the session cookie.
         document.getElementById('logoutBtn')?.addEventListener('click', async function() {
-            const token = localStorage.getItem('authToken');
             try {
                 await fetch('/services/authservice/api/logout', {
                     method: 'POST',
                     credentials: 'same-origin',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
-                    },
-                    body: JSON.stringify(token ? { token } : {})
+                    headers: { 'Content-Type': 'application/json' },
+                    body: '{}'
                 });
             } catch (error) {
                 console.error('Logout error:', error);
             }
-            localStorage.removeItem('authToken');
             localStorage.removeItem('currentUser');
             window.location.href = '/services/authservice/views/login.html';
         });

@@ -226,6 +226,14 @@ module.exports = (options, eventEmitter, auth, analytics) => {
             }
           }
 
+          // Feature 23: the cookie session carries the provider session token
+          // server-side, so dashboards never need a script-readable copy.
+          if (req.session && result.session) {
+            req.session.authToken = result.session.token;
+            req.session.loginAt = Date.now();
+            req.session.lastSeenAt = Date.now();
+          }
+
           // Where to go next: the page they were heading to > the app's loginSuccessRedirectUrl > /services
           const redirectUrl = postLoginRedirect(returnUrl, options);
 
@@ -245,6 +253,111 @@ module.exports = (options, eventEmitter, auth, analytics) => {
             success: false,
             error: 'Login failed'
           });
+        }
+      })
+    );
+
+    /**
+     * GET /services/authservice/api/session
+     * Who is signed in on this browser, from the cookie session alone
+     * (feature 23). Always 200: `{ success, authenticated, user? }`.
+     */
+    app.get(
+      '/services/authservice/api/session',
+      asyncHandler(async (req, res) => {
+        res.set('Cache-Control', 'no-store');
+        const signedIn = typeof req.isAuthenticated === 'function' && req.isAuthenticated() && req.user;
+        if (!signedIn) {
+          return res.json({ success: false, authenticated: false });
+        }
+        const { email, fullName, roles, role } = req.user;
+        return res.json({
+          success: true,
+          authenticated: true,
+          user: { email, fullName, roles: Array.isArray(roles) ? roles : (role ? [role] : []) }
+        });
+      })
+    );
+
+    /**
+     * POST /services/authservice/api/session/handoff
+     * One-time login hand-off (feature 23). A client that holds a session
+     * token (SSO callback, browser extension) posts it here once; the token is
+     * exchanged for the httpOnly session cookie, and the browser then loads
+     * the dashboards with the cookie alone. Tokens are never accepted from the
+     * query string.
+     *
+     * @param {express.Request} req - Body `{ token, returnUrl? }`
+     * @param {express.Response} res - `{ success, redirectUrl }`
+     */
+    app.post(
+      '/services/authservice/api/session/handoff',
+      loginRateLimiter,
+      validate({
+        body: {
+          token: { type: 'string', required: true, maxLength: 512 },
+          returnUrl: { type: 'string', maxLength: 2048, pattern: /^\/(?![\/\\])/ }
+        }
+      }),
+      asyncHandler(async (req, res) => {
+        let session;
+        try {
+          session = await auth.validateSession(req.body.token);
+        } catch (_) {
+          return res.status(401).json({ success: false, error: 'Invalid or expired session token' });
+        }
+        if (!req.session || typeof req.logIn !== 'function') {
+          return res.status(501).json({ success: false, error: 'Cookie sessions are not configured' });
+        }
+        let user;
+        try {
+          user = await auth.getUser(session.email);
+        } catch (_) {
+          return res.status(401).json({ success: false, error: 'Invalid or expired session token' });
+        }
+        await new Promise((resolve, reject) => req.logIn(user, (err) => (err ? reject(err) : resolve())));
+        req.session.authToken = req.body.token;
+        req.session.loginAt = Date.now();
+        req.session.lastSeenAt = Date.now();
+        eventEmitter.emit('auth:session-handoff', { email: session.email });
+        return res.json({ success: true, redirectUrl: postLoginRedirect(req.body.returnUrl, options) });
+      })
+    );
+
+    /**
+     * GET /services/authservice/api/users/:email/tokens
+     * Admin view of a user's personal access tokens (metadata only, with
+     * last-used time). Needs `users:manage`.
+     */
+    app.get(
+      '/services/authservice/api/users/:email/tokens',
+      asyncHandler(async (req, res) => {
+        try {
+          const tokens = await auth.listApiTokens(req.params.email);
+          return res.json({ success: true, data: tokens });
+        } catch (error) {
+          return res.status(404).json({ success: false, error: 'User not found' });
+        }
+      })
+    );
+
+    /**
+     * DELETE /services/authservice/api/users/:email/tokens/:tokenId
+     * Admin revocation of a user's personal access token. Needs `users:manage`.
+     */
+    app.delete(
+      '/services/authservice/api/users/:email/tokens/:tokenId',
+      asyncHandler(async (req, res) => {
+        try {
+          await auth.deleteApiToken(req.params.email, req.params.tokenId);
+          eventEmitter.emit('auth:api-token-revoked-by-admin', {
+            email: req.params.email,
+            tokenId: req.params.tokenId,
+            by: (req.user && req.user.email) || null
+          });
+          return res.json({ success: true });
+        } catch (error) {
+          return res.status(404).json({ success: false, error: 'Token not found' });
         }
       })
     );
@@ -1781,10 +1894,6 @@ function extractAuthToken(req) {
 
   if (typeof req.headers['x-auth-token'] === 'string') {
     return req.headers['x-auth-token'].trim();
-  }
-
-  if (req.query && typeof req.query.authToken === 'string') {
-    return req.query.authToken;
   }
 
   if (req.body && typeof req.body === 'object' && typeof req.body.authToken === 'string') {

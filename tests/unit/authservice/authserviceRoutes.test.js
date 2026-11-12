@@ -140,6 +140,14 @@ describe('Authservice routes', () => {
       .send({ currentPassword: PASSWORD, newPassword: 'An0ther!Pass#2026' })
       .expect(200);
 
+    // Feature 23: a password change ends every existing session.
+    await as(request(app).get('/services/authservice/api/profile/tokens')).set('Accept', 'application/json').expect(401);
+    const relogin = await request(app)
+      .post('/services/authservice/api/login')
+      .send({ email: 'admin@x.com', password: 'An0ther!Pass#2026' })
+      .expect(200);
+    token = relogin.body.data.session.token;
+
     const created = await as(request(app).post('/services/authservice/api/profile/tokens')).send({ name: 'ci' }).expect(201);
     expect(created.body.data.token).toMatch(/^dtk_/);
     const list = await as(request(app).get('/services/authservice/api/profile/tokens')).expect(200);

@@ -228,17 +228,10 @@
 
         // Redirect already-authenticated users
         {
-            const authToken = localStorage.getItem('authToken');
-            if (authToken) {
-                fetch('/services/authservice/api/validate', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ token: authToken })
-                })
+            fetch('/services/authservice/api/session', { credentials: 'same-origin' })
                 .then(r => r.json())
-                .then(result => { if (result.success) window.location.href = '/services'; })
+                .then(result => { if (result.authenticated) window.location.href = '/services'; })
                 .catch(() => {});
-            }
         }
 
     </script>

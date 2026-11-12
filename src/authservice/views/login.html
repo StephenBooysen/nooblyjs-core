@@ -284,7 +284,8 @@
                 const result = await response.json();
 
                 if (result.success) {
-                    localStorage.setItem('authToken', result.data.session.token);
+                    // Feature 23: the session token stays in the httpOnly cookie
+                    // session; the page keeps only display details.
                     localStorage.setItem('currentUser', JSON.stringify(result.data.user));
 
                     // Update button to show redirecting status
@@ -317,58 +318,28 @@
         });
 
         function checkExistingAuth() {
-            const authToken = localStorage.getItem('authToken');
             const checkingDiv = document.getElementById('checking-auth');
             const loginForm = document.getElementById('login-form');
             const loginActions = document.getElementById('login-actions');
+            // Drop any token an older version of this page left behind.
+            localStorage.removeItem('authToken');
 
-            if (authToken) {
-                checkingDiv.classList.remove('d-none');
-
-                fetch('/services/authservice/api/validate', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ token: authToken })
-                })
-                .then(response => response.json())
-                .then(result => {
-                    if (result.success) {
-                        // Token is valid, but also verify the session cookie is active
-                        // to avoid redirect loops (token valid but no session)
-                        return fetch('/api/auth/check', { credentials: 'include' })
-                            .then(r => r.json())
-                            .then(sessionResult => {
-                                if (sessionResult.authenticated) {
-                                    const urlParams = new URLSearchParams(window.location.search);
-                                    const returnUrl = safeReturnUrl(urlParams.get('returnUrl')) || brandingConfig?.homeUrl || '/services';
-
-                                    showSuccess('Already logged in! Redirecting...');
-                                    setTimeout(() => {
-                                        window.location.href = returnUrl;
-                                    }, 1000);
-                                } else {
-                                    // Token valid but no session — clear stale token and show login
-                                    localStorage.removeItem('authToken');
-                                    localStorage.removeItem('currentUser');
-                                    showLoginForm();
-                                }
-                            });
+            checkingDiv.classList.remove('d-none');
+            fetch('/services/authservice/api/session', { credentials: 'same-origin' })
+                .then(r => r.json())
+                .then(sessionResult => {
+                    if (sessionResult.authenticated) {
+                        const urlParams = new URLSearchParams(window.location.search);
+                        const returnUrl = safeReturnUrl(urlParams.get('returnUrl')) || brandingConfig?.homeUrl || '/services';
+                        showSuccess('Already logged in! Redirecting...');
+                        setTimeout(() => {
+                            window.location.href = returnUrl;
+                        }, 1000);
                     } else {
-                        localStorage.removeItem('authToken');
-                        localStorage.removeItem('currentUser');
                         showLoginForm();
                     }
                 })
-                .catch(() => {
-                    localStorage.removeItem('authToken');
-                    localStorage.removeItem('currentUser');
-                    showLoginForm();
-                });
-            } else {
-                showLoginForm();
-            }
+                .catch(() => showLoginForm());
 
             function showLoginForm() {
                 checkingDiv.classList.add('d-none');

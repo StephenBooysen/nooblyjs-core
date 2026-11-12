@@ -128,17 +128,17 @@ describe('services auth middleware', () => {
   describe('session tokens', () => {
     const app = makeApp();
 
-    it('admits admin tokens from the Authorization header or query string', async () => {
+    it('admits admin tokens from the Authorization header, never the query string (feature 23)', async () => {
       const res = await request(app).get('/services/caching/api/list').set('Authorization', 'Bearer admin-token').expect(200);
       expect(res.body.user).toEqual(expect.objectContaining({ email: 'admin@x.com', roles: ['admin'] }));
-      await request(app).get('/services/caching/api/list?authToken=admin-token').expect(200);
+      await request(app).get('/services/caching/api/list?authToken=admin-token').set('Accept', 'application/json').expect(401);
     });
 
     it('admits an admin token stored on the session and stores new tokens', async () => {
       const session = { authToken: 'admin-token' };
       await request(makeApp({ session })).get('/services/caching/api/list').expect(200);
       const fresh = {};
-      await request(makeApp({ session: fresh })).get('/services/caching/api/list?authToken=admin-token').expect(200);
+      await request(makeApp({ session: fresh })).get('/services/caching/api/list').set('Authorization', 'Bearer admin-token').expect(200);
       expect(fresh.authToken).toBe('admin-token');
     });
 
@@ -150,18 +150,20 @@ describe('services auth middleware', () => {
 
   describe('login pages', () => {
     it('redirects an already-authenticated admin away from the login page', async () => {
-      const login = await request(makeApp()).get('/services/authservice/login').query({ authToken: 'admin-token' }).expect(302);
+      const login = await request(makeApp()).get('/services/authservice/login').set('Authorization', 'Bearer admin-token').expect(302);
       expect(login.headers.location).toBe('/services/');
-      await request(makeApp()).get('/services/authservice/login').query({ authToken: 'user-token' }).expect(200);
-      await request(makeApp()).get('/services/authservice/login').query({ authToken: 'bad' }).expect(200);
+      // Feature 23: a token in the URL is ignored.
+      await request(makeApp()).get('/services/authservice/login').query({ authToken: 'admin-token' }).expect(200);
+      await request(makeApp()).get('/services/authservice/login').set('Authorization', 'Bearer user-token').expect(200);
+      await request(makeApp()).get('/services/authservice/login').set('Authorization', 'Bearer bad').expect(200);
       await request(makeApp()).get('/services/authservice/register').expect(200);
     });
   });
 
   describe('unauthenticated browsers', () => {
-    it('serves a token-checking page for HTML GETs', async () => {
-      const res = await request(makeApp()).get('/services/caching/').set('Accept', 'text/html').expect(200);
-      expect(res.text).toContain('Checking authentication');
+    it('redirects HTML GETs straight to the login page (no token-in-URL page, feature 23)', async () => {
+      const res = await request(makeApp()).get('/services/caching/').set('Accept', 'text/html').expect(302);
+      expect(res.headers.location).toBe('/services/authservice/views/login.html?returnUrl=%2Fservices%2Fcaching%2F');
     });
 
     it('redirects other HTML requests to the login page with a return URL', async () => {

@@ -21,6 +21,11 @@ const { sendSafeError } = require('./src/shared/utils/safeError');
 const { createPermissionMiddleware } = require('./src/authservice/middleware/permission');
 const { buildRoleMap, normalizeApiKeys } = require('./src/authservice/modules/permissions');
 const { listRoutes, listUndeclaredRoutes } = require('./src/authservice/policy/routePermissions');
+const {
+  createCookieSessionHygiene,
+  createOriginCheck,
+  referrerPolicy
+} = require('./src/authservice/middleware/sessionHygiene');
 
 const ensureArray = (value) => {
   if (Array.isArray(value)) {
@@ -258,6 +263,24 @@ class ServiceRegistry {
       this.eventEmitter.emit('services-auth-disabled', {
         message: 'Services authentication disabled by configuration'
       });
+    }
+
+    // Feature 23: session hygiene runs before any guard. Cookie sessions get
+    // idle and absolute timeouts and end when the password or roles change;
+    // state-changing cookie requests from another origin are refused; and
+    // dashboards send no Referer.
+    const csrfConfig = normalizedSecurityConfig.csrf || {};
+    this.expressApp.use('/services', referrerPolicy());
+    this.expressApp.use('/services', createCookieSessionHygiene({
+      getAuth: () => this.getAuthProviderForTokens_(),
+      eventEmitter: this.eventEmitter
+    }));
+    if (csrfConfig.enabled !== false) {
+      const envOrigins = (process.env.CORS_ORIGINS || '').split(',').map((o) => o.trim()).filter(Boolean);
+      this.expressApp.use('/services', createOriginCheck({
+        allowedOrigins: [...ensureArray(csrfConfig.allowedOrigins || []), ...envOrigins],
+        eventEmitter: this.eventEmitter
+      }));
     }
 
     // Apply authentication middleware to all /services routes

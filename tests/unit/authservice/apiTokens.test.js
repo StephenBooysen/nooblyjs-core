@@ -65,7 +65,10 @@ describe('API token engine', () => {
       expect(created.token).toMatch(/^dtk_[0-9a-f]{64}$/);
       expect(created.id).toMatch(/^tok_/);
       expect(created.tokenPrefix).toBe(created.token.substring(0, 12));
-      expect(created.expiresAt).toBeNull();
+      // Feature 23: tokens expire after 90 days unless told otherwise.
+      const days = (new Date(created.expiresAt) - Date.now()) / 86400000;
+      expect(days).toBeGreaterThan(89.9);
+      expect(days).toBeLessThanOrEqual(90);
       expect(created.createdAt).toBeInstanceOf(Date);
 
       // The stored record holds only the hash, not the secret.
