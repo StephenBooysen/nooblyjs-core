@@ -21,6 +21,7 @@ const { sendSafeError } = require('./src/shared/utils/safeError');
 const { createPermissionMiddleware } = require('./src/authservice/middleware/permission');
 const { buildRoleMap, normalizeApiKeys } = require('./src/authservice/modules/permissions');
 const { listRoutes, listUndeclaredRoutes } = require('./src/authservice/policy/routePermissions');
+const { checkServiceOptions } = require('./src/shared/utils/serviceOptions');
 const {
   createCookieSessionHygiene,
   createOriginCheck,
@@ -420,12 +421,20 @@ class ServiceRegistry {
       return this.services.get(serviceKey);
     }
 
+    // Feature 08: check the caller's options against the service's schema
+    // (typos warn with a suggestion, wrong types throw, strictOptions makes
+    // warnings errors) and map canonical names onto legacy spellings.
+    const { options: checkedOptions } = checkServiceOptions(serviceName, providerType, serviceOptions, {
+      strict: Boolean(this.globalOptions && this.globalOptions.strictOptions),
+      report: (message) => this.reportOptionWarning_(serviceName, message)
+    });
+
     // Get dependencies for this service
     const dependencies = this.resolveDependencies(serviceName, providerType);
 
     const mergedOptions = {
       ...this.globalOptions,
-      ...serviceOptions,
+      ...checkedOptions,
       dependencies,
       instanceName, // Include instance name in options for service use
       ServiceRegistry: this, // Include ServiceRegistry reference for multi-instance support
@@ -460,6 +469,25 @@ class ServiceRegistry {
     });
 
     return service;
+  }
+
+  /**
+   * Reports an options warning (feature 08): through the logger when one
+   * exists, otherwise as a process warning, and always as an event.
+   * @param {string} serviceName - Service being created
+   * @param {string} message - Warning text
+   * @private
+   */
+  reportOptionWarning_(serviceName, message) {
+    this.eventEmitter?.emit?.('service:options-warning', { serviceName, message });
+    const logger = serviceName !== 'logging'
+      ? Array.from(this.services.entries()).find(([key]) => key.startsWith('logging:'))?.[1]
+      : null;
+    if (logger && typeof logger.warn === 'function') {
+      logger.warn(`[ServiceRegistry] ${message}`);
+    } else {
+      process.emitWarning(message, { code: 'NOOBLYJS_OPTIONS' });
+    }
   }
 
   /**

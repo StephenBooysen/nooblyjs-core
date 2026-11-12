@@ -25,6 +25,15 @@ jobs:
       fail-fast: false
       matrix:
         node: [22, 24]
+    # Feature 06: the reliable-jobs contract also runs against a real Redis.
+    services:
+      redis:
+        image: redis:7-alpine
+        ports: ['6379:6379']
+        options: >-
+          --health-cmd "redis-cli ping" --health-interval 5s --health-timeout 3s --health-retries 10
+    env:
+      REDIS_TEST_URL: redis://127.0.0.1:6379
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -32,6 +41,10 @@ jobs:
           node-version: ${{ matrix.node }}
           cache: npm
       - run: npm ci
+      - name: Type checks (public types, nooblyjs-ai-common)
+        run: npm run check:types && npm run check:ai-common
+      - name: nooblyjs-ai-common tests
+        run: npm run test:ai-common
       - name: Jest with coverage threshold
         run: npm run coverage
       - name: Upload coverage report

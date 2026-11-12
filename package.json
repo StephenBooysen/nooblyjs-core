@@ -15,6 +15,7 @@
   ],
   "files": [
     "src",
+    "types",
     "public",
     "README.md",
     "package.json",
@@ -24,6 +25,7 @@
   "author": "NooblyJS Contributors",
   "type": "commonjs",
   "main": "index.js",
+  "types": "types/index.d.ts",
   "engines": {
     "node": ">=18"
   },
@@ -40,6 +42,7 @@
     "kill": "node scripts/kill-port.js",
     "kill-test": "node scripts/kill-test-port.js",
     "test": "node --experimental-vm-modules --disable-warning=ExperimentalWarning node_modules/jest/bin/jest.js",
+    "check:types": "tsc -p types/tests",
     "test:ai-common": "node --test \"tests/unit/aiservice/common/**/*.test.js\"",
     "check:ai-common": "tsc -p src/aiservice/common",
     "test:ui": "playwright test",
