@@ -214,7 +214,14 @@ const notifying = serviceRegistry.notifying('memory');
 const worker = serviceRegistry.working('memory');
 const workflow = serviceRegistry.workflow('memory');
 const fetching = serviceRegistry.fetching('node');
-const authservice = serviceRegistry.authservice('file');
+// Feature 16: invitation codes are emailed when SMTP_URL and MAIL_FROM are set
+// (nodemailer is an optional peer). Without them, codes are shown to the
+// approving administrator, who sends them.
+const { createMailer, invitationCodeSender } = require('./src/notifying/modules/mail');
+const invitationMailer = createMailer({ logger: log });
+const authservice = serviceRegistry.authservice('file', invitationMailer
+  ? { invitations: { sendCode: invitationCodeSender(invitationMailer) } }
+  : {});
 const settings = serviceRegistry.settings('file');
 const aiservice = serviceRegistry.aiservice('ollama', {});
 

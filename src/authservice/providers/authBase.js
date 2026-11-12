@@ -1035,7 +1035,7 @@ class AuthBase {
   /**
    * Returns the invitation configuration with defaults applied.
    * @return {{mode: string, allowedDomains: !Array<string>, ttlMs: number,
-   *     sendCode: ?Function}}
+   *     maxFailedRedeems: number, sendCode: ?Function}}
    * @protected
    */
   invitationConfig_() {
@@ -1050,10 +1050,12 @@ class AuthBase {
       .map((d) => String(d).trim().toLowerCase().replace(/^@/, ''))
       .filter(Boolean);
     const ttlDays = Number(cfg.ttlDays) > 0 ? Number(cfg.ttlDays) : 7;
+    const maxFailed = Number(cfg.maxFailedRedeems ?? process.env.INVITATION_MAX_FAILED_REDEEMS);
     return {
       mode,
       allowedDomains,
       ttlMs: ttlDays * 24 * 60 * 60 * 1000,
+      maxFailedRedeems: Number.isInteger(maxFailed) && maxFailed > 0 ? maxFailed : 5,
       sendCode: typeof cfg.sendCode === 'function' ? cfg.sendCode : null
     };
   }
@@ -1101,6 +1103,7 @@ class AuthBase {
     invitation.status = 'approved';
     invitation.approvedAt = new Date();
     invitation.expiresAt = new Date(Date.now() + this.invitationConfig_().ttlMs);
+    invitation.failedRedeems = 0;
     return code;
   }
 
@@ -1387,6 +1390,22 @@ class AuthBase {
 
     const strength = await this.validatePasswordStrength(password);
     if (!strength.valid) {
+      // Feature 16: a code that keeps failing is revoked, so a leaked code
+      // cannot be probed with many passwords. An admin issues a new one.
+      invitation.failedRedeems = (invitation.failedRedeems || 0) + 1;
+      if (invitation.failedRedeems >= this.invitationConfig_().maxFailedRedeems) {
+        invitation.status = 'pending';
+        invitation.codeHash = null;
+        invitation.codeHint = null;
+        invitation.approvedAt = null;
+        invitation.expiresAt = null;
+        await this.persistInvitations_();
+        if (this.eventEmitter_) {
+          this.eventEmitter_.emit('auth:invitation-revoked', { id: invitation.id, email: invitation.email, reason: 'too-many-failed-redeems' });
+        }
+        throw new Error('Too many failed attempts. This invitation code has been revoked; ask an administrator for a new one.');
+      }
+      await this.persistInvitations_();
       throw new Error('Password does not meet strength requirements: ' + strength.errors.join(', '));
     }
 
