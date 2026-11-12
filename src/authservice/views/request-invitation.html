@@ -129,10 +129,10 @@
                 <div id="successSection" class="d-none">
                     <div class="success-message">
                         <i class="bi bi-check-circle"></i>
-                        <h3>Invitation Ready!</h3>
-                        <p class="text-muted mb-3">Save this code — you'll need it to create your account.</p>
+                        <h3 id="successTitle">Invitation Ready!</h3>
+                        <p class="text-muted mb-3" id="successMessage">Save this code — you'll need it to create your account.</p>
 
-                        <div class="invitation-code">
+                        <div class="invitation-code" id="codeBlock">
                             <div class="invitation-code-label">Your Invitation Code</div>
                             <div class="invitation-code-value" id="invitationCode"></div>
                             <button type="button" class="btn btn-sm btn-outline-secondary copy-btn" id="copyCodeBtn">
@@ -203,7 +203,18 @@
 
                 const result = await response.json();
 
-                if (result.success) {
+                if (result.success && !result.data.code) {
+                    // Default onboarding: the request waits for an administrator,
+                    // or the code is emailed. The code is never shown here.
+                    document.getElementById('successTitle').textContent =
+                        result.data.status === 'sent' ? 'Check your email' : 'Request received';
+                    document.getElementById('successMessage').textContent = result.message;
+                    document.getElementById('codeBlock').classList.add('d-none');
+                    redeemNowBtn.textContent = 'I have a code';
+                    redeemNowBtn.href = '/services/authservice/redeem-invitation';
+                    formSection.classList.add('d-none');
+                    successSection.classList.remove('d-none');
+                } else if (result.success) {
                     const code = result.data.code;
                     invitationCode.textContent = code;
                     // Pre-fill the code on the redeem page so the user doesn't have to re-type it

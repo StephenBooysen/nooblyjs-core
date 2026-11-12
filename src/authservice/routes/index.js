@@ -12,6 +12,7 @@
 
 const { postLoginRedirect } = require('../modules/redirect');
 const rateLimit = require('express-rate-limit');
+const { matchesAnyKey } = require('../middleware/apiKey');
 const { sendSafeError } = require('../../shared/utils/safeError');
 const { capLimit, validate } = require('../../shared/utils/validation');
 
@@ -50,6 +51,66 @@ module.exports = (options, eventEmitter, auth, analytics) => {
         error: 'Too many login attempts. Please try again later.'
       }
     });
+
+    // Feature 16: public invitation endpoints are rate limited per IP. Requests
+    // are cheap to make and each one may notify an administrator or send an
+    // email; redeem and lookup are limited to stop code guessing.
+    const invitationOptions = options.invitations || {};
+    const invitationRequestLimiter = rateLimit({
+      windowMs: Number(process.env.INVITATION_RATE_WINDOW_MS) || 15 * 60 * 1000,
+      max: Number(process.env.INVITATION_RATE_LIMIT_MAX) || 5,
+      standardHeaders: true,
+      legacyHeaders: false,
+      // Administrators creating invitations from the dashboard are not limited.
+      skip: async (req) => Boolean(await resolveAdminCaller(req)),
+      message: { success: false, error: 'Too many invitation requests. Please try again later.' }
+    });
+    const invitationRedeemLimiter = rateLimit({
+      windowMs: Number(process.env.INVITATION_RATE_WINDOW_MS) || 15 * 60 * 1000,
+      max: Number(process.env.INVITATION_REDEEM_RATE_LIMIT_MAX) || 10,
+      standardHeaders: true,
+      legacyHeaders: false,
+      message: { success: false, error: 'Too many attempts. Please try again later.' }
+    });
+
+    /**
+     * Resolves the caller of a public route as an administrator, if they are
+     * one: a Passport session or a session token with the admin role, or an
+     * admin API key. Returns null for anyone else (including invalid tokens).
+     *
+     * @param {express.Request} req - Express request
+     * @return {Promise<?{email: ?string}>} The admin identity, or null
+     */
+    async function resolveAdminCaller(req) {
+      if (req.__nooblyjsAdminCaller !== undefined) return req.__nooblyjsAdminCaller;
+      const rolesOf = (u) => (Array.isArray(u && u.roles) ? u.roles : [(u && u.role) || '']);
+      let admin = null;
+      if (typeof req.isAuthenticated === 'function' && req.isAuthenticated() && req.user
+        && rolesOf(req.user).includes('admin')) {
+        admin = { email: req.user.email };
+      } else {
+        const token = extractAuthToken(req);
+        if (token) {
+          try {
+            const session = await auth.validateSession(token);
+            if (session && session.email && rolesOf(session).includes('admin')) {
+              admin = { email: session.email };
+            }
+          } catch (error) {
+            admin = null;
+          }
+        }
+        const adminKeys = Array.isArray(options.adminApiKeys)
+          ? options.adminApiKeys
+          : (options.security && options.security.servicesAuth && options.security.servicesAuth.apiKeys) || [];
+        const presentedKey = req.headers['x-api-key'] || token;
+        if (!admin && presentedKey && adminKeys.length && matchesAnyKey(presentedKey, adminKeys)) {
+          admin = { email: null };
+        }
+      }
+      req.__nooblyjsAdminCaller = admin;
+      return admin;
+    }
 
     // (2) Per-account lockout (in-memory) so credential stuffing cannot rotate
     // source IPs to bypass the per-IP limit. After LOCK_THRESHOLD failures
@@ -883,14 +944,53 @@ module.exports = (options, eventEmitter, auth, analytics) => {
      */
     app.post(
       '/services/authservice/api/invitations',
+      invitationRequestLimiter,
       asyncHandler(async (req, res) => {
-        const invitation = await auth.requestInvitation(req.body);
-        eventEmitter.emit('auth:invitation-requested-api', { email: invitation.email });
+        // An administrator creating an invitation from the dashboard gets an
+        // approved invitation and its code. Everyone else goes through the
+        // configured onboarding mode, which never returns a code except in
+        // `open` mode (feature 16).
+        const admin = await resolveAdminCaller(req);
+        if (admin) {
+          const invitation = await auth.createInvitation(req.body, { createdBy: admin.email || 'api-key' });
+          eventEmitter.emit('auth:invitation-requested-api', { email: invitation.email, source: 'admin' });
+          return res.status(201).json({
+            success: true,
+            message: 'Invitation created',
+            data: invitation
+          });
+        }
 
-        res.status(201).json({
+        if (typeof invitationOptions.verifyHuman === 'function') {
+          let human = false;
+          try {
+            human = await invitationOptions.verifyHuman(req);
+          } catch (error) {
+            human = false;
+          }
+          if (!human) {
+            return res.status(400).json({ success: false, error: 'Verification failed. Please try again.' });
+          }
+        }
+
+        let result;
+        try {
+          result = await auth.requestInvitation(req.body);
+        } catch (error) {
+          const status = error.statusCode || 400;
+          return res.status(status).json({ success: false, error: error.message });
+        }
+        eventEmitter.emit('auth:invitation-requested-api', { email: result.email, source: 'public' });
+
+        const messages = {
+          approved: 'Invitation created',
+          sent: 'Check your email for your invitation code.',
+          pending: 'Your request has been sent to an administrator. You will receive your invitation code once it is approved.'
+        };
+        res.status(result.status === 'approved' ? 201 : 202).json({
           success: true,
-          message: 'Invitation created',
-          data: invitation
+          message: messages[result.status] || messages.pending,
+          data: result
         });
       })
     );
@@ -916,7 +1016,7 @@ module.exports = (options, eventEmitter, auth, analytics) => {
           });
         }
 
-        const results = await auth.batchCreateInvitations(invites);
+        const results = await auth.batchCreateInvitations(invites, { createdBy: req.user && req.user.email });
         eventEmitter.emit('auth:invitations-batch-api', {
           created: results.created.length,
           errors: results.errors.length
@@ -992,13 +1092,14 @@ module.exports = (options, eventEmitter, auth, analytics) => {
      */
     app.get(
       '/services/authservice/api/invitations/:code',
+      invitationRedeemLimiter,
       asyncHandler(async (req, res) => {
         try {
           const invitation = await auth.getInvitation(req.params.code);
           res.status(200).json({
             success: true,
             data: {
-              code: invitation.code,
+              code: req.params.code,
               status: invitation.status,
               email: invitation.email,
               expiresAt: invitation.expiresAt
@@ -1026,7 +1127,15 @@ module.exports = (options, eventEmitter, auth, analytics) => {
       '/services/authservice/api/invitations/:code/approve',
       requireAuthenticatedSession,
       asyncHandler(async (req, res) => {
-        const invitation = await auth.approveInvitation(req.params.code);
+        let invitation;
+        try {
+          invitation = await auth.approveInvitation(req.params.code, { approvedBy: req.user && req.user.email });
+        } catch (error) {
+          return res.status(error.message === 'Invitation not found' ? 404 : 400).json({
+            success: false,
+            error: error.message
+          });
+        }
         eventEmitter.emit('auth:invitation-approved-api', { code: req.params.code });
 
         res.status(200).json({
@@ -1050,6 +1159,7 @@ module.exports = (options, eventEmitter, auth, analytics) => {
      */
     app.post(
       '/services/authservice/api/invitations/:code/redeem',
+      invitationRedeemLimiter,
       asyncHandler(async (req, res) => {
         const { password } = req.body;
         try {

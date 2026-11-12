@@ -47,6 +47,7 @@ class AuthFile extends AuthBase {
     this.usersFile_ = path.join(this.settings.datadir, 'users.json');
     this.rolesFile_ = path.join(this.settings.datadir, 'roles.json');
     this.sessionsFile_ = path.join(this.settings.datadir, 'sessions.json');
+    this.invitationsFile_ = path.join(this.settings.datadir, 'invitations.json');
 
     // Initialize file storage
     this.initializeFileStorage_().catch(error => {
@@ -141,6 +142,7 @@ class AuthFile extends AuthBase {
       await this.loadUsersFromFile_();
       await this.loadRolesFromFile_();
       await this.loadSessionsFromFile_();
+      await this.loadInvitationsFromFile_();
 
       // Create default admin user if no users exist
       if (this.users_.size === 0) {
@@ -403,6 +405,46 @@ class AuthFile extends AuthBase {
   async saveSessionsToFile_() {
     const sessions = Object.fromEntries(this.sessions_);
     await fs.writeFile(this.sessionsFile_, JSON.stringify(sessions, null, 2), 'utf8');
+  }
+
+  /**
+   * Loads invitations from file (feature 16), so they survive restarts and are
+   * shared by every process that reads the same data directory. Codes are
+   * stored only as hashes.
+   * @private
+   */
+  async loadInvitationsFromFile_() {
+    try {
+      const data = await fs.readFile(this.invitationsFile_, 'utf8');
+      const list = JSON.parse(data);
+      const store = new Map();
+      for (const inv of Array.isArray(list) ? list : []) {
+        if (!inv || !inv.id) continue;
+        for (const field of ['createdAt', 'approvedAt', 'usedAt', 'expiresAt']) {
+          if (inv[field]) inv[field] = new Date(inv[field]);
+        }
+        store.set(inv.id, inv);
+      }
+      this.invitations_ = store;
+    } catch (error) {
+      if (error.code !== 'ENOENT') {
+        throw error;
+      }
+      this.invitations_ = new Map();
+    }
+  }
+
+  /**
+   * Saves invitations to file with an atomic write, readable only by the owner.
+   * @return {Promise<void>}
+   * @protected
+   */
+  async persistInvitations_() {
+    const list = Array.from(this.invitationStore_().values());
+    await fs.mkdir(this.settings.datadir, { recursive: true });
+    const tmp = `${this.invitationsFile_}.${process.pid}.${Date.now()}.tmp`;
+    await fs.writeFile(tmp, JSON.stringify(list, null, 2), { encoding: 'utf8', mode: 0o600 });
+    await fs.rename(tmp, this.invitationsFile_);
   }
 
   /**

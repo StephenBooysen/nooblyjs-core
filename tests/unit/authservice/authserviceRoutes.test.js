@@ -148,30 +148,51 @@ describe('Authservice routes', () => {
   });
 
   it('issues, approves, recreates and redeems invitations', async () => {
-    const inv = await request(app)
+    // A public request is held for approval and never returns a code.
+    const requested = await request(app)
       .post('/services/authservice/api/invitations')
       .send({ name: 'New', email: 'new@x.com' })
-      .expect(201);
-    const code = inv.body.data.code;
+      .expect(202);
+    expect(requested.body.data.status).toBe('pending');
+    expect(requested.body.data.code).toBeUndefined();
+
+    const all = await as(request(app).get('/services/authservice/api/invitations')).expect(200);
+    expect(all.body.total).toBe(1);
+    const pending = all.body.data[0];
+    expect(pending.status).toBe('pending');
+    expect(pending.code).toBeUndefined();
+    expect(pending.codeHash).toBeUndefined();
+
+    // An admin approves it and receives the code once.
+    const approved = await as(request(app).put(`/services/authservice/api/invitations/${pending.id}/approve`)).send({}).expect(200);
+    const code = approved.body.data.code;
+    expect(code).toMatch(/^INV-[0-9A-F]{20}$/);
+    await as(request(app).put(`/services/authservice/api/invitations/${pending.id}/approve`)).send({}).expect(400);
+    await as(request(app).put('/services/authservice/api/invitations/nope/approve')).send({}).expect(404);
 
     const public_ = await request(app).get(`/services/authservice/api/invitations/${code}`).expect(200);
     expect(public_.body.data.email).toBe('new@x.com');
     await request(app).get('/services/authservice/api/invitations/INV-NOPE').expect(404);
 
-    const all = await as(request(app).get('/services/authservice/api/invitations')).expect(200);
-    expect(all.body.total).toBe(1);
-    // Requested invitations are auto-approved, so approving again is rejected.
-    await as(request(app).put(`/services/authservice/api/invitations/${code}/approve`)).send({}).expect(400);
+    // An admin creating an invitation from the dashboard gets the code directly.
+    const created = await as(request(app).post('/services/authservice/api/invitations'))
+      .send({ name: 'Direct', email: 'direct@x.com' })
+      .expect(201);
+    expect(created.body.data.code).toMatch(/^INV-/);
 
     const batch = await as(request(app).post('/services/authservice/api/invitations/batch'))
       .send({ invites: [{ name: 'B', email: 'b@x.com' }] })
       .expect(200);
     expect(batch.body.success).toBe(true);
+    expect(batch.body.data.created[0].code).toMatch(/^INV-/);
     await as(request(app).post('/services/authservice/api/invitations/batch')).send({}).expect(400);
 
-    const recreated = await as(request(app).post(`/services/authservice/api/invitations/${code}/recreate`)).send({}).expect(200);
+    const recreated = await as(request(app).post(`/services/authservice/api/invitations/${pending.id}/recreate`)).send({}).expect(200);
     const newCode = recreated.body.data.code;
+    expect(newCode).not.toBe(code);
     await as(request(app).post('/services/authservice/api/invitations/INV-NOPE/recreate')).send({}).expect(400);
+    // The old code stopped working when the invitation was recreated.
+    await request(app).post(`/services/authservice/api/invitations/${code}/redeem`).send({ password: PASSWORD }).expect(400);
 
     const redeemed = await request(app)
       .post(`/services/authservice/api/invitations/${newCode}/redeem`)
@@ -180,7 +201,7 @@ describe('Authservice routes', () => {
     expect(redeemed.body.data.email).toBe('new@x.com');
     await request(app).post(`/services/authservice/api/invitations/${newCode}/redeem`).send({ fullName: 'New', password: PASSWORD }).expect(400);
 
-    await as(request(app).post(`/services/authservice/api/invitations/${code}/recreate`)).send({}).expect(400);
+    await as(request(app).post(`/services/authservice/api/invitations/${pending.id}/recreate`)).send({}).expect(400);
   });
 
   it('serves status, branding, SSO config and settings', async () => {

@@ -10,6 +10,13 @@
 
 const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
+const { ClientError } = require('../../shared/utils/httpErrors');
+
+/**
+ * Supported onboarding modes (feature 16). `admin-approval` is the default.
+ * @const {!Array<string>}
+ */
+const INVITATION_MODES = ['admin-approval', 'admin-only', 'domain-allowlist', 'open'];
 
 /**
  * bcrypt cost factor used for password hashing. Defaults to 12; override via
@@ -57,6 +64,19 @@ class AuthBase {
     this.roles_.set('guest', []);
 
     this.getAuthStrategy = this.getAuthStrategy.bind(this);
+
+    // Feature 16: fail fast on a typo in invitations.mode, and make `open`
+    // mode impossible to miss in production.
+    const { mode } = this.invitationConfig_();
+    if (mode === 'open' && process.env.NODE_ENV === 'production') {
+      process.emitWarning(
+        'invitations.mode is "open": anyone can create an account. Use admin-approval, admin-only or domain-allowlist in production.',
+        { code: 'NOOBLYJS_OPEN_INVITATIONS' }
+      );
+      if (this.eventEmitter_) {
+        this.eventEmitter_.emit('auth:invitation-open-mode-warning', { mode });
+      }
+    }
   }
 
   /**
@@ -900,89 +920,353 @@ class AuthBase {
     };
   }
 
+  // ---------------------------------------------------------------------
+  // Invitations (feature 16)
+  //
+  // Modes (`options.invitations.mode`, or INVITATION_MODE):
+  //   admin-approval (default) — a public request creates a *pending*
+  //       invitation; an admin approves it and receives (or emails) the code.
+  //   admin-only — no public requests; admins create invitations.
+  //   domain-allowlist — requests from `allowedDomains` are approved and the
+  //       code is sent through `sendCode`; others stay pending.
+  //   open — legacy behaviour: the code is returned to the requester. Demos only.
+  //
+  // Codes are never stored: only a SHA-256 hash is kept, so a leaked data file
+  // or an admin listing cannot be used to redeem. The plaintext code is
+  // returned exactly once, to whoever is entitled to it (the admin who created,
+  // approved or recreated it; the requester only in `open` mode).
+  // ---------------------------------------------------------------------
+
   /**
-   * Requests an invitation for account creation.
-   * @param {Object} data Invitation request data.
-   * @param {string} data.name Full name.
-   * @param {string} data.email Email address.
-   * @param {string} data.mobile Mobile number (optional).
-   * @return {Promise<Object>} Promise resolving to invitation object with code.
+   * Returns the invitation configuration with defaults applied.
+   * @return {{mode: string, allowedDomains: !Array<string>, ttlMs: number,
+   *     sendCode: ?Function}}
+   * @protected
    */
-  async requestInvitation(data) {
-    const { name, email, mobile } = data;
-
-    if (!name || !email) {
-      throw new Error('Name and email are required');
+  invitationConfig_() {
+    const cfg = (this.options_ && this.options_.invitations) || {};
+    const mode = cfg.mode || process.env.INVITATION_MODE || 'admin-approval';
+    if (!INVITATION_MODES.includes(mode)) {
+      throw new Error(`Unknown invitations.mode "${mode}". Use one of: ${INVITATION_MODES.join(', ')}`);
     }
-
-    if (!this.invitations_) {
-      this.invitations_ = new Map();
-    }
-
-    const crypto = require('crypto');
-    const code = 'INV-' + crypto.randomBytes(6).toString('hex').toUpperCase();
-
-    const now = new Date();
-    const invitation = {
-      code,
-      name,
-      email,
-      mobile: mobile || null,
-      // Auto-approved: invite codes are usable immediately on issue
-      status: 'approved',
-      createdAt: now,
-      approvedAt: now,
-      usedAt: null,
-      expiresAt: new Date(now.getTime() + (7 * 24 * 60 * 60 * 1000)) // 7 days
+    const allowedDomains = (Array.isArray(cfg.allowedDomains)
+      ? cfg.allowedDomains
+      : String(cfg.allowedDomains || process.env.INVITATION_ALLOWED_DOMAINS || '').split(','))
+      .map((d) => String(d).trim().toLowerCase().replace(/^@/, ''))
+      .filter(Boolean);
+    const ttlDays = Number(cfg.ttlDays) > 0 ? Number(cfg.ttlDays) : 7;
+    return {
+      mode,
+      allowedDomains,
+      ttlMs: ttlDays * 24 * 60 * 60 * 1000,
+      sendCode: typeof cfg.sendCode === 'function' ? cfg.sendCode : null
     };
-
-    this.invitations_.set(code, invitation);
-
-    if (this.eventEmitter_) {
-      this.eventEmitter_.emit('auth:invitation-requested', { email, code });
-    }
-
-    return { code, email, name, status: 'approved', expiresAt: invitation.expiresAt };
   }
 
   /**
-   * Approves an invitation request.
-   * @param {string} code Invitation code.
-   * @return {Promise<Object>} Promise resolving to updated invitation.
+   * Lazily creates the invitation store.
+   * @return {!Map<string, Object>} id -> invitation record
+   * @protected
    */
-  async approveInvitation(code) {
-    if (!code) {
-      throw new Error('Invitation code is required');
-    }
-
+  invitationStore_() {
     if (!this.invitations_) {
-      throw new Error('Invitation not found');
+      this.invitations_ = new Map();
+    }
+    return this.invitations_;
+  }
+
+  /**
+   * Persists invitations. The base class keeps them in memory; persistent
+   * providers (file) override this.
+   * @return {Promise<void>}
+   * @protected
+   */
+  async persistInvitations_() {}
+
+  /**
+   * Hashes an invitation code for storage and lookup.
+   * @param {string} code Plaintext code.
+   * @return {string} Hex SHA-256 digest.
+   * @protected
+   */
+  hashInvitationCode_(code) {
+    return crypto.createHash('sha256').update(String(code).trim().toUpperCase()).digest('hex');
+  }
+
+  /**
+   * Gives an invitation a fresh code and expiry. Any previous code stops working.
+   * @param {!Object} invitation Invitation record (mutated).
+   * @return {string} The plaintext code, to be shown or sent once.
+   * @protected
+   */
+  issueInvitationCode_(invitation) {
+    const code = 'INV-' + crypto.randomBytes(10).toString('hex').toUpperCase();
+    invitation.codeHash = this.hashInvitationCode_(code);
+    invitation.codeHint = code.slice(-4);
+    invitation.status = 'approved';
+    invitation.approvedAt = new Date();
+    invitation.expiresAt = new Date(Date.now() + this.invitationConfig_().ttlMs);
+    return code;
+  }
+
+  /**
+   * Finds an invitation by its plaintext code (constant-time hash compare).
+   * @param {string} code Plaintext code.
+   * @return {?Object} The invitation record, or null.
+   * @protected
+   */
+  findInvitationByCode_(code) {
+    if (typeof code !== 'string' || !code || code.length > 200) return null;
+    const wanted = Buffer.from(this.hashInvitationCode_(code), 'hex');
+    let found = null;
+    for (const invitation of this.invitationStore_().values()) {
+      if (!invitation.codeHash) continue;
+      const have = Buffer.from(invitation.codeHash, 'hex');
+      if (have.length === wanted.length && crypto.timingSafeEqual(have, wanted)) {
+        found = invitation;
+      }
+    }
+    return found;
+  }
+
+  /**
+   * Finds an invitation by id, falling back to its code.
+   * @param {string} idOrCode Invitation id or plaintext code.
+   * @return {?Object} The invitation record, or null.
+   * @protected
+   */
+  findInvitation_(idOrCode) {
+    if (!idOrCode) return null;
+    return this.invitationStore_().get(idOrCode) || this.findInvitationByCode_(idOrCode);
+  }
+
+  /**
+   * Returns the fields of an invitation that are safe to show an admin.
+   * @param {!Object} invitation Invitation record.
+   * @param {string=} code Plaintext code to include (only right after issuing it).
+   * @return {!Object}
+   * @protected
+   */
+  publicInvitation_(invitation, code) {
+    const view = {
+      id: invitation.id,
+      name: invitation.name,
+      email: invitation.email,
+      mobile: invitation.mobile || null,
+      status: invitation.status,
+      source: invitation.source,
+      codeHint: invitation.codeHint || null,
+      createdAt: invitation.createdAt,
+      approvedAt: invitation.approvedAt || null,
+      usedAt: invitation.usedAt || null,
+      expiresAt: invitation.expiresAt || null
+    };
+    if (code) view.code = code;
+    return view;
+  }
+
+  /**
+   * Validates and normalises invitee details.
+   * @param {Object} data Raw input.
+   * @return {{name: string, email: string, mobile: ?string}}
+   * @throws {Error} When name or email is missing or malformed.
+   * @protected
+   */
+  normalizeInvitee_(data) {
+    const { name, email, mobile } = data || {};
+    if (!name || !email || typeof name !== 'string' || typeof email !== 'string') {
+      throw new Error('Name and email are required');
+    }
+    const cleanEmail = email.trim().toLowerCase();
+    if (cleanEmail.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
+      throw new Error('A valid email address is required');
+    }
+    const cleanName = name.trim().slice(0, 200);
+    if (!cleanName) {
+      throw new Error('Name and email are required');
+    }
+    return {
+      name: cleanName,
+      email: cleanEmail,
+      mobile: typeof mobile === 'string' && mobile.trim() ? mobile.trim().slice(0, 40) : null
+    };
+  }
+
+  /**
+   * Creates and stores a new invitation record.
+   * @param {{name: string, email: string, mobile: ?string}} invitee Invitee.
+   * @param {string} source 'public' or 'admin'.
+   * @return {!Object} The record (status 'pending').
+   * @protected
+   */
+  newInvitation_(invitee, source) {
+    const invitation = {
+      id: crypto.randomUUID(),
+      ...invitee,
+      status: 'pending',
+      source,
+      codeHash: null,
+      codeHint: null,
+      createdAt: new Date(),
+      approvedAt: null,
+      usedAt: null,
+      expiresAt: null
+    };
+    this.invitationStore_().set(invitation.id, invitation);
+    return invitation;
+  }
+
+  /**
+   * Sends a code through the configured transport, if there is one.
+   * @param {!Object} invitation Invitation record.
+   * @param {string} code Plaintext code.
+   * @return {Promise<boolean>} Whether the code was handed to a transport.
+   * @protected
+   */
+  async deliverInvitationCode_(invitation, code) {
+    const { sendCode } = this.invitationConfig_();
+    if (!sendCode) return false;
+    try {
+      await sendCode({ email: invitation.email, name: invitation.name, code, expiresAt: invitation.expiresAt });
+      return true;
+    } catch (error) {
+      this.logger?.warn?.(`[${this.constructor.name}] Invitation code delivery failed`, {
+        email: invitation.email,
+        error: error.message
+      });
+      return false;
+    }
+  }
+
+  /**
+   * Handles a *public* invitation request according to `invitations.mode`.
+   * Except in `open` mode the response never contains a code.
+   *
+   * @param {Object} data Invitation request data.
+   * @param {string} data.name Full name.
+   * @param {string} data.email Email address.
+   * @param {string=} data.mobile Mobile number.
+   * @return {Promise<Object>} `{ email, name, status }` where status is
+   *     'pending' or 'sent' (plus `code` and `expiresAt` in open mode).
+   * @throws {ClientError} 403 in admin-only mode.
+   */
+  async requestInvitation(data) {
+    const invitee = this.normalizeInvitee_(data);
+    const config = this.invitationConfig_();
+
+    if (config.mode === 'admin-only') {
+      throw new ClientError(403, 'Invitations are created by an administrator');
     }
 
-    const invitation = this.invitations_.get(code);
+    // One live invitation per email: repeat requests get the same answer and
+    // do not create (or email) anything new.
+    const existing = Array.from(this.invitationStore_().values()).find((inv) =>
+      inv.email === invitee.email
+      && (inv.status === 'pending' || (inv.status === 'approved' && inv.expiresAt > new Date())));
+    if (existing && config.mode !== 'open') {
+      return {
+        email: invitee.email,
+        name: invitee.name,
+        status: existing.status === 'approved' ? 'sent' : 'pending'
+      };
+    }
+
+    const invitation = this.newInvitation_(invitee, 'public');
+    let response = { email: invitee.email, name: invitee.name, status: 'pending' };
+
+    if (config.mode === 'open') {
+      const code = this.issueInvitationCode_(invitation);
+      response = { code, email: invitee.email, name: invitee.name, status: 'approved', expiresAt: invitation.expiresAt };
+    } else if (config.mode === 'domain-allowlist' && config.sendCode
+      && config.allowedDomains.includes(invitee.email.split('@')[1])) {
+      const code = this.issueInvitationCode_(invitation);
+      if (await this.deliverInvitationCode_(invitation, code)) {
+        response.status = 'sent';
+      } else {
+        // Could not prove ownership of the address: fall back to approval.
+        invitation.status = 'pending';
+        invitation.codeHash = null;
+        invitation.codeHint = null;
+        invitation.approvedAt = null;
+        invitation.expiresAt = null;
+      }
+    }
+
+    await this.persistInvitations_();
+    if (this.eventEmitter_) {
+      this.eventEmitter_.emit('auth:invitation-requested', {
+        id: invitation.id,
+        email: invitee.email,
+        status: invitation.status,
+        mode: config.mode
+      });
+    }
+    return response;
+  }
+
+  /**
+   * Creates an approved invitation on behalf of an administrator (or trusted
+   * application code) and returns its code once.
+   *
+   * @param {Object} data Invitee: `name`, `email`, optional `mobile`.
+   * @param {Object=} context Optional `{ createdBy }` for the audit event.
+   * @return {Promise<Object>} The invitation, including its plaintext `code`.
+   */
+  async createInvitation(data, context = {}) {
+    const invitee = this.normalizeInvitee_(data);
+    const invitation = this.newInvitation_(invitee, 'admin');
+    const code = this.issueInvitationCode_(invitation);
+    await this.persistInvitations_();
+    if (this.eventEmitter_) {
+      this.eventEmitter_.emit('auth:invitation-created', {
+        id: invitation.id,
+        email: invitee.email,
+        createdBy: context.createdBy || null
+      });
+    }
+    return this.publicInvitation_(invitation, code);
+  }
+
+  /**
+   * Approves a pending invitation. A code is issued, sent through the
+   * configured transport if there is one, and returned to the approving admin.
+   *
+   * @param {string} idOrCode Invitation id (or code).
+   * @param {Object=} context Optional `{ approvedBy }` for the audit event.
+   * @return {Promise<Object>} The invitation, including its plaintext `code`
+   *     and `delivered` (whether a transport sent it).
+   */
+  async approveInvitation(idOrCode, context = {}) {
+    if (!idOrCode) {
+      throw new Error('Invitation id is required');
+    }
+    const invitation = this.findInvitation_(idOrCode);
     if (!invitation) {
       throw new Error('Invitation not found');
     }
-
     if (invitation.status !== 'pending') {
       throw new Error('Only pending invitations can be approved');
     }
 
-    invitation.status = 'approved';
-    invitation.approvedAt = new Date();
-    invitation.expiresAt = new Date(Date.now() + (7 * 24 * 60 * 60 * 1000)); // 7 days
+    const code = this.issueInvitationCode_(invitation);
+    const delivered = await this.deliverInvitationCode_(invitation, code);
+    await this.persistInvitations_();
 
     if (this.eventEmitter_) {
-      this.eventEmitter_.emit('auth:invitation-approved', { code, email: invitation.email });
+      this.eventEmitter_.emit('auth:invitation-approved', {
+        id: invitation.id,
+        email: invitation.email,
+        approvedBy: context.approvedBy || null,
+        delivered
+      });
     }
-
-    return invitation;
+    return { ...this.publicInvitation_(invitation, code), delivered };
   }
 
   /**
    * Redeems an invitation to create a new user account.
    * The new account's identity is the invited email and its full name is
-   * taken from the invitation.
+   * taken from the invitation. A code works once.
    * @param {string} code Invitation code.
    * @param {string} password Password for new account.
    * @return {Promise<Object>} Promise resolving to created user object.
@@ -992,69 +1276,70 @@ class AuthBase {
       throw new Error('Invitation code and password are required');
     }
 
-    if (!this.invitations_) {
-      throw new Error('Invitation not found');
-    }
-
-    const invitation = this.invitations_.get(code);
+    const invitation = this.findInvitationByCode_(code);
     if (!invitation) {
       throw new Error('Invitation not found');
     }
-
     if (invitation.status === 'used') {
       throw new Error('This invitation has already been used');
     }
-
     if (invitation.status !== 'approved') {
       throw new Error('Invitation has not been approved');
     }
-
-    if (invitation.expiresAt && invitation.expiresAt < new Date()) {
+    if (invitation.expiresAt && new Date(invitation.expiresAt) < new Date()) {
       throw new Error('Invitation has expired');
     }
 
-    // Validate password strength
     const strength = await this.validatePasswordStrength(password);
     if (!strength.valid) {
       throw new Error('Password does not meet strength requirements: ' + strength.errors.join(', '));
     }
 
-    // Create user from invitation. The email is the account identity and the
-    // full name is carried over from the invitation.
-    const user = await this.createUser({
-      email: invitation.email,
-      fullName: invitation.name,
-      password: password,
-      role: 'user'
-    });
-
-    // Mark invitation as used
+    // Claim the code before the (slow, bcrypt) user creation so two concurrent
+    // redemptions cannot both succeed.
     invitation.status = 'used';
     invitation.usedAt = new Date();
+    const codeHash = invitation.codeHash;
+    invitation.codeHash = null;
 
-    if (this.eventEmitter_) {
-      this.eventEmitter_.emit('auth:invitation-redeemed', { code, email: invitation.email });
+    let user;
+    try {
+      user = await this.createUser({
+        email: invitation.email,
+        fullName: invitation.name,
+        password: password,
+        role: 'user'
+      });
+    } catch (error) {
+      invitation.status = 'approved';
+      invitation.usedAt = null;
+      invitation.codeHash = codeHash;
+      throw error;
     }
 
+    await this.persistInvitations_();
+    if (this.eventEmitter_) {
+      this.eventEmitter_.emit('auth:invitation-redeemed', { id: invitation.id, email: invitation.email });
+    }
     return user;
   }
 
   /**
-   * Batch creates invitations for multiple users.
+   * Batch creates approved invitations (admin operation).
    * Skips rows missing a name or email; collects per-row errors without aborting the batch.
    * @param {Array<{name: string, email: string}>} invites Array of invitee objects.
+   * @param {Object=} context Optional `{ createdBy }` for the audit event.
    * @return {Promise<{created: Array<Object>, errors: Array<{email: string, error: string}>}>}
    */
-  async batchCreateInvitations(invites) {
+  async batchCreateInvitations(invites, context = {}) {
     const created = [];
     const errors = [];
 
     for (const item of invites) {
       try {
-        const invitation = await this.requestInvitation({ name: item.name, email: item.email });
-        created.push(invitation);
+        created.push(await this.createInvitation({ name: item && item.name, email: item && item.email }, context));
       } catch (err) {
-        errors.push({ email: item.email || '(missing)', error: err.message });
+        errors.push({ email: (item && item.email) || '(missing)', error: err.message });
       }
     }
 
@@ -1062,88 +1347,53 @@ class AuthBase {
   }
 
   /**
-   * Recreates an invitation by generating a fresh code for the same invitee.
-   * The old code is invalidated and a new 7-day expiry is set.
-   * @param {string} oldCode Existing invitation code.
-   * @return {Promise<Object>} Promise resolving to the new invitation object.
+   * Issues a fresh code for an invitation (admin operation). The old code is
+   * invalidated and a new expiry is set; a pending invitation becomes approved.
+   * @param {string} idOrCode Invitation id (or existing code).
+   * @return {Promise<Object>} The invitation, including its new plaintext `code`.
    */
-  async recreateInvitation(oldCode) {
-    if (!oldCode) {
-      throw new Error('Invitation code is required');
+  async recreateInvitation(idOrCode) {
+    if (!idOrCode) {
+      throw new Error('Invitation id is required');
     }
-
-    if (!this.invitations_) {
+    const invitation = this.findInvitation_(idOrCode);
+    if (!invitation) {
       throw new Error('Invitation not found');
     }
-
-    const existing = this.invitations_.get(oldCode);
-    if (!existing) {
-      throw new Error('Invitation not found');
-    }
-
-    if (existing.status === 'used') {
+    if (invitation.status === 'used') {
       throw new Error('Cannot recreate an invitation that has already been redeemed');
     }
 
-    // Remove old code
-    this.invitations_.delete(oldCode);
-
-    const crypto = require('crypto');
-    const newCode = 'INV-' + crypto.randomBytes(6).toString('hex').toUpperCase();
-    const now = new Date();
-
-    const invitation = {
-      code: newCode,
-      name: existing.name,
-      email: existing.email,
-      mobile: existing.mobile,
-      status: 'approved',
-      createdAt: now,
-      approvedAt: now,
-      usedAt: null,
-      expiresAt: new Date(now.getTime() + (7 * 24 * 60 * 60 * 1000))
-    };
-
-    this.invitations_.set(newCode, invitation);
-
+    const code = this.issueInvitationCode_(invitation);
+    await this.persistInvitations_();
     if (this.eventEmitter_) {
-      this.eventEmitter_.emit('auth:invitation-recreated', { oldCode, newCode, email: invitation.email });
+      this.eventEmitter_.emit('auth:invitation-recreated', { id: invitation.id, email: invitation.email });
     }
-
-    return { code: newCode, email: invitation.email, name: invitation.name, status: 'approved', expiresAt: invitation.expiresAt };
+    return this.publicInvitation_(invitation, code);
   }
 
   /**
-   * Lists all invitations.
+   * Lists all invitations (without codes or code hashes).
    * @return {Promise<Array<Object>>} Promise resolving to array of invitations.
    */
   async listInvitations() {
-    if (!this.invitations_) {
-      return [];
-    }
-    return Array.from(this.invitations_.values());
+    return Array.from(this.invitationStore_().values()).map((inv) => this.publicInvitation_(inv));
   }
 
   /**
-   * Gets a specific invitation by code.
+   * Looks up an invitation by its plaintext code (used by the redeem page).
    * @param {string} code Invitation code.
-   * @return {Promise<Object>} Promise resolving to invitation object.
+   * @return {Promise<Object>} Promise resolving to the invitation (no code hash).
    */
   async getInvitation(code) {
     if (!code) {
       throw new Error('Invitation code is required');
     }
-
-    if (!this.invitations_) {
-      throw new Error('Invitation not found');
-    }
-
-    const invitation = this.invitations_.get(code);
+    const invitation = this.findInvitationByCode_(code);
     if (!invitation) {
       throw new Error('Invitation not found');
     }
-
-    return invitation;
+    return this.publicInvitation_(invitation);
   }
 
   /**

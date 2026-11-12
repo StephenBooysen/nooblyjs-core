@@ -2445,9 +2445,22 @@
             }
 
             tbody.innerHTML = invitations.map(inv => {
-                const redeemLink = `${window.location.origin}/services/authservice/redeem-invitation?code=${encodeURIComponent(inv.code)}`;
-                const shortCode = inv.code;
-                const canRecreate = inv.status !== 'used';
+                // Codes are stored hashed (feature 16): the list shows only the
+                // last four characters. Approve or Recreate issues a code and
+                // shows it once.
+                const hint = inv.codeHint ? '…' + inv.codeHint : '—';
+                let action = '<span class="text-muted small">Redeemed</span>';
+                if (inv.status === 'pending') {
+                    action = `
+                        <button class="btn btn-xs btn-outline-success" onclick="approveInvitation('${escapeAttribute(inv.id)}')">
+                            <i class="bi bi-check2"></i> Approve
+                        </button>`;
+                } else if (inv.status !== 'used') {
+                    action = `
+                        <button class="btn btn-xs btn-outline-warning" onclick="recreateInvitation('${escapeAttribute(inv.id)}')">
+                            <i class="bi bi-arrow-clockwise"></i> New code
+                        </button>`;
+                }
                 return `
                 <tr>
                     <td>${escapeHtml(inv.name)}</td>
@@ -2461,36 +2474,46 @@
                             ${capitalize(inv.status)}
                         </span>
                     </td>
-                    <td>
-                        <span class="font-monospace small">${escapeHtml(shortCode)}</span>
-                        <button class="btn btn-xs btn-outline-secondary ms-1" title="Copy code"
-                            onclick="copyToClipboard('${escapeAttribute(shortCode)}', this)">
-                            <i class="bi bi-clipboard"></i>
-                        </button>
-                        <button class="btn btn-xs btn-outline-primary ms-1" title="Copy invitation link"
-                            onclick="copyToClipboard('${escapeAttribute(redeemLink)}', this, 'Link copied!')">
-                            <i class="bi bi-link-45deg"></i> Link
-                        </button>
-                    </td>
+                    <td><span class="font-monospace small">${escapeHtml(hint)}</span></td>
                     <td>${inv.expiresAt ? formatDate(inv.expiresAt) : '—'}</td>
-                    <td>
-                        ${canRecreate ? `
-                            <button class="btn btn-xs btn-outline-warning" onclick="recreateInvitation('${escapeAttribute(inv.code)}')">
-                                <i class="bi bi-arrow-clockwise"></i> Recreate
-                            </button>
-                        ` : '<span class="text-muted small">Redeemed</span>'}
-                    </td>
+                    <td>${action}</td>
                 </tr>`;
             }).join('');
         }
 
-        async function recreateInvitation(code) {
-            if (!confirm('Recreate this invitation? The old code will be invalidated and a new one generated.')) return;
+        function showIssuedInvitation(invitation) {
+            const link = `${window.location.origin}/services/authservice/redeem-invitation?code=${encodeURIComponent(invitation.code)}`;
+            document.getElementById('newInvitationCode').textContent = invitation.code;
+            document.getElementById('newInvitationLink').value = link;
+            document.getElementById('newInvitationResult').classList.remove('d-none');
+        }
+
+        async function approveInvitation(id) {
             try {
-                const response = await fetch(`/services/authservice/api/invitations/${code}/recreate`, { method: 'POST' });
+                const response = await fetch(`/services/authservice/api/invitations/${encodeURIComponent(id)}/approve`, { method: 'PUT' });
                 const result = await response.json();
                 if (result.success) {
-                    showAlert('Invitation recreated. New code: ' + result.data.code, 'success');
+                    showIssuedInvitation(result.data);
+                    showAlert(result.data.delivered
+                        ? 'Invitation approved and emailed.'
+                        : 'Invitation approved. Copy the link below and send it to the invitee.', 'success');
+                    loadInvitationsTab();
+                } else {
+                    showAlert('Error: ' + result.error, 'error');
+                }
+            } catch (error) {
+                showAlert('Error approving invitation: ' + error.message, 'error');
+            }
+        }
+
+        async function recreateInvitation(id) {
+            if (!confirm('Issue a new code for this invitation? The old code will stop working.')) return;
+            try {
+                const response = await fetch(`/services/authservice/api/invitations/${encodeURIComponent(id)}/recreate`, { method: 'POST' });
+                const result = await response.json();
+                if (result.success) {
+                    showIssuedInvitation(result.data);
+                    showAlert('New code issued. Copy the link below and send it to the invitee.', 'success');
                     loadInvitationsTab();
                 } else {
                     showAlert('Error: ' + result.error, 'error');
@@ -2535,11 +2558,7 @@
                 });
                 const result = await response.json();
                 if (result.success) {
-                    const code = result.data.code;
-                    const link = `${window.location.origin}/services/authservice/redeem-invitation?code=${encodeURIComponent(code)}`;
-                    document.getElementById('newInvitationCode').textContent = code;
-                    document.getElementById('newInvitationLink').value = link;
-                    document.getElementById('newInvitationResult').classList.remove('d-none');
+                    showIssuedInvitation(result.data);
                     document.getElementById('createInvitationForm').reset();
                     loadInvitationsTab();
                 } else {
