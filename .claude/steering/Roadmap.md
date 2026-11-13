@@ -1,7 +1,7 @@
 # NooblyJS Core Roadmap
 
 **Created:** 2026-11-12 · **Owner:** NooblyJS Core team · **Review:** monthly
-**Sources:** [Engineering acceleration features](../specs/features/00.%20Roadmap%20-%20Engineering%20Acceleration.md) · [Production readiness and security review 2026-11-12](../specs/go-to-market/PRODUCTION_READINESS_REVIEW_2026-11-12.md) · [Semantic search](./features/01.%20Feature%20Searching%20Service%20Semantic%20Search.md)
+**Sources:** [Engineering acceleration features](../specs/features/00.%20Roadmap%20-%20Engineering%20Acceleration.md) · [Production readiness and security review 2026-11-12](../specs/go-to-market/PRODUCTION_READINESS_REVIEW_2026-11-12.md) · [Semantic search](../specs/features/01.%20Feature%20Searching%20Service%20Semantic%20Search.md)
 
 ## Why this order
 
@@ -52,7 +52,7 @@ Status (2026-11-13): started. Done in part: 03 (MCP read tools, write tools behi
 | # | Change | Impact | Effort |
 |---|---|---|---|
 | 03 | [MCP server for the registry](../specs/features/03.%20Feature%20MCP%20Server.md) | Claude Code, Cursor and other agents can inspect and drive a running app | M |
-| 01 | [Semantic search Phases 2–4](./features/01.%20Feature%20Searching%20Service%20Semantic%20Search.md) | Real embeddings, semantic HTTP routes and UI | M |
+| 01 | [Semantic search Phases 2–4](../specs/features/01.%20Feature%20Searching%20Service%20Semantic%20Search.md) | Real embeddings, semantic HTTP routes and UI | M |
 | 05 | [Knowledge service (RAG)](../specs/features/05.%20Feature%20Knowledge%20Service%20RAG.md) | Cited answers over any filing source, synced incrementally | M |
 | 10 | [Unified OpenAPI and generated clients](../specs/features/10.%20Feature%20Unified%20OpenAPI%20and%20Generated%20Clients.md) | One accurate spec; typed clients; docs can't drift | S–M |
 | 09 | [Developer CLI](../specs/features/09.%20Feature%20Developer%20CLI.md) | `create`, `add`, `doctor`; conventions automated | M |

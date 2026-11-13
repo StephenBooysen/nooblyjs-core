@@ -906,7 +906,18 @@ Sync state is saved to `.knowledge-state.json` in the source folder. Pass `resto
 The knowledge service creates its own vector search instance (`instanceName: 'knowledge'`, hash embeddings by default). Pass `embedding: { backend: 'aiservice', aiservice }` through the searching dependency for real embeddings. 
 REST: `POST /services/knowledge/api/sync`, `/retrieve` and `/ask` (body `{ question, k }`), and `GET /services/knowledge/api/status`. The editor role has these; a plain user does not.
 
-Semantic search over any index with a vector provider: `GET /services/searching/api/semantic?query=...&index=...&mode=hybrid|semantic`.
+Semantic search over any index with a vector provider: `GET /services/searching/api/semantic?query=...&index=...&mode=hybrid|semantic`. The searching dashboard has a Match option (Keywords, hybrid, semantic) for the same search.
+
+Meaning search needs embeddings. With the `aiservice` backend, documents and queries are embedded by the AI service's `embed()`:
+
+```javascript
+const search = serviceRegistry.getService('searching', 'vector', {
+  instanceName: 'meaning',
+  embedding: { backend: 'aiservice', aiservice: serviceRegistry.aiservice('claude', { apiKey }), dimensions: 768 }
+});
+```
+
+If embedding fails, the documents stay searchable by keyword. `lastEmbedError` says why; the `search:embed:complete` event still fires with `vectors: 0`, which is a known gap.
 
 ## Model Context Protocol (MCP)
 

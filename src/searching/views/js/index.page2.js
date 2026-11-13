@@ -524,14 +524,21 @@
             try {
                 setLoading('searchForm', true);
 
+                const mode = document.getElementById('searchMode')?.value || 'keyword';
                 let url = `/services/searching/api/search/${encodeURIComponent(term)}`;
                 if (searchContainer) {
                     url += `?searchContainer=${encodeURIComponent(searchContainer)}`;
                 }
+                if (mode !== 'keyword') {
+                    // Meaning-based search (feature 01). The response shows the same way as keyword search.
+                    const params = new URLSearchParams({ query: term, mode });
+                    if (searchContainer) params.set('index', searchContainer);
+                    url = `/services/searching/api/semantic?${params}`;
+                }
 
                 const result = await makeRequest(url);
                 showResponse('searchResponse', 'searchResponseContent', result);
-                showAlert(`Search completed for term: ${term} in index: ${searchContainer || 'all'}`);
+                showAlert(`Search completed for term: ${term} in index: ${searchContainer || 'all'} (${mode})`);
 
                 // Refresh analytics
                 if (document.getElementById('dashboard').classList.contains('show')) {
@@ -1064,12 +1071,26 @@
             try {
                 resultsContainer.innerHTML = '<div style="text-align: center; color: #999;"><i class="bi bi-hourglass-split"></i> Searching...</div>';
 
-                let url = `/services/searching/api/search/${encodeURIComponent(term)}`;
-                if (currentSearchIndex) {
-                    url += `?searchContainer=${encodeURIComponent(currentSearchIndex)}`;
+                const mode = document.getElementById('searchMode')?.value || 'keyword';
+                let results;
+                if (mode === 'keyword') {
+                    let url = `/services/searching/api/search/${encodeURIComponent(term)}`;
+                    if (currentSearchIndex) {
+                        url += `?searchContainer=${encodeURIComponent(currentSearchIndex)}`;
+                    }
+                    results = await fetch(url).then(r => r.json());
+                } else {
+                    // Meaning-based search (feature 01): the semantic route answers { success, data }.
+                    const params = new URLSearchParams({ query: term, mode });
+                    if (currentSearchIndex) params.set('index', currentSearchIndex);
+                    const response = await fetch(`/services/searching/api/semantic?${params}`);
+                    const body = await response.json();
+                    if (!response.ok || body.success === false) {
+                        resultsContainer.innerHTML = `<div style="color: #d32f2f; text-align: center;"><i class="bi bi-exclamation-triangle"></i> <p>${escapeHtml(body.error || 'Meaning search is not available')}</p></div>`;
+                        return;
+                    }
+                    results = body.data;
                 }
-                const results = await fetch(url)
-                    .then(r => r.json());
 
                 displaySearchResults(results, term);
             } catch (error) {

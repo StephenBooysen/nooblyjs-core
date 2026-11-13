@@ -326,6 +326,15 @@
                                     <input type="text" id="searchTerm" class="form-control" placeholder="Enter search term" required>
                                     <div class="form-text">The term to search for in the documents</div>
                                 </div>
+                                <div class="mb-3">
+                                    <label class="form-label" for="searchMode">Match</label>
+                                    <select id="searchMode" class="form-select">
+                                        <option value="keyword" selected>Keywords</option>
+                                        <option value="hybrid">Meaning and keywords (hybrid)</option>
+                                        <option value="semantic">Meaning only (semantic)</option>
+                                    </select>
+                                    <div class="form-text">Meaning search needs a vector search index. Other providers answer with an error.</div>
+                                </div>
                                 <div class="d-flex flex-wrap gap-2">
                                     <button type="submit" class="btn btn-primary">Search</button>
                                 </div>
