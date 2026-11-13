@@ -200,7 +200,7 @@
                         ${expiryLine}
                     </div>
                     <div class="token-actions">
-                        <button class="btn btn-sm btn-outline-danger" onclick="deleteToken('${escapeAttribute(token.id)}')">
+                        <button class="btn btn-sm btn-outline-danger" data-onclick="deleteToken" data-onclick-args="${nooblyArgs(token.id)}">
                             <i class="bi bi-trash"></i> Delete
                         </button>
                     </div>

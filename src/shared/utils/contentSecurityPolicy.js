@@ -1,10 +1,12 @@
 /**
  * @fileoverview Content-Security-Policy for the NooblyJS dashboards (N-7).
  *
- * The service dashboards use inline <script> blocks and inline event handlers,
- * so scripts need 'unsafe-inline'. The policy still pins every external origin
- * (jsDelivr, unpkg, Google Fonts, Google Analytics), blocks plugins, <base>
- * hijacking and foreign framing, and restricts form targets.
+ * Scripts are loaded from files and clicks use data-onclick attributes handled
+ * by /services/js/actions.js, so no inline script or inline handler is allowed.
+ * Styles still allow 'unsafe-inline' (the dashboards use style attributes). The
+ * policy pins every external origin (jsDelivr, unpkg, Google Fonts, Google
+ * Analytics), blocks plugins, <base> hijacking and foreign framing, and
+ * restricts form targets.
  *
  * Environment:
  *   CSP_MODE          enforce (default) | report-only | off
@@ -30,8 +32,8 @@ const ANALYTICS_SOURCES = ['https://www.googletagmanager.com', 'https://*.google
 function buildCspDirectives({ extraSources = [] } = {}) {
   return {
     defaultSrc: ["'self'"],
-    scriptSrc: ["'self'", "'unsafe-inline'", ...CDN_SOURCES, ...ANALYTICS_SOURCES, ...extraSources],
-    scriptSrcAttr: ["'unsafe-inline'"],
+    scriptSrc: ["'self'", ...CDN_SOURCES, ...ANALYTICS_SOURCES, ...extraSources],
+    scriptSrcAttr: ["'none'"],
     styleSrc: ["'self'", "'unsafe-inline'", ...CDN_SOURCES, 'https://fonts.googleapis.com', ...extraSources],
     fontSrc: ["'self'", 'data:', 'https://fonts.gstatic.com', ...CDN_SOURCES],
     imgSrc: ["'self'", 'data:', 'blob:', 'https:', ...extraSources],

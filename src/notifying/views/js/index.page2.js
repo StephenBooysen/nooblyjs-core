@@ -1338,7 +1338,7 @@
                         ${notificationStore.subscriptions.map(topic => `
                             <div class="subscription-topic">
                                 <span class="subscription-topic-name">${topic}</span>
-                                <button class="subscription-btn subscribed" onclick="unsubscribeTopic('${topic}')">Unsubscribe</button>
+                                <button class="subscription-btn subscribed" data-onclick="unsubscribeTopic" data-onclick-args="${nooblyArgs(topic)}">Unsubscribe</button>
                             </div>
                         `).join('')}
                     </div>

@@ -184,10 +184,10 @@
                             </div>
                         </div>
                         <div class="index-actions">
-                            <button class="btn btn-outline-primary btn-sm" onclick="clearIndex('${escapeHtml(index.name)}')">
+                            <button class="btn btn-outline-primary btn-sm" data-onclick="clearIndex" data-onclick-args="${nooblyArgs(index.name)}">
                                 <i class="bi bi-trash"></i> Clear
                             </button>
-                            <button class="btn btn-outline-danger btn-sm" onclick="deleteIndex('${escapeHtml(index.name)}')">
+                            <button class="btn btn-outline-danger btn-sm" data-onclick="deleteIndex" data-onclick-args="${nooblyArgs(index.name)}">
                                 <i class="bi bi-x-circle"></i> Delete
                             </button>
                         </div>
@@ -1022,7 +1022,7 @@
                                 displayText = String(item);
                             }
 
-                            return `<div class="search-suggestion-item" style="padding: 10px 15px; cursor: pointer; border-bottom: 1px solid #f0f0f0; hover: background-color: #f9f9f9;" onclick="selectSuggestion('${displayText.replace(/'/g, "\\'")}')">
+                            return `<div class="search-suggestion-item" style="padding: 10px 15px; cursor: pointer; border-bottom: 1px solid #f0f0f0; hover: background-color: #f9f9f9;" data-onclick="selectSuggestion" data-onclick-args="${nooblyArgs(displayText)}">
                                 <i class="bi bi-search" style="margin-right: 8px; color: #666;"></i>
                                 <span>${escapeHtml(displayText)}</span>
                             </div>`;
@@ -1103,7 +1103,7 @@
                         .join('')
                     : `<div>${escapeHtml(String(item))}</div>`;
 
-                return `<div style="padding: 12px; border: 1px solid #e0e0e0; border-radius: 4px; margin-bottom: 10px; background: #fafafa; cursor: pointer;" onclick="showResultDetail(${index})">
+                return `<div style="padding: 12px; border: 1px solid #e0e0e0; border-radius: 4px; margin-bottom: 10px; background: #fafafa; cursor: pointer;" data-onclick="showResultDetail" data-onclick-args="${nooblyArgs(index)}">
                     ${itemContent}
                 </div>`;
             }).join('');

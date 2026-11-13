@@ -240,7 +240,7 @@ const NooblyJSNavigation = {
 
             navHTML += `
                 <div class="core-sidebar-section">
-                    <div class="core-sidebar-title" role="button" style="cursor: pointer;" onclick="NooblyJSNavigation.toggleClassificationNav('${classification}')">
+                    <div class="core-sidebar-title" role="button" style="cursor: pointer;" data-onclick="NooblyJSNavigation.toggleClassificationNav" data-onclick-args="${nooblyArgs(classification)}">
                         <span><i class="bi ${classConfig.icon}"></i> ${classConfig.label}</span>
                         <span class="toggle" id="toggle-icon-${classification}">▼</span>
                     </div>
@@ -284,7 +284,7 @@ const NooblyJSNavigation = {
      *
      * @example
      * // Used as onclick handler in navigation
-     * onclick="NooblyJSNavigation.toggleClassificationNav('business')"
+     * data-onclick="NooblyJSNavigation.toggleClassificationNav" data-onclick-args="[&quot;business&quot;]"
      */
     toggleClassificationNav(classification) {
         const section = document.getElementById(`nav-services-${classification}`);

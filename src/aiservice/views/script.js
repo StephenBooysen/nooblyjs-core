@@ -1000,12 +1000,12 @@ async function loadTrainDocs() {
             <td style="text-align:center;">
                 <div class="d-flex gap-1 justify-content-center">
                     <button class="btn btn-secondary btn-sm"
-                        onclick="editTrainDoc(${JSON.stringify(safeKey)}, ${JSON.stringify(safeText)})"
+                        data-onclick="editTrainDoc" data-onclick-args="${nooblyArgs(JSON.stringify(safeKey), JSON.stringify(safeText))}"
                         title="Edit">
                         <i class="bi bi-pencil"></i>
                     </button>
                     <button class="btn btn-secondary btn-sm" style="background:var(--danger-soft,#fef2f2); color:#dc2626; border-color:#fca5a5;"
-                        onclick="deleteTrainDoc(${JSON.stringify(safeKey)})"
+                        data-onclick="deleteTrainDoc" data-onclick-args="${nooblyArgs(JSON.stringify(safeKey))}"
                         title="Delete">
                         <i class="bi bi-trash"></i>
                     </button>

@@ -65,7 +65,7 @@
                             <div class="subscription-topic">📌 ${topic}</div>
                             <div class="subscription-id">${subId}</div>
                         </div>
-                        <button class="btn-small" onclick="unsubscribe('${topic}', '${subId}')">Remove</button>
+                        <button class="btn-small" data-onclick="unsubscribe" data-onclick-args="${nooblyArgs(topic, subId)}">Remove</button>
                     `;
                     container.appendChild(item);
                 }

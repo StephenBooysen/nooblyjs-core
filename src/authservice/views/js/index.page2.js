@@ -337,7 +337,7 @@
                 return 0;
             }
 
-            // Never fall back to Math.random() for passwords (P0-3).
+            // Never fall back to a non-cryptographic random source for passwords (P0-3).
             if (!(window.crypto && window.crypto.getRandomValues)) {
                 throw new Error('Secure random number generator unavailable in this browser');
             }
@@ -1326,9 +1326,9 @@
                     <td><span class="badge ${user.isActive ? 'bg-success' : 'bg-danger'}">${user.isActive ? 'Active' : 'Inactive'}</span></td>
                     <td>${formatDate(user.lastLogin)}</td>
                     <td>
-                        <button class="btn btn-xs btn-outline-primary me-1" onclick="editUser('${emailAttr}')" title="Edit user"><i class="bi bi-pencil"></i></button>
-                        <button class="btn btn-xs btn-outline-warning me-1" onclick="resetPassword('${emailAttr}')" title="Reset password"><i class="bi bi-key"></i></button>
-                        <button class="btn btn-xs btn-outline-danger" onclick="deleteUser('${emailAttr}')" title="Delete user"><i class="bi bi-trash"></i></button>
+                        <button class="btn btn-xs btn-outline-primary me-1" data-onclick="editUser" data-onclick-args="${nooblyArgs(emailAttr)}" title="Edit user"><i class="bi bi-pencil"></i></button>
+                        <button class="btn btn-xs btn-outline-warning me-1" data-onclick="resetPassword" data-onclick-args="${nooblyArgs(emailAttr)}" title="Reset password"><i class="bi bi-key"></i></button>
+                        <button class="btn btn-xs btn-outline-danger" data-onclick="deleteUser" data-onclick-args="${nooblyArgs(emailAttr)}" title="Delete user"><i class="bi bi-trash"></i></button>
                     </td>
                 </tr>`;
             }).join('');
@@ -1662,7 +1662,7 @@
                                             <div class="input-group input-group-sm">
                                                 <input type="text" class="form-control font-monospace" value="${escapeAttribute(link)}" readonly>
                                                 <button class="btn btn-outline-secondary" type="button"
-                                                    onclick="copyToClipboard('${escapeAttribute(link)}', this, 'Copied!')">
+                                                    data-onclick="copyToClipboard" data-onclick-args="${nooblyArgs(link, { $this: true }, "Copied!")}">
                                                     <i class="bi bi-clipboard"></i>
                                                 </button>
                                             </div>
@@ -1718,7 +1718,7 @@
                             <h6 class="mb-0">${escapeHtml(capitalize(role))}</h6>
                             <small class="text-muted">Built-in role</small>
                         </div>
-                        <button class="btn btn-xs btn-outline-danger" onclick="deleteRole('${escapeAttribute(role)}')" ${['admin', 'user', 'guest'].includes(role) ? 'disabled' : ''}>
+                        <button class="btn btn-xs btn-outline-danger" data-onclick="deleteRole" data-onclick-args="${nooblyArgs(role)}" ${['admin', 'user', 'guest'].includes(role) ? 'disabled' : ''}>
                             <i class="bi bi-trash"></i>
                         </button>
                     </div>
@@ -1809,12 +1809,12 @@
                     <td>${inv.expiresAt ? formatDate(inv.expiresAt) : '—'}</td>
                     <td>
                         ${canApprove ? `
-                            <button class="btn btn-xs btn-outline-success" onclick="approveInvitation('${escapeAttribute(inv.id)}')">
+                            <button class="btn btn-xs btn-outline-success" data-onclick="approveInvitation" data-onclick-args="${nooblyArgs(inv.id)}">
                                 <i class="bi bi-check2"></i> Approve
                             </button>
                         ` : ''}
                         ${canRecreate ? `
-                            <button class="btn btn-xs btn-outline-warning ms-1" onclick="recreateInvitation('${escapeAttribute(inv.id)}')">
+                            <button class="btn btn-xs btn-outline-warning ms-1" data-onclick="recreateInvitation" data-onclick-args="${nooblyArgs(inv.id)}">
                                 <i class="bi bi-arrow-clockwise"></i> ${canApprove ? 'Issue code' : 'Recreate'}
                             </button>
                         ` : ''}
@@ -1928,3 +1928,8 @@
         document.getElementById('roles-tab')?.addEventListener('shown.bs.tab', loadRolesTab);
         document.getElementById('invitations-tab')?.addEventListener('shown.bs.tab', loadInvitationsTab);
     
+
+/** Hides the "invitation created" panel (called from the dismiss button). */
+function hideNewInvitationResult() {
+    document.getElementById('newInvitationResult')?.classList.add('d-none');
+}

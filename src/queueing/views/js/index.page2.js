@@ -928,7 +928,7 @@
                     console.error('Error loading Swagger documentation:', error);
                     const container = document.getElementById('swagger-ui');
                     if (container) {
-                        container.innerHTML = '<div style="color: red; padding: 20px; border: 1px solid red; border-radius: 4px;"><strong>Error loading API documentation</strong><br>Error: ' + error.message + '<br><button onclick="location.reload()" style="margin-top: 10px; padding: 5px 10px;">Reload Page</button></div>';
+                        container.innerHTML = '<div style="color: red; padding: 20px; border: 1px solid red; border-radius: 4px;"><strong>Error loading API documentation</strong><br>Error: ' + error.message + '<br><button data-onclick="location.reload" data-onclick-args="[]" style="margin-top: 10px; padding: 5px 10px;">Reload Page</button></div>';
                     }
                 });
 
@@ -983,7 +983,7 @@
                     console.error('Critical error initializing Swagger UI:', error);
                     const swaggerContainer = document.getElementById('swagger-ui');
                     if (swaggerContainer) {
-                        swaggerContainer.innerHTML = '<div style="color: red; padding: 20px; border: 1px solid red; border-radius: 4px;"><strong>Error loading API documentation</strong><br>Error: ' + error.message + '<br><button onclick="location.reload()" style="margin-top: 10px; padding: 5px 10px;">Reload Page</button></div>';
+                        swaggerContainer.innerHTML = '<div style="color: red; padding: 20px; border: 1px solid red; border-radius: 4px;"><strong>Error loading API documentation</strong><br>Error: ' + error.message + '<br><button data-onclick="location.reload" data-onclick-args="[]" style="margin-top: 10px; padding: 5px 10px;">Reload Page</button></div>';
                     }
                 }
             }

@@ -67,7 +67,7 @@
                         <strong>Error loading API documentation</strong><br>
                         Failed to load Swagger specification from docs.json<br>
                         Error: ${error.message}<br>
-                        <button onclick="location.reload()" style="margin-top: 10px; padding: 5px 10px;">Reload Page</button>
+                        <button data-onclick="location.reload" data-onclick-args="[]" style="margin-top: 10px; padding: 5px 10px;">Reload Page</button>
                     </div>
                 `;
             }
@@ -137,7 +137,7 @@
 
             } catch (error) {
                 console.error('Critical error initializing Swagger UI:', error);
-                document.getElementById('swagger-ui').innerHTML = '<div style="color: red; padding: 20px; border: 1px solid red; border-radius: 4px;"><strong>Error loading API documentation</strong><br>Error: ' + error.message + '<br><button onclick="location.reload()" style="margin-top: 10px; padding: 5px 10px;">Reload Page</button></div>';
+                document.getElementById('swagger-ui').innerHTML = '<div style="color: red; padding: 20px; border: 1px solid red; border-radius: 4px;"><strong>Error loading API documentation</strong><br>Error: ' + error.message + '<br><button data-onclick="location.reload" data-onclick-args="[]" style="margin-top: 10px; padding: 5px 10px;">Reload Page</button></div>';
             }
         }
 

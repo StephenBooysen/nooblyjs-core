@@ -45,7 +45,7 @@ Done: 02, 08, 19, 23, 22b (ZAP baseline, gitleaks and the authorization matrix r
 
 ## Then — Phase 2: What engineers will notice (weeks 8–16)
 
-Status (2026-11-13): started. Done in part: 03 (MCP read tools, write tools behind a flag, stdio bridge), 09 (`create` with the API template, `doctor`, `routes`, `openapi`, `keys`, `mcp`), 10 (merged OpenAPI 3.1 document with a drift ratchet), 11 (test kit and the caching contract; Redis parity fixed), 05 (knowledge service, hybrid retrieval, cited answers), 01 (semantic route on the vector provider). Not started: 17b (strict CSP). The 01 spec file is not in the repo; its status is recorded in this table only. Each spec's status line lists what is still open.
+Status (2026-11-13): started. Done in part: 03 (MCP read tools, write tools behind a flag, stdio bridge), 09 (`create` with the API template, `doctor`, `routes`, `openapi`, `keys`, `mcp`), 10 (merged OpenAPI 3.1 document with a drift ratchet), 11 (test kit and the caching contract; Redis parity fixed), 05 (knowledge service, hybrid retrieval, cited answers), 01 (semantic route on the vector provider). 17b (strict CSP): scripts are external and the script policy has no `unsafe-inline`; styles still allow it. The 01 spec file is not in the repo; its status is recorded in this table only. Each spec's status line lists what is still open.
 
 **Goal:** make NooblyJS the fastest way to build an AI-enabled Node.js service. **Exit:** a coding agent can operate a running app; teams can ship "ask our docs" in a day; `npx nooblyjs create` to a deployed app in under an hour.
 

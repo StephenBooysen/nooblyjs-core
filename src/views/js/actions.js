@@ -40,7 +40,7 @@
    */
   function invoke(name, args, element) {
     if (name === 'location.reload') name = 'reloadPage';
-    if (!/^[A-Za-z_$][\w$]*$/.test(name)) return;
+    if (!/^[A-Za-z_$][\w$]*(\.[A-Za-z_$][\w$]*)*$/.test(name)) return;
     const values = args.map((a) => (a && typeof a === 'object' && a.$this === true ? element : a));
     if (name === 'navigateTo') {
       window.location.href = String(values[0] ?? '/');
@@ -50,9 +50,28 @@
       window.location.reload();
       return;
     }
-    const fn = window[name];
-    if (typeof fn === 'function') fn.apply(window, values);
+    // Walk dotted names (Namespace.method) by property lookup; never evaluate text.
+    let scope = window;
+    const parts = name.split('.');
+    for (let i = 0; i < parts.length - 1; i += 1) scope = scope?.[parts[i]];
+    const fn = scope?.[parts[parts.length - 1]];
+    if (typeof fn === 'function') fn.apply(scope, values);
   }
+
+  /**
+   * Builds the value of a `data-onclick-args` attribute from JavaScript values.
+   * Use it in template strings: `data-onclick-args="${nooblyArgs(id, 2)}"`.
+   * @param {...*} values
+   * @return {string} HTML-escaped JSON array
+   */
+  window.nooblyArgs = function nooblyArgs(...values) {
+    return JSON.stringify(values)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  };
 
   document.addEventListener('click', (event) => {
     const element = event.target instanceof Element ? event.target.closest('[data-onclick]') : null;

@@ -70,7 +70,7 @@
                 <div class="core-stat-card" style="${isOnline ? '' : 'opacity: 0.6;'}">
                     <div class="top">
                         <div style="width: 100%;">
-                            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px; cursor: pointer; color: var(--ink-2); font-size: 12px; font-weight: 500;" onclick="window.location.href='/services/${service.path}/'">
+                            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px; cursor: pointer; color: var(--ink-2); font-size: 12px; font-weight: 500;" data-onclick="navigateTo" data-onclick-args="${nooblyArgs(`/services/${service.path}/`)}">
                                 <i class="bi ${service.icon}" style="font-size: 14px; color: var(--ink-2);"></i>
                                 <span>${service.title}</span>
                                 <span class="core-chip ${statusClass}" style="font-size: 10px;">
@@ -78,7 +78,7 @@
                                 </span>
                             </div>
                             <button type="button"
-                                onclick="toggleServiceStatus('${service.path}', '${statusId}', this)"
+                                data-onclick="toggleServiceStatus" data-onclick-args="${nooblyArgs(service.path, statusId, { $this: true })}"
                                 style="background: none; border: none; padding: 0; color: var(--muted); font-size: 11px; cursor: pointer; display: flex; align-items: center; gap: 4px;">
                                 <i class="bi bi-chevron-right" style="transition: transform 0.15s ease;"></i>
                                 <span>Show status</span>
@@ -87,7 +87,7 @@
                                 <pre style="background: var(--surface-sunken); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px; font-size: 11px; max-height: 200px; overflow: auto; margin: 0;">Loading...</pre>
                             </div>
                         </div>
-                        <div class="ico ${isOnline ? 't' : 'o'}" style="cursor: pointer;" onclick="window.location.href='/services/${service.path}/'"><i class="bi bi-gear"></i></div>
+                        <div class="ico ${isOnline ? 't' : 'o'}" style="cursor: pointer;" data-onclick="navigateTo" data-onclick-args="${nooblyArgs(`/services/${service.path}/`)}"><i class="bi bi-gear"></i></div>
                     </div>
                 </div>
             `;
