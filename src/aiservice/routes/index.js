@@ -369,6 +369,62 @@ module.exports = (options, eventEmitter, aiService, analytics) => {
   // Default-instance routes.
   app.get('/services/ai/api/status', createStatusHandler(aiService));
   app.post('/services/ai/api/prompt', createPromptHandler(aiService));
+
+  // Shared-module endpoints (feature 02). Legacy providers answer 501.
+  const requireMessages = (req, res) => {
+    const { messages, maxTokens } = req.body || {};
+    if (!Array.isArray(messages) || messages.length === 0 || messages.length > 200) {
+      res.status(400).json({ success: false, error: 'messages must be a list of 1 to 200 items' });
+      return false;
+    }
+    if (maxTokens !== undefined && (!Number.isInteger(maxTokens) || maxTokens < 1)) {
+      res.status(400).json({ success: false, error: 'maxTokens must be a positive whole number' });
+      return false;
+    }
+    return true;
+  };
+  const sharedOnly = (method, res) => {
+    if (typeof aiService[method] === 'function') return true;
+    res.status(501).json({ success: false, error: `${method}() is not available for this AI provider` });
+    return false;
+  };
+
+  app.post('/services/ai/api/complete', async (req, res) => {
+    if (!sharedOnly('complete', res) || !requireMessages(req, res)) return;
+    try {
+      const reply = await aiService.complete(req.body);
+      res.json({ success: true, data: { text: reply.text, toolCalls: reply.toolCalls, stopReason: reply.stopReason, usage: reply.usage, model: reply.model } });
+    } catch (err) {
+      sendSafeError(res, err, { status: 500 });
+    }
+  });
+
+  app.post('/services/ai/api/stream', async (req, res) => {
+    if (!sharedOnly('streamToResponse', res) || !requireMessages(req, res)) return;
+    await aiService.streamToResponse(res, req.body);
+  });
+
+  app.post('/services/ai/api/generate-object', async (req, res) => {
+    if (!sharedOnly('generateObject', res) || !requireMessages(req, res)) return;
+    try {
+      res.json({ success: true, data: await aiService.generateObject(req.body) });
+    } catch (err) {
+      sendSafeError(res, err, { status: 500 });
+    }
+  });
+
+  app.post('/services/ai/api/embed', async (req, res) => {
+    if (!sharedOnly('embed', res)) return;
+    const texts = req.body?.texts;
+    if (!Array.isArray(texts) || texts.length === 0 || texts.length > 100) {
+      return res.status(400).json({ success: false, error: 'texts must be a list of 1 to 100 strings' });
+    }
+    try {
+      res.json({ success: true, data: await aiService.embed(texts, req.body.options || {}) });
+    } catch (err) {
+      sendSafeError(res, err, { status: 500 });
+    }
+  });
   app.get('/services/ai/api/analytics', createAnalyticsHandler(aiService));
   app.get('/services/ai/api/models', createModelsHandler(aiService));
   app.get('/services/ai/api/health', createHealthHandler(aiService));

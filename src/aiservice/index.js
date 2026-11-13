@@ -12,6 +12,7 @@
 
 // Providers
 const AIClaude = require('./provider/aiclaude');
+const AICommon = require('./provider/aiCommon');
 const AIOpenAI = require('./provider/aiopenai');
 const AIOpenAIKv = require('./provider/aiopenaikv');
 const AIOllama = require('./provider/aiollama');
@@ -92,6 +93,17 @@ function createAIService(type, options, eventEmitter) {
       break;
     case 'gemini':
       aiservice = new AIGemini(providerOptions, eventEmitter);
+      break;
+    // Shared AI module (feature 02). Legacy names above keep their old classes.
+    case 'anthropic':
+      aiservice = new AICommon(providerOptions, eventEmitter, { providerId: 'anthropic' });
+      break;
+    case 'openai-compatible':
+    case 'bedrock':
+    case 'vertex':
+    case 'azure':
+    case 'mock':
+      aiservice = new AICommon(providerOptions, eventEmitter, { providerId: type });
       break;
     case 'tensorflow':
       aiservice = new AITensorFlow(providerOptions, eventEmitter);
