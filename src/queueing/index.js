@@ -16,6 +16,10 @@ const QueueingRabbitMQ = require('./providers/queueingRabbitMQ');
 const QueueingActiveMQ = require('./providers/queueingActiveMQ');
 const QueueingApi = require('./providers/queueingApi');
 const QueueAnalytics = require('./modules/analytics');
+const { ReliableJobs } = require('./modules/reliableJobs');
+const { attachReliableJobs, attachUnsupportedJobs } = require('./modules/reliableJobs');
+const { MemoryJobStore } = require('./modules/memoryJobStore');
+const { createRedisJobStore } = require('./modules/redisJobStore');
 const Routes = require('./routes');
 const Views = require('./views');
 
@@ -127,6 +131,19 @@ function createQueue(type, options, eventEmitter) {
 
   // Store all dependencies for potential use by provider
   queue.dependencies = dependencies;
+
+  // Reliable jobs (feature 06): memory and Redis keep jobs in their own store;
+  // other providers refuse reliable options with a clear error.
+  if (type === 'memory') {
+    attachReliableJobs(queue, new ReliableJobs(new MemoryJobStore()));
+  } else if (type === 'redis') {
+    const store = createRedisJobStore(queue.client_, { ensure: () => queue.ensureConnection_() });
+    attachReliableJobs(queue, new ReliableJobs(store), {
+      validateQueueName: (name, method) => queue.validateQueueName_(name, method)
+    });
+  } else {
+    attachUnsupportedJobs(queue, type);
+  }
 
   // Initialize analytics module
   if (eventEmitter) {
