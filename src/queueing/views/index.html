@@ -81,6 +81,11 @@
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="reliable-tab" data-bs-toggle="tab" data-bs-target="#reliable" type="button" role="tab">
+                        <i class="bi bi-shield-check"></i> Reliable jobs
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
                     <button class="nav-link" id="settings-tab" data-bs-toggle="tab" data-bs-target="#settings" type="button" role="tab">
                         <i class="bi bi-gear"></i> Settings
                     </button>
@@ -380,6 +385,48 @@
                 </div>
 
                 <!-- Settings Tab -->
+                <!-- Reliable jobs Tab (feature 06) -->
+                <div class="tab-pane fade" id="reliable" role="tabpanel">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <div>
+                                <h2 class="card-title">Reliable jobs</h2>
+                                <p class="card-subtitle">Retries, dead letters and job state. Memory and Redis queues only.</p>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label class="form-label" for="reliableQueueName">Queue Name</label>
+                                <input type="text" id="reliableQueueName" class="form-control" placeholder="emailQueue">
+                            </div>
+                            <div class="d-flex flex-wrap gap-2 mb-3">
+                                <button type="button" class="btn btn-primary" id="reliableCountsBtn"><i class="bi bi-bar-chart"></i> Show counts</button>
+                                <button type="button" class="btn btn-outline-warning" id="reliableRetryBtn"><i class="bi bi-arrow-counterclockwise"></i> Retry dead letters</button>
+                            </div>
+                            <div id="reliableCounts" class="table-responsive" style="display: none;">
+                                <table class="table table-sm mb-3">
+                                    <thead><tr><th>Waiting</th><th>Delayed</th><th>Active</th><th>Completed</th><th>Dead</th></tr></thead>
+                                    <tbody><tr>
+                                        <td id="reliableWaiting">0</td><td id="reliableDelayed">0</td><td id="reliableActive">0</td>
+                                        <td id="reliableCompleted">0</td><td id="reliableDead">0</td>
+                                    </tr></tbody>
+                                </table>
+                            </div>
+                            <hr>
+                            <div class="mb-3">
+                                <label class="form-label" for="reliableJobId">Job ID</label>
+                                <div class="input-group">
+                                    <input type="text" id="reliableJobId" class="form-control" placeholder="job_...">
+                                    <button type="button" class="btn btn-outline-primary" id="reliableLookupBtn">Look up</button>
+                                </div>
+                                <div class="form-text">Shows the state, attempts and last error of one job.</div>
+                            </div>
+                            <div id="reliableMessage" class="alert fade" role="alert" style="display: none;"></div>
+                            <pre id="reliableResult" class="bg-light p-3 rounded small" style="display: none; white-space: pre-wrap;"></pre>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="tab-pane fade" id="settings" role="tabpanel" style="min-height:1000px">
 
                     <!-- Settings Card -->
@@ -754,6 +801,87 @@
         });
 
         // Instance selector handlers
+        // ----- Reliable jobs (feature 06) -----
+        function reliableQueue() {
+            const name = document.getElementById('reliableQueueName').value.trim();
+            if (!name) {
+                reliableMessage('Enter a queue name first.', 'warning');
+                return null;
+            }
+            return encodeURIComponent(name);
+        }
+
+        function reliableMessage(text, type) {
+            const box = document.getElementById('reliableMessage');
+            box.textContent = text;
+            box.className = `alert alert-${type} fade show`;
+            box.style.display = 'block';
+        }
+
+        function reliableShow(data) {
+            const box = document.getElementById('reliableResult');
+            box.textContent = JSON.stringify(data, null, 2);
+            box.style.display = 'block';
+        }
+
+        async function reliableRequest(url, method = 'GET') {
+            const response = await fetch(url, { method, credentials: 'same-origin', headers: { 'Content-Type': 'application/json' } });
+            const body = await response.json().catch(() => ({}));
+            if (!response.ok) {
+                throw new Error(body.error || `Request failed (${response.status})`);
+            }
+            return body;
+        }
+
+        async function reliableRefreshCounts(name) {
+            const body = await reliableRequest(`/services/queueing/api/queues/${name}/job-counts`);
+            const c = body.data || {};
+            ['waiting', 'delayed', 'active', 'completed', 'dead'].forEach((key) => {
+                document.getElementById('reliable' + key.charAt(0).toUpperCase() + key.slice(1)).textContent = c[key] || 0;
+            });
+            document.getElementById('reliableCounts').style.display = 'block';
+        }
+
+        document.getElementById('reliableCountsBtn')?.addEventListener('click', async function () {
+            const name = reliableQueue();
+            if (!name) return;
+            try {
+                await reliableRefreshCounts(name);
+                reliableMessage('Counts updated.', 'success');
+            } catch (err) {
+                reliableMessage(err.message, 'danger');
+            }
+        });
+
+        document.getElementById('reliableRetryBtn')?.addEventListener('click', async function () {
+            const name = reliableQueue();
+            if (!name) return;
+            try {
+                const body = await reliableRequest(`/services/queueing/api/queues/${name}/retry-dead`, 'POST');
+                reliableMessage(`Requeued ${body.data?.requeued ?? 0} dead-lettered job(s).`, 'success');
+                await reliableRefreshCounts(name);
+            } catch (err) {
+                reliableMessage(err.message, 'danger');
+            }
+        });
+
+        document.getElementById('reliableLookupBtn')?.addEventListener('click', async function () {
+            const name = reliableQueue();
+            const jobId = document.getElementById('reliableJobId').value.trim();
+            if (!name) return;
+            if (!jobId) {
+                reliableMessage('Enter a job ID.', 'warning');
+                return;
+            }
+            try {
+                const body = await reliableRequest(`/services/queueing/api/queues/${name}/jobs/${encodeURIComponent(jobId)}`);
+                reliableShow(body.data);
+                reliableMessage('Job found.', 'success');
+            } catch (err) {
+                reliableMessage(err.message, 'danger');
+            }
+        });
+
         document.getElementById('instanceSelector')?.addEventListener('change', function (e) {
             selectedInstance = this.value;
             loadAnalytics();
@@ -1230,17 +1358,15 @@
             if (headerLogoutBtn) {
                 headerLogoutBtn.addEventListener('click', async (e) => {
                     e.preventDefault();
-                    const token = localStorage.getItem('authToken');
-                    if (token) {
-                        try {
-                            await fetch('/services/authservice/api/logout', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ token })
-                            });
-                        } catch (error) {
-                            console.error('Logout error:', error);
-                        }
+                    try {
+                        await fetch('/services/authservice/api/logout', {
+                            method: 'POST',
+                            credentials: 'same-origin',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: '{}'
+                        });
+                    } catch (error) {
+                        console.error('Logout error:', error);
                     }
                     localStorage.removeItem('authToken');
                     localStorage.removeItem('currentUser');
