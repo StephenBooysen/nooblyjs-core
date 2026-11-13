@@ -653,6 +653,93 @@
         }
       }
     },
+    "/services/queueing/api/queues/{queueName}/jobs": {
+      "post": {
+        "tags": ["Reliable Jobs"],
+        "summary": "Add a reliable job",
+        "description": "Adds a job with retries, backoff, dead-lettering and an optional idempotency key (feature 06). Supported by the memory and Redis queue providers; other providers answer 400.",
+        "operationId": "addReliableJob",
+        "parameters": [
+          { "name": "queueName", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "data": { "description": "Job payload (any JSON value)" },
+                  "options": {
+                    "type": "object",
+                    "properties": {
+                      "delayMs": { "type": "integer", "minimum": 0 },
+                      "attempts": { "type": "integer", "minimum": 1 },
+                      "backoff": { "type": "object" },
+                      "priority": { "type": "integer" },
+                      "idempotencyKey": { "type": "string" },
+                      "dedupeWindowMs": { "type": "integer", "minimum": 0 }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Job added", "content": { "application/json": { "schema": { "type": "object", "properties": { "success": { "type": "boolean" }, "data": { "type": "object", "properties": { "id": { "type": "string" } } } } } } } },
+          "400": { "description": "Invalid options, or the provider does not support reliable jobs" },
+          "500": { "description": "Server error" }
+        }
+      }
+    },
+    "/services/queueing/api/queues/{queueName}/jobs/{jobId}": {
+      "get": {
+        "tags": ["Reliable Jobs"],
+        "summary": "Get a reliable job",
+        "description": "Returns a job's state, attempts and last error.",
+        "operationId": "getReliableJob",
+        "parameters": [
+          { "name": "queueName", "in": "path", "required": true, "schema": { "type": "string" } },
+          { "name": "jobId", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "The job", "content": { "application/json": { "schema": { "type": "object", "properties": { "success": { "type": "boolean" }, "data": { "type": "object" } } } } } },
+          "404": { "description": "Job not found" },
+          "500": { "description": "Server error" }
+        }
+      }
+    },
+    "/services/queueing/api/queues/{queueName}/retry-dead": {
+      "post": {
+        "tags": ["Reliable Jobs"],
+        "summary": "Retry dead-lettered jobs",
+        "description": "Requeues every dead-lettered job of a queue with its attempts reset.",
+        "operationId": "retryDeadLetters",
+        "parameters": [
+          { "name": "queueName", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Number of jobs requeued", "content": { "application/json": { "schema": { "type": "object", "properties": { "success": { "type": "boolean" }, "data": { "type": "object", "properties": { "requeued": { "type": "integer" } } } } } } } },
+          "500": { "description": "Server error" }
+        }
+      }
+    },
+    "/services/queueing/api/queues/{queueName}/job-counts": {
+      "get": {
+        "tags": ["Reliable Jobs"],
+        "summary": "Count reliable jobs by state",
+        "description": "Counts a queue's reliable jobs by state.",
+        "operationId": "getReliableJobCounts",
+        "parameters": [
+          { "name": "queueName", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Counts by state", "content": { "application/json": { "schema": { "type": "object", "properties": { "success": { "type": "boolean" }, "data": { "type": "object", "additionalProperties": { "type": "integer" } } } } } } },
+          "500": { "description": "Server error" }
+        }
+      }
+    },
     "/services/queueing/api/{instanceName}/queues": {
       "get": {
         "tags": ["Queue Operations"],
