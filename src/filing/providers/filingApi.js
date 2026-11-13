@@ -9,6 +9,14 @@
 'use strict';
 
 const axios = require('axios');
+const { applyRuntimeSettings, numberRule } = require('../modules/settingsPolicy');
+
+/** Settings that may change while the service runs. The remote URL is fixed (SSRF guard). */
+const RUNTIME_RULES = {
+  timeout: numberRule('timeout', { min: 1000, max: 600000, integer: true }),
+  retryLimit: numberRule('retryLimit', { min: 0, max: 10, integer: true })
+};
+
 
 /**
  * A class that implements file operations via HTTP API calls to a remote service.
@@ -41,13 +49,12 @@ class FilingApi {
     this.settings = {};
     this.settings.description = "Configuration settings for the Filing API Provider";
     this.settings.list = [
-      {setting: "apiUrl", type: "string", values: ["http://localhost:3000"]},
       {setting: "timeout", type: "number", values: [30000]},
       {setting: "retryLimit", type: "number", values: [3]}
     ];
-    this.settings.apiUrl = options.apiUrl || this.settings.list[0].values[0];
-    this.settings.timeout = options.timeout || this.settings.list[1].values[0];
-    this.settings.retryLimit = options.retryLimit || this.settings.list[2].values[0];
+    this.settings.apiUrl = options.apiUrl || 'http://localhost:3000';
+    this.settings.timeout = options.timeout || 30000;
+    this.settings.retryLimit = options.retryLimit || 3;
   }
 
   /**
@@ -150,11 +157,17 @@ class FilingApi {
    * Save/update settings
    */
   async saveSettings(settings){
-    for (let i = 0; i < this.settings.list.length; i++){
-      if (settings[this.settings.list[i].setting] != null){
-        this.settings[this.settings.list[i].setting] = settings[this.settings.list[i].setting];
-        this.logger?.info(`[${this.constructor.name}] Setting changed`, { setting: this.settings.list[i].setting, newValue: settings[this.settings.list[i].setting], operation: 'saveSettings' });
-      }
+    const updates = applyRuntimeSettings(settings, {
+      rules: RUNTIME_RULES,
+      fixed: { apiUrl: this.settings.apiUrl }
+    });
+    for (const [setting, newValue] of Object.entries(updates)) {
+      this.settings[setting] = newValue;
+      this.logger?.info(`[${this.constructor.name}] Setting changed`, {
+        setting,
+        newValue,
+        operation: 'saveSettings'
+      });
     }
   }
 }

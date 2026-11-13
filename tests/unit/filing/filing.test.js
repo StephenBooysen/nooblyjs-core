@@ -119,11 +119,12 @@ const createFilingService = require('../../../src/filing');
 const { S3Client } = require('@aws-sdk/client-s3');
 const fs = require('node:fs').promises;
 const path = require('node:path');
+const { testDataDir } = require('../../helpers/testData');
 
 describe('FilingService', () => {
   // Test LocalFilingProvider
   describe('LocalFilingProvider', () => {
-    const testDir = path.join(__dirname, 'test_files');
+    const testDir = path.join(testDataDir('filing-local'));
     const testFilePath = path.join(testDir, 'test.txt');
 
     beforeAll(async () => {
@@ -137,7 +138,7 @@ describe('FilingService', () => {
     let localFilingService;
 
     beforeEach(() => {
-      localFilingService = createFilingService('local', {});
+      localFilingService = createFilingService('local', { baseDir: testDir });
     });
 
     afterEach(async () => {

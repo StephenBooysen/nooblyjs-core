@@ -12,6 +12,26 @@ const fs = require('node:fs').promises;
 const fsSync = require('fs');
 const path = require('node:path');
 const { resolveWithin } = require('../modules/pathSafety');
+const {
+  applyRuntimeSettings,
+  numberRule,
+  fileTypesRule
+} = require('../modules/settingsPolicy');
+
+/** Library default storage root. Never the working directory (feature 15). */
+const DEFAULT_BASE_DIR = './.application/files';
+
+/**
+ * Document and image types a user may upload by default. Active content
+ * (html, svg, xml, js) is not on the list; see feature 17.
+ */
+const SAFE_ALLOWED_TYPES = 'md,txt,pdf,png,jpg,jpeg,gif,webp,csv,json,docx,xlsx,pptx';
+
+/** Settings that may change while the service runs. Everything else is fixed. */
+const RUNTIME_RULES = {
+  maxFileSize: numberRule('maxFileSize', { min: 1, max: 5 * 1024 * 1024 * 1024, integer: true }),
+  allowedTypes: fileTypesRule('allowedTypes')
+};
 
 /**
  * A class that implements a local file system-based file storage provider.
@@ -31,14 +51,18 @@ class LocalFilingProvider {
     // Settings for filing service
     this.settings = {};
     this.settings.description = "Configuration settings for the Filing Service";
+    // Only these two settings can change at runtime (see settingsPolicy.js).
+    // baseDir is the storage root: it is fixed at construction and never listed.
     this.settings.list = [
-      {setting: "baseDir", type: "string", values: ['./']},
       {setting: "maxFileSize", type: "number", values: [10485760]},
-      {setting: "allowedTypes", type: "string", values: ['*']}
+      {setting: "allowedTypes", type: "string", values: [SAFE_ALLOWED_TYPES]}
     ];
-    this.settings.baseDir = options.baseDir || this.settings.baseDir || './';
-    this.settings.maxFileSize = options.maxFileSize || this.settings.maxFileSize || 10485760;
-    this.settings.allowedTypes = options.allowedTypes || this.settings.allowedTypes || '*';
+    this.settings.baseDir = options.baseDir || DEFAULT_BASE_DIR;
+    this.settings.maxFileSize = options.maxFileSize || 10485760;
+    this.settings.allowedTypes = options.allowedTypes || SAFE_ALLOWED_TYPES;
+
+    /** @private @const {string} Absolute storage root, resolved once. */
+    this.rootDir_ = path.resolve(this.settings.baseDir);
   }
 
   /**
@@ -49,7 +73,7 @@ class LocalFilingProvider {
    * @private
    */
   _resolveAndVerifyPath(filePath) {
-    const baseDir = path.resolve(this.settings.baseDir);
+    const baseDir = this.rootDir_;
     try {
       // resolveWithin fixes the prefix-bypass of the previous
       // startsWith(baseDir) check (e.g. /srv/data vs /srv/data-secrets).
@@ -341,15 +365,17 @@ class LocalFilingProvider {
    * Save/update settings
    */
   async saveSettings(settings){
-    for (let i = 0; i < this.settings.list.length; i++){
-      if (settings[this.settings.list[i].setting] != null){
-        this.settings[this.settings.list[i].setting] = settings[this.settings.list[i].setting];
-        this.logger?.info(`[${this.constructor.name}] Setting changed`, {
-          setting: this.settings.list[i].setting,
-          newValue: settings[this.settings.list[i].setting],
-          operation: 'saveSettings'
-        });
-      }
+    const updates = applyRuntimeSettings(settings, {
+      rules: RUNTIME_RULES,
+      fixed: { baseDir: this.settings.baseDir }
+    });
+    for (const [setting, newValue] of Object.entries(updates)) {
+      this.settings[setting] = newValue;
+      this.logger?.info(`[${this.constructor.name}] Setting changed`, {
+        setting,
+        newValue,
+        operation: 'saveSettings'
+      });
     }
   }
 }

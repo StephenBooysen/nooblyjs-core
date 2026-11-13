@@ -221,10 +221,8 @@ describe('Filing Service - Feature Verification', () => {
   });
 
   describe('Settings Management - saveSettings()', () => {
-    it('should save settings', async () => {
-      const testSetting = { key: 'value' };
-      await filing.saveSettings(testSetting);
-      expect(true).toBe(true);
+    it('should reject unknown settings with a 400', async () => {
+      await expect(filing.saveSettings({ key: 'value' })).rejects.toMatchObject({ statusCode: 400 });
     });
 
     it('should return promise', async () => {
@@ -233,9 +231,10 @@ describe('Filing Service - Feature Verification', () => {
       await result;
     });
 
-    it('should handle partial updates', async () => {
-      await filing.saveSettings({ timeout: 5000 });
-      expect(true).toBe(true);
+    it('should apply a valid partial update', async () => {
+      await filing.saveSettings({ maxFileSize: '2048' });
+      const settings = await filing.getSettings();
+      expect(settings.maxFileSize).toBe(2048);
     });
   });
 

@@ -25,6 +25,12 @@ const registerRoutes = require('../../../src/filing/routes');
 const analytics = require('../../../src/filing/modules/analytics');
 const { testDataDir } = require('../../helpers/testData');
 
+/** Stands in for an authenticated admin session; the filing tiers need a caller. */
+function asAdmin(req, _res, next) {
+  req.user = { email: 'admin@test.local', roles: ['admin'] };
+  next();
+}
+
 describe('Filing routes (local provider)', () => {
   let app;
   let filing;
@@ -33,6 +39,7 @@ describe('Filing routes (local provider)', () => {
   beforeEach(() => {
     dir = fs.mkdtempSync(path.join(testDataDir('filing'), 'nooblyjs-filing-routes-'));
     app = express();
+    app.use(asAdmin);
     app.use(express.json());
     app.use(express.text());
     const registry = {
@@ -66,10 +73,10 @@ describe('Filing routes (local provider)', () => {
 
     const inline = await request(app).get('/services/filing/api/download/docs/b.png').expect(200);
     expect(inline.headers['content-type']).toBe('image/png');
-    expect(inline.headers['content-disposition']).toBe('inline');
+    expect(inline.headers['content-disposition']).toMatch(/^inline; filename="b\.png"/);
 
     const attachment = await request(app).get('/services/filing/api/download/docs/b.png?attachment=true').expect(200);
-    expect(attachment.headers['content-disposition']).toBe('attachment; filename="b.png"');
+    expect(attachment.headers['content-disposition']).toMatch(/^attachment; filename="b\.png"/);
 
     await request(app).get('/services/filing/api/download/docs/missing.txt').expect(404);
   });
@@ -182,6 +189,7 @@ describe('Filing routes (sync and git)', () => {
 
   beforeEach(() => {
     app = express();
+    app.use(asAdmin);
     app.use(express.json());
     provider = makeSyncProvider();
     registerRoutes({ 'express-app': app, providerType: 'sync' }, new EventEmitter(), provider);
@@ -237,6 +245,7 @@ describe('Filing routes (sync and git)', () => {
 
   it('returns 400 when the provider lacks sync and git support', async () => {
     const bare = express();
+    bare.use(asAdmin);
     bare.use(express.json());
     registerRoutes({ 'express-app': bare }, new EventEmitter(), { upload: jest.fn(), providerType: 'local' });
     const unsupported = [

@@ -10,6 +10,15 @@
 
 const Client = require('ftp');
 const { assertSafeRelativePath } = require('../modules/pathSafety');
+const { applyRuntimeSettings, numberRule } = require('../modules/settingsPolicy');
+
+/** Settings that may change while the service runs. The server address is fixed. */
+const RUNTIME_RULES = {
+  timeout: numberRule('timeout', { min: 1000, max: 600000, integer: true }),
+  retryLimit: numberRule('retryLimit', { min: 0, max: 10, integer: true }),
+  maxUploadSize: numberRule('maxUploadSize', { min: 1, max: 5 * 1024 * 1024 * 1024, integer: true })
+};
+
 
 /**
  * A class that implements an FTP-based file storage provider.
@@ -326,15 +335,17 @@ class FtpFilingProvider {
    * Save/update settings
    */
   async saveSettings(settings){
-    for (let i = 0; i < this.settings.list.length; i++){
-      if (settings[this.settings.list[i].setting] != null){
-        this.settings[this.settings.list[i].setting] = settings[this.settings.list[i].setting];
-        this.logger?.info(`[${this.constructor.name}] Setting changed`, {
-          setting: this.settings.list[i].setting,
-          newValue: settings[this.settings.list[i].setting],
-          operation: 'saveSettings'
-        });
-      }
+    const updates = applyRuntimeSettings(settings, {
+      rules: RUNTIME_RULES,
+      fixed: {}
+    });
+    for (const [setting, newValue] of Object.entries(updates)) {
+      this.settings[setting] = newValue;
+      this.logger?.info(`[${this.constructor.name}] Setting changed`, {
+        setting,
+        newValue,
+        operation: 'saveSettings'
+      });
     }
   }
 }

@@ -12,6 +12,13 @@ const { Storage } = require('@google-cloud/storage');
 const path = require('node:path');
 const fs = require('node:fs');
 const { assertSafeRelativePath } = require('../modules/pathSafety');
+const { applyRuntimeSettings, numberRule } = require('../modules/settingsPolicy');
+
+/** Settings that may change while the service runs. Bucket and location are fixed. */
+const RUNTIME_RULES = {
+  maxUploadSize: numberRule('maxUploadSize', { min: 1, max: 5 * 1024 * 1024 * 1024, integer: true })
+};
+
 
 /**
  * A class that implements a Google Cloud Storage-based file storage provider.
@@ -99,13 +106,11 @@ class GCPFilingProvider {
     this.settings = {};
     this.settings.description = "Configuration settings for the Filing GCP Provider";
     this.settings.list = [
-      {setting: "bucket", type: "string", values: [this.bucketName_]},
-      {setting: "location", type: "string", values: [this.location_]},
       {setting: "maxUploadSize", type: "number", values: [104857600]}
     ];
-    this.settings.bucket = options.bucket || this.settings.list[0].values[0];
-    this.settings.location = options.location || this.settings.list[1].values[0];
-    this.settings.maxUploadSize = options.maxUploadSize || this.settings.list[2].values[0];
+    this.settings.bucket = options.bucket || this.bucketName_;
+    this.settings.location = options.location || this.location_;
+    this.settings.maxUploadSize = options.maxUploadSize || 104857600;
   }
 
   /**
@@ -621,11 +626,17 @@ class GCPFilingProvider {
    * Save/update settings
    */
   async saveSettings(settings){
-    for (let i = 0; i < this.settings.list.length; i++){
-      if (settings[this.settings.list[i].setting] != null){
-        this.settings[this.settings.list[i].setting] = settings[this.settings.list[i].setting];
-        this.logger?.info(`[${this.constructor.name}] Setting changed`, { setting: this.settings.list[i].setting, newValue: settings[this.settings.list[i].setting], operation: 'saveSettings' });
-      }
+    const updates = applyRuntimeSettings(settings, {
+      rules: RUNTIME_RULES,
+      fixed: { bucket: this.settings.bucket, location: this.settings.location }
+    });
+    for (const [setting, newValue] of Object.entries(updates)) {
+      this.settings[setting] = newValue;
+      this.logger?.info(`[${this.constructor.name}] Setting changed`, {
+        setting,
+        newValue,
+        operation: 'saveSettings'
+      });
     }
   }
 }
