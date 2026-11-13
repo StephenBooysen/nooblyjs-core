@@ -315,6 +315,8 @@ await queue.retryDeadLetters('send-email'); // requeue every dead-lettered job
 
 Other queue providers refuse these options with a 400. Use the plain `enqueue` and `dequeue` calls there.
 
+The `working` service uses this on the memory and Redis providers. Each task is enqueued with one attempt. Its failures are recorded by the working service itself, so a failed script is not run again. A task is acknowledged when its worker finishes. If the process dies first, another process redelivers it after the lease runs out, so a script can run twice in that case. Keep scripts safe to repeat.
+
 ### 5. Workflow Service
 
 A workflow is a named list of step scripts. The steps run in order. Each step receives the original input and the outputs of the steps before it. Relative step paths resolve against the working service's activities folder.

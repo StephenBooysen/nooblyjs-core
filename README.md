@@ -659,6 +659,10 @@ const options = {
 // Authorization: Bearer <api-key>
 ```
 
+### Dashboard Sign-in
+
+The dashboards authenticate with an httpOnly, SameSite=Strict session cookie set at sign-in. Nothing that grants access is kept in the browser: the page keeps only the display name. Scripts and other services use API keys or personal access tokens in the `Authorization` header.
+
 ### Route Permissions
 
 Every `/services/*/api` route declares the permission it needs in
