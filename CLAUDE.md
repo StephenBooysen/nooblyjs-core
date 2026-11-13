@@ -29,6 +29,7 @@ NooblyJS Core is a modular Node.js backend framework: a set of services (logging
 - `npm run certs` / `npm run certs:force` — generate self-signed TLS certs for local HTTPS
 - `npm run build` — `scripts/build.js`
 - `npm run check:types` — type-checks `types/index.d.ts` against `types/tests/usage.ts` (in CI)
+- `npm run test:contract` — provider contract suites in `tests/contract/`; the Redis one needs `RUN_REDIS_TESTS=1 REDIS_URL=redis://…`
 
 There is no linter. Jest runs with `forceExit` and `detectOpenHandles`; tests must clean up timers/handles in `afterEach`/`afterAll`. Tests that write to disk get their directory from `tests/helpers/testData.js` (`testDataDir()` → `.temp/tests/data/`); the file logger defaults to `.temp/logs/`. Nothing a test run creates should appear outside `.temp/` (see `.claude/rules/output-locations.md`).
 

@@ -23,6 +23,7 @@ const OPTION_SCHEMAS = require('./src/shared/config/optionSchemas');
 const { createPermissionGate } = require('./src/authservice/middleware/permissionGate');
 const { RouteDeclarations, findUndeclaredRoutes, listApiRoutes } = require('./src/authservice/modules/routeDeclarations');
 const { buildOpenApiDocument, loadServiceDocuments, mountedBases } = require('./src/shared/utils/openapi');
+const { mountMcp } = require('./src/mcp');
 const { normalizeKeyEntries, findKeyEntry } = require('./src/authservice/modules/permissions');
 
 const ensureArray = (value) => {
@@ -299,8 +300,42 @@ class ServiceRegistry {
       }
     });
 
+    // MCP server for coding agents (feature 03). Off unless `mcp.enabled` is set.
+    const mcpConfig = globalOptions.mcp || {};
+    this.mcpEnabled = mcpConfig.enabled === true;
+    if (this.mcpEnabled) {
+      mountMcp(this.expressApp, {
+        services: this.mcpServices(),
+        openApi: () => this.buildOpenApi(),
+        allowWrite: mcpConfig.allowWrite === true,
+        resolvePrincipal: (req) => this.resolveRequestPrincipal(req),
+        eventEmitter: this.eventEmitter
+      });
+    }
+
     this.initialized = true;
     return this;
+  }
+
+  /**
+   * Service accessors for the MCP server. Each one creates the default instance
+   * of its service only when a tool first needs it.
+   *
+   * @return {Object} Accessors used by src/mcp
+   */
+  mcpServices() {
+    return {
+      logger: () => this.logger(),
+      queue: () => this.queue(),
+      dataService: () => this.dataService(),
+      searching: () => this.searching(),
+      workflow: () => this.workflow(),
+      scheduling: () => this.scheduling(),
+      cache: () => this.cache(),
+      settings: () => this.settings(),
+      monitoring: () => systemMonitoring,
+      describe: () => ({ services: this.listServices() })
+    };
   }
 
   /**

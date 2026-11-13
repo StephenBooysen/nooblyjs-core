@@ -133,9 +133,13 @@ class CacheRedis {
       throw new Error('Invalid value: cannot be undefined');
     }
     await this.ensureConnection_();
-    // Redis stores strings; without this, objects would be stored as
-    // "[object Object]". Mirrors the memcached provider.
-    const stored = value !== null && typeof value === 'object' ? JSON.stringify(value) : value;
+    // Redis stores strings. Every value is stored as JSON so that numbers,
+    // booleans, null and objects come back with their type (feature 11 contract).
+    // Values written before this change are plain strings and decode as such.
+    const stored = JSON.stringify(value);
+    if (stored === undefined) {
+      throw new Error('Invalid value: cannot be stored as JSON');
+    }
     if (ttl) {
       await this.client_.setex(key, ttl, stored);
     } else {
@@ -169,12 +173,13 @@ class CacheRedis {
    * @private
    */
   static decode_(raw) {
-    if (typeof raw !== 'string' || !/^\s*[[{]/.test(raw)) {
+    if (typeof raw !== 'string') {
       return raw;
     }
     try {
       return JSON.parse(raw);
     } catch (error) {
+      // Not JSON: a value written before values were stored as JSON.
       return raw;
     }
   }

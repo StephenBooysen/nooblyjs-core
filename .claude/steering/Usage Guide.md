@@ -854,6 +854,69 @@ Index only the fields you search on, and rebuild the index when the document sha
 
 ## Testing with the Library
 
+### Test Kit (`nooblyjs-core/testing`)
+
+```javascript
+const { createTestRegistry, installMatchers } = require('nooblyjs-core/testing');
+installMatchers();
+
+let t;
+beforeEach(async () => { t = await createTestRegistry({ services: ['caching'] }); });
+afterEach(() => t.cleanup());           // resets the registry and removes its temp directory
+
+it('caches orders', async () => {
+  await t.registry.cache('memory').put('order', { total: 9 });
+  expect(t.events).toHaveEmitted('cache:put:default', { key: 'order' });
+  await t.request('get', '/services/caching/api/settings').expect(200); // sends the test API key
+});
+```
+
+Services: logging, caching, queueing, dataservice, scheduling, searching, measuring, working, workflow, notifying, fetching. Memory providers only; the kit writes under `.temp/tests/data/`.
+
+### Provider contracts
+
+`tests/contract/` holds one suite per service that every provider must pass. `npm test` runs the memory provider. Against a real Redis:
+
+```bash
+docker run -d -p 6379:6379 redis:7-alpine
+RUN_REDIS_TESTS=1 REDIS_URL=redis://127.0.0.1:6379 npm run test:contract
+```
+
+## Model Context Protocol (MCP)
+
+Enable the endpoint and let coding agents inspect the running app:
+
+```javascript
+serviceRegistry.initialize(app, eventEmitter, {
+  apiKeys: ['...'],
+  mcp: { enabled: true, allowWrite: false }   // allowWrite adds the write tools (admin only)
+});
+```
+
+`POST /services/mcp` takes JSON-RPC 2.0 messages. Authenticate with an API key or a personal access token. Each tool checks the permission its REST route needs, so a user without `queueing:read` cannot read queue stats through MCP.
+
+From Claude Code, use the stdio bridge:
+
+```bash
+claude mcp add nooblyjs -- npx nooblyjs mcp --url http://localhost:9000
+# set NOOBLYJS_TOKEN (a personal access token) or NOOBLYJS_API_KEY in the environment
+```
+
+Read tools: `logs.recent`, `queue.stats`, `data.count`, `data.find`, `search.query`, `workflow.listRuns`, `workflow.getRun`, `scheduling.listSchedules`, `monitoring.snapshot`. Resources: `nooblyjs://services`, `nooblyjs://openapi`. Prompts: `diagnose-failed-run`, `explain-service-config`.
+
+## Command-Line Tool (`nooblyjs`)
+
+```bash
+npx nooblyjs create my-app --yes      # minimal API app with a test
+npx nooblyjs doctor                   # environment checks; exits 1 on failure (use in CI)
+npx nooblyjs routes --url http://localhost:9000
+npx nooblyjs openapi --url http://localhost:9000 --out openapi.json
+npx nooblyjs openapi --url http://localhost:9000 --client ts --out src/api-client.ts
+npx nooblyjs keys generate --length 48
+```
+
+`routes` and `openapi` read `NOOBLYJS_API_KEY` or `NOOBLYJS_TOKEN` from the environment. The merged document is also served at `/services/api/openapi.json`.
+
 ### Unit Testing Services
 
 Create a fresh registry state in each test and clean up afterwards:

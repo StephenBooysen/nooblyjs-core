@@ -19,7 +19,9 @@
     "README.md",
     "package.json",
     "index.js",
-    "types"
+    "types",
+    "bin",
+    "testing.js"
   ],
   "license": "ISC",
   "author": "NooblyJS Contributors",
@@ -66,7 +68,8 @@
     "test:ai-common": "node --test \"tests/unit/aiservice/common/**/*.test.js\"",
     "test:ui": "playwright test",
     "test:ui:headed": "playwright test --headed --project=chromium",
-    "test:ui:report": "playwright show-report .temp/tests/playwright/report"
+    "test:ui:report": "playwright show-report .temp/tests/playwright/report",
+    "test:contract": "jest tests/contract"
   },
   "jest": {
     "modulePaths": [
@@ -211,5 +214,8 @@
       "optional": true
     }
   },
-  "types": "types/index.d.ts"
+  "types": "types/index.d.ts",
+  "bin": {
+    "nooblyjs": "bin/nooblyjs.js"
+  }
 }
