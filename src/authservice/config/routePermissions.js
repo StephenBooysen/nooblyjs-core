@@ -302,6 +302,12 @@ const ROUTE_PERMISSIONS = Object.freeze({
   'DELETE /services/ai/api/train/data/:key': 'ai:write',
 
   // authservice
+  'GET /services/searching/api/semantic': 'searching:read',
+  'POST /services/knowledge/api/ask': 'knowledge:read',
+  'POST /services/knowledge/api/retrieve': 'knowledge:read',
+  'POST /services/knowledge/api/sync': 'knowledge:write',
+  'GET /services/knowledge/api/status': 'knowledge:read',
+  'GET /services/knowledge/api/swagger/docs.json': 'knowledge:read',
   'POST /services/authservice/api/register': PUBLIC,
   'POST /services/authservice/api/login': PUBLIC,
   'POST /services/authservice/api/logout': PUBLIC,

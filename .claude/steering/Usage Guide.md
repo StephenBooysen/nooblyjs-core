@@ -882,6 +882,23 @@ docker run -d -p 6379:6379 redis:7-alpine
 RUN_REDIS_TESTS=1 REDIS_URL=redis://127.0.0.1:6379 npm run test:contract
 ```
 
+## Knowledge Service (ask your docs)
+
+```javascript
+const kb = serviceRegistry.knowledge('default', {
+  dependencies: { aiservice: serviceRegistry.aiservice('claude', { apiKey: process.env.ANTHROPIC_API_KEY }) }
+});
+await kb.sync({ directory: 'docs' });                  // new and changed Markdown and text files only
+const answer = await kb.ask('How do I rotate the settings secret?');
+// { text, confidence: 'cited' | 'low' | 'none', citations: [{ n, path, title, heading, snippet, score }] }
+```
+
+The knowledge service creates its own vector search instance (`instanceName: 'knowledge'`, hash embeddings by default). Pass `embedding: { backend: 'aiservice', aiservice }` through the searching dependency for real embeddings. Sync state lives in memory, so the first sync after a restart indexes everything again. Access control by role is not applied yet, so any indexed document can be cited.
+
+REST: `POST /services/knowledge/api/sync`, `/retrieve` and `/ask` (body `{ question, k }`), and `GET /services/knowledge/api/status`. The editor role has these; a plain user does not.
+
+Semantic search over any index with a vector provider: `GET /services/searching/api/semantic?query=...&index=...&mode=hybrid|semantic`.
+
 ## Model Context Protocol (MCP)
 
 Enable the endpoint and let coding agents inspect the running app:

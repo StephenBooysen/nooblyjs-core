@@ -1,0 +1,92 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Knowledge Service API",
+    "description": "Answers questions from a filing source with citations. Sync indexes new and changed Markdown and text files; ask answers from the indexed chunks only.",
+    "version": "1.0.14"
+  },
+  "servers": [{ "url": "/services/knowledge/api", "description": "Knowledge Service API" }],
+  "tags": [{ "name": "Knowledge", "description": "Sync, retrieve and ask" }],
+  "components": {
+    "securitySchemes": {
+      "ApiKeyAuth": { "type": "apiKey", "in": "header", "name": "x-api-key", "description": "API key for authentication" },
+      "BearerAuth": { "type": "http", "scheme": "bearer", "description": "Personal access token" }
+    },
+    "schemas": {
+      "Question": {
+        "type": "object",
+        "required": ["question"],
+        "properties": {
+          "question": { "type": "string", "minLength": 1, "maxLength": 1000, "example": "How do I rotate the settings secret?" },
+          "k": { "type": "integer", "minimum": 1, "maximum": 20, "description": "Chunks to use (default 5)" }
+        }
+      },
+      "Citation": {
+        "type": "object",
+        "properties": {
+          "n": { "type": "integer" },
+          "path": { "type": "string" },
+          "title": { "type": "string" },
+          "heading": { "type": "string" },
+          "snippet": { "type": "string" },
+          "score": { "type": "number" }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/sync": {
+      "post": {
+        "tags": ["Knowledge"],
+        "summary": "Index new and changed files",
+        "description": "Re-indexes only files whose content changed, removes files that no longer exist, and reports the counts.",
+        "operationId": "syncKnowledge",
+        "security": [{ "ApiKeyAuth": [] }, { "BearerAuth": [] }],
+        "requestBody": {
+          "required": false,
+          "content": { "application/json": { "schema": { "type": "object", "properties": { "directory": { "type": "string", "maxLength": 500, "default": "/" } } } } }
+        },
+        "responses": {
+          "200": { "description": "Sync counts", "content": { "application/json": { "schema": { "type": "object", "properties": { "success": { "type": "boolean" }, "data": { "type": "object", "properties": { "files": { "type": "integer" }, "added": { "type": "integer" }, "changed": { "type": "integer" }, "unchanged": { "type": "integer" }, "removed": { "type": "integer" }, "chunks": { "type": "integer" } } } } } } } },
+          "500": { "description": "Sync failed" }
+        }
+      }
+    },
+    "/retrieve": {
+      "post": {
+        "tags": ["Knowledge"],
+        "summary": "Find the most relevant chunks",
+        "operationId": "retrieveKnowledge",
+        "security": [{ "ApiKeyAuth": [] }, { "BearerAuth": [] }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Question" } } } },
+        "responses": {
+          "200": { "description": "Chunks, best first", "content": { "application/json": { "schema": { "type": "object", "properties": { "success": { "type": "boolean" }, "data": { "type": "array", "items": { "$ref": "#/components/schemas/Citation" } } } } } } },
+          "400": { "description": "Invalid question" }
+        }
+      }
+    },
+    "/ask": {
+      "post": {
+        "tags": ["Knowledge"],
+        "summary": "Answer a question with citations",
+        "description": "Answers from the retrieved chunks only. An answer with no citation has confidence `low`; no matching chunks gives `none`.",
+        "operationId": "askKnowledge",
+        "security": [{ "ApiKeyAuth": [] }, { "BearerAuth": [] }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Question" } } } },
+        "responses": {
+          "200": { "description": "Answer", "content": { "application/json": { "schema": { "type": "object", "properties": { "success": { "type": "boolean" }, "data": { "type": "object", "properties": { "text": { "type": "string" }, "confidence": { "type": "string", "enum": ["cited", "low", "none"] }, "citations": { "type": "array", "items": { "$ref": "#/components/schemas/Citation" } } } } } } } } },
+          "400": { "description": "Invalid question" }
+        }
+      }
+    },
+    "/status": {
+      "get": {
+        "tags": ["Knowledge"],
+        "summary": "Indexed file and chunk counts",
+        "operationId": "getKnowledgeStatus",
+        "security": [{ "ApiKeyAuth": [] }, { "BearerAuth": [] }],
+        "responses": { "200": { "description": "Counts" } }
+      }
+    }
+  }
+}

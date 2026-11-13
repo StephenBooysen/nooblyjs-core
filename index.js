@@ -24,6 +24,7 @@ const { createPermissionGate } = require('./src/authservice/middleware/permissio
 const { RouteDeclarations, findUndeclaredRoutes, listApiRoutes } = require('./src/authservice/modules/routeDeclarations');
 const { buildOpenApiDocument, loadServiceDocuments, mountedBases } = require('./src/shared/utils/openapi');
 const { mountMcp } = require('./src/mcp');
+const createKnowledgeService = require('./src/knowledge');
 const { normalizeKeyEntries, findKeyEntry } = require('./src/authservice/modules/permissions');
 
 const ensureArray = (value) => {
@@ -397,6 +398,7 @@ class ServiceRegistry {
     // Level 4 services (Integration - Use application services)
     this.serviceDependencies.set('authservice', ['logging', 'caching', 'dataservice']);
     this.serviceDependencies.set('aiservice', ['logging', 'caching', 'workflow', 'queueing']);
+    this.serviceDependencies.set('knowledge', ['logging', 'filing', 'searching', 'aiservice']);
 
     this.dependenciesInitialized = true;
 
@@ -539,6 +541,7 @@ class ServiceRegistry {
       'notifying': 'memory',
       'authservice': 'file',
       'aiservice': 'claude',
+      'knowledge': 'default',
       'fetching': 'node',
       'settings': 'file'
     };
@@ -794,6 +797,42 @@ class ServiceRegistry {
    */
   fetching(providerType = 'node', options = {}) {
     return this.getService('fetching', providerType, options);
+  }
+
+  /**
+   * Get the knowledge service (feature 05): answers from a filing source with
+   * citations. Creates its own vector search instance (`instanceName: 'knowledge'`)
+   * unless `options.dependencies.searching` is given.
+   *
+   * @param {string} providerType - 'default'
+   * @param {Object} options - instanceName, container, extensions, topK and dependencies overrides
+   * @returns {Object} Knowledge service instance
+   */
+  knowledge(providerType = 'default', options = {}) {
+    if (!this.initialized) {
+      throw new Error('ServiceRegistry must be initialized before getting services');
+    }
+    const instanceName = options.instanceName || 'default';
+    const key = `knowledge:${providerType}:${instanceName}`;
+    if (this.services.has(key)) return this.services.get(key);
+
+    const { dependencies: overrides = {}, ...serviceOptions } = options;
+    // Each default is created only when the caller does not supply that dependency.
+    const dependencies = { ...overrides };
+    if (!dependencies.logging) dependencies.logging = this.logger();
+    if (!dependencies.filing) dependencies.filing = this.filing();
+    if (!dependencies.aiservice) dependencies.aiservice = this.aiservice();
+    if (!dependencies.searching) {
+      dependencies.searching = this.getService('searching', 'vector', { instanceName: 'knowledge', embedding: { backend: 'hash' } });
+    }
+    const service = createKnowledgeService(providerType, {
+      ...serviceOptions,
+      instanceName,
+      dependencies,
+      'express-app': this.expressApp
+    }, this.eventEmitter);
+    this.services.set(key, service);
+    return service;
   }
 
   /**

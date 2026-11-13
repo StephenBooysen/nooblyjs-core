@@ -22,7 +22,7 @@ const ROLE_PERMISSIONS = Object.freeze({
   admin: ['*'],
   editor: [
     'filing:*', 'searching:*', 'dataservice:*', 'caching:*', 'queueing:*',
-    'logging:read', 'measuring:read', 'profile:*'
+    'logging:read', 'measuring:read', 'knowledge:*', 'profile:*'
   ],
   user: ['filing:read', 'searching:read', 'profile:*']
 });

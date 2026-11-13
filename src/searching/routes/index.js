@@ -123,6 +123,45 @@ module.exports = (options, eventEmitter, search) => {
     });
 
     /**
+     * GET /services/searching/api/semantic
+     * Meaning-based search (feature 01). `mode=hybrid` (default) fuses keyword and
+     * vector ranking; `mode=semantic` ranks by vector similarity only. Needs a
+     * vector search provider; other providers answer 400.
+     *
+     * @param {express.Request} req - Express request object
+     * @param {string} req.query.query - The question or phrase
+     * @param {string} [req.query.index] - Index to search
+     * @param {number} [req.query.limit] - Most results to return (1 to 100)
+     * @param {string} [req.query.mode] - 'hybrid' or 'semantic'
+     * @param {express.Response} res - Express response object
+     * @return {void}
+     */
+    app.get('/services/searching/api/semantic',
+      validate({
+        query: {
+          query: { type: 'string', required: true, minLength: 1, maxLength: 500 },
+          index: { type: 'string', maxLength: 200 },
+          limit: { type: 'integer' },
+          mode: { type: 'string', enum: ['hybrid', 'semantic'] }
+        }
+      }),
+      async (req, res) => {
+        const method = req.query.mode === 'semantic' ? 'semanticSearch' : 'hybridSearch';
+        if (typeof search[method] !== 'function') {
+          return res.status(400).json({ success: false, error: 'This search provider has no semantic search. Use the vector provider.' });
+        }
+        try {
+          const limit = Math.min(Math.max(1, Number(req.query.limit) || 10), 100);
+          const results = await search[method](req.query.query, req.query.index ? { containerName: req.query.index } : undefined);
+          const list = Array.isArray(results) ? results : (results?.results || []);
+          res.status(200).json({ success: true, data: list.slice(0, limit), mode: method === 'semanticSearch' ? 'semantic' : 'hybrid' });
+        } catch (err) {
+          sendSafeError(res, err, { status: 500, eventEmitter });
+        }
+      }
+    );
+
+    /**
      * GET /services/searching/api/status
      * Returns the operational status of the search service.
      *

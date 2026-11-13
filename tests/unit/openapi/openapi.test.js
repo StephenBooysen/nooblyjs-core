@@ -50,7 +50,9 @@ describe('merged OpenAPI document (feature 10)', () => {
     registry.notifying('memory'); registry.working('memory'); registry.workflow('memory');
     registry.settings('file', { filepath: path.join(dir, 'settings.json'), secret: 'x'.repeat(32) });
     registry.aiservice('mock', {}); registry.authservice('memory', {}); registry.dataService('memory');
-    services = om.loadServiceDocuments(SRC);
+    // Only services this app has mounted are part of it, as in the merged document.
+    const mounted = om.mountedBases(app);
+    services = om.loadServiceDocuments(SRC).filter((s) => mounted.has(om.serviceBase(s.doc, s.dir)));
     routes = listApiRoutes(app);
   });
 
