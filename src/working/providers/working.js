@@ -63,6 +63,14 @@ const { resolveWithin } = require('../../filing/modules/pathSafety');
 /** @const {number} Queue processor poll interval in ms. */
 const QUEUE_TICK_MS = 1000;
 
+/**
+ * Extra lease time, beyond the worker timeout, before a reliable task that is
+ * still running is redelivered (feature 06). A task that finishes in time is
+ * acknowledged long before the lease would expire.
+ * @const {number}
+ */
+const RELIABLE_LEASE_MARGIN_MS = 30000;
+
 /** @const {number} Max task history entries kept in memory. */
 const TASK_HISTORY_LIMIT = 1000;
 
@@ -245,6 +253,9 @@ class WorkerManager {
 
     /** @private {?NodeJS.Timeout} Queue processing interval. */
     this.queueProcessorInterval_ = null;
+
+    /** @private {?{stop: function(): Promise<void>}} Reliable-job consumer for incoming tasks (feature 06). */
+    this.reliableConsumer_ = null;
 
     /** @private {boolean} Whether a queue-processor pass is still running (see startQueueProcessor_). */
     this.tickInFlight_ = false;
@@ -687,7 +698,7 @@ class WorkerManager {
 
     // Enforce queue cap before resolving paths so a flood of bad calls cannot
     // pin the event loop on filesystem checks.
-    const currentSize = await this.queueService_.size(this.QUEUE_INCOMING_);
+    const currentSize = await this.incomingSize_();
     if (currentSize >= this.settings.maxQueueSize) {
       const error = `Incoming queue at capacity (${this.settings.maxQueueSize})`;
       this.eventEmitter_?.emit('worker:start:error', { scriptPath, error });
@@ -720,7 +731,7 @@ class WorkerManager {
     this.registerWaiter_(taskId, completionCallback, resolvedScriptPath);
 
     try {
-      await this.queueService_.enqueue(this.QUEUE_INCOMING_, task);
+      await this.queueService_.enqueue(this.QUEUE_INCOMING_, task, this.usesReliableTasks_() ? { attempts: 1 } : undefined);
     } catch (err) {
       // Never leave a waiter behind for a task that was never queued — it would
       // sit until callbackTimeout and then report a misleading timeout instead
@@ -728,7 +739,7 @@ class WorkerManager {
       this.pendingCallbacks_.delete(taskId);
       throw err;
     }
-    const queueSize = await this.queueService_.size(this.QUEUE_INCOMING_);
+    const queueSize = await this.incomingSize_();
 
     this.eventEmitter_?.emit('worker:queued', {
       taskId,
@@ -757,6 +768,20 @@ class WorkerManager {
    * @private
    */
   startQueueProcessor_() {
+    if (this.usesReliableTasks_() && !this.reliableConsumer_) {
+      // Each task holds its lease until its worker is finalised. A crash before that
+      // lets another process redeliver it once the lease expires (at-least-once).
+      this.reliableConsumer_ = this.queueService_.process(this.QUEUE_INCOMING_, (job) => new Promise((resolve) => {
+        this.executeTask_(job.data, resolve).catch((err) => {
+          this.logIf_('error', 'Reliable task dispatch failed', { error: err?.message });
+          resolve();
+        });
+      }), {
+        concurrency: this.maxThreads_,
+        visibilityTimeoutMs: this.settings.workerTimeout + RELIABLE_LEASE_MARGIN_MS,
+        pollIntervalMs: QUEUE_TICK_MS
+      });
+    }
     if (this.queueProcessorInterval_) return;
 
     this.queueProcessorInterval_ = setInterval(() => {
@@ -809,10 +834,37 @@ class WorkerManager {
    * @private
    */
   stopQueueProcessor_() {
+    if (this.reliableConsumer_) {
+      const consumer = this.reliableConsumer_;
+      this.reliableConsumer_ = null;
+      // Stops taking new tasks. Tasks already running finish and are acknowledged.
+      Promise.resolve(consumer.stop()).catch(() => {});
+    }
     if (this.queueProcessorInterval_) {
       clearInterval(this.queueProcessorInterval_);
       this.queueProcessorInterval_ = null;
     }
+  }
+
+  /**
+   * True when the queueing backend keeps tasks as reliable jobs (memory and
+   * Redis), so the incoming queue is consumed with a lease instead of polled (feature 06).
+   * @return {boolean}
+   */
+  usesReliableTasks_() {
+    return Boolean(this.queueService_?.supportsReliableJobs);
+  }
+
+  /**
+   * Tasks waiting to run on the incoming queue, from whichever store holds them.
+   * @return {Promise<number>}
+   */
+  async incomingSize_() {
+    if (this.usesReliableTasks_()) {
+      const counts = await this.queueService_.jobCounts(this.QUEUE_INCOMING_);
+      return (counts.waiting || 0) + (counts.delayed || 0);
+    }
+    return this.queueService_.size(this.QUEUE_INCOMING_);
   }
 
   /**
@@ -822,9 +874,11 @@ class WorkerManager {
    */
   async processQueue_() {
     if (!this.queueService_ || !this.isRunning_) return;
+    // Reliable mode: the consumer started in startQueueProcessor_ does the dispatching.
+    if (this.usesReliableTasks_()) return;
 
     while (this.activeWorkers_.size < this.maxThreads_) {
-      const queueSize = await this.queueService_.size(this.QUEUE_INCOMING_);
+      const queueSize = await this.incomingSize_();
       if (queueSize === 0) break;
 
       const task = await this.queueService_.dequeue(this.QUEUE_INCOMING_);
@@ -847,13 +901,14 @@ class WorkerManager {
    * @private
    * @param {!Object} task
    */
-  async executeTask_(task) {
+  async executeTask_(task, done = null) {
     let worker;
     try {
       worker = new Worker(path.resolve(__dirname, './workerScript.js'), { resourceLimits: this.resourceLimits_ });
     } catch (err) {
       // Failure to even spawn a worker — record as error and bail.
       await this.recordError_(task, null, err.message, 'spawn');
+      done?.();
       return;
     }
 
@@ -862,7 +917,8 @@ class WorkerManager {
       task,
       startedAt: new Date(),
       timeoutHandle: null,
-      finalised: false
+      finalised: false,
+      onDone: done
     };
 
     this.activeWorkers_.set(task.id, workerInfo);
@@ -880,7 +936,7 @@ class WorkerManager {
 
     let incomingQueueSize = 0;
     try {
-      incomingQueueSize = await this.queueService_.size(this.QUEUE_INCOMING_);
+      incomingQueueSize = await this.incomingSize_();
     } catch (_) { /* size is best-effort metadata */ }
 
     this.eventEmitter_?.emit('worker:start', {
@@ -925,6 +981,11 @@ class WorkerManager {
         this.eventEmitter_?.emit('worker:exit:error', { taskId: task.id, code });
       }
       this.eventEmitter_?.emit('worker:exit', { taskId: task.id, code });
+      // A worker that exits without reporting a result must still be finalised, or a
+      // reliable task would never be acknowledged (feature 06).
+      if (!workerInfo.finalised) {
+        await this.finaliseTask_(workerInfo, 'error', 'Worker exited without reporting a result');
+      }
       this.cleanupWorker_(task.id);
     });
 
@@ -1005,6 +1066,8 @@ class WorkerManager {
     }
 
     this.cleanupWorker_(task.id);
+    // Reliable tasks are acknowledged only once the result is recorded (feature 06).
+    workerInfo.onDone?.();
   }
 
   /**
@@ -1144,7 +1207,7 @@ class WorkerManager {
     let incomingQueueSize = 0;
     if (this.queueService_) {
       try {
-        incomingQueueSize = await this.queueService_.size(this.QUEUE_INCOMING_);
+        incomingQueueSize = await this.incomingSize_();
       } catch (_) { /* best effort */ }
     }
 
@@ -1219,7 +1282,7 @@ class WorkerManager {
 
     if (this.queueService_) {
       try {
-        incomingQueueSize = await this.queueService_.size(this.QUEUE_INCOMING_);
+        incomingQueueSize = await this.incomingSize_();
         completeQueueSize = await this.queueService_.size(this.QUEUE_COMPLETE_);
         errorQueueSize    = await this.queueService_.size(this.QUEUE_ERROR_);
       } catch (_) { /* best effort */ }

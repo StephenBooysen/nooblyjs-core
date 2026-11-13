@@ -16,6 +16,16 @@ jest.mock('worker_threads', () => ({
   },
 }));
 
+
+/**
+ * The memory queue, seen the way a queue without reliable jobs (ActiveMQ and
+ * the other providers) is seen: `supportsReliableJobs` is false, so the working
+ * service keeps its polling dispatch.
+ */
+function legacyQueue(queue) {
+  return Object.create(queue, { supportsReliableJobs: { value: false } });
+}
+
 describe('WorkerProvider', () => {
   let workerInstance;
   let MockWorker;
@@ -31,7 +41,7 @@ describe('WorkerProvider', () => {
     if (!getQueueService) {
       getQueueService = require('../../../src/queueing');
     }
-    mockQueueService = getQueueService('memory', {}, mockEventEmitter);
+    mockQueueService = legacyQueue(getQueueService('memory', {}, mockEventEmitter));
 
     // Import the module (keep using cached version for stability)
     if (!getWorkerInstance) {
