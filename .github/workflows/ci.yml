@@ -83,6 +83,27 @@ jobs:
           path: .temp/tests/zap
           retention-days: 14
 
+  contracts-redis:
+    name: Provider contracts against Redis (Node 24)
+    runs-on: ubuntu-latest
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Caching and queueing contracts against a live Redis
+        env:
+          RUN_REDIS_TESTS: '1'
+          REDIS_URL: redis://127.0.0.1:6379
+        run: npm run test:contract
+
   ui:
     name: UI tests (Playwright)
     runs-on: ubuntu-latest
