@@ -7,11 +7,24 @@
 
 'use strict';
 
-const simpleGit = require('simple-git');
+const { simpleGit } = require('simple-git');
 const path = require('node:path');
 const fs = require('node:fs').promises;
 const CommitQueue = require('../sync/CommitQueue');
 const { resolveWithin } = require('../modules/pathSafety');
+const { applyRuntimeSettings, numberRule, booleanRule, stringRule } = require('../modules/settingsPolicy');
+
+/** Settings that may change while the service runs. Repository and path options are fixed. */
+const RUNTIME_RULES = {
+  fetchInterval: numberRule('fetchInterval', { min: 1000, max: 86400000, integer: true }),
+  autoFetch: booleanRule('autoFetch'),
+  maxFileSize: numberRule('maxFileSize', { min: 1, max: 5 * 1024 * 1024 * 1024, integer: true }),
+  autoCommit: booleanRule('autoCommit'),
+  commitInterval: numberRule('commitInterval', { min: 1000, max: 86400000, integer: true }),
+  commitMessage: stringRule('commitMessage', 200),
+  conflictThreshold: numberRule('conflictThreshold', { min: 0, max: 1000000, integer: true })
+};
+
 
 /**
  * Git filing provider that manages files in a Git repository
@@ -766,11 +779,17 @@ class GitFilingProvider {
    * Save/update settings
    */
   async saveSettings(settings){
-    for (let i = 0; i < this.settings.list.length; i++){
-      if (settings[this.settings.list[i].setting] != null){
-        this.settings[this.settings.list[i].setting] = settings[this.settings.list[i].setting];
-        this.logger?.info(`[${this.constructor.name}] Setting changed`, { setting: this.settings.list[i].setting, newValue: settings[this.settings.list[i].setting], operation: 'saveSettings' });
-      }
+    const updates = applyRuntimeSettings(settings, {
+      rules: RUNTIME_RULES,
+      fixed: { repoUrl: this.repoUrl, localPath: this.localPath, branch: this.branch }
+    });
+    for (const [setting, newValue] of Object.entries(updates)) {
+      this.settings[setting] = newValue;
+      this.logger?.info(`[${this.constructor.name}] Setting changed`, {
+        setting,
+        newValue,
+        operation: 'saveSettings'
+      });
     }
   }
 }

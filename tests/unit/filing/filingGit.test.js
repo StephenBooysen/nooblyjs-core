@@ -50,7 +50,7 @@ const mockGit = {
 };
 
 jest.mock('simple-git', () => {
-  return jest.fn().mockImplementation(() => mockGit);
+  return { simpleGit: jest.fn().mockImplementation(() => mockGit) };
 });
 
 // Mock fs.promises
