@@ -38,6 +38,7 @@ describe('WorkerProvider', () => {
       getWorkerInstance = require('../../../src/working');
     }
     workerInstance = getWorkerInstance('default', {
+      allowAbsolutePaths: true,
       dependencies: {
         queueing: mockQueueService
       }

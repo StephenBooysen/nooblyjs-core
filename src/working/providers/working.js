@@ -57,6 +57,8 @@ const path = require('node:path');
 const fs = require('node:fs');
 const os = require('node:os');
 const crypto = require('node:crypto');
+const { ClientError } = require('../../shared/utils/httpErrors');
+const { resolveWithin } = require('../../filing/modules/pathSafety');
 
 /** @const {number} Queue processor poll interval in ms. */
 const QUEUE_TICK_MS = 1000;
@@ -84,6 +86,55 @@ const CALLBACK_TIMEOUT_GRACE_MS = 60000;
  *
  * @class
  */
+/** Extensions an activity may use. Anything else is refused before a worker starts. */
+const ACTIVITY_EXTENSIONS = new Set(['.js', '.mjs', '.cjs']);
+
+/** Names a registered activity may take: letters, digits, dot, dash, underscore. */
+const ACTIVITY_NAME = /^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/;
+
+/** Default worker heap ceiling in MB, so one bad activity cannot exhaust the process. */
+const DEFAULT_WORKER_HEAP_MB = 512;
+
+/**
+ * Builds the named-activity registry. Operator configuration, not user input,
+ * so each path is trusted and resolved against the working directory once.
+ *
+ * @param {Object<string, string>=} activities Map of activity name to script path
+ * @return {?Map<string, string>} Name to absolute path, or null when none configured
+ * @throws {Error} When a name is invalid or a path is not a supported script
+ */
+function buildActivityRegistry(activities) {
+  if (!activities || typeof activities !== 'object') return null;
+  const registry = new Map();
+  for (const [name, scriptPath] of Object.entries(activities)) {
+    if (!ACTIVITY_NAME.test(name)) {
+      throw new Error(`Invalid activity name "${name}": use letters, digits, ".", "-" or "_"`);
+    }
+    if (typeof scriptPath !== 'string' || !ACTIVITY_EXTENSIONS.has(path.extname(scriptPath).toLowerCase())) {
+      throw new Error(`Activity "${name}" must point at a .js, .mjs or .cjs file`);
+    }
+    registry.set(name, path.resolve(process.cwd(), scriptPath));
+  }
+  return registry;
+}
+
+/**
+ * Refuses an activities root that sits inside a filing root or contains one.
+ * Scripts must never live where users can write files (feature 18).
+ *
+ * @param {string} activitiesRoot Absolute activities folder
+ * @param {?string} filingRoot Absolute filing base directory, when known
+ * @throws {Error} When the two overlap
+ */
+function assertNoFilingOverlap(activitiesRoot, filingRoot) {
+  if (!filingRoot) return;
+  const a = activitiesRoot.endsWith(path.sep) ? activitiesRoot : activitiesRoot + path.sep;
+  const f = filingRoot.endsWith(path.sep) ? filingRoot : filingRoot + path.sep;
+  if (a.startsWith(f) || f.startsWith(a)) {
+    throw new Error('The activities folder must not overlap a filing root: scripts must not be writable by users');
+  }
+}
+
 class WorkerManager {
   /**
    * @param {Object=} options Configuration options.
@@ -175,6 +226,22 @@ class WorkerManager {
       options.activitiesFolder ||
       options['nooblyjs-core-activities'] ||
       'activities';
+
+    /** @private @const {string} The only directory scripts may be loaded from. */
+    this.activitiesRoot_ = path.resolve(process.cwd(), this.activitiesFolder_);
+
+    const filingProvider = options.dependencies?.filing?.provider;
+    const filingRoot = filingProvider?.rootDir_ || filingProvider?.settings?.baseDir;
+    assertNoFilingOverlap(this.activitiesRoot_, filingRoot ? path.resolve(filingRoot) : null);
+
+    /** @private {boolean} Explicit opt-in for absolute script paths (deprecated). */
+    this.allowAbsolutePaths_ = options.allowAbsolutePaths === true;
+
+    /** @private {?Map<string, string>} Named activities that HTTP callers may run. */
+    this.activityRegistry_ = buildActivityRegistry(options.activities);
+
+    /** @private {Object} Resource limits applied to every worker thread. */
+    this.resourceLimits_ = { maxOldGenerationSizeMb: DEFAULT_WORKER_HEAP_MB, ...(options.resourceLimits || {}) };
 
     /** @private {?NodeJS.Timeout} Queue processing interval. */
     this.queueProcessorInterval_ = null;
@@ -493,33 +560,98 @@ class WorkerManager {
   }
 
   /**
-   * Resolves an activity script path to an absolute filesystem path.
-   * Absolute inputs are trusted as-is; relative inputs are resolved against
-   * the configured activities folder and verified to exist.
+   * Checks an activity script path without touching the filesystem: it must be
+   * a relative path, must not be absolute unless `allowAbsolutePaths` is set,
+   * and must end in .js, .mjs or .cjs.
+   *
+   * @param {string} scriptPath Candidate script path.
+   * @return {void}
+   * @throws {ClientError} 400 when the path is not an acceptable activity path.
+   */
+  validateActivityPath(scriptPath) {
+    if (typeof scriptPath !== 'string' || scriptPath.trim() === '') {
+      throw new ClientError(400, 'scriptPath must be a non-empty string');
+    }
+    if (path.isAbsolute(scriptPath) && !this.allowAbsolutePaths_) {
+      throw new ClientError(400, 'Absolute script paths are not allowed; use a path inside the activities folder');
+    }
+    if (!ACTIVITY_EXTENSIONS.has(path.extname(scriptPath).toLowerCase())) {
+      throw new ClientError(400, 'Activity scripts must be .js, .mjs or .cjs files');
+    }
+  }
+
+  /**
+   * Resolves an activity script path to an absolute filesystem path, keeping it
+   * inside the activities folder. Traversal and symlinks that escape the folder
+   * are refused. Absolute paths pass only when `allowAbsolutePaths` is set.
    *
    * @private
    * @param {string} scriptPath
    * @return {Promise<string>}
-   * @throws {Error} If the resolved path does not exist.
+   * @throws {ClientError} 400 when the path is refused.
+   * @throws {Error} When the path is accepted but the script is not found (filing-wired setups).
    */
   async resolveActivityPath_(scriptPath) {
+    this.validateActivityPath(scriptPath);
+
     if (path.isAbsolute(scriptPath)) {
-      return scriptPath;
+      this.logIf_('warn', 'Absolute activity path allowed by allowAbsolutePaths', { scriptPath });
+      return path.resolve(scriptPath);
     }
 
-    const resolvedPath = path.resolve(process.cwd(), this.activitiesFolder_, scriptPath);
+    // Lexical containment: resolveWithin rejects '..' and absolute escapes.
+    const lexical = resolveWithin(this.activitiesRoot_, scriptPath);
 
-    // Verify existence so we fail fast at queue time, not later inside a
-    // worker. Only enforced when filing service is wired in (legacy).
-    if (this.filingService_) {
-      try {
-        await fs.promises.access(resolvedPath);
-      } catch (err) {
-        throw new Error(`Activity script not found: ${scriptPath} (resolved to: ${resolvedPath})`);
+    // Symlink containment: the real file must also sit inside the real root.
+    let real;
+    try {
+      real = await fs.promises.realpath(lexical);
+    } catch (err) {
+      if (this.filingService_) {
+        throw new Error(`Activity script not found: ${scriptPath} (resolved to: ${lexical})`);
       }
+      return lexical;
     }
+    const realRoot = await fs.promises.realpath(this.activitiesRoot_).catch(() => this.activitiesRoot_);
+    if (real !== realRoot && !real.startsWith(realRoot + path.sep)) {
+      throw new ClientError(400, 'Activity script resolves outside the activities folder');
+    }
+    return real;
+  }
 
-    return resolvedPath;
+  /**
+   * Reports whether a named activity is registered.
+   * @param {string} name Activity name
+   * @return {boolean}
+   */
+  hasActivity(name) {
+    return Boolean(this.activityRegistry_ && this.activityRegistry_.has(name));
+  }
+
+  /**
+   * Reports whether named activities are configured. When they are, HTTP
+   * callers may only run registered names.
+   * @return {boolean}
+   */
+  hasActivityRegistry() {
+    return Boolean(this.activityRegistry_);
+  }
+
+  /**
+   * Queues a registered activity by name. The path comes from operator
+   * configuration, so it is trusted and skips the activities-folder check.
+   *
+   * @param {string} name Registered activity name.
+   * @param {*=} data Payload for the worker.
+   * @param {Function=} completionCallback Optional `(status, data) => void`.
+   * @return {Promise<string>} The task ID.
+   * @throws {ClientError} 404 when the name is not registered.
+   */
+  async startActivity(name, data, completionCallback) {
+    if (!this.hasActivity(name)) {
+      throw new ClientError(404, `Unknown activity: ${name}`);
+    }
+    return this.start(this.activityRegistry_.get(name), data, completionCallback, { trusted: true });
   }
 
   /**
@@ -534,7 +666,7 @@ class WorkerManager {
    * @throws {Error} If the manager is stopped, the queue is full, or the
    *   activity path cannot be resolved.
    */
-  async start(scriptPath, data, completionCallback) {
+  async start(scriptPath, data, completionCallback, startOptions = {}) {
     if (!this.isRunning_) {
       const error = 'Worker manager is stopped';
       this.eventEmitter_?.emit('worker:start:error', { scriptPath, error });
@@ -567,7 +699,9 @@ class WorkerManager {
       throw new Error(error);
     }
 
-    const resolvedScriptPath = await this.resolveActivityPath_(scriptPath);
+    const resolvedScriptPath = startOptions.trusted === true
+      ? path.resolve(scriptPath)
+      : await this.resolveActivityPath_(scriptPath);
 
     const taskId = this.generateTaskId_();
 
@@ -716,7 +850,7 @@ class WorkerManager {
   async executeTask_(task) {
     let worker;
     try {
-      worker = new Worker(path.resolve(__dirname, './workerScript.js'));
+      worker = new Worker(path.resolve(__dirname, './workerScript.js'), { resourceLimits: this.resourceLimits_ });
     } catch (err) {
       // Failure to even spawn a worker — record as error and bail.
       await this.recordError_(task, null, err.message, 'spawn');

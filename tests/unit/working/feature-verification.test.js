@@ -32,6 +32,7 @@ describe('Working Service - Feature Verification', () => {
 
     // Create working service
     working = createWorking('default', {
+      allowAbsolutePaths: true,
       dependencies: { queueing },
       maxThreads: 2
     }, mockEventEmitter);
@@ -330,6 +331,7 @@ describe('Working Service - Feature Verification', () => {
   describe('Error Handling', () => {
     it('should handle queueing service dependency', async () => {
       const working2 = createWorking('default', {
+      allowAbsolutePaths: true,
         dependencies: { queueing },
         maxThreads: 2
       }, mockEventEmitter);
@@ -340,6 +342,7 @@ describe('Working Service - Feature Verification', () => {
 
     it('should handle missing eventEmitter gracefully', async () => {
       const working2 = createWorking('default', {
+      allowAbsolutePaths: true,
         dependencies: { queueing },
         maxThreads: 2
       }, null);

@@ -79,20 +79,50 @@ module.exports = (options, eventEmitter, worker, analytics) => {
   // Task submission
   // ---------------------------------------------------------------------------
 
+  /**
+   * POST /services/working/api/run
+   * Queues an activity. Send `{ activity: "<name>" }` for a registered
+   * activity. Raw `{ scriptPath }` is accepted only when no activity registry
+   * is configured, and then only for scripts inside the activities folder.
+   */
   app.post('/services/working/api/run', wrap(async (req, res) => {
-    const { scriptPath, data } = req.body || {};
-
-    if (!scriptPath || typeof scriptPath !== 'string') {
-      return res.status(400).json({ error: 'Bad Request: Missing scriptPath' });
-    }
+    const { activity, scriptPath, data } = req.body || {};
+    const completion = (status, result) => {
+      eventEmitter?.emit('worker-complete', { status, result });
+    };
 
     try {
-      const taskId = await worker.start(scriptPath, data, (status, result) => {
-        eventEmitter?.emit('worker-complete', { status, result });
+      let taskId;
+      if (activity !== undefined) {
+        if (typeof activity !== 'string' || !worker.hasActivity?.(activity)) {
+          return res.status(404).json({ error: 'Unknown activity' });
+        }
+        taskId = await worker.startActivity(activity, data, completion);
+      } else {
+        if (worker.hasActivityRegistry?.()) {
+          return res.status(400).json({
+            error: 'Raw script paths are disabled. Send { "activity": "<name>" } for a registered activity.'
+          });
+        }
+        if (!scriptPath || typeof scriptPath !== 'string') {
+          return res.status(400).json({ error: 'Bad Request: Missing scriptPath' });
+        }
+        taskId = await worker.start(scriptPath, data, completion);
+      }
+
+      eventEmitter?.emit('working:run-requested', {
+        source: 'http',
+        activity: activity || null,
+        scriptPath: activity ? null : scriptPath,
+        ip: req.ip,
+        taskId
       });
       res.status(201).json({ status: 'OK', taskId, message: 'Task queued successfully' });
     } catch (err) {
       const message = err?.message || String(err);
+      if (Number.isInteger(err?.statusCode) && err.statusCode >= 400 && err.statusCode < 500) {
+        return res.status(err.statusCode).json({ error: message });
+      }
       if (/queue at capacity/i.test(message)) {
         return res.status(429).json({ error: message });
       }

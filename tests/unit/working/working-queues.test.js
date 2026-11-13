@@ -40,6 +40,7 @@ describe('Working Service with Named Queues', () => {
 
     // Create working service with queue dependency
     workingService = createWorkingService('default', {
+      allowAbsolutePaths: true,
       maxThreads: 2,
       dependencies: {
         queueing: queueService

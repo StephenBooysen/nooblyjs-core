@@ -1175,6 +1175,13 @@ class SchedulerProvider {
     if (!scriptPath || typeof scriptPath !== 'string' || scriptPath.trim() === '') {
       this.throwValidation_('start', 'Invalid scriptPath: must be a non-empty string', { taskName, scriptPath });
     }
+    // Reject paths the working service would refuse at fire time (absolute,
+    // wrong extension) so the error surfaces when the task is created (feature 18).
+    try {
+      this.worker_?.validateActivityPath?.(scriptPath);
+    } catch (err) {
+      this.throwValidation_('start', `Invalid scriptPath: ${err.message}`, { taskName, scriptPath });
+    }
   }
 
   /**

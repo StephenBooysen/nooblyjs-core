@@ -35,6 +35,7 @@ describe('Scheduling Service - Feature Verification', () => {
 
     // Create working service (required dependency for scheduling)
     working = createWorking('default', {
+      allowAbsolutePaths: true,
       dependencies: { queueing },
       maxThreads: 2
     }, mockEventEmitter);

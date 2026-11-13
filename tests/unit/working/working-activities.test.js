@@ -62,6 +62,7 @@ module.exports = { run };
 
     // Create working service with queue and filing dependencies
     workingService = createWorkingService('default', {
+      allowAbsolutePaths: true,
       maxThreads: 2,
       activitiesFolder: testActivitiesDir,
       dependencies: {
@@ -142,6 +143,7 @@ module.exports = { run };
     );
 
     workingService = createWorkingService('default', {
+      allowAbsolutePaths: true,
       maxThreads: 2,
       activitiesFolder: customDir,
       dependencies: {
@@ -168,6 +170,7 @@ module.exports = { run };
 
     // Create service with nooblyjs-core-activities option
     workingService = createWorkingService('default', {
+      allowAbsolutePaths: true,
       maxThreads: 2,
       'nooblyjs-core-activities': testActivitiesDir,
       dependencies: {
@@ -198,6 +201,7 @@ module.exports = { run };
 
     // Create service without specifying activities folder
     workingService = createWorkingService('default', {
+      allowAbsolutePaths: true,
       maxThreads: 2,
       dependencies: {
         queueing: queueService,

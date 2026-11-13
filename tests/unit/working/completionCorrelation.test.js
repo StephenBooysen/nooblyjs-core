@@ -52,7 +52,7 @@ class JsonRoundTripQueue {
 /** Builds a manager that never actually spawns a worker thread. */
 function makeManager(queueService, options = {}) {
   const manager = new WorkerManager(
-    { dependencies: { queueing: queueService }, enableLogging: false, ...options },
+    { dependencies: { queueing: queueService }, enableLogging: false, allowAbsolutePaths: true, ...options },
     new EventEmitter()
   );
   // The queue processor is not wanted in most tests — drive it explicitly.

@@ -164,6 +164,25 @@ class WorkflowService {
    * @param {Object} metadata - Optional metadata for the workflow
    * @throws {Error} When workflowName is invalid or steps array is empty
    */
+  /**
+   * Checks each step is an acceptable activity path (relative, inside the
+   * activities folder, a script extension). Steps run through the working
+   * service, which enforces the same rules again at execution time (feature 18).
+   *
+   * @private
+   * @param {Array<string>} steps Step script paths
+   * @throws {Error} When a step is refused
+   */
+  assertSafeSteps_(steps) {
+    for (const step of steps) {
+      try {
+        this.workingService_?.validateActivityPath?.(step);
+      } catch (err) {
+        throw new Error(`Invalid workflow step "${step}": ${err.message}`);
+      }
+    }
+  }
+
   async defineWorkflow(workflowName, steps, metadata = {}) {
     if (!workflowName || typeof workflowName !== 'string') {
       throw new Error('Workflow name must be a non-empty string');
@@ -172,6 +191,7 @@ class WorkflowService {
     if (!Array.isArray(steps) || steps.length === 0) {
       throw new Error('Steps must be a non-empty array of file paths');
     }
+    this.assertSafeSteps_(steps);
 
     // Store in both legacy map and new container for backwards compatibility
     this.workflows.set(workflowName, steps);
@@ -775,6 +795,7 @@ class WorkflowService {
 
     if (changes.steps !== undefined) {
       const steps = changes.steps.map(s => s.trim());
+      this.assertSafeSteps_(steps);
       this.definitionContainer.updateSteps(name, steps);
       this.workflows.set(name, steps);
     }
