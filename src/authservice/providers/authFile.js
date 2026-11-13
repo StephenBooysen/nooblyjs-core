@@ -47,6 +47,7 @@ class AuthFile extends AuthBase {
     this.usersFile_ = path.join(this.settings.datadir, 'users.json');
     this.rolesFile_ = path.join(this.settings.datadir, 'roles.json');
     this.sessionsFile_ = path.join(this.settings.datadir, 'sessions.json');
+    this.invitationsFile_ = path.join(this.settings.datadir, 'invitations.json');
 
     // Initialize file storage
     this.initializeFileStorage_().catch(error => {
@@ -141,6 +142,7 @@ class AuthFile extends AuthBase {
       await this.loadUsersFromFile_();
       await this.loadRolesFromFile_();
       await this.loadSessionsFromFile_();
+      await this.loadInvitationsFromFile_();
 
       // Create default admin user if no users exist
       if (this.users_.size === 0) {
@@ -325,6 +327,45 @@ class AuthFile extends AuthBase {
   async saveUsersToFile_() {
     const users = Object.fromEntries(this.users_);
     await fs.writeFile(this.usersFile_, JSON.stringify(users, null, 2), 'utf8');
+  }
+
+  /**
+   * Loads invitations from file so pending and approved codes survive a restart.
+   * Dates are revived from their JSON strings, because expiry checks compare them.
+   * @private
+   * @return {Promise<void>}
+   */
+  async loadInvitationsFromFile_() {
+    let raw;
+    try {
+      raw = await fs.readFile(this.invitationsFile_, 'utf8');
+    } catch (error) {
+      if (error.code === 'ENOENT') return;
+      throw error;
+    }
+    const records = JSON.parse(raw || '[]');
+    this.invitations_.clear();
+    for (const record of records) {
+      for (const field of ['createdAt', 'approvedAt', 'usedAt', 'expiresAt']) {
+        if (record[field]) record[field] = new Date(record[field]);
+      }
+      record.redeeming = false;
+      this.invitations_.set(record.id, record);
+    }
+  }
+
+  /**
+   * Writes invitations to file atomically (temporary file, then rename).
+   * Hashed codes only; plain codes are never stored.
+   * @protected
+   * @param {Array<Object>} records Invitation records
+   * @return {Promise<void>}
+   */
+  async saveInvitations_(records) {
+    await fs.mkdir(this.settings.datadir, { recursive: true });
+    const tmp = `${this.invitationsFile_}.${process.pid}.${Date.now()}.tmp`;
+    await fs.writeFile(tmp, JSON.stringify(records, null, 2), { encoding: 'utf8', mode: 0o600 });
+    await fs.rename(tmp, this.invitationsFile_);
   }
 
   /**

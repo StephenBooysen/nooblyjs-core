@@ -83,6 +83,33 @@ module.exports = (options, eventEmitter, auth, analytics) => {
 
     const clearLoginFailures = (email) => failedLogins.delete(email);
 
+    // Invitation endpoints are public, so they are rate limited per IP. The
+    // code is 128 bits, which makes guessing infeasible; the limit stops a
+    // flood of requests and redemption attempts from one source.
+    const invitationRateLimiter = rateLimit({
+      windowMs: Number(process.env.INVITATION_RATE_WINDOW_MS) || 15 * 60 * 1000,
+      max: Number(process.env.INVITATION_RATE_LIMIT_MAX) || 20,
+      standardHeaders: true,
+      legacyHeaders: false,
+      message: {
+        success: false,
+        error: 'Too many invitation requests. Please try again later.'
+      }
+    });
+
+    // Admin invitation operations need the admin role, not just any session.
+    const requireAdminSession = [
+      requireAuthenticatedSession,
+      (req, res, next) => {
+        const roles = Array.isArray(req.user?.roles) ? req.user.roles : [];
+        if (roles.includes('admin')) return next();
+        return res.status(403).json({
+          success: false,
+          error: 'Administrator role is required'
+        });
+      }
+    ];
+
     /**
      * POST /services/authservice/api/register
      * Direct registration is disabled — accounts are created via admin invitation only.
@@ -883,15 +910,30 @@ module.exports = (options, eventEmitter, auth, analytics) => {
      */
     app.post(
       '/services/authservice/api/invitations',
+      invitationRateLimiter,
+      validate({
+        body: {
+          name: { type: 'string', required: true, maxLength: 200 },
+          email: { type: 'string', required: true, maxLength: 254 },
+          mobile: { type: 'string', maxLength: 40 }
+        }
+      }),
       asyncHandler(async (req, res) => {
-        const invitation = await auth.requestInvitation(req.body);
-        eventEmitter.emit('auth:invitation-requested-api', { email: invitation.email });
+        try {
+          const invitation = await auth.requestInvitation(req.body);
+          eventEmitter.emit('auth:invitation-requested-api', { email: invitation.email, status: invitation.status });
 
-        res.status(201).json({
-          success: true,
-          message: 'Invitation created',
-          data: invitation
-        });
+          const pending = invitation.status === 'pending';
+          res.status(201).json({
+            success: true,
+            message: pending
+              ? 'Request received. An administrator will review it.'
+              : 'Invitation created',
+            data: invitation
+          });
+        } catch (error) {
+          sendSafeError(res, error, { status: 500, eventEmitter });
+        }
       })
     );
 
@@ -906,7 +948,7 @@ module.exports = (options, eventEmitter, auth, analytics) => {
      */
     app.post(
       '/services/authservice/api/invitations/batch',
-      requireAuthenticatedSession,
+      requireAdminSession,
       asyncHandler(async (req, res) => {
         const { invites } = req.body;
         if (!Array.isArray(invites)) {
@@ -939,12 +981,12 @@ module.exports = (options, eventEmitter, auth, analytics) => {
      * @return {void}
      */
     app.post(
-      '/services/authservice/api/invitations/:code/recreate',
-      requireAuthenticatedSession,
+      '/services/authservice/api/invitations/:id/recreate',
+      requireAdminSession,
       asyncHandler(async (req, res) => {
         try {
-          const invitation = await auth.recreateInvitation(req.params.code);
-          eventEmitter.emit('auth:invitation-recreated-api', { code: invitation.code });
+          const invitation = await auth.recreateInvitation(req.params.id);
+          eventEmitter.emit('auth:invitation-recreated-api', { invitationId: invitation.id });
 
           res.status(200).json({
             success: true,
@@ -952,10 +994,7 @@ module.exports = (options, eventEmitter, auth, analytics) => {
             data: invitation
           });
         } catch (error) {
-          res.status(400).json({
-            success: false,
-            error: error.message
-          });
+          sendSafeError(res, error, { status: 400, eventEmitter, format: 'json' });
         }
       })
     );
@@ -970,7 +1009,7 @@ module.exports = (options, eventEmitter, auth, analytics) => {
      */
     app.get(
       '/services/authservice/api/invitations',
-      requireAuthenticatedSession,
+      requireAdminSession,
       asyncHandler(async (req, res) => {
         const invitations = await auth.listInvitations();
         res.status(200).json({
@@ -992,23 +1031,16 @@ module.exports = (options, eventEmitter, auth, analytics) => {
      */
     app.get(
       '/services/authservice/api/invitations/:code',
+      invitationRateLimiter,
       asyncHandler(async (req, res) => {
         try {
           const invitation = await auth.getInvitation(req.params.code);
           res.status(200).json({
             success: true,
-            data: {
-              code: invitation.code,
-              status: invitation.status,
-              email: invitation.email,
-              expiresAt: invitation.expiresAt
-            }
+            data: invitation
           });
         } catch (error) {
-          res.status(404).json({
-            success: false,
-            error: error.message
-          });
+          sendSafeError(res, error, { status: 404, eventEmitter, format: 'json' });
         }
       })
     );
@@ -1023,17 +1055,21 @@ module.exports = (options, eventEmitter, auth, analytics) => {
      * @return {void}
      */
     app.put(
-      '/services/authservice/api/invitations/:code/approve',
-      requireAuthenticatedSession,
+      '/services/authservice/api/invitations/:id/approve',
+      requireAdminSession,
       asyncHandler(async (req, res) => {
-        const invitation = await auth.approveInvitation(req.params.code);
-        eventEmitter.emit('auth:invitation-approved-api', { code: req.params.code });
+        try {
+          const invitation = await auth.approveInvitation(req.params.id);
+          eventEmitter.emit('auth:invitation-approved-api', { invitationId: invitation.id });
 
-        res.status(200).json({
-          success: true,
-          message: 'Invitation approved',
-          data: invitation
-        });
+          res.status(200).json({
+            success: true,
+            message: 'Invitation approved. Send the code to the invitee; it is shown only once.',
+            data: invitation
+          });
+        } catch (error) {
+          sendSafeError(res, error, { status: 400, eventEmitter, format: 'json' });
+        }
       })
     );
 
@@ -1050,11 +1086,17 @@ module.exports = (options, eventEmitter, auth, analytics) => {
      */
     app.post(
       '/services/authservice/api/invitations/:code/redeem',
+      invitationRateLimiter,
+      validate({
+        body: {
+          password: { type: 'string', required: true, maxLength: 1024 }
+        }
+      }),
       asyncHandler(async (req, res) => {
         const { password } = req.body;
         try {
           const user = await auth.redeemInvitation(req.params.code, password);
-          eventEmitter.emit('auth:invitation-redeemed-api', { code: req.params.code });
+          eventEmitter.emit('auth:invitation-redeemed-api', { email: user.email });
 
           res.status(201).json({
             success: true,
@@ -1062,10 +1104,7 @@ module.exports = (options, eventEmitter, auth, analytics) => {
             data: user
           });
         } catch (error) {
-          res.status(400).json({
-            success: false,
-            error: error.message
-          });
+          sendSafeError(res, error, { status: 400, eventEmitter, format: 'json' });
         }
       })
     );

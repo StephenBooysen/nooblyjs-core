@@ -147,40 +147,75 @@ describe('Authservice routes', () => {
     await as(request(app).delete(`/services/authservice/api/profile/tokens/${created.body.data.id}`)).expect(200);
   });
 
-  it('issues, approves, recreates and redeems invitations', async () => {
-    const inv = await request(app)
+  it('holds public requests for approval, then issues, recreates and redeems codes', async () => {
+    // A public request creates a pending invitation and never returns a code.
+    const requested = await request(app)
       .post('/services/authservice/api/invitations')
       .send({ name: 'New', email: 'new@x.com' })
       .expect(201);
-    const code = inv.body.data.code;
+    expect(requested.body.data.status).toBe('pending');
+    expect(requested.body.data.code).toBeUndefined();
+    const id = requested.body.data.id;
 
-    const public_ = await request(app).get(`/services/authservice/api/invitations/${code}`).expect(200);
-    expect(public_.body.data.email).toBe('new@x.com');
+    // Pending requests have no usable code, so the public status check reports 404 for guesses.
     await request(app).get('/services/authservice/api/invitations/INV-NOPE').expect(404);
 
-    const all = await as(request(app).get('/services/authservice/api/invitations')).expect(200);
-    expect(all.body.total).toBe(1);
-    // Requested invitations are auto-approved, so approving again is rejected.
-    await as(request(app).put(`/services/authservice/api/invitations/${code}/approve`)).send({}).expect(400);
+    // The admin list never includes a code or its hash.
+    const listed = await as(request(app).get('/services/authservice/api/invitations')).expect(200);
+    expect(listed.body.total).toBe(1);
+    expect(listed.body.data[0].codeHash).toBeUndefined();
+    expect(listed.body.data[0].code).toBeUndefined();
+
+    // An administrator approves by id and receives the code once.
+    const approved = await as(request(app).put(`/services/authservice/api/invitations/${id}/approve`)).send({}).expect(200);
+    const code = approved.body.data.code;
+    expect(code).toMatch(/^INV-[0-9A-F]{32}$/);
+    await as(request(app).put(`/services/authservice/api/invitations/${id}/approve`)).send({}).expect(409);
+
+    const status = await request(app).get(`/services/authservice/api/invitations/${code}`).expect(200);
+    expect(status.body.data).toEqual(expect.objectContaining({ status: 'approved', email: 'new@x.com' }));
 
     const batch = await as(request(app).post('/services/authservice/api/invitations/batch'))
       .send({ invites: [{ name: 'B', email: 'b@x.com' }] })
       .expect(200);
     expect(batch.body.success).toBe(true);
+    expect(batch.body.data.created[0].code).toMatch(/^INV-/);
     await as(request(app).post('/services/authservice/api/invitations/batch')).send({}).expect(400);
 
-    const recreated = await as(request(app).post(`/services/authservice/api/invitations/${code}/recreate`)).send({}).expect(200);
+    // Recreating issues a new code and invalidates the old one.
+    const recreated = await as(request(app).post(`/services/authservice/api/invitations/${id}/recreate`)).send({}).expect(200);
     const newCode = recreated.body.data.code;
-    await as(request(app).post('/services/authservice/api/invitations/INV-NOPE/recreate')).send({}).expect(400);
+    expect(newCode).not.toBe(code);
+    await request(app).get(`/services/authservice/api/invitations/${code}`).expect(404);
+    await as(request(app).post('/services/authservice/api/invitations/INV-NOPE/recreate')).send({}).expect(404);
 
+    // The old code cannot redeem; the new one creates the account exactly once.
+    await request(app)
+      .post(`/services/authservice/api/invitations/${code}/redeem`)
+      .send({ password: PASSWORD })
+      .expect(400);
     const redeemed = await request(app)
       .post(`/services/authservice/api/invitations/${newCode}/redeem`)
-      .send({ fullName: 'New', password: PASSWORD })
+      .send({ password: PASSWORD })
       .expect(201);
     expect(redeemed.body.data.email).toBe('new@x.com');
-    await request(app).post(`/services/authservice/api/invitations/${newCode}/redeem`).send({ fullName: 'New', password: PASSWORD }).expect(400);
+    await request(app).post(`/services/authservice/api/invitations/${newCode}/redeem`).send({ password: PASSWORD }).expect(400);
 
-    await as(request(app).post(`/services/authservice/api/invitations/${code}/recreate`)).send({}).expect(400);
+    await as(request(app).post(`/services/authservice/api/invitations/${id}/recreate`)).send({}).expect(409);
+  });
+
+  it('refuses invitation administration to a signed-in non-admin', async () => {
+    await auth.createUser({ email: 'member@x.com', fullName: 'Member', password: PASSWORD, role: 'user' });
+    const login = await request(app)
+      .post('/services/authservice/api/login')
+      .send({ email: 'member@x.com', password: PASSWORD })
+      .expect(200);
+    const memberToken = login.body.data.session.token;
+
+    await as(request(app).get('/services/authservice/api/invitations'), memberToken).expect(403);
+    await as(request(app).post('/services/authservice/api/invitations/batch'), memberToken)
+      .send({ invites: [{ name: 'X', email: 'x@x.com' }] })
+      .expect(403);
   });
 
   it('serves status, branding, SSO config and settings', async () => {

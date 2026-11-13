@@ -205,13 +205,25 @@
 
                 if (result.success) {
                     const code = result.data.code;
-                    invitationCode.textContent = code;
-                    // Pre-fill the code on the redeem page so the user doesn't have to re-type it
-                    const redeemUrl = `/services/authservice/redeem-invitation?code=${encodeURIComponent(code)}`;
-                    redeemNowBtn.href = redeemUrl;
-                    redeemPageLink.href = redeemUrl;
                     formSection.classList.add('d-none');
                     successSection.classList.remove('d-none');
+                    if (code) {
+                        // Open mode only: the code is issued immediately.
+                        invitationCode.textContent = code;
+                        // Pre-fill the code on the redeem page so the user doesn't have to re-type it
+                        const redeemUrl = `/services/authservice/redeem-invitation?code=${encodeURIComponent(code)}`;
+                        redeemNowBtn.href = redeemUrl;
+                        redeemPageLink.href = redeemUrl;
+                    } else {
+                        // Default: an administrator reviews the request and sends the code.
+                        invitationCode.closest('.invitation-code')?.classList.add('d-none');
+                        redeemNowBtn.classList.add('d-none');
+                        redeemPageLink.classList.add('d-none');
+                        const notice = document.createElement('p');
+                        notice.className = 'mb-0';
+                        notice.textContent = 'Thanks. Your request is with an administrator, who will send you an invitation code once it is approved.';
+                        successSection.prepend(notice);
+                    }
                 } else {
                     showError(result.error || 'Failed to request invitation');
                     submitBtn.disabled = false;
