@@ -29,10 +29,15 @@ class AIServiceBase {
     this.options_ = options;
     this.eventEmitter_ = eventEmitter;
     this.instanceName_ = options.instanceName || 'default';
+    // Under Jest, the default store goes to .temp/tests/data so test runs never
+    // write into the application data folder (review finding L-2).
+    const defaultDataDir = process.env.NODE_ENV === 'test'
+      ? path.join(process.cwd(), '.temp', 'tests', 'data', 'aiservice')
+      : path.join(process.cwd(), '.application', 'data');
     this.tokensStorePath_ = options.tokensStorePath
       || (options.dataDir
         ? path.join(options.dataDir, 'ai-tokens.json')
-        : path.join(process.cwd(), '.application', 'data', 'ai-tokens.json'));
+        : path.join(defaultDataDir, 'ai-tokens.json'));
     this.analytics_ = new Map();
     this.maxAnalyticsEntries_ = 1000;
 
