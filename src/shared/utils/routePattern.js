@@ -65,6 +65,8 @@ function compileRoute(pattern) {
  */
 function route(pattern) {
   const { regexp, keys } = compileRoute(pattern);
+  // Remember the source pattern, so the route permission check can name this route.
+  Object.defineProperty(regexp, 'pattern', { value: pattern, enumerable: false });
   const nameParams = (req, res, next) => {
     // Both versions put the capture groups in req.params[0], [1], … for a RegExp path.
     const groups = keys.map((key, i) => req.params[i]);
