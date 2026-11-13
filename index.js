@@ -301,6 +301,11 @@ class ServiceRegistry {
       }
     });
 
+    // Human-readable API documentation over the same document (feature 10).
+    this.expressApp.get('/services/api/docs', (req, res) => {
+      res.sendFile(path.join(__dirname, 'src', 'views', 'api-docs.html'));
+    });
+
     // MCP server for coding agents (feature 03). Off unless `mcp.enabled` is set.
     const mcpConfig = globalOptions.mcp || {};
     this.mcpEnabled = mcpConfig.enabled === true;

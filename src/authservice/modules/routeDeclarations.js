@@ -166,6 +166,7 @@ function listApiRoutes(app) {
     const route = layer.route;
     if (!route) continue;
     const handlerPermission = (route.stack || []).map((l) => l.handle?.permission).find(Boolean) || null;
+    const handlerSchema = (route.stack || []).map((l) => l.handle?.schema).find(Boolean) || null;
     const methods = Object.keys(route.methods || {}).filter((m) => route.methods[m] && m !== '_all');
     if (route.methods?._all) methods.push('all');
     for (const path of [].concat(route.path)) {
@@ -179,7 +180,7 @@ function listApiRoutes(app) {
       const apiLike = pattern ? isApiPath(pattern) : /services\\\/[^\\]+\\\/api/.test(regexp || '');
       if (!apiLike) continue;
       for (const method of methods) {
-        routes.push({ method: method.toUpperCase(), pattern, regexp, permission: handlerPermission });
+        routes.push({ method: method.toUpperCase(), pattern, regexp, permission: handlerPermission, schema: handlerSchema });
       }
     }
   }

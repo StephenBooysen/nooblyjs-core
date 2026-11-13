@@ -165,7 +165,7 @@ function assertValid(req, schema) {
  *   handler);
  */
 function validate(schema) {
-  return (req, res, next) => {
+  const middleware = (req, res, next) => {
     try {
       assertValid(req, schema);
       return next();
@@ -177,6 +177,9 @@ function validate(schema) {
       });
     }
   };
+  // The OpenAPI generator reads the rules to describe parameters and bodies.
+  middleware.schema = schema;
+  return middleware;
 }
 
 module.exports = { DEFAULT_MAX_LIMIT, parseLimit, capLimit, parseOffset, assertValid, validate };

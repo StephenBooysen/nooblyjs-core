@@ -163,6 +163,80 @@ const HTTP_METHODS = ['get', 'put', 'post', 'delete', 'patch', 'head', 'options'
  * @param {Set<string>} operationIds Operation ids already used (mutated)
  * @return {void}
  */
+/**
+ * Converts one validate() field rule into an OpenAPI schema.
+ * @param {Object} rule Field rule ({type, required, enum, minLength, maxLength, min, max})
+ * @return {Object} Schema object
+ */
+function ruleToSchema(rule = {}) {
+  const type = ['string', 'number', 'integer', 'boolean', 'object', 'array'].includes(rule.type) ? rule.type : 'string';
+  const out = { type };
+  if (rule.enum) out.enum = rule.enum;
+  if (rule.minLength !== undefined) out[type === 'array' ? 'minItems' : 'minLength'] = rule.minLength;
+  if (rule.maxLength !== undefined) out[type === 'array' ? 'maxItems' : 'maxLength'] = rule.maxLength;
+  if (rule.min !== undefined) out.minimum = rule.min;
+  if (rule.max !== undefined) out.maximum = rule.max;
+  return out;
+}
+
+/**
+ * Builds OpenAPI parameters and a request body from a route's validate() schema.
+ * @param {string} full OpenAPI path, for example /services/x/api/items/{id}
+ * @param {Object} schema validate() rules ({params, query, body})
+ * @return {{parameters: Array<Object>, requestBody: ?Object}}
+ */
+function parametersFromSchema(full, schema) {
+  const parameters = [];
+  const pathNames = new Set([...full.matchAll(/\{([^}]+)\}/g)].map((m) => m[1]));
+  for (const [name, rule] of Object.entries(schema.params || {})) {
+    parameters.push({ name, in: 'path', required: true, schema: ruleToSchema(rule) });
+    pathNames.delete(name);
+  }
+  // Path placeholders with no rule are still required parameters.
+  for (const name of pathNames) parameters.push({ name, in: 'path', required: true, schema: { type: 'string' } });
+  for (const [name, rule] of Object.entries(schema.query || {})) {
+    parameters.push({ name, in: 'query', required: Boolean(rule.required), schema: ruleToSchema(rule) });
+  }
+  let requestBody = null;
+  if (schema.body) {
+    const properties = {};
+    const required = [];
+    for (const [name, rule] of Object.entries(schema.body)) {
+      properties[name] = ruleToSchema(rule);
+      if (rule.required) required.push(name);
+    }
+    requestBody = {
+      required: required.length > 0,
+      content: { 'application/json': { schema: { type: 'object', properties, ...(required.length ? { required } : {}) } } }
+    };
+  }
+  return { parameters, requestBody };
+}
+
+/**
+ * Every `{name}` in a path must be declared as a path parameter. Documented
+ * operations that leave one out get a plain string parameter, so the document
+ * stays valid without rewriting each service's own file.
+ *
+ * @param {Object} paths OpenAPI paths object (mutated)
+ * @return {void}
+ */
+function declarePathPlaceholders(paths) {
+  for (const [p, item] of Object.entries(paths)) {
+    const names = [...p.matchAll(/\{([^}]+)\}/g)].map((m) => m[1]);
+    if (names.length === 0) continue;
+    for (const method of Object.keys(item)) {
+      if (!HTTP_METHODS.includes(method)) continue;
+      const op = item[method];
+      op.parameters = op.parameters || [];
+      const declared = new Set(op.parameters.filter((x) => x && x.in === 'path').map((x) => x.name));
+      for (const name of names) {
+        if (!declared.has(name)) op.parameters.push({ name, in: 'path', required: true, schema: { type: 'string' } });
+      }
+    }
+  }
+}
+
 function addUndocumentedStubs(paths, routes, tags, mounted, usedSchemes, operationIds) {
   const documented = new Set();
   for (const [p, item] of Object.entries(paths)) {
@@ -187,12 +261,15 @@ function addUndocumentedStubs(paths, routes, tags, mounted, usedSchemes, operati
 
     const isPublic = route.permission === 'public';
     const target = paths[full] || (paths[full] = {});
+    const shape = parametersFromSchema(full, route.schema || {});
     target[method] = {
       tags: [title],
       summary: `${route.method.toUpperCase()} ${full}`,
       description: 'Not described in the service documentation yet. The route exists and its permission is checked by the app; see the route source for input and output.',
       operationId: opId,
       security: isPublic ? [] : [{ ApiKeyAuth: [] }, { BearerAuth: [] }, { SessionCookie: [] }],
+      ...(shape.parameters.length ? { parameters: shape.parameters } : {}),
+      ...(shape.requestBody ? { requestBody: shape.requestBody } : {}),
       responses: { 200: { description: 'Success' } },
       'x-undocumented': true,
       'x-permission': route.permission || null
@@ -296,6 +373,7 @@ function buildOpenApiDocument({ services, mounted = null, routes = null, info = 
   }
 
   if (routes) addUndocumentedStubs(paths, routes, tags, mounted, usedSchemes, operationIds);
+  declarePathPlaceholders(paths);
 
   const securitySchemes = {};
   for (const name of usedSchemes) {
