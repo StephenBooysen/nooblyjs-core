@@ -29,7 +29,7 @@ Rank work by **impact ÷ effort**, but treat anything that blocks safe release a
 
 ## Phase 1: Foundations (weeks 3–8): mostly done as of 2026-11-13
 
-Done: 02, 08, 19, 23, the `working` service and dashboard panel of 06, and the Phase 1 part of 20 and 22. Still open: reliable jobs on the cloud queue providers (SQS, Azure, RabbitMQ, GCP, ActiveMQ), which need a store and a live service to test against; and the GitHub proof for the nightly audit (20b) and the ZAP and gitleaks jobs (22b), which need a push to GitHub and a run. See the status line in each feature spec.
+Done: 02, 08, 19, 23, 22b (ZAP baseline, gitleaks and the authorization matrix run on GitHub Actions and pass for 4f982f3), the `working` service, the dashboard panel and the named-instance routes of 06, and the Phase 1 part of 20. Still open: reliable jobs on the cloud queue providers (SQS, Azure, RabbitMQ, GCP, ActiveMQ), which need a store and a live service to test against; and the first scheduled run of the nightly audit (20b), which has not yet fired (the workflow is on the default branch and runs at 03:17 UTC). See the status line in each feature spec.
 
 **Goal:** the building blocks every later feature needs, plus least-privilege access. **Exit:** one AI API with streaming, tools and embeddings; at-least-once jobs; typed public API; every route declares a permission.
 

@@ -377,81 +377,67 @@ module.exports = (options, eventEmitter, queue) => {
      * @return {void}
      */
     /**
-     * POST /services/queueing/api/queues/:queueName/jobs
-     * Adds a reliable job (feature 06). Body: `{ data, options }`, where options
-     * may set delayMs, attempts, backoff, priority, idempotencyKey, dedupeWindowMs.
+     * Registers the reliable-job routes (feature 06) under a prefix. The default
+     * instance uses `queue`; the `/:instanceName` variant resolves a named instance.
      *
-     * @param {express.Request} req - Express request object
-     * @param {express.Response} res - Express response object
+     * @param {string} prefix - Route prefix, e.g. `/services/queueing/api`
+     * @param {function(express.Request): Object} resolveQueue - Returns the queue for a request
      * @return {void}
      */
-    app.post('/services/queueing/api/queues/:queueName/jobs', async (req, res) => {
-      try {
-        const body = req.body && typeof req.body === 'object' ? req.body : {};
-        if (body.options !== undefined && (body.options === null || typeof body.options !== 'object' || Array.isArray(body.options))) {
-          return res.status(400).json({ success: false, error: 'options must be an object' });
+    const registerReliableRoutes = (prefix, resolveQueue) => {
+      /** POST {prefix}/queues/:queueName/jobs - adds a reliable job; body `{ data, options }`. */
+      app.post(`${prefix}/queues/:queueName/jobs`, async (req, res) => {
+        try {
+          const body = req.body && typeof req.body === 'object' ? req.body : {};
+          if (body.options !== undefined && (body.options === null || typeof body.options !== 'object' || Array.isArray(body.options))) {
+            return res.status(400).json({ success: false, error: 'options must be an object' });
+          }
+          const id = await resolveQueue(req).enqueue(req.params.queueName, body.data, body.options || {});
+          eventEmitter?.emit('queue:job-enqueued-api', { queueName: req.params.queueName, id });
+          res.status(201).json({ success: true, data: { id } });
+        } catch (err) {
+          sendSafeError(res, err, { status: 500, eventEmitter });
         }
-        const id = await queue.enqueue(req.params.queueName, body.data, body.options || {});
-        eventEmitter?.emit('queue:job-enqueued-api', { queueName: req.params.queueName, id });
-        res.status(201).json({ success: true, data: { id } });
-      } catch (err) {
-        sendSafeError(res, err, { status: 500, eventEmitter });
-      }
-    });
+      });
 
-    /**
-     * GET /services/queueing/api/queues/:queueName/jobs/:jobId
-     * Returns a reliable job's state, attempts and last error.
-     *
-     * @param {express.Request} req - Express request object
-     * @param {express.Response} res - Express response object
-     * @return {void}
-     */
-    app.get('/services/queueing/api/queues/:queueName/jobs/:jobId', async (req, res) => {
-      try {
-        const job = await queue.getJob(req.params.jobId, req.params.queueName);
-        if (!job) {
-          return res.status(404).json({ success: false, error: 'Job not found' });
+      /** GET {prefix}/queues/:queueName/jobs/:jobId - a job's state, attempts and last error. */
+      app.get(`${prefix}/queues/:queueName/jobs/:jobId`, async (req, res) => {
+        try {
+          const job = await resolveQueue(req).getJob(req.params.jobId, req.params.queueName);
+          if (!job) {
+            return res.status(404).json({ success: false, error: 'Job not found' });
+          }
+          res.json({ success: true, data: job });
+        } catch (err) {
+          sendSafeError(res, err, { status: 500, eventEmitter });
         }
-        res.json({ success: true, data: job });
-      } catch (err) {
-        sendSafeError(res, err, { status: 500, eventEmitter });
-      }
-    });
+      });
 
-    /**
-     * POST /services/queueing/api/queues/:queueName/retry-dead
-     * Requeues every dead-lettered job of a queue with its attempts reset.
-     *
-     * @param {express.Request} req - Express request object
-     * @param {express.Response} res - Express response object
-     * @return {void}
-     */
-    app.post('/services/queueing/api/queues/:queueName/retry-dead', async (req, res) => {
-      try {
-        const requeued = await queue.retryDeadLetters(req.params.queueName);
-        eventEmitter?.emit('queue:dead-letters-retried', { queueName: req.params.queueName, requeued });
-        res.json({ success: true, data: { requeued } });
-      } catch (err) {
-        sendSafeError(res, err, { status: 500, eventEmitter });
-      }
-    });
+      /** POST {prefix}/queues/:queueName/retry-dead - requeues dead-lettered jobs with attempts reset. */
+      app.post(`${prefix}/queues/:queueName/retry-dead`, async (req, res) => {
+        try {
+          const requeued = await resolveQueue(req).retryDeadLetters(req.params.queueName);
+          eventEmitter?.emit('queue:dead-letters-retried', { queueName: req.params.queueName, requeued });
+          res.json({ success: true, data: { requeued } });
+        } catch (err) {
+          sendSafeError(res, err, { status: 500, eventEmitter });
+        }
+      });
 
-    /**
-     * GET /services/queueing/api/queues/:queueName/job-counts
-     * Counts reliable jobs by state.
-     *
-     * @param {express.Request} req - Express request object
-     * @param {express.Response} res - Express response object
-     * @return {void}
-     */
-    app.get('/services/queueing/api/queues/:queueName/job-counts', async (req, res) => {
-      try {
-        res.json({ success: true, data: await queue.jobCounts(req.params.queueName) });
-      } catch (err) {
-        sendSafeError(res, err, { status: 500, eventEmitter });
-      }
-    });
+      /** GET {prefix}/queues/:queueName/job-counts - reliable jobs counted by state. */
+      app.get(`${prefix}/queues/:queueName/job-counts`, async (req, res) => {
+        try {
+          res.json({ success: true, data: await resolveQueue(req).jobCounts(req.params.queueName) });
+        } catch (err) {
+          sendSafeError(res, err, { status: 500, eventEmitter });
+        }
+      });
+    };
+
+    registerReliableRoutes('/services/queueing/api', () => queue);
+    registerReliableRoutes('/services/queueing/api/:instanceName', (req) =>
+      getServiceInstance('queueing', req.params.instanceName, queue, options, providerType)
+    );
 
     app.get('/services/queueing/api/status', (req, res) => {
       eventEmitter.emit('api-queueing-status', 'queueing api running');

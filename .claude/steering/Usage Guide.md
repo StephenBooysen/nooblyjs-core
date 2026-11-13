@@ -315,6 +315,15 @@ await queue.retryDeadLetters('send-email'); // requeue every dead-lettered job
 
 Other queue providers refuse these options with a 400. Use the plain `enqueue` and `dequeue` calls there.
 
+The same operations are available over HTTP, on the default instance and on named instances (`/services/queueing/api/{instanceName}/queues/...`):
+
+- `POST /services/queueing/api/queues/{queueName}/jobs` with `{ data, options }` returns `201 { data: { id } }`
+- `GET /services/queueing/api/queues/{queueName}/jobs/{jobId}` returns the job, or `404`
+- `POST /services/queueing/api/queues/{queueName}/retry-dead` requeues dead-lettered jobs
+- `GET /services/queueing/api/queues/{queueName}/job-counts` returns counts by state
+
+The queueing dashboard has a Reliable jobs tab that shows the same counts and retries dead letters.
+
 The `working` service uses this on the memory and Redis providers. Each task is enqueued with one attempt. Its failures are recorded by the working service itself, so a failed script is not run again. A task is acknowledged when its worker finishes. If the process dies first, another process redelivers it after the lease runs out, so a script can run twice in that case. Keep scripts safe to repeat.
 
 ### 5. Workflow Service

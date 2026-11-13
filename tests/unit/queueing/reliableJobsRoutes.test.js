@@ -74,4 +74,21 @@ describe('reliable jobs routes', () => {
     await expect(aws.enqueue('x', {}, { attempts: 2 })).rejects.toThrow(/not supported by the aws queueing provider/);
     expect(() => aws.process('x', async () => {})).toThrow(/not supported/);
   });
+
+  it('serves the same routes for a named queue instance', async () => {
+    const created = await request(app)
+      .post('/services/queueing/api/billing/queues/invoices/jobs')
+      .send({ data: { n: 1 }, options: { attempts: 2 } })
+      .expect(201);
+    const id = created.body.data.id;
+
+    const job = await request(app).get(`/services/queueing/api/billing/queues/invoices/jobs/${id}`).expect(200);
+    expect(job.body.data).toEqual(expect.objectContaining({ id, state: 'waiting', maxAttempts: 2 }));
+
+    const counts = await request(app).get('/services/queueing/api/billing/queues/invoices/job-counts').expect(200);
+    expect(counts.body.data).toEqual(expect.objectContaining({ waiting: 1 }));
+
+    await request(app).post('/services/queueing/api/billing/queues/invoices/retry-dead').expect(200);
+    await request(app).get(`/services/queueing/api/billing/queues/invoices/jobs/nope`).expect(404);
+  });
 });
