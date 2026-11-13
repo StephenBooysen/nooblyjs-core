@@ -50,9 +50,36 @@ describe('option validation (feature 08)', () => {
   });
 
   it('does not check services or providers without a schema', () => {
-    const result = validateServiceOptions('aiservice', 'claude', { anything: 1 }, schemas);
+    const result = validateServiceOptions('searching', 'memory', { anything: 1 }, schemas);
     expect(result.errors).toEqual([]);
     expect(result.warnings).toEqual([]);
+  });
+
+  it('covers authservice, aiservice and the other services (feature 08)', () => {
+    for (const [service, provider] of [
+      ['authservice', 'file'], ['authservice', 'google'], ['aiservice', 'anthropic'], ['aiservice', 'claude'],
+      ['settings', 'file'], ['workflow', 'memory'], ['scheduling', 'memory'], ['working', 'default'],
+      ['notifying', 'memory'], ['measuring', 'default'], ['searching', 'api']
+    ]) {
+      expect(schemas[service][provider]).toBeDefined();
+    }
+  });
+
+  it('suggests the right name for a misspelt authservice or aiservice option', () => {
+    expect(validateServiceOptions('authservice', 'file', { sessionIdleTimoutMs: {} }, schemas).warnings[0])
+      .toMatch(/did you mean "sessionIdleTimeoutMs"/);
+    expect(validateServiceOptions('aiservice', 'anthropic', { budget: {} }, schemas).warnings[0])
+      .toMatch(/did you mean "budgets"/);
+  });
+
+  it('requires the OAuth credentials for the Google provider', () => {
+    const result = validateServiceOptions('authservice', 'google', { clientID: 'id' }, schemas);
+    expect(result.errors).toEqual([expect.stringContaining('clientSecret')]);
+  });
+
+  it('rejects a wrongly typed AI budget', () => {
+    const result = validateServiceOptions('aiservice', 'mock', { budgets: 5 }, schemas);
+    expect(result.errors).toEqual([expect.stringContaining('budgets')]);
   });
 
   it('throws on errors, and on warnings only in strict mode', () => {

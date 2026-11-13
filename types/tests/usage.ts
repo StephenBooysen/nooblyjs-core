@@ -26,6 +26,32 @@ async function run(): Promise<void> {
   const files = registry.filing('s3', { bucketName: 'b', region: 'eu-west-1' });
   await files.list('/');
 
+  const jobId: string = await queue.enqueue('emails', { to: 'a@example.com' }, { attempts: 5, idempotencyKey: 'welcome-1' });
+  const consumer = queue.process<{ to: string }>('emails', async (job) => job.data.to);
+  await consumer.stop();
+  void jobId;
+
+  const ai = registry.aiservice('anthropic', { model: 'claude-sonnet-5-5', budgets: { maxCostPerDay: 5 }, embeddings: { provider: 'openai' } });
+  const reply = await ai.complete({ messages: [{ role: 'user', content: 'hi' }], maxTokens: 100 });
+  const text: string = reply.text;
+  const { vectors } = await ai.embed(['one', 'two'], { dimensions: 256 });
+  const width: number = vectors[0].length;
+  void text; void width;
+
+  const modern = registry.aiservice('openai', { legacy: false });
+  await modern.embed('x');
+  const old = registry.aiservice('claude', { apiKey: 'k' });
+  await old.prompt('hi');
+
+  const auth = registry.authservice('file', { sessionIdleTimeoutMs: { admin: 600000 } });
+  await auth.createApiToken('a@example.com', 'ci', { expiresInDays: 30, permissions: ['queueing:*'] });
+
+  // @ts-expect-error: a legacy AI provider has no embed()
+  await old.embed('x');
+
+  // @ts-expect-error: Google sign-in needs a client id and secret
+  registry.authservice('google', {});
+
   // @ts-expect-error: unknown provider name
   registry.cache('redus');
 

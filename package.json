@@ -25,6 +25,25 @@
   "author": "NooblyJS Contributors",
   "type": "commonjs",
   "main": "index.js",
+  "exports": {
+    ".": {
+      "types": "./types/index.d.ts",
+      "default": "./index.js"
+    },
+    "./package.json": "./package.json",
+    "./ai-common": "./src/aiservice/common/index.js",
+    "./shell": "./src/shell/index.js",
+    "./store": "./src/store/fs-store.js",
+    "./route-pattern": "./src/shared/utils/routePattern.js",
+    "./src/shell": "./src/shell/index.js",
+    "./src/aiservice/common": "./src/aiservice/common/index.js",
+    "./src/*.js": "./src/*.js",
+    "./src/*.json": "./src/*.json",
+    "./src/*": "./src/*.js",
+    "./public/*": "./public/*",
+    "./scripts/*": "./scripts/*",
+    "./types/*": "./types/*"
+  },
   "engines": {
     "node": ">=18"
   },
