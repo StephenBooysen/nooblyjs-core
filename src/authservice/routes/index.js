@@ -193,6 +193,12 @@ module.exports = (options, eventEmitter, auth, analytics) => {
           }
 
           // Where to go next: the page they were heading to > the app's loginSuccessRedirectUrl > /services
+          // Feature 23: the browser keeps only the session cookie. The provider session
+          // token stays on the Express session so that logout can revoke it.
+          if (req.session && result.session?.token) {
+            req.session.authToken = result.session.token;
+          }
+
           const redirectUrl = postLoginRedirect(returnUrl, options);
 
           res.status(200).json({
@@ -216,6 +222,33 @@ module.exports = (options, eventEmitter, auth, analytics) => {
     );
 
     /**
+     * GET /services/authservice/api/auth/check
+     * Reports whether the browser's session cookie belongs to a signed-in user
+     * (feature 23). Public, and it reveals nothing to an anonymous caller beyond
+     * `authenticated: false`.
+     *
+     * @param {express.Request} req - Express request object
+     * @param {express.Response} res - Express response object
+     * @return {void}
+     */
+    app.get('/services/authservice/api/auth/check', (req, res) => {
+      const signedIn = typeof req.isAuthenticated === 'function' && req.isAuthenticated() && Boolean(req.user);
+      if (!signedIn) {
+        return res.json({ success: true, authenticated: false, user: null });
+      }
+      const u = req.user;
+      res.json({
+        success: true,
+        authenticated: true,
+        user: {
+          email: u.email,
+          fullName: u.fullName,
+          roles: Array.isArray(u.roles) ? u.roles : [u.role || 'user']
+        }
+      });
+    });
+
+    /**
      * POST /services/authservice/api/logout
      * Logs out a user by invalidating every bearer token reference that may
      * be handling the session: the auth provider session record, the Passport
@@ -231,7 +264,7 @@ module.exports = (options, eventEmitter, auth, analytics) => {
     app.post(
       '/services/authservice/api/logout',
       asyncHandler(async (req, res) => {
-        const token = extractAuthToken(req);
+        const token = extractAuthToken(req) || req.session?.authToken || null;
 
         if (token) {
           try {

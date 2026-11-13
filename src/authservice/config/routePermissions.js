@@ -305,6 +305,7 @@ const ROUTE_PERMISSIONS = Object.freeze({
   'POST /services/authservice/api/register': PUBLIC,
   'POST /services/authservice/api/login': PUBLIC,
   'POST /services/authservice/api/logout': PUBLIC,
+  'GET /services/authservice/api/auth/check': PUBLIC,
   'POST /services/authservice/api/validate': PUBLIC,
   'POST /services/authservice/api/auth/password/validate': 'authservice:write',
   'GET /services/authservice/api/auth/password/generate': 'authservice:read',

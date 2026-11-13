@@ -518,11 +518,8 @@
 
         async function updateMonitoringData() {
             try {
-                // Get auth token from localStorage
-                const authToken = localStorage.getItem('authToken');
-
-                // Include auth token in request
-                const response = await fetch('/services/api/monitoring/metrics', { headers: { Authorization: 'Bearer ' + authToken } });
+                // The session cookie authenticates this request
+                const response = await fetch('/services/api/monitoring/metrics', { credentials: 'same-origin' });
 
                 if (!response.ok) {
                     console.error('Failed to fetch monitoring data:', response.status, response.statusText);

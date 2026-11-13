@@ -470,14 +470,9 @@
 
         async function fetchAnalytics() {
             try {
-                const authToken = localStorage.getItem('authToken');
                 const headers = {
                     'Content-Type': 'application/json',
                 };
-
-                if (authToken) {
-                    headers['Authorization'] = `Bearer ${authToken}`;
-                }
 
                 const response = await fetch('/services/scheduling/api/analytics', {
                     method: 'GET',

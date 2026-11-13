@@ -226,20 +226,11 @@
             redeemLink.href = '/services/authservice/redeem-invitation';
         }
 
-        // Redirect already-authenticated users
-        {
-            const authToken = localStorage.getItem('authToken');
-            if (authToken) {
-                fetch('/services/authservice/api/validate', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ token: authToken })
-                })
-                .then(r => r.json())
-                .then(result => { if (result.success) window.location.href = '/services'; })
-                .catch(() => {});
-            }
-        }
+        // Redirect already-authenticated users (the session cookie decides)
+        fetch('/services/authservice/api/auth/check', { credentials: 'same-origin' })
+            .then(r => r.json())
+            .then(result => { if (result.authenticated) window.location.href = '/services'; })
+            .catch(() => {});
 
     </script>
 

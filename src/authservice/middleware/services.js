@@ -152,35 +152,7 @@ function createServicesAuthMiddleware(serviceRegistry) {
             <h2>Checking authentication...</h2>
             <div class="spinner"></div>
             <script>
-              const authToken = localStorage.getItem('authToken');
-              if (!authToken) {
-                window.location.href = '/services/authservice/views/login.html?returnUrl=' + encodeURIComponent(window.location.pathname);
-              } else {
-                fetch('/services/authservice/api/validate', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ token: authToken })
-                })
-                .then(response => response.json())
-                .then(result => {
-                  if (result.success) {
-                    fetch('/services/authservice/api/session/exchange', {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ token: authToken })
-                    }).then(() => window.location.reload());
-                  } else {
-                    localStorage.removeItem('authToken');
-                    localStorage.removeItem('currentUser');
-                    window.location.href = '/services/authservice/views/login.html?returnUrl=' + encodeURIComponent(window.location.pathname);
-                  }
-                })
-                .catch(() => {
-                  localStorage.removeItem('authToken');
-                  localStorage.removeItem('currentUser');
-                  window.location.href = '/services/authservice/views/login.html?returnUrl=' + encodeURIComponent(window.location.pathname);
-                });
-              }
+              window.location.href = '/services/authservice/views/login.html?returnUrl=' + encodeURIComponent(window.location.pathname);
             </script>
           </body>
           </html>
