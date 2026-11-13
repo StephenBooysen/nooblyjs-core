@@ -1,0 +1,495 @@
+        // Initialize navigation
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof NooblyJSNavigation !== 'undefined') {
+                NooblyJSNavigation.renderNavigation('navigation-sidebar', 'home');
+            }
+        });
+
+        // Render services grouped by classification
+        async function renderServices() {
+            await NooblyJSNavigation.checkAllStatuses();
+
+            const container = document.getElementById('services-by-classification-container');
+            if (!container) return;
+
+            const classifications = NooblyJSNavigation.classifications;
+            const services = NooblyJSNavigation.services;
+            const classificationOrder = ['foundation', 'business', 'application', 'advanced'];
+
+            let html = '';
+
+            classificationOrder.forEach(classification => {
+                const classServices = services.filter(s => s.classification === classification);
+                if (classServices.length === 0) return;
+
+                const classConfig = classifications[classification];
+                const onlineServices = classServices.filter(s => NooblyJSNavigation.serviceStatus[s.name] === true);
+                const offlineServices = classServices.filter(s => NooblyJSNavigation.serviceStatus[s.name] === false);
+
+                html += `
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <h3><i class="bi ${classConfig.icon}"></i> ${classConfig.label} Services</h3>
+                        </div>
+                        <div class="card-body p-3">
+                `;
+
+                // Render online services in this classification
+                if (onlineServices.length > 0) {
+                    html += `<div class="row">`;
+                    onlineServices.forEach(service => {
+                        html += `<div class="col-md-4 mb-3">` + createServiceCardHTML(service, true) + `</div>`;
+                    });
+                    html += `</div>`;
+                }
+
+                // Render offline services in this classification
+                if (offlineServices.length > 0) {
+                    html += `
+                        <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border);">
+                            <p style="color: var(--neutral-dot); font-size: 0.9rem; margin-bottom: 1rem;"><i class="bi bi-wifi-off"></i> Offline Services</p>
+                            <div class="row">
+                    `;
+                    offlineServices.forEach(service => {
+                        html += `<div class="col-md-4 mb-3">` + createServiceCardHTML(service, false) + `</div>`;
+                    });
+                    html += `</div></div>`;
+                }
+
+                html += `</div></div>`;
+            });
+
+            container.innerHTML = html;
+        }
+
+        function createServiceCardHTML(service, isOnline) {
+            const statusClass = isOnline ? 'ok' : 'muted';
+            const statusIcon = isOnline ? 'bi-check-circle-fill' : 'bi-x-circle-fill';
+            const statusId = `service-status-${service.path}`;
+            return `
+                <div class="core-stat-card" style="${isOnline ? '' : 'opacity: 0.6;'}">
+                    <div class="top">
+                        <div style="width: 100%;">
+                            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px; cursor: pointer; color: var(--ink-2); font-size: 12px; font-weight: 500;" onclick="window.location.href='/services/${service.path}/'">
+                                <i class="bi ${service.icon}" style="font-size: 14px; color: var(--ink-2);"></i>
+                                <span>${service.title}</span>
+                                <span class="core-chip ${statusClass}" style="font-size: 10px;">
+                                    <i class="bi ${statusIcon}"></i>
+                                </span>
+                            </div>
+                            <button type="button"
+                                onclick="toggleServiceStatus('${service.path}', '${statusId}', this)"
+                                style="background: none; border: none; padding: 0; color: var(--muted); font-size: 11px; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+                                <i class="bi bi-chevron-right" style="transition: transform 0.15s ease;"></i>
+                                <span>Show status</span>
+                            </button>
+                            <div id="${statusId}" style="display: none; margin-top: 8px;">
+                                <pre style="background: var(--surface-sunken); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px; font-size: 11px; max-height: 200px; overflow: auto; margin: 0;">Loading...</pre>
+                            </div>
+                        </div>
+                        <div class="ico ${isOnline ? 't' : 'o'}" style="cursor: pointer;" onclick="window.location.href='/services/${service.path}/'"><i class="bi bi-gear"></i></div>
+                    </div>
+                </div>
+            `;
+        }
+
+        async function toggleServiceStatus(servicePath, statusId, buttonEl) {
+            const statusBlock = document.getElementById(statusId);
+            const icon = buttonEl.querySelector('i');
+            const label = buttonEl.querySelector('span');
+            if (!statusBlock) return;
+
+            const isVisible = statusBlock.style.display !== 'none';
+            if (isVisible) {
+                statusBlock.style.display = 'none';
+                if (icon) icon.style.transform = 'rotate(0deg)';
+                if (label) label.textContent = 'Show status';
+            } else {
+                statusBlock.style.display = 'block';
+                if (icon) icon.style.transform = 'rotate(90deg)';
+                if (label) label.textContent = 'Hide status';
+
+                const pre = statusBlock.querySelector('pre');
+                try {
+                    const response = await fetch(`/services/${servicePath}/api/status`);
+                    const contentType = response.headers.get('content-type') || '';
+                    let body;
+                    if (contentType.includes('application/json')) {
+                        body = JSON.stringify(await response.json(), null, 2);
+                    } else {
+                        body = await response.text();
+                    }
+                    if (pre) pre.textContent = body || '(empty response)';
+                } catch (error) {
+                    if (pre) pre.textContent = 'Error: ' + error.message;
+                }
+            }
+        }
+
+        // Initialize services
+        renderServices();
+
+        // System Monitoring Charts
+        let ramChart, cpuChart, threadsChart, eventLoopChart, gcChart, heapChart;
+        const MAX_DATA_POINTS = 30; // Limit to 30 data points (2.5 minutes at 5s intervals)
+
+        function initializeCharts() {
+            const commonOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: false, // Disable animations to reduce CPU usage
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            font: {
+                                size: 10
+                            }
+                        }
+                    },
+                    x: {
+                        display: false
+                    }
+                }
+            };
+
+            // RAM Chart
+            const ramCtx = document.getElementById('ramChart').getContext('2d');
+            ramChart = new Chart(ramCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'RAM Usage (MB)',
+                        data: [],
+                        borderColor: '#C2471F',
+                        backgroundColor: 'rgba(194, 71, 31, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    ...commonOptions,
+                    scales: {
+                        ...commonOptions.scales,
+                        y: {
+                            ...commonOptions.scales.y,
+                            title: {
+                                display: true,
+                                text: 'MB'
+                            }
+                        }
+                    }
+                }
+            });
+
+            // CPU Chart
+            const cpuCtx = document.getElementById('cpuChart').getContext('2d');
+            cpuChart = new Chart(cpuCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'CPU Usage (%)',
+                        data: [],
+                        borderColor: '#2B7F86',
+                        backgroundColor: 'rgba(43, 127, 134, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    ...commonOptions,
+                    scales: {
+                        ...commonOptions.scales,
+                        y: {
+                            ...commonOptions.scales.y,
+                            max: 100,
+                            title: {
+                                display: true,
+                                text: '%'
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Threads/Handles Chart
+            const threadsCtx = document.getElementById('threadsChart').getContext('2d');
+            threadsChart = new Chart(threadsCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Active Handles',
+                        data: [],
+                        borderColor: '#8A6500',
+                        backgroundColor: 'rgba(138, 101, 0, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    ...commonOptions,
+                    scales: {
+                        ...commonOptions.scales,
+                        y: {
+                            ...commonOptions.scales.y,
+                            title: {
+                                display: true,
+                                text: 'Count'
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Event Loop Lag Chart
+            const eventLoopCtx = document.getElementById('eventLoopChart').getContext('2d');
+            eventLoopChart = new Chart(eventLoopCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Event Loop Lag (ms)',
+                        data: [],
+                        borderColor: '#C2471F',
+                        backgroundColor: 'rgba(194, 71, 31, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    ...commonOptions,
+                    scales: {
+                        ...commonOptions.scales,
+                        y: {
+                            ...commonOptions.scales.y,
+                            title: {
+                                display: true,
+                                text: 'ms'
+                            }
+                        }
+                    }
+                }
+            });
+
+            // GC Chart
+            const gcCtx = document.getElementById('gcChart').getContext('2d');
+            gcChart = new Chart(gcCtx, {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'GC Duration (ms)',
+                        data: [],
+                        borderColor: '#1F4A8A',
+                        backgroundColor: 'rgba(31, 74, 138, 0.6)',
+                        fill: true
+                    }]
+                },
+                options: {
+                    ...commonOptions,
+                    scales: {
+                        ...commonOptions.scales,
+                        y: {
+                            ...commonOptions.scales.y,
+                            title: {
+                                display: true,
+                                text: 'ms'
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Heap Chart
+            const heapCtx = document.getElementById('heapChart').getContext('2d');
+            heapChart = new Chart(heapCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Heap Used (MB)',
+                        data: [],
+                        borderColor: '#4B2E83',
+                        backgroundColor: 'rgba(75, 46, 131, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    ...commonOptions,
+                    scales: {
+                        ...commonOptions.scales,
+                        y: {
+                            ...commonOptions.scales.y,
+                            title: {
+                                display: true,
+                                text: 'MB'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        async function updateMonitoringData() {
+            try {
+                // The session cookie authenticates this request
+                const response = await fetch('/services/api/monitoring/metrics', { credentials: 'same-origin' });
+
+                if (!response.ok) {
+                    console.error('Failed to fetch monitoring data:', response.status, response.statusText);
+                    return;
+                }
+
+                const data = await response.json();
+                console.log('Monitoring data received:', {
+                    ramPoints: data.ram?.length || 0,
+                    cpuPoints: data.cpu?.length || 0,
+                    threadPoints: data.threads?.length || 0
+                });
+
+                // Update RAM chart
+                if (data.ram && data.ram.length > 0) {
+                    // Take only the last MAX_DATA_POINTS entries
+                    const ramSlice = data.ram.slice(-MAX_DATA_POINTS);
+                    const ramLabels = ramSlice.map((_, i) => i);
+                    const ramData = ramSlice.map(d => d.used);
+
+                    ramChart.data.labels = ramLabels;
+                    ramChart.data.datasets[0].data = ramData;
+                    ramChart.update('none');
+
+                    // Update RAM stats
+                    const latestRam = data.ram[data.ram.length - 1];
+                    document.getElementById('ramStats').textContent =
+                        `${latestRam.used} MB / ${latestRam.total} MB (${latestRam.percentage}%)`;
+                }
+
+                // Update CPU chart
+                if (data.cpu && data.cpu.length > 0) {
+                    // Take only the last MAX_DATA_POINTS entries
+                    const cpuSlice = data.cpu.slice(-MAX_DATA_POINTS);
+                    const cpuLabels = cpuSlice.map((_, i) => i);
+                    const cpuData = cpuSlice.map(d => d.usage);
+
+                    cpuChart.data.labels = cpuLabels;
+                    cpuChart.data.datasets[0].data = cpuData;
+                    cpuChart.update('none');
+
+                    // Update CPU stats
+                    const latestCpu = data.cpu[data.cpu.length - 1];
+                    document.getElementById('cpuStats').textContent =
+                        `${latestCpu.usage}% (${latestCpu.cores} cores)`;
+                }
+
+                // Update Threads/Handles chart
+                if (data.threads && data.threads.length > 0) {
+                    // Take only the last MAX_DATA_POINTS entries
+                    const threadsSlice = data.threads.slice(-MAX_DATA_POINTS);
+                    const threadsLabels = threadsSlice.map((_, i) => i);
+                    const threadsData = threadsSlice.map(d => d.total);
+
+                    threadsChart.data.labels = threadsLabels;
+                    threadsChart.data.datasets[0].data = threadsData;
+                    threadsChart.update('none');
+
+                    // Update Threads stats
+                    const latestThreads = data.threads[data.threads.length - 1];
+                    document.getElementById('threadsStats').textContent =
+                        `Handles: ${latestThreads.active} | Requests: ${latestThreads.requests}`;
+                }
+
+                // Update Event Loop Lag chart
+                if (data.eventLoop && data.eventLoop.length > 0) {
+                    const eventLoopSlice = data.eventLoop.slice(-MAX_DATA_POINTS);
+                    const eventLoopLabels = eventLoopSlice.map((_, i) => i);
+                    const eventLoopData = eventLoopSlice.map(d => d.delay || 0);
+
+                    eventLoopChart.data.labels = eventLoopLabels;
+                    eventLoopChart.data.datasets[0].data = eventLoopData;
+                    eventLoopChart.update('none');
+
+                    const latestEventLoop = data.eventLoop[data.eventLoop.length - 1];
+                    const lagStatus = latestEventLoop.delay > 50 ? '⚠️ High' : latestEventLoop.delay > 10 ? '⚡ Moderate' : '✅ Good';
+                    document.getElementById('eventLoopStats').textContent =
+                        `${lagStatus} - Current: ${latestEventLoop.delay.toFixed(2)}ms`;
+                }
+
+                // Update GC chart
+                if (data.gc && data.gc.length > 0) {
+                    const gcSlice = data.gc.slice(-MAX_DATA_POINTS);
+                    const gcLabels = gcSlice.map((_, i) => i);
+                    const gcData = gcSlice.map(d => d.duration || 0);
+
+                    gcChart.data.labels = gcLabels;
+                    gcChart.data.datasets[0].data = gcData;
+                    gcChart.update('none');
+
+                    document.getElementById('gcStats').textContent =
+                        `Events: ${data.gc.length} | Latest: ${(data.gc[data.gc.length - 1].duration || 0).toFixed(2)}ms`;
+                }
+
+                // Update Heap chart
+                if (data.memory && data.memory.length > 0) {
+                    const memorySlice = data.memory.slice(-MAX_DATA_POINTS);
+                    const memoryLabels = memorySlice.map((_, i) => i);
+                    const heapData = memorySlice.map(d => d.heapStats?.totalHeapSize || 0);
+
+                    heapChart.data.labels = memoryLabels;
+                    heapChart.data.datasets[0].data = heapData;
+                    heapChart.update('none');
+
+                    const latestMemory = data.memory[data.memory.length - 1];
+                    if (latestMemory.heapStats) {
+                        document.getElementById('heapStats').textContent =
+                            `Total: ${latestMemory.heapStats.totalHeapSize}MB | Executable: ${latestMemory.heapStats.executableSize}MB`;
+                    }
+                }
+
+                // Update Performance Marks table
+                if (data.markStatistics && data.markStatistics.length > 0) {
+                    let marksHTML = '<table class="table table-hover mb-0"><thead><tr><th>Operation</th><th>Count</th><th>Avg (ms)</th><th>Min (ms)</th><th>Max (ms)</th></tr></thead><tbody>';
+
+                    data.markStatistics.forEach(stat => {
+                        const statusColor = stat.avg > 100 ? 'var(--danger)' : stat.avg > 50 ? 'var(--warn-dot)' : 'var(--core-success)';
+                        marksHTML += `<tr>
+                            <td><small>${stat.name}</small></td>
+                            <td><small>${stat.count}</small></td>
+                            <td><small style="color: ${statusColor}; font-weight: 600;">${stat.avg.toFixed(2)}</small></td>
+                            <td><small>${stat.min.toFixed(2)}</small></td>
+                            <td><small>${stat.max.toFixed(2)}</small></td>
+                        </tr>`;
+                    });
+
+                    marksHTML += '</tbody></table>';
+                    document.getElementById('performanceMarksContainer').innerHTML = marksHTML;
+                } else {
+                    document.getElementById('performanceMarksContainer').innerHTML =
+                        '<small style="color: var(--neutral-dot);">No performance marks recorded yet. Services will populate this data as they track operations.</small>';
+                }
+            } catch (error) {
+                console.error('Error fetching monitoring data:', error);
+            }
+        }
+
+        // Initialize monitoring with error handling
+        try {
+            console.log('Initializing monitoring charts...');
+            initializeCharts();
+            console.log('Charts initialized successfully');
+            updateMonitoringData();
+
+            // Update monitoring data every 5 seconds
+            setInterval(updateMonitoringData, 5000);
+        } catch (error) {
+            console.error('Failed to initialize monitoring:', error);
+        }
+    

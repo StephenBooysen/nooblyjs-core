@@ -161,19 +161,19 @@
                                 <table class="table table-hover">
                                     <thead>
                                         <tr>
-                                            <th class="sortable" onclick="sortTable('prompt')">
+                                            <th class="sortable" data-onclick="sortTable" data-onclick-args="[&quot;prompt&quot;]">
                                                 <span id="sort-prompt">Prompt</span>
                                             </th>
-                                            <th class="sortable" onclick="sortTable('username')">
+                                            <th class="sortable" data-onclick="sortTable" data-onclick-args="[&quot;username&quot;]">
                                                 <span id="sort-username">Username</span>
                                             </th>
-                                            <th class="sortable" onclick="sortTable('promptTokens')">
+                                            <th class="sortable" data-onclick="sortTable" data-onclick-args="[&quot;promptTokens&quot;]">
                                                 <span id="sort-promptTokens">Tokens Sent</span>
                                             </th>
-                                            <th class="sortable" onclick="sortTable('completionTokens')">
+                                            <th class="sortable" data-onclick="sortTable" data-onclick-args="[&quot;completionTokens&quot;]">
                                                 <span id="sort-completionTokens">Tokens Received</span>
                                             </th>
-                                            <th class="sortable" onclick="sortTable('lastPrompt')">
+                                            <th class="sortable" data-onclick="sortTable" data-onclick-args="[&quot;lastPrompt&quot;]">
                                                 <span id="sort-lastPrompt">Last Prompt Date</span>
                                             </th>
                                         </tr>
@@ -343,9 +343,9 @@
                         </div>
                         <div class="card-body">
                             <div class="d-flex flex-wrap gap-2">
-                                <button type="button" class="btn btn-primary" onclick="checkStatus()">Check Status</button>
-                                <button type="button" class="btn btn-secondary" onclick="checkModels()">List Models</button>
-                                <button type="button" class="btn btn-secondary" onclick="checkHealth()">Health Check</button>
+                                <button type="button" class="btn btn-primary" data-onclick="checkStatus" data-onclick-args="[]">Check Status</button>
+                                <button type="button" class="btn btn-secondary" data-onclick="checkModels" data-onclick-args="[]">List Models</button>
+                                <button type="button" class="btn btn-secondary" data-onclick="checkHealth" data-onclick-args="[]">Health Check</button>
                             </div>
                             <div id="statusResponse" class="core-response-container" style="display: none;">
                                 <div class="core-response-title">Status Information</div>
@@ -362,7 +362,7 @@
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-center mb-2">
                                 <div class="text-muted small" id="analyticsCount">Loading...</div>
-                                <button class="btn btn-sm btn-outline-primary" onclick="loadAnalytics()">Refresh</button>
+                                <button class="btn btn-sm btn-outline-primary" data-onclick="loadAnalytics" data-onclick-args="[]">Refresh</button>
                             </div>
                             <div id="analyticsData" class="core-response-container" style="display: none;">
                                 <div class="core-response-content" id="analyticsContent"></div>
@@ -532,7 +532,7 @@
                                 <div id="settingsFormFields"></div>
                                 <div class="d-flex flex-wrap gap-2">
                                     <button type="submit" class="btn btn-primary">Save Settings</button>
-                                    <button type="button" class="btn btn-secondary" onclick="loadSettings()">Reload</button>
+                                    <button type="button" class="btn btn-secondary" data-onclick="loadSettings" data-onclick-args="[]">Reload</button>
                                 </div>
                             </form>
                             <div id="settingsSaveResponse" class="core-response-container" style="display: none; margin-top: 1rem;">
@@ -555,9 +555,8 @@
     <script src="https://unpkg.com/swagger-ui-dist@5.10.5/swagger-ui-bundle.js"></script>
     <script src="/services/js/navigation.js"></script>
     <script src="/services/js/header-init.js"></script>
-    <script>
-        NooblyJSNavigation.renderNavigation('navigation-sidebar', 'aiservice');
-    </script>
+    <script src="js/index.page.js"></script>
     <script src="script.js"></script>
+    <script src="/services/js/actions.js"></script>
 </body>
 </html>
