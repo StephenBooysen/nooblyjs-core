@@ -18,6 +18,10 @@ const {
 // Implement monitoring
 const systemMonitoring = require('./src/views/modules/monitoring');
 const { sendSafeError } = require('./src/shared/utils/safeError');
+const { assertServiceOptions } = require('./src/shared/utils/optionSchema');
+const OPTION_SCHEMAS = require('./src/shared/config/optionSchemas');
+const { createPermissionGate } = require('./src/authservice/middleware/permissionGate');
+const { normalizeKeyEntries, findKeyEntry } = require('./src/authservice/modules/permissions');
 
 const ensureArray = (value) => {
   if (Array.isArray(value)) {
@@ -37,6 +41,7 @@ class ServiceRegistry {
     this.services = new Map();
     this.serviceDependencies = new Map();
     this.initialized = false;
+    this.strictOptions = false;
     this.eventEmitter = new EventEmitter();
     this.dependenciesInitialized = false;
     // App-declared default provider/options per service. When set, dependency
@@ -124,6 +129,8 @@ class ServiceRegistry {
     };
 
     // Assign the passed global options
+    // strictOptions turns option warnings into errors (feature 08).
+    this.strictOptions = Boolean(globalOptions.strictOptions);
     this.globalOptions = {
       'express-app': expressApp,
       ...legacyOptions,
@@ -223,6 +230,13 @@ class ServiceRegistry {
     // Apply authentication middleware to all /services routes
     // This enforces both authentication and admin role requirement across all service endpoints
     this.expressApp.use('/services', this.servicesAuthMiddleware);
+
+    // Route-level permissions for /services/*/api (feature 19). Runs for every
+    // caller that can be identified: session users, scoped keys and tokens.
+    this.expressApp.use('/services', createPermissionGate({
+      resolvePrincipal: (req) => this.resolveRequestPrincipal(req),
+      eventEmitter: this.eventEmitter
+    }));
 
     // Serve the service registry landing page
     this.expressApp.get('/services/', (req, res) => {
@@ -344,9 +358,18 @@ class ServiceRegistry {
     // Get dependencies for this service
     const dependencies = this.resolveDependencies(serviceName, providerType);
 
+    // Check the caller's options against the schema for this service and provider (feature 08).
+    const checkedOptions = assertServiceOptions(serviceName, providerType, serviceOptions, OPTION_SCHEMAS, {
+      strict: this.strictOptions,
+      onWarning: (message) => {
+        this.eventEmitter?.emit?.('config:option-warning', { serviceName, providerType, message });
+        if (process.env.NODE_ENV !== 'test') console.warn(`[nooblyjs-core] ${message}`);
+      }
+    });
+
     const mergedOptions = {
       ...this.globalOptions,
-      ...serviceOptions,
+      ...checkedOptions,
       dependencies,
       instanceName, // Include instance name in options for service use
       ServiceRegistry: this, // Include ServiceRegistry reference for multi-instance support
@@ -748,6 +771,43 @@ class ServiceRegistry {
    * Get the event emitter for inter-service communication
    * @returns {EventEmitter} The global event emitter
    */
+  /**
+   * Works out who is calling, for the permission gate (feature 19).
+   * A session gives the roles of its user; an API key gives its scopes; a
+   * personal access token gives the roles of its owner.
+   *
+   * @param {import('express').Request} req Request to identify
+   * @return {Promise<?{principal: string, roles?: string[], scopes?: ?string[]}>} Caller, or null when unidentified
+   */
+  async resolveRequestPrincipal(req) {
+    if (req.user) {
+      const roles = Array.isArray(req.user.roles) ? req.user.roles : [req.user.role || 'user'];
+      return { principal: req.user.email || 'session', roles };
+    }
+
+    const authz = req.headers.authorization || '';
+    const headerKey = req.headers['x-api-key'] || req.headers['api-key']
+      || (authz.startsWith('ApiKey ') ? authz.slice(7) : null);
+    const bearer = authz.startsWith('Bearer ') ? authz.slice(7) : null;
+
+    if (headerKey) {
+      const general = this.globalOptions?.apiKeys || this.securityConfig?.apiKeyAuth?.apiKeys || [];
+      const admin = this.globalOptions?.adminApiKeys || this.securityConfig?.servicesAuth?.apiKeys || [];
+      const entry = findKeyEntry(headerKey, normalizeKeyEntries([...admin, ...general]));
+      return entry ? { principal: `key:${entry.name}`, scopes: entry.scopes } : null;
+    }
+
+    if (bearer && bearer.startsWith('dtk_')) {
+      try {
+        const info = await this.authservice().validateApiToken(bearer);
+        return { principal: info.email, roles: info.roles };
+      } catch (_err) {
+        return null;
+      }
+    }
+    return null;
+  }
+
   getEventEmitter() {
     return this.eventEmitter;
   }
@@ -806,7 +866,7 @@ class ServiceRegistry {
     const perServiceTimeoutMs = options.perServiceTimeoutMs || 5000;
     // Method names a service may expose to release resources, in priority order.
     const TEARDOWN_METHODS = [
-      'close', 'disconnect', 'stop', 'stopIndexing', 'shutdown', 'quit',
+      'stopConsumers', 'close', 'disconnect', 'stop', 'stopIndexing', 'shutdown', 'quit',
       'destroy', 'dispose', 'end'
     ];
 
