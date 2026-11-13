@@ -8,7 +8,7 @@
 
 'use strict';
 
-const { Storage } = require('@google-cloud/storage');
+const { loadOptionalModule } = require('../../shared/utils/optionalRequire');
 const path = require('node:path');
 const fs = require('node:fs');
 const { assertSafeRelativePath } = require('../modules/pathSafety');
@@ -70,6 +70,7 @@ class GCPFilingProvider {
     
     try {
       /** @private @const {Storage} */
+      const { Storage } = loadOptionalModule('@google-cloud/storage', 'Google Cloud Storage filing');
       this.storage_ = new Storage(storageOptions);
       
       /** @private @const {Object} */

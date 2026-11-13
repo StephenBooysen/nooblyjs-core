@@ -30,7 +30,7 @@ jest.mock('@aws-sdk/client-sqs', () => {
     GetQueueAttributesCommand: command('attributes'),
     ListQueuesCommand: command('list')
   };
-}, { virtual: true });
+});
 
 // ─── Azure Queue Storage mock ────────────────────────────────────────
 const azureQueues = new Map();

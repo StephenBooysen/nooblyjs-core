@@ -1,4 +1,7 @@
-#application specific
+# Dependencies
+node_modules/
+
+# Application data (runtime files written by the app)
 .application/
 .cache/
 .data/
@@ -6,37 +9,33 @@ documents/
 documents-readonly/
 documents-shared/
 
-#nodent goes here...
-node_modules/
-
-#electron
+# Build output and Electron
 dist/
-.DS_Store
+
+# Logs
 *.log
 .logs/
 
-
-#env
+# Environment files (keep the example)
 .env
 *.env.*
 !.env.example
 
-#tls certificates (dev self-signed; never commit private keys)
+# TLS certificates (dev self-signed; never commit private keys)
 certs/
 *.key
 *.crt
 *.pem
 
-#tests
+# Tests and their output
 .test/
-
-#screenshots
 screenshots/
 
-#shell files
+# Shell scripts are ignored by default; add an exception if one must be committed
 *.sh
 
-
+# OS and editor files
+.DS_Store
 
 # Local working docs and ad-hoc test output
 .temp/

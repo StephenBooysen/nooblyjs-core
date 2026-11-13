@@ -9,7 +9,10 @@
 
 'use strict';
 
-const { MongoClient } = require('mongodb');
+const { loadOptionalModule } = require('../../shared/utils/optionalRequire');
+
+/** @return {{MongoClient: Function}} The mongodb driver, loaded on first use */
+const mongodb = () => loadOptionalModule('mongodb', 'DocumentDB dataservice');
 const MongoBaseProvider = require('./MongoBaseProvider');
 
 /**
@@ -101,6 +104,7 @@ class DocumentDBDataServiceProvider extends MongoBaseProvider {
         readPreference: 'primary'
       };
       
+      const { MongoClient } = mongodb();
       this.client_ = new MongoClient(this.connectionString_, clientOptions);
       await this.client_.connect();
       this.db_ = this.client_.db(this.databaseName_);

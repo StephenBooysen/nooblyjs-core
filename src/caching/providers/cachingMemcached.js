@@ -8,7 +8,7 @@
 
 'use strict';
 
-const { Client } = require('memjs');
+const { loadOptionalModule } = require('../../shared/utils/optionalRequire');
 
 /**
  * A class that implements a Memcached-backed cache with analytics tracking.
@@ -45,6 +45,7 @@ class CacheMemcached {
     };
 
     /** @private @const {!Client} */
+    const { Client } = loadOptionalModule('memjs', 'Memcached caching');
     this.client_ = Client.create(this.settings.memcachedurl, {
       poolSize: defaultOptions.poolSize,
       timeout: defaultOptions.timeout,

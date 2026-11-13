@@ -1,0 +1,17 @@
+# Secret scanning for nooblyjs-core (feature 22b).
+# Production code, docs and configuration are scanned in full. Test fixtures and
+# the sample app data under tests/ hold dummy credentials on purpose, so that
+# tree is excluded; keep real secrets out of it.
+
+title = "nooblyjs-core gitleaks config"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Test fixtures, sample app data and local scratch output"
+paths = [
+  '''(^|/)tests/''',
+  '''(^|/)\.temp/''',
+  '''(^|/)node_modules/'''
+]

@@ -8,7 +8,10 @@
 
 'use strict';
 
-const { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand, ListObjectsV2Command } = require('@aws-sdk/client-s3');
+const { loadOptionalModule } = require('../../shared/utils/optionalRequire');
+
+/** @return {Object} The AWS S3 SDK, loaded on first use */
+const s3sdk = () => loadOptionalModule('@aws-sdk/client-s3', 'S3 filing');
 const { assertSafeRelativePath } = require('../modules/pathSafety');
 const { applyRuntimeSettings, numberRule } = require('../modules/settingsPolicy');
 
@@ -56,6 +59,7 @@ class S3FilingProvider {
     }
 
     /** @private @const {S3Client} */
+    const { S3Client } = loadOptionalModule('@aws-sdk/client-s3', 'S3 filing');
     this.s3 = new S3Client(clientConfig);
     /** @private @const {EventEmitter} */
     this.eventEmitter_ = eventEmitter;
@@ -79,7 +83,7 @@ class S3FilingProvider {
    */
   async create(filePath, content) {
     assertSafeRelativePath(filePath);
-    const command = new PutObjectCommand({
+    const command = new (s3sdk().PutObjectCommand)({
       Bucket: this.bucketName,
       Key: filePath,
       Body: content,
@@ -109,7 +113,7 @@ class S3FilingProvider {
    */
   async read(filePath, encoding) {
     assertSafeRelativePath(filePath);
-    const command = new GetObjectCommand({
+    const command = new (s3sdk().GetObjectCommand)({
       Bucket: this.bucketName,
       Key: filePath,
     });
@@ -140,7 +144,7 @@ class S3FilingProvider {
    */
   async delete(filePath) {
     assertSafeRelativePath(filePath);
-    const command = new DeleteObjectCommand({
+    const command = new (s3sdk().DeleteObjectCommand)({
       Bucket: this.bucketName,
       Key: filePath,
     });
@@ -165,7 +169,7 @@ class S3FilingProvider {
    */
   async list(dirPath) {
     assertSafeRelativePath(dirPath);
-    const command = new ListObjectsV2Command({
+    const command = new (s3sdk().ListObjectsV2Command)({
       Bucket: this.bucketName,
       Prefix: dirPath,
     });
@@ -194,7 +198,7 @@ class S3FilingProvider {
   async update(filePath, content) {
     assertSafeRelativePath(filePath);
     // For S3, update is essentially create (put) as it overwrites if exists
-    const command = new PutObjectCommand({
+    const command = new (s3sdk().PutObjectCommand)({
       Bucket: this.bucketName,
       Key: filePath,
       Body: content,

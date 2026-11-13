@@ -10,7 +10,7 @@
 
 'use strict';
 
-const { QueueClient, QueueServiceClient } = require('@azure/storage-queue');
+const { loadOptionalModule } = require('../../shared/utils/optionalRequire');
 
 /**
  * Azure Queue Storage provider
@@ -50,6 +50,7 @@ class QueueingAzure {
     }
 
     /** @private @const {QueueServiceClient} */
+    const { QueueServiceClient } = loadOptionalModule('@azure/storage-queue', 'Azure queueing');
     this.serviceClient_ = QueueServiceClient.fromConnectionString(connectionString);
 
     this.settings.accountName = options?.accountName || process.env.AZURE_STORAGE_ACCOUNT_NAME || 'default';

@@ -10,7 +10,7 @@
 
 'use strict';
 
-const { CloudTasksClient } = require('@google-cloud/tasks');
+const { loadOptionalModule } = require('../../shared/utils/optionalRequire');
 const { v4: uuidv4 } = require('uuid');
 
 /**
@@ -58,6 +58,7 @@ class QueueingGCP {
     }
 
     /** @private @const {CloudTasksClient} */
+    const { CloudTasksClient } = loadOptionalModule('@google-cloud/tasks', 'Google Cloud Tasks queueing');
     this.client_ = new CloudTasksClient(clientOptions);
 
     this.settings.projectId = projectId;

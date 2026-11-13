@@ -10,8 +10,7 @@
 
 'use strict';
 
-const { SQSClient, SendMessageCommand, ReceiveMessageCommand, DeleteMessageCommand,
-        PurgeQueueCommand, GetQueueAttributesCommand, ListQueuesCommand } = require('@aws-sdk/client-sqs');
+const { loadOptionalModule } = require('../../shared/utils/optionalRequire');
 
 /**
  * AWS SQS queue provider
@@ -62,7 +61,9 @@ class QueueingAWS {
     };
 
     /** @private @const {SQSClient} */
-    this.client_ = new SQSClient(clientConfig);
+    const sqs = loadOptionalModule('@aws-sdk/client-sqs', 'AWS SQS queueing');
+    this.sqs_ = sqs;
+    this.client_ = new sqs.SQSClient(clientConfig);
 
     this.settings.region = region;
     this.settings.accountId = options?.accountId || process.env.AWS_ACCOUNT_ID || '';
@@ -217,7 +218,7 @@ class QueueingAWS {
       const queueUrl = await this.getQueueUrl_(queueName);
       const messageBody = typeof item === 'string' ? item : JSON.stringify(item);
 
-      const command = new SendMessageCommand({
+      const command = new this.sqs_.SendMessageCommand({
         QueueUrl: queueUrl,
         MessageBody: messageBody,
         DelaySeconds: 0
@@ -247,7 +248,7 @@ class QueueingAWS {
     try {
       const queueUrl = await this.getQueueUrl_(queueName);
 
-      const command = new ReceiveMessageCommand({
+      const command = new this.sqs_.ReceiveMessageCommand({
         QueueUrl: queueUrl,
         MaxNumberOfMessages: 1,
         WaitTimeSeconds: 0, // Don't wait for demo, set to 20 for production
@@ -270,7 +271,7 @@ class QueueingAWS {
       })();
 
       // Delete the message from the queue
-      const deleteCommand = new DeleteMessageCommand({
+      const deleteCommand = new this.sqs_.DeleteMessageCommand({
         QueueUrl: queueUrl,
         ReceiptHandle: message.ReceiptHandle
       });
@@ -301,7 +302,7 @@ class QueueingAWS {
     try {
       const queueUrl = await this.getQueueUrl_(queueName);
 
-      const command = new GetQueueAttributesCommand({
+      const command = new this.sqs_.GetQueueAttributesCommand({
         QueueUrl: queueUrl,
         AttributeNames: ['ApproximateNumberOfMessages']
       });
@@ -323,7 +324,7 @@ class QueueingAWS {
    */
   async listQueues() {
     try {
-      const command = new ListQueuesCommand({
+      const command = new this.sqs_.ListQueuesCommand({
         QueueNamePrefix: this.settings.queueNamePrefix || undefined
       });
 
@@ -367,7 +368,7 @@ class QueueingAWS {
     try {
       const queueUrl = await this.getQueueUrl_(queueName);
 
-      const command = new PurgeQueueCommand({
+      const command = new this.sqs_.PurgeQueueCommand({
         QueueUrl: queueUrl
       });
 

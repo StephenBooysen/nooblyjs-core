@@ -19,8 +19,13 @@
 
 const AIServiceBase = require('./aibase');
 const { AzureOpenAI } = require('openai');
-const { ClientSecretCredential } = require('@azure/identity');
-const { SecretClient } = require('@azure/keyvault-secrets');
+const { loadOptionalModule } = require('../../shared/utils/optionalRequire');
+
+/** @return {Object} Azure identity and Key Vault clients, loaded on first use */
+const azure = () => ({
+  ...loadOptionalModule('@azure/identity', 'Azure OpenAI (Key Vault)'),
+  ...loadOptionalModule('@azure/keyvault-secrets', 'Azure OpenAI (Key Vault)')
+});
 
 /**
  * Default Key Vault secret names holding App Registration #2 credentials.
@@ -178,6 +183,7 @@ class AIOpenAIKv extends AIServiceBase {
     this.logger?.info(`[${this.constructor.name}] Stage 1: connecting to Key Vault`, {
       keyVaultUrl: cfg.url
     });
+    const { ClientSecretCredential, SecretClient } = azure();
     const stage1Credential = new ClientSecretCredential(
       cfg.tenantId,
       cfg.clientId,
@@ -252,6 +258,7 @@ class AIOpenAIKv extends AIServiceBase {
    * @private
    */
   createOpenAiClient_(credentials) {
+    const { ClientSecretCredential } = azure();
     const stage2Credential = new ClientSecretCredential(
       credentials.tenantId,
       credentials.clientId,
