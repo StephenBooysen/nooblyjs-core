@@ -82,6 +82,7 @@
       "/node_modules/",
       "<rootDir>/tests/ui/",
       "<rootDir>/.temp/",
+      "<rootDir>/src/cli/templates/",
       "<rootDir>/tests/unit/aiservice/common/"
     ],
     "coverageDirectory": ".temp/coverage",

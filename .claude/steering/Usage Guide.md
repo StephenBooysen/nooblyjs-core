@@ -925,6 +925,10 @@ Read tools: `logs.recent`, `queue.stats`, `data.count`, `data.find`, `search.que
 
 ```bash
 npx nooblyjs create my-app --yes      # minimal API app with a test
+npx nooblyjs create my-dash --template dashboard --yes   # service dashboards behind sign-in
+npx nooblyjs create my-ai --template ai --yes            # ask questions of ./docs, with citations
+npx nooblyjs add endpoint GET /hello/:name   # route, test, and the app.js registration line
+npx nooblyjs add service audit-trail         # service class with destroy(), and its test
 npx nooblyjs doctor                   # environment checks; exits 1 on failure (use in CI)
 npx nooblyjs routes --url http://localhost:9000
 npx nooblyjs openapi --url http://localhost:9000 --out openapi.json
@@ -932,7 +936,7 @@ npx nooblyjs openapi --url http://localhost:9000 --client ts --out src/api-clien
 npx nooblyjs keys generate --length 48
 ```
 
-`routes` and `openapi` read `NOOBLYJS_API_KEY` or `NOOBLYJS_TOKEN` from the environment. The merged document is also served at `/services/api/openapi.json`.
+`doctor` checks that `REDIS_URL` and `SESSION_REDIS_URL`, when set, accept connections. `add` never overwrites a file. `routes` and `openapi` read `NOOBLYJS_API_KEY` or `NOOBLYJS_TOKEN` from the environment. The merged document is also served at `/services/api/openapi.json`.
 
 ### Unit Testing Services
 

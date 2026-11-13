@@ -1,0 +1,9 @@
+Put Markdown files in `docs/`. The app indexes them at start-up.
+
+Ask a question. Send the API key from API_KEYS, or the development key the app prints when none is set:
+
+```bash
+curl -X POST localhost:9000/services/knowledge/api/ask -H 'content-type: application/json' -H 'x-api-key: YOUR_KEY' -d '{"question":"How do I rotate the settings secret?"}'
+```
+
+Set `ANTHROPIC_API_KEY` to answer with Claude. Without it, the mock model answers, which is useful for tests.

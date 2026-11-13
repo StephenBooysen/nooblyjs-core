@@ -104,6 +104,27 @@ jobs:
           REDIS_URL: redis://127.0.0.1:6379
         run: npm run test:contract
 
+  templates:
+    name: CLI templates build and test (Node 24)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Pack this checkout so the templates use it, not the published package
+        run: mkdir -p .temp/apps && npm pack --pack-destination .temp/apps
+      - name: Generate, install and test every template
+        run: |
+          set -euo pipefail
+          TARBALL=$(ls .temp/apps/nooblyjs-core-*.tgz | head -1)
+          for t in api dashboard ai; do
+            node bin/nooblyjs.js create ".temp/apps/$t" --template "$t" --yes
+            (cd ".temp/apps/$t" && npm install --no-audit --no-fund "$OLDPWD/$TARBALL" && npm test)
+          done
+
   ui:
     name: UI tests (Playwright)
     runs-on: ubuntu-latest

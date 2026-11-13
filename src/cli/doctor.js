@@ -11,6 +11,7 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
+const net = require('node:net');
 const { spawnSync } = require('node:child_process');
 const { parse } = require('./index');
 
@@ -70,7 +71,6 @@ function checkEnvironment({ env, nodeVersion, dir, production, audit }) {
     add('npm audit (production, high)', 'warn', 'skipped with --skip-audit');
   }
 
-  add('provider connectivity', 'warn', 'not checked (Redis, Mongo and S3 are not contacted yet)');
   return checks;
 }
 
@@ -79,6 +79,61 @@ function checkEnvironment({ env, nodeVersion, dir, production, audit }) {
  * @param {string} dir App directory
  * @return {{ok: boolean, detail: string}}
  */
+/**
+ * Opens a TCP connection to check that a host accepts connections.
+ * @param {string} host
+ * @param {number} port
+ * @param {number} [timeoutMs=2000]
+ * @return {Promise<{ok: boolean, detail: string}>}
+ */
+function probeTcp(host, port, timeoutMs = 2000) {
+  return new Promise((resolve) => {
+    const socket = net.connect({ host, port });
+    const done = (ok, detail) => {
+      socket.destroy();
+      resolve({ ok, detail });
+    };
+    socket.setTimeout(timeoutMs, () => done(false, 'timed out'));
+    socket.once('connect', () => done(true, 'reachable'));
+    socket.once('error', (err) => done(false, err.code || err.message));
+  });
+}
+
+/**
+ * Checks the Redis URLs the app is configured with. A URL that is not set is
+ * reported as not used. Mongo and S3 are not probed.
+ *
+ * @param {Object} options
+ * @param {Object} options.env Environment variables
+ * @param {Function} [options.probe] Connection check, injected by tests
+ * @return {Promise<Array<{name: string, status: string, detail: string}>>}
+ */
+async function providerChecks({ env, probe = probeTcp }) {
+  const checks = [];
+  for (const [label, key] of [['Redis (cache and queue)', 'REDIS_URL'], ['Redis (sessions)', 'SESSION_REDIS_URL']]) {
+    const raw = env[key];
+    if (!raw) {
+      checks.push({ name: `${label} connectivity`, status: 'ok', detail: `${key} not set; not used` });
+      continue;
+    }
+    let url;
+    try {
+      url = new URL(raw);
+    } catch (_err) {
+      checks.push({ name: `${label} connectivity`, status: 'fail', detail: `${key} is not a valid URL` });
+      continue;
+    }
+    const port = Number(url.port || 6379);
+    const result = await probe(url.hostname, port);
+    checks.push({
+      name: `${label} connectivity`,
+      status: result.ok ? 'ok' : 'fail',
+      detail: `${url.hostname}:${port} ${result.ok ? 'reachable' : result.detail}`
+    });
+  }
+  return checks;
+}
+
 function npmAudit(dir) {
   const result = spawnSync('npm', ['audit', '--omit=dev', '--audit-level=high'], { cwd: dir, encoding: 'utf8', timeout: 120000 });
   if (result.error) return { ok: false, detail: `could not run npm audit: ${result.error.message}` };
@@ -101,13 +156,16 @@ async function run(args, io) {
   });
   const env = io.env;
   const dir = path.resolve(values.dir);
-  const checks = checkEnvironment({
-    env,
-    nodeVersion: process.version,
-    dir,
-    production: env.NODE_ENV === 'production',
-    audit: values['skip-audit'] ? null : () => npmAudit(dir)
-  });
+  const checks = [
+    ...checkEnvironment({
+      env,
+      nodeVersion: process.version,
+      dir,
+      production: env.NODE_ENV === 'production',
+      audit: values['skip-audit'] ? null : () => npmAudit(dir)
+    }),
+    ...(await providerChecks({ env }))
+  ];
   for (const c of checks) {
     io.stdout.write(`[${c.status}] ${c.name}: ${c.detail}\n`);
   }
@@ -116,4 +174,4 @@ async function run(args, io) {
   return failed ? 1 : 0;
 }
 
-module.exports = { run, checkEnvironment };
+module.exports = { run, checkEnvironment, providerChecks, probeTcp };

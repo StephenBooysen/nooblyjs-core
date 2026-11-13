@@ -1,7 +1,7 @@
 /**
  * @fileoverview `nooblyjs` command-line tool (feature 09).
  *
- * Commands: create, doctor, routes, openapi, keys generate, mcp, help. Every
+ * Commands: create, add, doctor, routes, openapi, keys generate, mcp, help. Every
  * command takes its input from flags and environment variables, so agents and CI
  * can run it without prompts. `main()` returns an exit code and never calls
  * process.exit, so tests can drive it.
@@ -22,6 +22,8 @@ Usage:
   nooblyjs routes [--url <url>]                    List the API operations of a running app
   nooblyjs openapi [--url <url>] [--out <file>] [--client ts]
                                                    Write the OpenAPI document, or a typed TypeScript client
+  nooblyjs add endpoint <METHOD> <path>            Add a route, its test, and its app.js line
+  nooblyjs add service <name>                      Add a service class with destroy(), and its test
   nooblyjs keys generate [--length <n>]            Print a random API key
   nooblyjs mcp [--url <url>]                       Stdio bridge to a running app's MCP endpoint
   nooblyjs help                                    Show this help
@@ -34,6 +36,7 @@ Environment:
 
 const COMMANDS = {
   create: () => require('./create').run,
+  add: () => require('./add').run,
   doctor: () => require('./doctor').run,
   routes: () => require('./remote').routes,
   openapi: () => require('./remote').openapi,
