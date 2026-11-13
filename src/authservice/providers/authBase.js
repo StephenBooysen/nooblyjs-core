@@ -11,6 +11,7 @@
 const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
 const { ClientError } = require('../../shared/utils/httpErrors');
+const { validateTokenScopes } = require('../modules/permissions');
 const {
   INVITATION_TTL_MS,
   generateInvitationCode,
@@ -86,6 +87,7 @@ class AuthBase {
 
     // Initialize default roles
     this.roles_.set('admin', []);
+    this.roles_.set('editor', []);
     this.roles_.set('user', []);
     this.roles_.set('guest', []);
 
@@ -806,7 +808,8 @@ class AuthBase {
    * @param {Object=} options Token options.
    * @param {number=} options.expiresInDays Days until the token expires (omit for no expiry).
    * @param {(string|Date)=} options.expiresAt Explicit expiry timestamp (overrides expiresInDays).
-   * @return {Promise<Object>} Promise resolving to { id, token, tokenPrefix, name, createdAt, expiresAt }.
+   * @param {Array<string>=} options.scopes Permissions the token may use, a subset of the owner's (omit for all of them).
+   * @return {Promise<Object>} Promise resolving to { id, token, tokenPrefix, name, createdAt, expiresAt, scopes }.
    * @throws {Error} When email/tokenName are missing or the user does not exist.
    */
   async createApiToken(email, tokenName, options = {}) {
@@ -822,6 +825,12 @@ class AuthBase {
     if (!user.apiTokens) {
       user.apiTokens = [];
     }
+
+    // Scopes narrow the token below its owner's grants (feature 19). Null means all of them.
+    const ownerRoles = Array.isArray(user.roles) ? user.roles : [user.role || 'user'];
+    const scopes = options.scopes === undefined || options.scopes === null
+      ? null
+      : validateTokenScopes(options.scopes, ownerRoles);
 
     const tokenId = 'tok_' + crypto.randomBytes(9).toString('hex');
     const rawSecret = crypto.randomBytes(32).toString('hex');
@@ -850,7 +859,8 @@ class AuthBase {
       tokenPrefix: tokenPrefix,
       createdAt: new Date(),
       lastUsed: null,
-      expiresAt: expiresAt
+      expiresAt: expiresAt,
+      scopes
     };
 
     user.apiTokens.push(token);
@@ -876,7 +886,8 @@ class AuthBase {
       tokenPrefix: token.tokenPrefix,
       name: token.name,
       createdAt: token.createdAt,
-      expiresAt: token.expiresAt
+      expiresAt: token.expiresAt,
+      scopes: token.scopes
     };
   }
 
@@ -1005,7 +1016,8 @@ class AuthBase {
         roles,
         isActive: user.isActive !== false
       },
-      token: this.getSafeToken_(token)
+      token: this.getSafeToken_(token),
+      scopes: token.scopes ?? null
     };
   }
 

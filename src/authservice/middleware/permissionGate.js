@@ -13,6 +13,9 @@
 
 const { permissionForRequest, permissionsForRoles, hasPermission, PUBLIC } = require('../modules/permissions');
 
+/** Needs the wildcard grant, which only the admin role (or an unscoped key) holds. */
+const UNDECLARED = '*';
+
 /**
  * Creates the gate.
  *
@@ -20,12 +23,22 @@ const { permissionForRequest, permissionsForRoles, hasPermission, PUBLIC } = req
  * @param {function(import('express').Request): Promise<?{roles?: string[], scopes?: ?string[], principal: string}>} options.resolvePrincipal
  *   Returns who is calling: roles for a session or token owner, or scopes for an API key (null scopes = full access)
  * @param {Object=} options.eventEmitter Receives auth:permission-denied
+ * @param {Object=} options.declarations RouteDeclarations: the permission each route declares (checked first)
+ * @param {function(): boolean=} options.strict Returns true in strictAuth mode, where a route with no declaration is refused
  * @return {function(import('express').Request, import('express').Response, import('express').NextFunction): Promise<void>} Middleware
  */
-function createPermissionGate({ resolvePrincipal, eventEmitter = null }) {
+function createPermissionGate({ resolvePrincipal, eventEmitter = null, declarations = null, strict = () => false }) {
   return async function permissionGate(req, res, next) {
     const path = (req.originalUrl || req.url || '').split('?')[0];
-    const needed = permissionForRequest(req.method, path);
+    let needed = declarations ? declarations.forRequest(req.method, path) : null;
+    if (!needed) {
+      if (strict()) {
+        // Strict: a route nobody declared is open only to the wildcard grant.
+        needed = permissionForRequest(req.method, path) ? UNDECLARED : null;
+      } else {
+        needed = permissionForRequest(req.method, path);
+      }
+    }
     if (!needed || needed === PUBLIC) return next();
 
     let principal;
@@ -48,7 +61,9 @@ function createPermissionGate({ resolvePrincipal, eventEmitter = null }) {
       granted = Array.isArray(principal.scopes) ? principal.scopes : [];
     }
 
-    if (hasPermission(granted, needed)) return next();
+    // A personal access token may be narrowed to fewer permissions than its owner holds.
+    const withinToken = !Array.isArray(principal.tokenScopes) || hasPermission(principal.tokenScopes, needed);
+    if (hasPermission(granted, needed) && withinToken) return next();
 
     eventEmitter?.emit?.('auth:permission-denied', {
       principal: principal.principal,

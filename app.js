@@ -210,6 +210,10 @@ const authservice = serviceRegistry.authservice('file');
 const settings = serviceRegistry.settings('file');
 const aiservice = serviceRegistry.aiservice('ollama', {});
 
+// Feature 19: every /services/*/api route must declare a permission. In production
+// (strictAuth) an undeclared route stops start-up here.
+serviceRegistry.verifyRouteDeclarations();
+
 /**
  * Setup production health checks for load balancers and orchestration
  * Provides:

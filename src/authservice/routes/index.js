@@ -910,8 +910,8 @@ module.exports = (options, eventEmitter, auth, analytics) => {
           });
         }
 
-        const { name, expiresInDays, expiresAt } = req.body;
-        const token = await auth.createApiToken(email, name, { expiresInDays, expiresAt });
+        const { name, expiresInDays, expiresAt, scopes } = req.body;
+        const token = await auth.createApiToken(email, name, { expiresInDays, expiresAt, scopes });
         eventEmitter.emit('auth:api-token-created-api', { email, name });
 
         res.status(201).json({

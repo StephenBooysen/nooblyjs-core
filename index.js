@@ -21,6 +21,7 @@ const { sendSafeError } = require('./src/shared/utils/safeError');
 const { assertServiceOptions } = require('./src/shared/utils/optionSchema');
 const OPTION_SCHEMAS = require('./src/shared/config/optionSchemas');
 const { createPermissionGate } = require('./src/authservice/middleware/permissionGate');
+const { RouteDeclarations, findUndeclaredRoutes } = require('./src/authservice/modules/routeDeclarations');
 const { normalizeKeyEntries, findKeyEntry } = require('./src/authservice/modules/permissions');
 
 const ensureArray = (value) => {
@@ -42,6 +43,10 @@ class ServiceRegistry {
     this.serviceDependencies = new Map();
     this.initialized = false;
     this.strictOptions = false;
+    /** @type {boolean} strictAuth: undeclared /services/*\/api routes fail start-up and are refused (feature 19). */
+    this.strictAuth = process.env.NODE_ENV === 'production';
+    /** @type {RouteDeclarations} Permission declared for each built-in API route. */
+    this.routeDeclarations = new RouteDeclarations();
     this.eventEmitter = new EventEmitter();
     this.dependenciesInitialized = false;
     // App-declared default provider/options per service. When set, dependency
@@ -131,6 +136,10 @@ class ServiceRegistry {
     // Assign the passed global options
     // strictOptions turns option warnings into errors (feature 08).
     this.strictOptions = Boolean(globalOptions.strictOptions);
+    // strictAuth defaults on in production (feature 19); set security.strictAuth to override.
+    this.strictAuth = typeof incomingSecurityConfig.strictAuth === 'boolean'
+      ? incomingSecurityConfig.strictAuth
+      : process.env.NODE_ENV === 'production';
     this.globalOptions = {
       'express-app': expressApp,
       ...legacyOptions,
@@ -235,7 +244,9 @@ class ServiceRegistry {
     // caller that can be identified: session users, scoped keys and tokens.
     this.expressApp.use('/services', createPermissionGate({
       resolvePrincipal: (req) => this.resolveRequestPrincipal(req),
-      eventEmitter: this.eventEmitter
+      eventEmitter: this.eventEmitter,
+      declarations: this.routeDeclarations,
+      strict: () => this.strictAuth
     }));
 
     // Serve the service registry landing page
@@ -800,12 +811,32 @@ class ServiceRegistry {
     if (bearer && bearer.startsWith('dtk_')) {
       try {
         const info = await this.authservice().validateApiToken(bearer);
-        return { principal: info.email, roles: info.roles };
+        // A token may carry fewer permissions than its owner's roles (feature 19).
+        return { principal: info.email, roles: info.roles, tokenScopes: info.scopes ?? null };
       } catch (_err) {
         return null;
       }
     }
     return null;
+  }
+
+  /**
+   * Checks that every /services/*\/api route has a declared permission (feature 19).
+   * In strictAuth mode (the default in production) an undeclared route throws, so
+   * start-up fails. Call it once every service is created, since services register
+   * their routes when they are created.
+   *
+   * @return {Array<string>} Undeclared routes (`METHOD pattern`); empty when all are declared
+   * @throws {Error} In strictAuth mode, when any route is undeclared
+   */
+  verifyRouteDeclarations() {
+    if (!this.expressApp) return [];
+    const missing = findUndeclaredRoutes(this.expressApp, this.routeDeclarations);
+    if (missing.length === 0) return missing;
+    const message = `Undeclared API routes (add them to src/authservice/config/routePermissions.js): ${missing.join(', ')}`;
+    if (this.strictAuth) throw new Error(message);
+    this.logger?.warn?.(`[ServiceRegistry] ${message}`);
+    return missing;
   }
 
   getEventEmitter() {

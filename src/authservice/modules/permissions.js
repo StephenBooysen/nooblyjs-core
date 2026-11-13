@@ -104,6 +104,35 @@ function permissionsForRoles(roles) {
   return list.flatMap((role) => ROLE_PERMISSIONS[role] || []);
 }
 
+/** A permission, a service wildcard or the full wildcard. */
+const PERMISSION_SHAPE = /^(\*|[a-z]+:(\*|[a-z]+))$/;
+
+/**
+ * Checks the scopes asked for on a personal access token (feature 19). Each scope
+ * must be a permission the owner holds, so a token can only narrow its owner.
+ *
+ * @param {*} scopes Scopes from the request
+ * @param {Array<string>} ownerRoles Roles of the token's owner
+ * @return {Array<string>} Normalised scopes
+ * @throws {Error} When the list is empty, malformed, or wider than the owner's grants
+ */
+function validateTokenScopes(scopes, ownerRoles) {
+  if (!Array.isArray(scopes) || scopes.length === 0) {
+    throw new Error('Token scopes must be a non-empty list of permissions');
+  }
+  const owner = permissionsForRoles(ownerRoles);
+  const unique = [...new Set(scopes)];
+  for (const scope of unique) {
+    if (typeof scope !== 'string' || !PERMISSION_SHAPE.test(scope)) {
+      throw new Error(`Invalid token scope "${String(scope)}"`);
+    }
+    if (!hasPermission(owner, scope)) {
+      throw new Error(`Token scope "${scope}" is wider than the owner's permissions`);
+    }
+  }
+  return unique;
+}
+
 /**
  * True when the granted list covers the needed permission.
  *
@@ -144,5 +173,6 @@ module.exports = {
   findKeyEntry,
   permissionsForRoles,
   hasPermission,
-  permissionForRequest
+  permissionForRequest,
+  validateTokenScopes
 };
