@@ -1,5 +1,7 @@
 'use strict';
 
+const { normalizeKeyEntries, findKeyEntry } = require('../modules/permissions');
+
 /**
  * @fileoverview API Key Authentication Middleware
  * Provides secure API key validation for all NooblyJS service endpoints.
@@ -80,6 +82,9 @@ function createApiKeyAuthMiddleware(options = {}, eventEmitter = null) {
     validateApiToken = null,
     validateSession = null
   } = options;
+
+  // Keys may be plain strings (full access) or { key, name, scopes } objects (feature 19).
+  const keyEntries = normalizeKeyEntries(apiKeys);
 
   return (req, res, next) => {
     if (!requireApiKey) {
@@ -195,9 +200,11 @@ function createApiKeyAuthMiddleware(options = {}, eventEmitter = null) {
 
     if (apiKey) {
       // 1. Static API key (machine/admin credential). Synchronous, unchanged.
-      if (matchesAnyKey(apiKey, apiKeys)) {
+      const keyEntry = findKeyEntry(apiKey, keyEntries);
+      if (keyEntry) {
         emitSuccess({ keyPrefix: apiKey.substring(0, 8) + '...' });
         req.apiKey = apiKey;
+        req.apiKeyScopes = keyEntry.scopes;
         return next();
       }
 
@@ -272,9 +279,6 @@ function createApiKeyAuthMiddleware(options = {}, eventEmitter = null) {
       let sessionToken = null;
       if (req.session && typeof req.session.authToken === 'string') {
         sessionToken = req.session.authToken;
-      }
-      if (!sessionToken && typeof req.query.authToken === 'string') {
-        sessionToken = req.query.authToken;
       }
 
       if (sessionToken) {

@@ -65,6 +65,16 @@ class AuthBase {
      * @protected {!Map<string, Object>}
      */
     this.invitations_ = new Map();
+    /**
+     * Idle timeouts in ms. An admin session that is idle for longer than
+     * `admin` (default 30 minutes) expires; other sessions use `user` (8 hours).
+     * @protected {{admin: number, user: number}}
+     */
+    this.sessionIdleMs_ = {
+      admin: 30 * 60 * 1000,
+      user: 8 * 60 * 60 * 1000,
+      ...(options.sessionIdleTimeoutMs || {})
+    };
     /** @protected {{mode: string, allowedDomains: string[], deliverCode: ?Function}} */
     this.invitationPolicy_ = resolveInvitationPolicy(options.invitations);
     if (this.invitationPolicy_.mode === 'open' && process.env.NODE_ENV === 'production') {
@@ -293,7 +303,9 @@ class AuthBase {
       fullName: user.fullName,
       roles: userRoles,
       createdAt: new Date(),
-      expiresAt: new Date(Date.now() + (24 * 60 * 60 * 1000)) // 24 hours
+      expiresAt: new Date(Date.now() + (24 * 60 * 60 * 1000)), // 24 hours (absolute)
+      epoch: user.sessionEpoch || 0,
+      lastSeenAt: Date.now()
     };
 
     this.sessions_.set(sessionToken, session);
@@ -333,12 +345,66 @@ class AuthBase {
       throw new Error('Invalid session');
     }
 
+    const user = this.lookupSessionUser_(session.email);
+    if (!user || user.isActive === false || (user.sessionEpoch || 0) !== (session.epoch || 0)) {
+      this.sessions_.delete(token);
+      throw new Error('Session revoked');
+    }
+
+    const now = Date.now();
     if (session.expiresAt < new Date()) {
       this.sessions_.delete(token);
       throw new Error('Session expired');
     }
+    if (now - (session.lastSeenAt || session.createdAt?.getTime() || now) > this.idleTimeoutFor_(user)) {
+      this.sessions_.delete(token);
+      this.eventEmitter_?.emit('auth:session-idle-timeout', { email: session.email });
+      throw new Error('Session expired after inactivity');
+    }
 
+    // Roles are read from the store, so a role change applies at once.
+    session.roles = Array.isArray(user.roles) ? user.roles : [user.role || 'user'];
+    session.lastSeenAt = now;
     return session;
+  }
+
+  /**
+   * Finds the stored record that sessions are checked against. Providers that
+   * keep accounts elsewhere override this.
+   * @protected
+   * @param {string} email Account email
+   * @return {Object|undefined} Stored user record
+   */
+  lookupSessionUser_(email) {
+    return this.users_.get(email);
+  }
+
+  /**
+   * Idle timeout for a user's sessions: the admin timeout when the user is an
+   * administrator, the ordinary timeout otherwise.
+   * @protected
+   * @param {Object} user Stored user record
+   * @return {number} Timeout in milliseconds
+   */
+  idleTimeoutFor_(user) {
+    const roles = Array.isArray(user.roles) ? user.roles : [user.role || 'user'];
+    return roles.includes('admin') ? this.sessionIdleMs_.admin : this.sessionIdleMs_.user;
+  }
+
+  /**
+   * Revokes every session a user holds. Bumping the user's session epoch
+   * invalidates token sessions and cookie sessions alike, because both carry
+   * the epoch they were issued under. The next login issues a fresh session.
+   * @protected
+   * @param {Object} user Stored user record (mutated)
+   * @param {string} reason Why, for the audit event
+   */
+  revokeUserSessions_(user, reason) {
+    user.sessionEpoch = (user.sessionEpoch || 0) + 1;
+    for (const [token, session] of this.sessions_.entries()) {
+      if (session.email === user.email) this.sessions_.delete(token);
+    }
+    this.eventEmitter_?.emit('auth:sessions-revoked', { email: user.email, reason });
   }
 
   /**
@@ -431,6 +497,12 @@ class AuthBase {
 
     Object.assign(user, allowedUpdates);
 
+    // A change to roles, activation or password ends the user's sessions (feature 23).
+    const sensitive = ['roles', 'role', 'isActive', 'password'].filter((k) => k in allowedUpdates);
+    if (sensitive.length) {
+      this.revokeUserSessions_(user, `updated:${sensitive.join(',')}`);
+    }
+
     if (this.eventEmitter_) {
       this.eventEmitter_.emit('auth:user-updated', { email, updates: Object.keys(allowedUpdates) });
     }
@@ -491,6 +563,7 @@ class AuthBase {
       userRoles.push(role);
       user.roles = userRoles;
     }
+    this.revokeUserSessions_(user, `role-assigned:${role}`);
 
     if (this.eventEmitter_) {
       this.eventEmitter_.emit('auth:role-assigned', { email, role });
@@ -640,6 +713,7 @@ class AuthBase {
     }
 
     user.password = await this.hashPassword_(newPassword);
+    this.revokeUserSessions_(user, 'password-changed');
 
     if (this.eventEmitter_) {
       this.eventEmitter_.emit('auth:password-changed', { email });
@@ -657,6 +731,14 @@ class AuthBase {
    */
   static get TOKEN_PREFIX() {
     return 'dtk_';
+  }
+
+  /**
+   * Default personal access token lifetime in days (feature 23).
+   * @const {number}
+   */
+  static get DEFAULT_TOKEN_TTL_DAYS() {
+    return 90;
   }
 
   /**
@@ -747,6 +829,7 @@ class AuthBase {
     const hashedToken = crypto.createHash('sha256').update(wireToken).digest('hex');
     const tokenPrefix = wireToken.substring(0, 12); // 'dtk_' + first 8 hex chars
 
+    // Every token expires (feature 23): 90 days unless the caller asks for less.
     let expiresAt = null;
     if (options.expiresAt) {
       const parsed = new Date(options.expiresAt);
@@ -755,6 +838,9 @@ class AuthBase {
       }
     } else if (options.expiresInDays != null && Number(options.expiresInDays) > 0) {
       expiresAt = new Date(Date.now() + Number(options.expiresInDays) * 24 * 60 * 60 * 1000);
+    }
+    if (!expiresAt) {
+      expiresAt = new Date(Date.now() + AuthBase.DEFAULT_TOKEN_TTL_DAYS * 24 * 60 * 60 * 1000);
     }
 
     const token = {
@@ -1582,18 +1668,28 @@ class AuthBase {
           if (!user || !user.email) {
             return done(new Error('User object must have an email property'));
           }
-          done(null, user.email);
+          // The epoch travels with the email, so a revoked session stops matching.
+          const stored = this.lookupSessionUser_(user.email);
+          done(null, { email: user.email, epoch: stored ? (stored.sessionEpoch || 0) : 0 });
         } catch (error) {
           done(error);
         }
       },
-      deserializeUser: async (email, done) => {
+      deserializeUser: async (value, done) => {
         try {
+          const email = typeof value === 'string' ? value : value && value.email;
           if (!email) {
             return done(new Error('Email is required for deserialization'));
           }
-          const user = await this.getUser(email);
-          done(null, user);
+          const stored = this.lookupSessionUser_(email);
+          // Unknown, deactivated or revoked sessions are treated as logged out.
+          if (!stored || stored.isActive === false) {
+            return done(null, false);
+          }
+          if (value && typeof value === 'object' && value.epoch !== (stored.sessionEpoch || 0)) {
+            return done(null, false);
+          }
+          done(null, this.getSafeUser_(stored));
         } catch (error) {
           done(error, null);
         }

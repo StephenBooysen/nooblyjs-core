@@ -68,6 +68,16 @@ class AuthSecureEmail extends AuthPassport {
   }
 
   /**
+   * Secure-email accounts live in their own map, so session checks use it.
+   * @override
+   * @param {string} email Account email
+   * @return {Object|undefined} Stored secure-email user
+   */
+  lookupSessionUser_(email) {
+    return this.secureUsers_.get(String(email || '').toLowerCase());
+  }
+
+  /**
    * Loads secure email users from JSON data file.
    * Creates empty file if it doesn't exist.
    *
@@ -202,7 +212,9 @@ class AuthSecureEmail extends AuthPassport {
       fullName,
       roles: userRoles,
       createdAt: new Date(),
-      expiresAt: new Date(Date.now() + (24 * 60 * 60 * 1000)) // 24 hours
+      expiresAt: new Date(Date.now() + (24 * 60 * 60 * 1000)), // 24 hours (absolute)
+      epoch: user.sessionEpoch || 0,
+      lastSeenAt: Date.now()
     };
 
     this.sessions_.set(sessionToken, session);

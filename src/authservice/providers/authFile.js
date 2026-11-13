@@ -496,26 +496,22 @@ class AuthFile extends AuthBase {
   }
 
   /**
-   * Validates a session token and persists any session cleanup to file.
+   * Validates a session token and persists any session removal to file.
    * @param {string} token Session token.
    * @return {Promise<Object>} Promise resolving to session object if valid.
    * @override
    */
   async validateSession(token) {
-    const session = this.sessions_.get(token);
-
-    if (!session) {
-      throw new Error('Invalid session');
+    try {
+      return await super.validateSession(token);
+    } catch (error) {
+      // The base class removes sessions that are expired, idle or revoked.
+      // Persist the removal so it survives a restart.
+      if (!this.sessions_.has(token)) {
+        await this.saveSessionsToFile_();
+      }
+      throw error;
     }
-
-    if (session.expiresAt < new Date()) {
-      this.sessions_.delete(token);
-      // Persist the session deletion to file
-      await this.saveSessionsToFile_();
-      throw new Error('Session expired');
-    }
-
-    return session;
   }
 
   /**

@@ -831,6 +831,64 @@ module.exports = (options, eventEmitter, auth, analytics) => {
     );
 
     /**
+     * POST /services/authservice/api/session/exchange
+     * One-time hand-off: turns a valid session token in the request body into
+     * the httpOnly, SameSite=strict session cookie. Replaces the old
+     * `?authToken=` query parameter, which leaked into logs and Referer headers.
+     *
+     * @param {express.Request} req - Express request object
+     * @param {string} req.body.token - Session token
+     * @param {express.Response} res - Express response object
+     * @return {void}
+     */
+    app.post(
+      '/services/authservice/api/session/exchange',
+      loginRateLimiter,
+      validate({ body: { token: { type: 'string', required: true, maxLength: 512 } } }),
+      asyncHandler(async (req, res) => {
+        let session;
+        try {
+          session = await auth.validateSession(req.body.token);
+        } catch (_err) {
+          return res.status(401).json({ success: false, error: 'Invalid or expired session' });
+        }
+        if (typeof req.logIn !== 'function') {
+          return res.status(503).json({ success: false, error: 'Session cookies are not configured' });
+        }
+        const user = await auth.getUser(session.email);
+        await new Promise((resolve, reject) => {
+          req.logIn(user, (err) => (err ? reject(err) : resolve()));
+        });
+        eventEmitter.emit('auth:session-exchanged', { email: session.email });
+        res.status(200).json({ success: true });
+      })
+    );
+
+    /**
+     * DELETE /services/authservice/api/users/:email/tokens/:tokenId
+     * Admin revocation of one of a user's personal access tokens.
+     *
+     * @param {express.Request} req - Express request object
+     * @param {string} req.params.email - Owner of the token
+     * @param {string} req.params.tokenId - Token to revoke
+     * @param {express.Response} res - Express response object
+     * @return {void}
+     */
+    app.delete(
+      '/services/authservice/api/users/:email/tokens/:tokenId',
+      requireAdminSession,
+      asyncHandler(async (req, res) => {
+        await auth.deleteApiToken(req.params.email, req.params.tokenId);
+        eventEmitter.emit('auth:api-token-revoked-by-admin', {
+          email: req.params.email,
+          tokenId: req.params.tokenId,
+          by: req.user?.email
+        });
+        res.status(200).json({ success: true, message: 'API token revoked' });
+      })
+    );
+
+    /**
      * POST /services/authservice/api/profile/tokens
      * Creates a new API token for the authenticated user.
      *
@@ -1702,10 +1760,6 @@ function extractAuthToken(req) {
 
   if (typeof req.headers['x-auth-token'] === 'string') {
     return req.headers['x-auth-token'].trim();
-  }
-
-  if (req.query && typeof req.query.authToken === 'string') {
-    return req.query.authToken;
   }
 
   if (req.body && typeof req.body === 'object' && typeof req.body.authToken === 'string') {

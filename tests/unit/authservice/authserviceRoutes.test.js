@@ -28,6 +28,7 @@ describe('Authservice routes', () => {
   let app;
   let auth;
   let token;
+  const loggedIn = [];
 
   /** Adds a bearer token to a supertest request. */
   const as = (req, t = token) => req.set('Authorization', `Bearer ${t}`);
@@ -35,6 +36,14 @@ describe('Authservice routes', () => {
   beforeEach(async () => {
     app = express();
     app.use(express.json());
+    // Stand-in for Passport's logIn, which this harness does not mount.
+    app.use((req, _res, next) => {
+      if (typeof req.logIn !== 'function') {
+        req.logIn = (user, cb) => { loggedIn.push(user.email); cb(null); };
+      }
+      next();
+    });
+    loggedIn.length = 0;
     auth = createAuth('memory', { 'express-app': app }, new EventEmitter());
     await auth.createUser({ email: 'admin@x.com', fullName: 'Admin', password: PASSWORD, role: 'admin' });
     const login = await request(app)
@@ -135,10 +144,40 @@ describe('Authservice routes', () => {
     expect(members.body.data.map((u) => u.email)).toEqual(['r@x.com']);
   });
 
+  it('exchanges a session token for a session login, and refuses a bad token', async () => {
+    const before = loggedIn.length;
+    const ok = await request(app).post('/services/authservice/api/session/exchange').send({ token }).expect(200);
+    expect(ok.body.success).toBe(true);
+    expect(loggedIn.length).toBe(before + 1);
+    expect(loggedIn[loggedIn.length - 1]).toBe('admin@x.com');
+
+    await request(app).post('/services/authservice/api/session/exchange').send({ token: 'nope' }).expect(401);
+    await request(app).post('/services/authservice/api/session/exchange').send({}).expect(400);
+  });
+
+  it('lets an admin revoke a user\'s token, and refuses a non-admin', async () => {
+    await auth.createUser({ email: 'owner@x.com', fullName: 'Owner', password: PASSWORD });
+    const owner = await auth.authenticateUser('owner@x.com', PASSWORD);
+    const made = await auth.createApiToken('owner@x.com', 'ci', { expiresInDays: 7 });
+
+    await as(request(app).delete(`/services/authservice/api/users/owner@x.com/tokens/${made.id}`)).expect(200);
+    await expect(auth.validateApiToken(made.token)).rejects.toThrow();
+    await auth.validateSession(owner.session.token).catch(() => {});
+
+    const ownerToken = owner.session.token;
+    await request(app).delete(`/services/authservice/api/users/owner@x.com/tokens/${made.id}`)
+      .set('Authorization', `Bearer ${ownerToken}`).expect(403);
+  });
+
   it('changes the caller\'s password and manages API tokens', async () => {
     await as(request(app).put('/services/authservice/api/profile/password'))
       .send({ currentPassword: PASSWORD, newPassword: 'An0ther!Pass#2026' })
       .expect(200);
+
+    // Changing the password ends every existing session (feature 23), so sign in again.
+    const relogin = await request(app).post('/services/authservice/api/login')
+      .send({ email: 'admin@x.com', password: 'An0ther!Pass#2026' }).expect(200);
+    token = relogin.body.data.session.token;
 
     const created = await as(request(app).post('/services/authservice/api/profile/tokens')).send({ name: 'ci' }).expect(201);
     expect(created.body.data.token).toMatch(/^dtk_/);

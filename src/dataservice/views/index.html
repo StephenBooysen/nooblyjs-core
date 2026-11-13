@@ -1045,7 +1045,7 @@
         async function fetchAnalytics() {
             try {
                 const authToken = localStorage.getItem('authToken');
-                const response = await fetch('/services/dataservice/api/analytics?authToken=' + authToken);
+                const response = await fetch('/services/dataservice/api/analytics', { headers: { Authorization: 'Bearer ' + authToken } });
 
                 if (!response.ok) {
                     console.error('Failed to fetch analytics:', response.status);

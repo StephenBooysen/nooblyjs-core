@@ -8,6 +8,7 @@
  */
 
 const { matchesAnyKey } = require('./apiKey');
+const { normalizeKeyEntries, findKeyEntry } = require('../modules/permissions');
 
 /**
  * Creates authentication middleware for protecting the services page.
@@ -28,7 +29,7 @@ function createServicesAuthMiddleware(serviceRegistry) {
       // STEP 2: Special handling for login/register pages
       if (req.path.includes('/login') || req.path.includes('/register')) {
         if (req.path.includes('/login')) {
-          const token = req.query.authToken || req.headers.authorization?.substring(7);
+          const token = req.headers.authorization?.substring(7);
 
           if (token) {
             try {
@@ -54,6 +55,11 @@ function createServicesAuthMiddleware(serviceRegistry) {
         if (!userRoles.includes('admin')) {
           return redirectToInvalid(req, res);
         }
+        // Defence in depth on top of SameSite=strict: a cookie-authenticated
+        // write must come from this origin (feature 23).
+        if (!isSameOriginWrite(req)) {
+          return res.status(403).json({ success: false, error: 'Cross-origin request refused', code: 'CROSS_ORIGIN' });
+        }
         // User is authenticated via Passport session and has admin role
         return next();
       }
@@ -66,12 +72,18 @@ function createServicesAuthMiddleware(serviceRegistry) {
       // general keys for backward compatibility. Comparison is constant-time.
       const apiKey = extractApiKey(req);
       if (apiKey) {
-        const adminKeys = getConfiguredAdminApiKeys(serviceRegistry);
-        const portalKeys = adminKeys.length > 0
-          ? adminKeys
-          : getConfiguredApiKeys(serviceRegistry);
-        if (matchesAnyKey(apiKey, portalKeys)) {
+        // M-1 (feature 19): in production, general keys never open the portal.
+        // Only an admin key does, and it must be unscoped or scoped '*'.
+        const adminEntries = normalizeKeyEntries(getConfiguredAdminApiKeys(serviceRegistry));
+        const production = process.env.NODE_ENV === 'production';
+        const portalEntries = adminEntries.length > 0
+          ? adminEntries
+          : (production ? [] : normalizeKeyEntries(getConfiguredApiKeys(serviceRegistry)));
+        const entry = findKeyEntry(apiKey, portalEntries);
+        const portalScope = entry && (entry.scopes === null || entry.scopes.includes('*'));
+        if (portalScope) {
           req.apiKey = apiKey;
+          req.apiKeyScopes = entry.scopes;
           return next();
         }
       }
@@ -82,10 +94,6 @@ function createServicesAuthMiddleware(serviceRegistry) {
 
       if (authHeader && authHeader.startsWith('Bearer ')) {
         token = authHeader.substring(7);
-      }
-
-      if (!token && req.query.authToken) {
-        token = req.query.authToken;
       }
 
       if (!token && req.session && req.session.authToken) {
@@ -156,7 +164,11 @@ function createServicesAuthMiddleware(serviceRegistry) {
                 .then(response => response.json())
                 .then(result => {
                   if (result.success) {
-                    window.location.href = window.location.pathname + '?authToken=' + authToken;
+                    fetch('/services/authservice/api/session/exchange', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ token: authToken })
+                    }).then(() => window.location.reload());
                   } else {
                     localStorage.removeItem('authToken');
                     localStorage.removeItem('currentUser');
@@ -384,6 +396,24 @@ function redirectToLogin(req, res) {
 
   const returnUrl = encodeURIComponent(req.originalUrl);
   res.redirect(`/services/authservice/views/login.html?returnUrl=${returnUrl}`);
+}
+
+/**
+ * True when a state-changing request carries no Origin, or an Origin whose host
+ * matches the request host (honouring a trusted proxy's X-Forwarded-Host).
+ * @param {import('express').Request} req - Express request
+ * @return {boolean} Whether the request may proceed
+ */
+function isSameOriginWrite(req) {
+  if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) return true;
+  const origin = req.get('origin');
+  if (!origin) return true;
+  try {
+    const host = (req.get('x-forwarded-host') || req.get('host') || '').split(',')[0].trim();
+    return new URL(origin).host === host;
+  } catch (_err) {
+    return false;
+  }
 }
 
 module.exports = {
