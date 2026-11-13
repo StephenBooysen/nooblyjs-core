@@ -221,36 +221,6 @@
     }
   },
   "paths": {
-    "/services/logging/scripts": {
-      "get": {
-        "summary": "Get Logging Client Library",
-        "description": "Serves the client-side JavaScript library for consuming the logging service API from browser applications",
-        "operationId": "getLoggingScripts",
-        "tags": ["Scripts"],
-        "responses": {
-          "200": {
-            "description": "JavaScript client library source code",
-            "content": {
-              "application/javascript": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Failed to load script library",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/services/logging/api/status": {
       "get": {
         "summary": "Get Service Status",

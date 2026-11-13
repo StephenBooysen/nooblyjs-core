@@ -294,66 +294,7 @@
         }
       }
     },
-    "/max/{metric}/{datestart}/{dateend}": {
-      "get": {
-        "tags": ["Analytics"],
-        "summary": "Get maximum metric value",
-        "description": "Retrieves the maximum value of a metric within a specified date range",
-        "operationId": "getMaxMetric",
-        "parameters": [
-          {
-            "name": "metric",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "The metric name to analyze"
-          },
-          {
-            "name": "datestart",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "date-time"
-            },
-            "description": "Start date (ISO format)"
-          },
-          {
-            "name": "dateend",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "date-time"
-            },
-            "description": "End date (ISO format)"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Maximum value",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "metric": {
-                      "type": "string"
-                    },
-                    "max": {
-                      "type": "number"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/analytics": {
+    "/analytics/summary": {
       "get": {
         "tags": ["Analytics"],
         "summary": "Get service analytics summary",

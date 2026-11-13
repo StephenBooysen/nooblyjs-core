@@ -21,7 +21,8 @@ const { sendSafeError } = require('./src/shared/utils/safeError');
 const { assertServiceOptions } = require('./src/shared/utils/optionSchema');
 const OPTION_SCHEMAS = require('./src/shared/config/optionSchemas');
 const { createPermissionGate } = require('./src/authservice/middleware/permissionGate');
-const { RouteDeclarations, findUndeclaredRoutes } = require('./src/authservice/modules/routeDeclarations');
+const { RouteDeclarations, findUndeclaredRoutes, listApiRoutes } = require('./src/authservice/modules/routeDeclarations');
+const { buildOpenApiDocument, loadServiceDocuments, mountedBases } = require('./src/shared/utils/openapi');
 const { normalizeKeyEntries, findKeyEntry } = require('./src/authservice/modules/permissions');
 
 const ensureArray = (value) => {
@@ -289,8 +290,37 @@ class ServiceRegistry {
       }
     });
 
+    // One OpenAPI 3.1 document for the services this app has mounted (feature 10).
+    this.expressApp.get('/services/api/openapi.json', (req, res) => {
+      try {
+        res.status(200).json(this.buildOpenApi());
+      } catch (error) {
+        sendSafeError(res, error, { status: 500, eventEmitter: this.eventEmitter });
+      }
+    });
+
     this.initialized = true;
     return this;
+  }
+
+  /**
+   * Builds the merged OpenAPI 3.1 document for the services mounted on this app.
+   * Service documents are read once and reused; the routes are read on each call.
+   *
+   * @return {Object} OpenAPI 3.1 document
+   */
+  buildOpenApi() {
+    if (!this.openApiServices_) {
+      this.openApiServices_ = loadServiceDocuments(path.join(__dirname, 'src'));
+    }
+    const pkg = require('./package.json');
+    return buildOpenApiDocument({
+      services: this.openApiServices_,
+      mounted: mountedBases(this.expressApp),
+      routes: listApiRoutes(this.expressApp),
+      info: { title: 'NooblyJS Core API', version: pkg.version },
+      serverUrl: '/'
+    });
   }
 
   /**
