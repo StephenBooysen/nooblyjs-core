@@ -12,7 +12,7 @@ Rank work by **impact ÷ effort**, but treat anything that blocks safe release a
 3. **Will engineers feel it every day?** The MCP server, knowledge service, CLI and OpenAPI change how fast teams build.
 4. **Is it completeness?** Webhooks, feature flags and the Express 5 move are valuable but can wait.
 
-## Now — Phase 0: Safe to ship (weeks 1–3)
+## Done — Phase 0: Safe to ship (completed 2026-11-13)
 
 **Goal:** close every critical and high finding and get CI green. **Exit:** the review's reproduction fails at every step, `npm audit --omit=dev --audit-level=high` passes, and the security regression tests are in the suite.
 
