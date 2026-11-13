@@ -49,6 +49,7 @@ It's ESM. CommonJS projects can `require()` it on Node 22.12 or later.
 | `nooblyjs-ai-common/errors` | `ApiError`, `retryAfterMs`, `explainError` (any provider failure as a readable message, an HTTP status and whether to retry; null for a cancelled request) | harness `providers/errors.js`, desktop `providers/errorMapping.js` |
 | `nooblyjs-ai-common/retry` | `withRetry`, `isRetryable`, `backoffDelay`, `sleep` (exponential backoff with jitter, abortable) | harness `providers/retry.js` |
 | `nooblyjs-ai-common/sse` | reading: `parseSSE`, `parseEvent`; writing: `openSSE`, `formatSSE`, `SSE_HEADERS` | harness `providers/sse.js`; the writer replaces the factory's hand-written one (teammate and desktop still write their own) |
+| `nooblyjs-ai-common/embeddings` | `createEmbedder(id)` and `embed(id, texts, options)` for OpenAI, Gemini, Ollama, OpenAI-compatible, Bedrock (Titan or Cohere), Vertex and a mock; Anthropic and Azure have no embeddings endpoint, so they answer with an error that names the providers that do. Also `createMockEmbedder`, `DEFAULT_EMBEDDING_MODELS`, `EMBEDDING_PROVIDERS` | new in nooblyjs-core (feature 02), used by the aiservice `embed` route and by semantic search |
 | `nooblyjs-ai-common/frontmatter` | `parseFrontmatter`, `formatFrontmatter` (the tiny `key: value` / `[a, b]` format) | harness and factory `util/frontmatter.js` |
 
 ## Roadmap

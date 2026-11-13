@@ -156,7 +156,10 @@ await auth.logout(sessionToken);
 
 // Personal access tokens for scripts and APIs. The raw token is returned once: store it.
 const created = await auth.createApiToken('ada@example.com', 'ci-token');
-const owner   = await auth.validateApiToken(created.token);
+const owner   = await auth.validateApiToken(created.token); // throws if invalid or expired
+
+// Narrow a token to some permissions (it can't exceed its owner's)
+const readOnly = await auth.createApiToken('ada@example.com', 'read-only', { scopes: ['caching:read'] });
 ```
 
 ### File Operations
@@ -259,8 +262,12 @@ const requireToken = async (req, res, next) => {
   const token = req.headers.authorization?.replace('Bearer ', '');
   if (!token) return res.status(401).json({ error: 'No token' });
 
-  const user = await auth.validateApiToken(token);
-  if (!user) return res.status(401).json({ error: 'Invalid token' });
+  let user;
+  try {
+    user = await auth.validateApiToken(token); // throws when invalid or expired
+  } catch (_err) {
+    return res.status(401).json({ error: 'Invalid token' });
+  }
 
   req.user = user;
   next();

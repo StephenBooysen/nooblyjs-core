@@ -28,6 +28,7 @@ CI runs the same checks on every pull request.
 - **Structure:** each service lives in `src/{service}/` with a factory (`index.js`),
   `providers/`, `routes/` (plus a Swagger `routes/swagger/docs.json`), `views/` and
   `modules/analytics.js`. Register new services in `index.js` and its dependency graph.
+- **Permissions:** every new `/services/{service}/api` route gets a line in `src/authservice/config/routePermissions.js`. Start-up fails in production without it.
 - **Code style:** `const`/`let`, `async/await`, JSDoc on public methods.
 - **Logging:** use the injected logger with optional chaining and structured context,
   e.g. `this.logger?.info(\`[${this.constructor.name}] ...\`, { ... })`, not `console.*`

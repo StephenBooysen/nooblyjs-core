@@ -352,6 +352,18 @@ dependencies:initialized
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
+### Authorization
+
+Authorization has two layers that both apply to `/services`:
+
+1. **Portal guard** (`servicesAuth`): only admins open the dashboards. Login, registration and the other public authentication routes are exempt.
+2. **Route permission gate** (`createPermissionGate`, feature 19): every `/services/*/api` request needs the permission its route declares in `src/authservice/config/routePermissions.js`. The gate uses:
+   - the roles of a session or a personal access token (`ROLE_PERMISSIONS` in `src/authservice/modules/permissions.js`: `admin`, `editor`, `user`);
+   - the scopes of an API key (a string key is full access; an object key carries `scopes`);
+   - the scopes of a personal access token, which can only narrow its owner's permissions (`validateTokenScopes`, checked when the token is created and again at the gate).
+
+In strictAuth mode (on by default in production) a route with no declaration is refused except to admins, and `ServiceRegistry.verifyRouteDeclarations()` fails start-up. The authorization matrix (`tests/unit/security/generatedAuthMatrix.test.js`) is generated from the declarations and runs on every test run.
+
 ### Middleware Chain Setup
 
 ```javascript

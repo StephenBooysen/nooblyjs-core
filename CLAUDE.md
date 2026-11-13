@@ -28,6 +28,7 @@ NooblyJS Core is a modular Node.js backend framework: a set of services (logging
 - `npm run kill` / `npm run kill-test` — free port 9000 / 3101 when a server hangs
 - `npm run certs` / `npm run certs:force` — generate self-signed TLS certs for local HTTPS
 - `npm run build` — `scripts/build.js`
+- `npm run check:types` — type-checks `types/index.d.ts` against `types/tests/usage.ts` (in CI)
 
 There is no linter. Jest runs with `forceExit` and `detectOpenHandles`; tests must clean up timers/handles in `afterEach`/`afterAll`. Tests that write to disk get their directory from `tests/helpers/testData.js` (`testDataDir()` → `.temp/tests/data/`); the file logger defaults to `.temp/logs/`. Nothing a test run creates should appear outside `.temp/` (see `.claude/rules/output-locations.md`).
 
@@ -78,6 +79,7 @@ The workflow, scheduling and settings client UIs inject their own namespaced sty
 
 - **Errors to clients:** never send `err.message` for server faults. Throw `ClientError(status, message)` (`src/shared/utils/httpErrors.js`) for client-safe 4xx errors and respond with `sendSafeError(res, err, { status: 500, eventEmitter })` or `toClientResponse(err)`. `sendSafeError` lets a `ClientError` override the default status and maps ENOENT/NoSuchKey to 404. The SSRF guard and filing `pathSafety` throw `ClientError(400)`.
 - **Input:** validate route input with `validate({ body, query, params })` and cap list sizes with `parseLimit` / `capLimit` / `parseOffset` (`src/shared/utils/validation.js`). Filing uploads go through `createUploadMiddleware` / `limitStream` (`src/filing/modules/uploadLimits.js`), which enforce `maxFileSize` / `allowedTypes`.
+- **Routes and permissions:** every new `/services/*/api` route needs a line in `src/authservice/config/routePermissions.js` (`'METHOD /services/{service}/api/...': 'service:read|write'`, or `public`). The `:instanceName` variant shares the default route's line. strictAuth (on in production) refuses undeclared routes and start-up fails. `tests/unit/security/generatedAuthMatrix.test.js` checks every declared route against the `user` and `editor` roles.
 - **Listeners:** a factory whose analytics subscribes to the shared emitter must set `service.analytics = analytics`, so `ServiceRegistry` can call `analytics.destroy()` on reset/shutdown (`tests/unit/registryListenerLeak.test.js` guards this).
 - **Styling:** every page loads Bootstrap 5.3 and Bootstrap Icons from jsDelivr, then `/services/css/styles.css` (the NooblyJS design system, a verbatim copy of `nooblyjs/styling/styles.css` — re-copy it to update, never edit it here), then `/services/css/core.css` (core-only rules: Bootstrap variables mapped to the design tokens, styles.css ↔ Bootstrap fixes, the app chrome, service widgets, auth pages). Both live in `src/views/css/`. Write markup with Bootstrap classes (`card`/`card-header`/`card-body`, `btn btn-primary`, `form-control`, `table`, `nav-tabs`, `badge`); add a `core-*` class to `core.css` only when Bootstrap has nothing suitable. Colours come from the tokens (`var(--accent)`, `var(--ink)`, `var(--muted)`, `var(--border)`, `var(--core-success)`, …), not hex values. Feedback alerts use `alert … fade` and are shown by adding `show`.
 - **CSP:** `app.js` / `app-noauth.js` enforce the policy in `src/shared/utils/contentSecurityPolicy.js`. A new external script/style/font origin must be added there, or the Playwright smoke test fails on the CSP violation.
@@ -87,6 +89,8 @@ The workflow, scheduling and settings client UIs inject their own namespaced sty
 - Commits use conventional format scoped by service, e.g. `fix(dataservice): ...`, `feat(workflow): ...`.
 
 ## Configuration
+
+`security.strictAuth` (default: on when `NODE_ENV=production`) makes an undeclared API route fail start-up; `app.js` calls `serviceRegistry.verifyRouteDeclarations()`.
 
 `.env` (not tracked): `PORT`, `API_KEYS` or `NOOBLYJS_API_KEYS` (comma-separated; in development one is generated and logged if none are set), `SESSION_SECRET`, `SETTINGS_SECRET`, `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`. Runtime data and logs go to `./.application/` (created automatically); filing uploads go to `FILING_BASE_DIR` (default `./.application/files`, never the app root). Production settings: `TRUST_PROXY` (behind a TLS-terminating proxy, otherwise Secure session cookies are never sent), `SESSION_REDIS_URL` / `REDIS_URL` (shared session store; otherwise a pruning in-process store), `CSP_MODE` (`enforce` / `report-only` / `off`), `CORS_ORIGINS`, `BODY_LIMIT`. `.env.example` lists every variable. `app.js` wires every service with file-based providers and is the reference for service setup.
 

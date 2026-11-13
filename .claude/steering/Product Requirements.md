@@ -1525,9 +1525,9 @@ const options = {
 ```
 
 #### Role-Based Access Control (RBAC)
-- **Implementation**: Via AuthService providers
-- **Roles**: Configurable (admin, user, viewer, etc.)
-- **Permissions**: Fine-grained control per service
+- **Implementation**: Via AuthService providers. Roles grant permissions (`ROLE_PERMISSIONS`): `admin` (everything), `editor` (filing, searching, dataservice, caching, queueing) and `user` (filing and searching read, own profile)
+- **Permissions**: `service:action` per route. Every `/services/*/api` route declares one (`routePermissions.js`); strictAuth refuses undeclared routes and fails start-up in production
+- **Scoped credentials**: API keys can carry scopes; personal access tokens can be narrowed to a subset of their owner's permissions
 
 #### Service-Level Authentication
 - **Optional**: Require authentication for all service endpoints

@@ -290,6 +290,31 @@ setInterval(async () => {
 
 Enqueue the first attempt with `attempts: 0`.
 
+#### Reliable Jobs
+
+On the memory and Redis providers, a job can retry with backoff, dead-letter after its last attempt, and be deduplicated by an idempotency key:
+
+```javascript
+const queue = serviceRegistry.queue('redis');
+
+const id = await queue.enqueue('send-email', { to: 'ada@example.com' }, {
+  attempts: 5,
+  backoff: { type: 'exponential', delayMs: 1000 },
+  idempotencyKey: 'welcome-ada',
+  dedupeWindowMs: 86400000
+});
+
+queue.process('send-email', async (job) => {
+  await sendEmail(job.data); // throw to retry; after the last attempt the job is dead-lettered
+});
+
+const job = await queue.getJob(id, 'send-email');
+const counts = await queue.jobCounts('send-email');
+await queue.retryDeadLetters('send-email'); // requeue every dead-lettered job
+```
+
+Other queue providers refuse these options with a 400. Use the plain `enqueue` and `dequeue` calls there.
+
 ### 5. Workflow Service
 
 A workflow is a named list of step scripts. The steps run in order. Each step receives the original input and the outputs of the steps before it. Relative step paths resolve against the working service's activities folder.
@@ -434,6 +459,20 @@ const owner = await auth.validateApiToken(presentedToken);
 
 Check `src/authservice/providers/authBase.js` for the options `createApiToken` accepts.
 
+#### Roles, Permissions and Token Scopes
+
+Every `/services/*/api` route declares the permission it needs (`src/authservice/config/routePermissions.js`). Roles grant permissions (`src/authservice/modules/permissions.js`): `admin` has everything, `editor` can use filing, searching, dataservice, caching and queueing, and `user` can read filing and searching and manage its own profile.
+
+A personal access token can carry fewer permissions than its owner, but never more. The owner's role is checked when the token is created, so a `user` asking for `filing:write` is refused:
+
+```javascript
+const narrow = await auth.createApiToken('ada@example.com', 'read-only-ci', {
+  scopes: ['filing:read', 'searching:read']
+});
+```
+
+In production, strictAuth is on: an undeclared route is refused and start-up fails.
+
 #### Using Auth in Express Routes
 
 ```javascript
@@ -443,8 +482,12 @@ async function requireUser(req, res, next) {
   const token = req.headers.authorization?.replace('Bearer ', '');
   if (!token) return res.status(401).json({ error: 'Sign in required' });
 
-  const user = await auth.validateApiToken(token);
-  if (!user) return res.status(401).json({ error: 'Invalid or expired token' });
+  let user;
+  try {
+    user = await auth.validateApiToken(token); // throws when the token is invalid or expired
+  } catch (_err) {
+    return res.status(401).json({ error: 'Invalid or expired token' });
+  }
 
   req.user = user;
   next();

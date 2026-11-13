@@ -27,9 +27,9 @@ Rank work by **impact ÷ effort**, but treat anything that blocks safe release a
 
 **Until Phase 0 ships:** deploy only on a private network, restrict filing `allowedTypes`, configure separate admin API keys, and block the public invitation and filing-settings routes at the proxy.
 
-## Phase 1: Foundations (weeks 3–8): partly done as of 2026-11-13
+## Phase 1: Foundations (weeks 3–8): mostly done as of 2026-11-13
 
-See the status line in each feature spec. Items marked partly done have open gaps listed there.
+Done: 02, 08, 19, and the Phase 1 part of 20 and 22. Still open: 23 (dashboards keep the token in `localStorage`), 06 (queue providers other than memory and Redis, the working service and a dashboard panel), and the GitHub proof for the nightly audit (20b) and the ZAP and gitleaks jobs (22b). Those last two need a push to GitHub. See the status line in each feature spec.
 
 **Goal:** the building blocks every later feature needs, plus least-privilege access. **Exit:** one AI API with streaming, tools and embeddings; at-least-once jobs; typed public API; every route declares a permission.
 
@@ -116,6 +116,6 @@ The package version is still 1.0.10. Tag 1.0.11 only when CI is green.
 
 ## Housekeeping
 
-- **Docs:** update `Application Architecture.md`, `Product Requirements.md` and both usage guides at the end of each phase. They were last checked against the code on 2026-11-12.
+- **Docs:** update `Application Architecture.md`, `Product Requirements.md` and both usage guides at the end of each phase. They were last checked against the code on 2026-11-13 (Phase 1 pass).
 - **Trackers:** record Phase 0 progress in `go-to-market/REMEDIATION_TODO.md` (P2-8 is already reopened) and `DEPENDENCY_STATUS.md`.
 - **Spec locations:** feature specs 02–23 and the 2026-11-12 review live in `.claude/specs/`, while CLAUDE.md and `.claude/rules/output-locations.md` name `.claude/steering/` as the home for product docs. Pick one location and move the other set.

@@ -138,7 +138,8 @@ NOOBLYJS_API_KEYS=key1,key2,key3
 # Session secret for authentication
 SESSION_SECRET=your-secret-key
 
-# Node environment
+# Node environment. In production, strictAuth is on by default: every
+# /services/*/api route must declare a permission, or start-up fails.
 NODE_ENV=development
 ```
 
@@ -359,6 +360,13 @@ const response = await ai.prompt('What is the capital of France?');
 const result = await ai.prompt('Summarize this text: ' + text, {
   maxTokens: 500
 });
+
+// Embeddings (shared AI module). Anthropic has no embeddings endpoint, so name one that does.
+const embedder = serviceRegistry.aiservice('anthropic', {
+  apiKey: process.env.ANTHROPIC_API_KEY,
+  embeddings: { provider: 'openai', model: 'text-embedding-3-small', apiKey: process.env.OPENAI_API_KEY }
+});
+const { vectors } = await embedder.embed(['first text', 'second text']);
 ```
 
 ### Auth Service
@@ -368,21 +376,22 @@ const auth = serviceRegistry.authservice('file', {
   dataDir: './data/users'
 });
 
-// Register user
-await auth.register({
-  username: 'john',
-  password: 'secret',
-  email: 'john@example.com'
+// Create a user (role: 'admin', 'editor', 'user' or 'guest')
+await auth.createUser({
+  email: 'john@example.com',
+  fullName: 'John',
+  password: 'a-strong-passphrase',
+  role: 'user'
 });
 
-// Authenticate
-const token = await auth.authenticate({
-  username: 'john',
-  password: 'secret'
-});
+// Authenticate with email and password
+const user = await auth.authenticateUser('john@example.com', 'a-strong-passphrase');
 
-// Verify token
-const user = await auth.verifyToken(token);
+// Personal access token, limited to two permissions (it cannot exceed its owner's)
+const created = await auth.createApiToken('john@example.com', 'ci', {
+  scopes: ['caching:read', 'filing:read']
+});
+const owner = await auth.validateApiToken(created.token); // throws when invalid or expired
 ```
 
 ## Testing
@@ -541,7 +550,7 @@ The ServiceRegistry ensures dependencies are initialized in order and injects th
 
 ### Queue Configuration
 - Use Redis or RabbitMQ for reliable message delivery
-- Implement dead-letter queues for failed messages
+- For retries and dead letters, enqueue with options (`queue.enqueue(name, data, { attempts, backoff, idempotencyKey })`) on the memory or Redis provider; other providers refuse these options with a 400
 - Monitor queue depth and processing times
 
 ### Workflow Optimization
@@ -650,6 +659,35 @@ const options = {
 // Authorization: Bearer <api-key>
 ```
 
+### Route Permissions
+
+Every `/services/*/api` route declares the permission it needs in
+`src/authservice/config/routePermissions.js`, for example
+`'POST /services/filing/api/upload/*': 'filing:write'`. Permissions are
+`service:action`. The gate matches a request to its most specific declaration.
+
+| Role | Grants |
+|---|---|
+| `admin` | everything (`*`) |
+| `editor` | `filing:*`, `searching:*`, `dataservice:*`, `caching:*`, `queueing:*`, `logging:read`, `measuring:read`, `profile:*` |
+| `user` | `filing:read`, `searching:read`, `profile:*` |
+
+Roles are set in `src/authservice/modules/permissions.js` (`ROLE_PERMISSIONS`).
+
+In strictAuth mode, the default in production, a route with no declaration is refused
+for everyone except admins, and start-up fails. Set `security.strictAuth` to override:
+
+```javascript
+serviceRegistry.initialize(app, eventEmitter, {
+  security: { strictAuth: true }
+});
+```
+
+API keys and tokens carry scopes. A plain string key is a full-access key. An object
+key `{ key, name, scopes: ['queueing:*'] }` reaches only those permissions. A personal
+access token may be narrowed the same way when it is created (see the Auth Service
+section).
+
 ### OAuth Integration
 
 ```javascript
@@ -715,6 +753,7 @@ SESSION_SECRET=your-session-secret
 - [ ] Set `NODE_ENV=production`
 - [ ] Use strong `SESSION_SECRET`
 - [ ] Configure API keys
+- [ ] Confirm start-up passes the route-declaration check (strictAuth is on in production)
 - [ ] Use external caching (Redis) instead of in-memory
 - [ ] Use external database (MongoDB) instead of file storage
 - [ ] Enable HTTPS
