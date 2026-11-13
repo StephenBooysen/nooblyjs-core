@@ -758,6 +758,122 @@ function initializeEventHandlers() {
     document.getElementById('data-tab')?.addEventListener('shown.bs.tab', () => checkServiceStatus());
 
     document.getElementById('refreshInstanceBtn')?.addEventListener('click', () => loadAiInstances());
+
+    document.getElementById('playground-tab')?.addEventListener('shown.bs.tab', () => loadPlaygroundModels());
+    document.getElementById('playgroundForm')?.addEventListener('submit', handlePlaygroundSubmit);
+    document.getElementById('playgroundStop')?.addEventListener('click', () => playgroundAbort?.abort());
+}
+
+// ─── Playground tab (feature 02) ─────────────────────────────────────────────
+
+let playgroundAbort = null;
+let playgroundModelsLoaded = false;
+
+/** Fills the model picker from the shared catalogue. */
+async function loadPlaygroundModels() {
+    if (playgroundModelsLoaded) return;
+    try {
+        const response = await fetch('/services/ai/api/models');
+        const data = await response.json();
+        const select = document.getElementById('playgroundModel');
+        if (!select || !Array.isArray(data.models)) return;
+        for (const model of data.models) {
+            const option = document.createElement('option');
+            option.value = typeof model === 'string' ? model : model.id;
+            option.textContent = typeof model === 'string' ? model : `${model.label || model.id} (${model.id})`;
+            select.appendChild(option);
+        }
+        playgroundModelsLoaded = true;
+    } catch (error) {
+        console.warn('Could not load models', error);
+    }
+}
+
+/**
+ * Reads server-sent events from a fetch response body.
+ * @param {ReadableStream} body Response body
+ * @param {function(string, Object): void} onEvent Called with each event name and parsed data
+ */
+async function readServerEvents(body, onEvent) {
+    const reader = body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        let index;
+        while ((index = buffer.indexOf('\n\n')) !== -1) {
+            const block = buffer.slice(0, index);
+            buffer = buffer.slice(index + 2);
+            let name = 'message';
+            let data = '';
+            for (const line of block.split('\n')) {
+                if (line.startsWith('event:')) name = line.slice(6).trim();
+                else if (line.startsWith('data:')) data += line.slice(5).trim();
+            }
+            try { onEvent(name, data ? JSON.parse(data) : {}); } catch (_err) { /* skip a malformed event */ }
+        }
+    }
+}
+
+/** Sends the playground form and streams the reply into the output box. */
+async function handlePlaygroundSubmit(event) {
+    event.preventDefault();
+    const output = document.getElementById('playgroundOutput');
+    const stats = document.getElementById('playgroundStats');
+    const send = document.getElementById('playgroundSend');
+    const stop = document.getElementById('playgroundStop');
+    const message = document.getElementById('playgroundMessage').value.trim();
+    if (!message) return;
+
+    const body = {
+        messages: [{ role: 'user', content: message }],
+        maxTokens: parseInt(document.getElementById('playgroundMaxTokens').value, 10) || 1024
+    };
+    const system = document.getElementById('playgroundSystem').value.trim();
+    const model = document.getElementById('playgroundModel').value;
+    if (system) body.system = system;
+    if (model) body.model = model;
+
+    output.textContent = '';
+    stats.textContent = '';
+    send.disabled = true;
+    stop.disabled = false;
+    playgroundAbort = new AbortController();
+    const started = performance.now();
+    try {
+        const response = await fetch('/services/ai/api/stream', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
+            signal: playgroundAbort.signal
+        });
+        if (response.status === 501) {
+            document.getElementById('playgroundUnavailable').hidden = false;
+            return;
+        }
+        if (!response.ok) {
+            const payload = await response.json().catch(() => ({}));
+            throw new Error(payload.error || `Request failed with status ${response.status}`);
+        }
+        await readServerEvents(response.body, (name, data) => {
+            if (name === 'text') output.textContent += data.text || '';
+            else if (name === 'error') showAlert(data.message || 'The model request failed', 'error');
+            else if (name === 'done') {
+                const usage = data.usage || {};
+                const seconds = ((performance.now() - started) / 1000).toFixed(1);
+                const cost = typeof data.cost === 'number' ? `$${data.cost.toFixed(data.cost < 0.01 ? 4 : 2)}` : 'n/a';
+                stats.textContent = `· ${data.model || ''} · ${formatNumber(usage.input || usage.input_tokens || 0)} in / ${formatNumber(usage.output || usage.output_tokens || 0)} out · ${cost} · ${seconds}s`;
+            }
+        });
+    } catch (error) {
+        if (error.name !== 'AbortError') showAlert(error.message, 'error');
+    } finally {
+        send.disabled = false;
+        stop.disabled = true;
+        playgroundAbort = null;
+    }
 }
 
 // ─── Train tab ────────────────────────────────────────────────────────────────

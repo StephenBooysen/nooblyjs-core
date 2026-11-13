@@ -21,6 +21,7 @@ export {
   createVertexProvider,
   findApiKey,
 } from './providers/index.js';
+export { DEFAULT_EMBEDDING_MODELS, EMBEDDING_PROVIDERS, createEmbedder, createMockEmbedder, embed } from './embeddings.js';
 export { backoffDelay, isRetryable, sleep, withRetry } from './retry.js';
 export { SSE_HEADERS, formatSSE, openSSE, parseEvent, parseSSE } from './sse.js';
 export { CHARS_PER_TOKEN, IMAGE_TOKENS, contextWindowFor, estimateTokens } from './tokens.js';

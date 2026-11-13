@@ -105,6 +105,277 @@
         }
       }
     },
+    "/complete": {
+      "post": {
+        "tags": [
+          "Default Instance"
+        ],
+        "summary": "Run one request and wait for the whole reply",
+        "description": "Returns text, toolCalls, stopReason, usage and model.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "messages"
+                ],
+                "properties": {
+                  "messages": {
+                    "type": "array",
+                    "minItems": 1,
+                    "maxItems": 200,
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "role": {
+                          "type": "string",
+                          "enum": [
+                            "user",
+                            "assistant"
+                          ]
+                        },
+                        "content": {}
+                      }
+                    }
+                  },
+                  "system": {
+                    "type": "string"
+                  },
+                  "maxTokens": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "tools": {
+                    "type": "array",
+                    "items": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "429": {
+            "description": "Token limit or daily cost budget exceeded"
+          },
+          "501": {
+            "description": "Not available for a legacy provider"
+          }
+        }
+      }
+    },
+    "/stream": {
+      "post": {
+        "tags": [
+          "Default Instance"
+        ],
+        "summary": "Stream a reply as server-sent events",
+        "description": "Events: text ({text}), done ({stopReason}), error.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "messages"
+                ],
+                "properties": {
+                  "messages": {
+                    "type": "array",
+                    "minItems": 1,
+                    "maxItems": 200,
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "role": {
+                          "type": "string",
+                          "enum": [
+                            "user",
+                            "assistant"
+                          ]
+                        },
+                        "content": {}
+                      }
+                    }
+                  },
+                  "system": {
+                    "type": "string"
+                  },
+                  "maxTokens": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "tools": {
+                    "type": "array",
+                    "items": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "429": {
+            "description": "Token limit or daily cost budget exceeded"
+          },
+          "501": {
+            "description": "Not available for a legacy provider"
+          }
+        }
+      }
+    },
+    "/generate-object": {
+      "post": {
+        "tags": [
+          "Default Instance"
+        ],
+        "summary": "Ask for a JSON object matching a schema",
+        "description": "422 when the reply is not valid JSON for the schema.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "messages",
+                  "schema"
+                ],
+                "properties": {
+                  "messages": {
+                    "type": "array",
+                    "minItems": 1,
+                    "maxItems": 200,
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "role": {
+                          "type": "string",
+                          "enum": [
+                            "user",
+                            "assistant"
+                          ]
+                        },
+                        "content": {}
+                      }
+                    }
+                  },
+                  "system": {
+                    "type": "string"
+                  },
+                  "maxTokens": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "tools": {
+                    "type": "array",
+                    "items": {
+                      "type": "object"
+                    }
+                  },
+                  "schema": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "429": {
+            "description": "Token limit or daily cost budget exceeded"
+          },
+          "501": {
+            "description": "Not available for a legacy provider"
+          }
+        }
+      }
+    },
+    "/embed": {
+      "post": {
+        "tags": [
+          "Default Instance"
+        ],
+        "summary": "Embed texts",
+        "description": "Returns vectors in input order, model and usage. Providers without embeddings (anthropic, azure) answer 400 unless the instance sets an embeddings provider.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "texts"
+                ],
+                "properties": {
+                  "texts": {
+                    "type": "array",
+                    "minItems": 1,
+                    "maxItems": 100,
+                    "items": {
+                      "type": "string",
+                      "maxLength": 32000
+                    }
+                  },
+                  "options": {
+                    "type": "object",
+                    "properties": {
+                      "model": {
+                        "type": "string"
+                      },
+                      "dimensions": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 8192
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "429": {
+            "description": "Token limit or daily cost budget exceeded"
+          },
+          "501": {
+            "description": "Not available for a legacy provider"
+          }
+        }
+      }
+    },
     "/analytics": {
       "get": {
         "tags": ["Default Instance"],

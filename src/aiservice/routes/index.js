@@ -377,6 +377,10 @@ module.exports = (options, eventEmitter, aiService, analytics) => {
       res.status(400).json({ success: false, error: 'messages must be a list of 1 to 200 items' });
       return false;
     }
+    if (req.body.model !== undefined && (typeof req.body.model !== 'string' || req.body.model.length > 200)) {
+      res.status(400).json({ success: false, error: 'model must be a model id' });
+      return false;
+    }
     if (maxTokens !== undefined && (!Number.isInteger(maxTokens) || maxTokens < 1)) {
       res.status(400).json({ success: false, error: 'maxTokens must be a positive whole number' });
       return false;
@@ -393,7 +397,7 @@ module.exports = (options, eventEmitter, aiService, analytics) => {
     if (!sharedOnly('complete', res) || !requireMessages(req, res)) return;
     try {
       const reply = await aiService.complete(req.body);
-      res.json({ success: true, data: { text: reply.text, toolCalls: reply.toolCalls, stopReason: reply.stopReason, usage: reply.usage, model: reply.model } });
+      res.json({ success: true, data: { text: reply.text, toolCalls: reply.toolCalls, stopReason: reply.stopReason, usage: reply.usage, model: reply.model, cost: reply.cost ?? 0 } });
     } catch (err) {
       sendSafeError(res, err, { status: 500 });
     }
@@ -416,11 +420,19 @@ module.exports = (options, eventEmitter, aiService, analytics) => {
   app.post('/services/ai/api/embed', async (req, res) => {
     if (!sharedOnly('embed', res)) return;
     const texts = req.body?.texts;
-    if (!Array.isArray(texts) || texts.length === 0 || texts.length > 100) {
-      return res.status(400).json({ success: false, error: 'texts must be a list of 1 to 100 strings' });
+    if (!Array.isArray(texts) || texts.length === 0 || texts.length > 100
+      || texts.some((t) => typeof t !== 'string' || t.length > 32000)) {
+      return res.status(400).json({ success: false, error: 'texts must be a list of 1 to 100 strings of at most 32000 characters' });
+    }
+    const { model, dimensions } = req.body.options || {};
+    if (dimensions !== undefined && (!Number.isInteger(dimensions) || dimensions < 1 || dimensions > 8192)) {
+      return res.status(400).json({ success: false, error: 'options.dimensions must be a whole number from 1 to 8192' });
+    }
+    if (model !== undefined && typeof model !== 'string') {
+      return res.status(400).json({ success: false, error: 'options.model must be a string' });
     }
     try {
-      res.json({ success: true, data: await aiService.embed(texts, req.body.options || {}) });
+      res.json({ success: true, data: await aiService.embed(texts, { model, dimensions }) });
     } catch (err) {
       sendSafeError(res, err, { status: 500 });
     }

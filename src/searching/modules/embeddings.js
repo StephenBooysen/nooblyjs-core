@@ -458,7 +458,7 @@ class EmbeddingClient {
         model: this.model,
         dimensions: this.dimensions
       });
-      raw = Array.isArray(response) ? response : response?.embeddings;
+      raw = Array.isArray(response) ? response : (response?.vectors ?? response?.embeddings);
     } else {
       throw new Error(`EmbeddingClient: unknown backend "${this.backendName_}"`);
     }

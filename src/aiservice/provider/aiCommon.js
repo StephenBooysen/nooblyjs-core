@@ -19,6 +19,9 @@ const { ClientError } = require('../../shared/utils/httpErrors');
 /** Provider names the factory accepts for this class, mapped to catalogue ids. */
 const CATALOGUE_IDS = Object.freeze({
   anthropic: 'anthropic',
+  openai: 'openai',
+  gemini: 'gemini',
+  ollama: 'ollama',
   'openai-compatible': 'openai-compatible',
   bedrock: 'bedrock',
   vertex: 'vertex',
@@ -55,6 +58,8 @@ class AICommon {
    * @param {string=} options.baseUrl Endpoint override
    * @param {Array<*>=} options.script Replies for the mock provider
    * @param {Object=} options.budgets Limits: maxTokensPerRequest, maxCostPerDay
+   * @param {Object=} options.embeddings Where embed() goes: `{ provider, model, apiKey, baseUrl }`.
+   *   Defaults to this instance's provider; set it for providers without embeddings (anthropic, azure).
    * @param {EventEmitter=} eventEmitter Event sink
    * @param {Object=} extra
    * @param {string=} extra.providerId Catalogue id, defaults to 'anthropic'
@@ -73,6 +78,7 @@ class AICommon {
     this.budgets_ = { maxTokensPerRequest: 8192, maxCostPerDay: Infinity, ...(options.budgets || {}) };
     this.spentToday_ = { day: '', cost: 0 };
     this.provider_ = null;
+    this.embedder_ = null;
   }
 
   /**
@@ -120,6 +126,7 @@ class AICommon {
     const numeric = typeof cost === 'number' ? cost : (cost?.total ?? 0);
     this.spentToday_.cost += numeric || 0;
     this.eventEmitter_?.emit?.('ai:usage', { provider: this.providerId_, model: reply.model, usage: reply.usage, cost: numeric || 0 });
+    return numeric || 0;
   }
 
   /**
@@ -149,13 +156,13 @@ class AICommon {
     this.checkBudget_(maxTokens);
     const provider = await this.provider();
     const reply = await common.complete(provider, {
-      model: this.settings.model,
+      model: request.model || this.settings.model,
       system: request.system,
       messages: request.messages,
       tools: request.tools,
-      max_tokens: maxTokens
+      maxTokens
     });
-    this.recordUsage_(reply, common);
+    reply.cost = this.recordUsage_(reply, common);
     return reply;
   }
 
@@ -168,11 +175,11 @@ class AICommon {
     this.checkBudget_(request.maxTokens ?? 1024);
     const provider = await this.provider();
     const events = provider.stream({
-      model: this.settings.model,
+      model: request.model || this.settings.model,
       system: request.system,
       messages: request.messages,
       tools: request.tools,
-      max_tokens: request.maxTokens ?? 1024
+      maxTokens: request.maxTokens ?? 1024
     });
     for await (const event of events) {
       yield event;
@@ -191,7 +198,13 @@ class AICommon {
     try {
       for await (const event of this.stream(request)) {
         if (event.type === common.EVENT.TEXT_DELTA) sse.send('text', { text: event.text });
-        else if (event.type === common.EVENT.MESSAGE) sse.send('done', { stopReason: event.message?.stop_reason });
+        else if (event.type === common.EVENT.MESSAGE) {
+          const message = event.message || {};
+          const model = message.model || request.model || this.settings.model;
+          const usage = common.normalizeUsage(message.usage);
+          const cost = this.recordUsage_({ model, usage }, common);
+          sse.send('done', { stopReason: message.stop_reason, model, usage, cost });
+        }
       }
     } catch (err) {
       sse.send('error', { message: 'The model request failed' });
@@ -227,11 +240,67 @@ class AICommon {
   }
 
   /**
-   * Embeddings are not in the shared module yet. Anthropic has no embeddings endpoint.
-   * @return {Promise<never>}
+   * Creates the embedder on first use: `options.embeddings.provider`, else this instance's provider.
+   * @private
+   * @return {Promise<Object>} A shared-module embedder
    */
-  async embed() {
-    throw new ClientError(501, `Embeddings are not available for the ${this.providerId_} provider yet; use the openai-compatible or bedrock provider`);
+  async embedder() {
+    if (this.embedder_) return this.embedder_;
+    const common = await loadCommon();
+    const config = this.options_.embeddings || {};
+    const id = config.provider || this.providerId_;
+    const sameProvider = id === this.providerId_;
+    this.embedder_ = common.createEmbedder(id, {
+      apiKey: config.apiKey || (sameProvider ? this.options_.apiKey : undefined),
+      baseUrl: config.baseUrl || (sameProvider ? this.options_.baseUrl : undefined),
+      model: config.model
+    });
+    return this.embedder_;
+  }
+
+  /**
+   * Embeds one text or a list of texts.
+   *
+   * Returns the vectors in input order, plus the model and usage. The searching
+   * service's `aiservice` embeddings backend reads `vectors`.
+   *
+   * @param {string|Array<string>} texts Text or texts to embed
+   * @param {{model?: string, dimensions?: number}=} options Embedding model and size
+   * @return {Promise<{vectors: Array<Array<number>>, model: string, usage: {input_tokens: number}}>} Vectors
+   * @throws {ClientError} 400 when the provider has no embeddings endpoint or the input is invalid
+   * @example
+   * const { vectors } = await ai.embed(['how do I reset my password'], { dimensions: 768 });
+   */
+  async embed(texts, options = {}) {
+    const embedder = await this.embedder();
+    let result;
+    try {
+      result = await embedder.embed(texts, { model: options.model, dimensions: options.dimensions });
+    } catch (err) {
+      if (err && err.name === 'ApiError' && err.status >= 400 && err.status < 500 && err.status !== 401 && err.status !== 403 && err.status !== 429) {
+        throw new ClientError(400, err.message);
+      }
+      throw err;
+    }
+    this.eventEmitter_?.emit?.('ai:usage', { provider: embedder.name, model: result.model, usage: result.usage, cost: 0, kind: 'embed' });
+    return result;
+  }
+
+  /**
+   * Models this provider can use, from the shared catalogue. Cloud hosts serve
+   * the Anthropic models; the mock answers as `mock`.
+   * @return {Promise<Array<{id: string, label: string, contextWindow: ?number, pricing: ?Object}>>} Models
+   */
+  async listModels() {
+    const common = await loadCommon();
+    if (this.providerId_ === 'mock') return [{ id: 'mock', label: 'Mock', contextWindow: null, pricing: null }];
+    const catalogue = ['bedrock', 'vertex', 'azure'].includes(this.providerId_) ? 'anthropic' : this.providerId_;
+    return common.modelsFor(catalogue).map((m) => ({
+      id: m.id,
+      label: m.label,
+      contextWindow: m.contextWindow ?? null,
+      pricing: m.pricing ?? null
+    }));
   }
 
   /** @return {Object} Settings (no secrets) */

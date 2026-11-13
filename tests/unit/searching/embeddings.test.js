@@ -469,6 +469,16 @@ describe('EmbeddingClient — aiservice backend', () => {
     expect(vectors[0]).toHaveLength(16);
   });
 
+  it('reads the vectors field that the shared-module aiservice returns', async () => {
+    const client = new EmbeddingClient({
+      backend: 'aiservice',
+      dimensions: 16,
+      aiservice: { embed: async (texts) => ({ vectors: texts.map(t => Array.from(hashEmbed(t, 16))), model: 'm' }) }
+    });
+    const vectors = await client.embedBatch(['alpha']);
+    expect(vectors[0]).toHaveLength(16);
+  });
+
   it('also accepts a bare array of vectors from aiservice.embed', async () => {
     const client = new EmbeddingClient({
       backend: 'aiservice',

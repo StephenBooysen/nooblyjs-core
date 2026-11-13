@@ -70,9 +70,59 @@ test('refuses requests once the daily cost budget is used up', async () => {
   await assert.rejects(ai.complete({ messages: user('x') }), (err) => err.statusCode === 429);
 });
 
-test('reports embeddings as unavailable for Anthropic with a 501', async () => {
+test('refuses embeddings on Anthropic with a 400 naming the alternatives', async () => {
   const ai = new AICommon({}, null, { providerId: 'anthropic' });
-  await assert.rejects(ai.embed(['a']), (err) => err.statusCode === 501);
+  await assert.rejects(ai.embed(['a']), (err) => err.statusCode === 400 && /openai/.test(err.message));
+});
+
+test('embed() returns one vector per text through the mock and reports usage', async () => {
+  const events = new EventEmitter();
+  const seen = [];
+  events.on('ai:usage', (u) => seen.push(u));
+  const ai = new AICommon({ script: [] }, events, { providerId: 'mock' });
+  const { vectors, model } = await ai.embed(['reset my password', 'password reset'], { dimensions: 16 });
+  assert.equal(vectors.length, 2);
+  assert.equal(vectors[0].length, 16);
+  assert.equal(model, 'mock-embedding');
+  assert.equal(seen[0].kind, 'embed');
+});
+
+test('an Anthropic instance can embed through another provider set in options.embeddings', async () => {
+  const ai = new AICommon({ embeddings: { provider: 'mock' } }, null, { providerId: 'anthropic' });
+  const { vectors } = await ai.embed('hello');
+  assert.equal(vectors.length, 1);
+});
+
+test('the embed route validates input and returns vectors', async () => {
+  const ai = createAI('mock', { script: [] }, new EventEmitter());
+  const app = express();
+  app.use(express.json());
+  require('../../../../src/aiservice/routes')({ 'express-app': app }, new EventEmitter(), ai);
+  await request(app).post('/services/ai/api/embed').send({ texts: [] }).expect(400);
+  await request(app).post('/services/ai/api/embed').send({ texts: [1] }).expect(400);
+  await request(app).post('/services/ai/api/embed').send({ texts: ['a'], options: { dimensions: 0 } }).expect(400);
+  const res = await request(app).post('/services/ai/api/embed').send({ texts: ['a', 'b'], options: { dimensions: 8 } }).expect(200);
+  assert.equal(res.body.data.vectors.length, 2);
+  assert.equal(res.body.data.vectors[1].length, 8);
+});
+
+test('listModels() reads the catalogue', async () => {
+  const ai = new AICommon({}, null, { providerId: 'bedrock' });
+  const models = await ai.listModels();
+  assert.ok(models.some((m) => m.id.startsWith('claude-')));
+});
+
+test('legacy: false sends an older provider name to the shared module', () => {
+  const ai = createAI('claude', { legacy: false, apiKey: 'x' }, new EventEmitter());
+  assert.equal(typeof ai.complete, 'function');
+  assert.equal(ai.getSettings().provider, 'anthropic');
+});
+
+test('complete() passes maxTokens through to the provider', async () => {
+  const ai = mock([{ text: 'ok' }]);
+  await ai.complete({ messages: user('x'), maxTokens: 77 });
+  const provider = await ai.provider();
+  assert.equal(provider.requests[0].maxTokens, 77);
 });
 
 test('streams a reply to a client as server-sent events', async () => {

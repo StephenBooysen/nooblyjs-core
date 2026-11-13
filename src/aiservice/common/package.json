@@ -9,6 +9,7 @@
     ".": "./index.js",
     "./cost": "./cost.js",
     "./discovery": "./discovery.js",
+    "./embeddings": "./embeddings.js",
     "./errors": "./errors.js",
     "./frontmatter": "./frontmatter.js",
     "./models": "./models.js",

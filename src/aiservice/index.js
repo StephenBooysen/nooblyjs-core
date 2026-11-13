@@ -77,7 +77,15 @@ function createAIService(type, options, eventEmitter) {
   let aiservice;
 
   // Create AI service instance based on provider type
-  switch (type) {
+  // `legacy: false` sends the older names to the shared module (feature 02).
+  // 2.0 makes that the default and removes the legacy classes.
+  const COMMON_NAMES = { claude: 'anthropic', openai: 'openai', chatgpt: 'openai', ollama: 'ollama', gemini: 'gemini' };
+  const { legacy, ...commonOptions } = providerOptions;
+  if (legacy === false && COMMON_NAMES[type]) {
+    aiservice = new AICommon(commonOptions, eventEmitter, { providerId: COMMON_NAMES[type] });
+  }
+
+  if (!aiservice) switch (type) {
     case 'claude':
       aiservice = new AIClaude(providerOptions, eventEmitter);
       break;
@@ -96,14 +104,14 @@ function createAIService(type, options, eventEmitter) {
       break;
     // Shared AI module (feature 02). Legacy names above keep their old classes.
     case 'anthropic':
-      aiservice = new AICommon(providerOptions, eventEmitter, { providerId: 'anthropic' });
+      aiservice = new AICommon(commonOptions, eventEmitter, { providerId: 'anthropic' });
       break;
     case 'openai-compatible':
     case 'bedrock':
     case 'vertex':
     case 'azure':
     case 'mock':
-      aiservice = new AICommon(providerOptions, eventEmitter, { providerId: type });
+      aiservice = new AICommon(commonOptions, eventEmitter, { providerId: type });
       break;
     case 'tensorflow':
       aiservice = new AITensorFlow(providerOptions, eventEmitter);
