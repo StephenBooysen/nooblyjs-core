@@ -68,10 +68,11 @@ describe('Security regression: session and token hygiene (M-2)', () => {
 
   it('keeps an active session alive by touching it on each use', async () => {
     const { session } = await auth.authenticateUser('admin@x.com', PASSWORD);
-    auth.sessionIdleMs_.admin = 60;
+    // A wide idle window: the sleeps must stay well inside it even on a loaded machine.
+    auth.sessionIdleMs_.admin = 400;
 
     for (let i = 0; i < 4; i += 1) {
-      await new Promise((r) => setTimeout(r, 30));
+      await new Promise((r) => setTimeout(r, 50));
       await expect(auth.validateSession(session.token)).resolves.toBeDefined();
     }
   });

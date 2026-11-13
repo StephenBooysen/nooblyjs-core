@@ -851,7 +851,8 @@ class ServiceRegistry {
       ...serviceOptions,
       instanceName,
       dependencies,
-      'express-app': this.expressApp
+      'express-app': this.expressApp,
+      resolvePrincipal: (req) => this.resolveRequestPrincipal(req)
     }, this.eventEmitter);
     this.services.set(key, service);
     return service;

@@ -20,6 +20,21 @@ const { sendSafeError } = require('../../shared/utils/safeError');
  * @param {Object} knowledge KnowledgeBase instance
  * @return {void}
  */
+/**
+ * Roles of the caller, for access control. An unrestricted key (scopes null) and
+ * an administrator both count as `*`. A signed-in user keeps the roles on the session.
+ * @param {Object} options Factory options (resolvePrincipal)
+ * @param {Object} req Express request
+ * @return {Promise<string[]>}
+ */
+async function rolesOf(options, req) {
+  const principal = options.resolvePrincipal ? await options.resolvePrincipal(req) : null;
+  if (!principal) return [];
+  if (principal.scopes === null) return ['*'];
+  if (Array.isArray(principal.roles)) return principal.roles;
+  return Array.isArray(principal.scopes) && principal.scopes.includes('*') ? ['*'] : [];
+}
+
 module.exports = (options, eventEmitter, knowledge) => {
   const app = options['express-app'];
   if (!app || !knowledge) return;
@@ -55,7 +70,7 @@ module.exports = (options, eventEmitter, knowledge) => {
     validate({ body: { question: { type: 'string', required: true, minLength: 1, maxLength: 1000 }, k: { type: 'integer' } } }),
     async (req, res) => {
       try {
-        const hits = await knowledge.retrieve(req.body.question, { k: req.body.k });
+        const hits = await knowledge.retrieve(req.body.question, { k: req.body.k, roles: await rolesOf(options, req) });
         res.status(200).json({ success: true, data: hits });
       } catch (err) {
         sendSafeError(res, err, { status: 500, eventEmitter });
@@ -68,7 +83,7 @@ module.exports = (options, eventEmitter, knowledge) => {
     validate({ body: { question: { type: 'string', required: true, minLength: 1, maxLength: 1000 }, k: { type: 'integer' } } }),
     async (req, res) => {
       try {
-        const answer = await knowledge.ask(req.body.question, { k: req.body.k });
+        const answer = await knowledge.ask(req.body.question, { k: req.body.k, roles: await rolesOf(options, req) });
         eventEmitter?.emit?.('knowledge:asked', { confidence: answer.confidence, citations: answer.citations.length });
         res.status(200).json({ success: true, data: answer });
       } catch (err) {

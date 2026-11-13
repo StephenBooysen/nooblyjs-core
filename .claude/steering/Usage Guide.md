@@ -893,8 +893,17 @@ const answer = await kb.ask('How do I rotate the settings secret?');
 // { text, confidence: 'cited' | 'low' | 'none', citations: [{ n, path, title, heading, snippet, score }] }
 ```
 
-The knowledge service creates its own vector search instance (`instanceName: 'knowledge'`, hash embeddings by default). Pass `embedding: { backend: 'aiservice', aiservice }` through the searching dependency for real embeddings. Sync state lives in memory, so the first sync after a restart indexes everything again. Access control by role is not applied yet, so any indexed document can be cited.
+To limit who can read a document, give the knowledge base an access rule. A chunk is only returned to, and only cited for, a caller holding one of its roles. `*` means any signed-in caller, and an administrator sees everything:
 
+```javascript
+const kb = serviceRegistry.knowledge('default', {
+  access: (file) => (file.startsWith('hr/') ? ['hr'] : ['*'])
+});
+```
+
+Sync state is saved to `.knowledge-state.json` in the source folder. Pass `restore: true` to restore it on start-up, so the index is back without reading the files again. Measure retrieval with `evaluateRetrieval(kb, cases)` from `src/knowledge/modules/evaluate.js`.
+
+The knowledge service creates its own vector search instance (`instanceName: 'knowledge'`, hash embeddings by default). Pass `embedding: { backend: 'aiservice', aiservice }` through the searching dependency for real embeddings. 
 REST: `POST /services/knowledge/api/sync`, `/retrieve` and `/ask` (body `{ question, k }`), and `GET /services/knowledge/api/status`. The editor role has these; a plain user does not.
 
 Semantic search over any index with a vector provider: `GET /services/searching/api/semantic?query=...&index=...&mode=hybrid|semantic`.
