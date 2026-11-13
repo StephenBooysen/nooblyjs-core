@@ -244,9 +244,10 @@ describe('MCP server (feature 03)', () => {
       expect(res.body.map((r) => r.id)).toEqual([1, 2]);
     });
 
-    it('refuses a request with no identity', async () => {
-      const res = await request(app).post('/services/mcp').send(rpc('tools/list', {})).expect(200);
-      expect(res.body.error).toBeDefined();
+    it('refuses a request with no identity, including tools/list', async () => {
+      const res = await request(app).post('/services/mcp').send(rpc('tools/list', {})).expect(401);
+      expect(res.body.error.code).toBe(-32001);
+      expect(res.body.result).toBeUndefined();
     });
   });
 });

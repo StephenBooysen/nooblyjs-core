@@ -30,7 +30,7 @@ const SERVER_INFO = { name: 'nooblyjs-core', version: '1.0.14' };
 const MAX_RESULT_ITEMS = 200;
 const MAX_RESULT_BYTES = 256 * 1024;
 
-const ERROR = { PARSE: -32700, INVALID_REQUEST: -32600, METHOD_NOT_FOUND: -32601, INVALID_PARAMS: -32602, INTERNAL: -32603 };
+const ERROR = { PARSE: -32700, INVALID_REQUEST: -32600, METHOD_NOT_FOUND: -32601, INVALID_PARAMS: -32602, INTERNAL: -32603, UNAUTHORIZED: -32001 };
 
 /** JSON-RPC success response. */
 const ok = (id, result) => ({ jsonrpc: '2.0', id, result });
@@ -497,6 +497,12 @@ function mountMcp(app, options) {
   const server = createMcpServer(options);
 
   app.post('/services/mcp', async (req, res) => {
+    // Every message needs a signed-in caller, including tools/list: tool names are not public.
+    const principal = options.resolvePrincipal ? await options.resolvePrincipal(req) : null;
+    if (!principal) {
+      res.set('WWW-Authenticate', 'ApiKey');
+      return res.status(401).json(fail(null, ERROR.UNAUTHORIZED, 'Authentication required: send an API key or a personal access token'));
+    }
     const body = req.body;
     if (body === undefined || body === null || typeof body !== 'object') {
       return res.status(400).json(fail(null, ERROR.PARSE, 'Body must be a JSON-RPC message or batch'));

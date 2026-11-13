@@ -309,15 +309,32 @@ class ServiceRegistry {
     // MCP server for coding agents (feature 03). Off unless `mcp.enabled` is set.
     const mcpConfig = globalOptions.mcp || {};
     this.mcpEnabled = mcpConfig.enabled === true;
+    this.mcpTools = [];
     if (this.mcpEnabled) {
-      mountMcp(this.expressApp, {
+      this.mcpTools = mountMcp(this.expressApp, {
         services: this.mcpServices(),
         openApi: () => this.buildOpenApi(),
         allowWrite: mcpConfig.allowWrite === true,
         resolvePrincipal: (req) => this.resolveRequestPrincipal(req),
         eventEmitter: this.eventEmitter
-      });
+      }).tools;
     }
+    this.mcpAllowWrite = mcpConfig.allowWrite === true;
+    // Summary for the services dashboard card (feature 03). Counts only, no tool arguments.
+    this.expressApp.get('/services/api/mcp/status', (req, res) => {
+      const reads = this.mcpTools.filter((t) => !t.write).length;
+      const writes = this.mcpTools.filter((t) => t.write).length;
+      res.status(200).json({
+        success: true,
+        data: {
+          enabled: this.mcpEnabled,
+          endpoint: this.mcpEnabled ? '/services/mcp' : null,
+          readTools: reads,
+          writeTools: this.mcpEnabled && this.mcpAllowWrite ? writes : 0,
+          writeEnabled: this.mcpEnabled && this.mcpAllowWrite
+        }
+      });
+    });
 
     this.initialized = true;
     return this;
