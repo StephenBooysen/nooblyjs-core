@@ -27,7 +27,9 @@ Rank work by **impact ÷ effort**, but treat anything that blocks safe release a
 
 **Until Phase 0 ships:** deploy only on a private network, restrict filing `allowedTypes`, configure separate admin API keys, and block the public invitation and filing-settings routes at the proxy.
 
-## Next — Phase 1: Foundations (weeks 3–8)
+## Phase 1: Foundations (weeks 3–8): partly done as of 2026-11-13
+
+See the status line in each feature spec. Items marked partly done have open gaps listed there.
 
 **Goal:** the building blocks every later feature needs, plus least-privilege access. **Exit:** one AI API with streaming, tools and embeddings; at-least-once jobs; typed public API; every route declares a permission.
 
