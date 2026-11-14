@@ -107,7 +107,9 @@ class InMemoryDataServiceProvider {
       this.createContainer(containerName);
     }
     const objectKey = uuidv4();
-    this.containers.get(containerName).set(objectKey, jsonObject);
+    // Store a copy, so later changes to the caller's object do not change the
+    // stored one (the file and MongoDB providers behave the same way).
+    this.containers.get(containerName).set(objectKey, structuredClone(jsonObject));
     if (this.eventEmitter_)
       this.eventEmitter_.emit('api-dataservice-add', {
         containerName,
@@ -158,7 +160,7 @@ class InMemoryDataServiceProvider {
     const obj = this.containers.get(containerName).get(objectKey);
     if (obj && this.eventEmitter_)
       this.eventEmitter_.emit('api-dataservice-getByUuid', { containerName, objectKey, obj });
-    return obj || null;
+    return obj ? structuredClone(obj) : null;
   }
 
   /**
@@ -242,7 +244,7 @@ class InMemoryDataServiceProvider {
     // If no search term, return all objects
     if (!searchTerm || searchTerm.trim() === '') {
       for (const obj of this.containers.get(containerName).values()) {
-        results.push(obj);
+        results.push(structuredClone(obj));
       }
     } else {
       // Search with case-insensitive matching
@@ -269,7 +271,7 @@ class InMemoryDataServiceProvider {
 
         searchInObject(obj);
         if (found) {
-          results.push(obj);
+          results.push(structuredClone(obj));
         }
       }
     }
@@ -348,7 +350,7 @@ class InMemoryDataServiceProvider {
     }
 
     // Update the object
-    container.set(objectKey, jsonObject);
+    container.set(objectKey, structuredClone(jsonObject));
 
     if (this.eventEmitter_) {
       this.eventEmitter_.emit('api-dataservice-update', {

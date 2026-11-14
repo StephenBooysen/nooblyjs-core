@@ -33,6 +33,7 @@
       "default": "./index.js"
     },
     "./package.json": "./package.json",
+    "./testing": "./testing.js",
     "./ai-common": "./src/aiservice/common/index.js",
     "./shell": "./src/shell/index.js",
     "./store": "./src/store/fs-store.js",
@@ -100,10 +101,10 @@
     ],
     "coverageThreshold": {
       "global": {
-        "statements": 51,
-        "branches": 45,
-        "functions": 50,
-        "lines": 51
+        "statements": 76,
+        "branches": 64,
+        "functions": 78,
+        "lines": 77
       }
     }
   },
@@ -121,6 +122,7 @@
     "@google-cloud/tasks": "^6.2.2",
     "@playwright/test": "^1.63.0",
     "@types/node": "^24.19.2",
+    "ajv": "^8.17.1",
     "amqplib": "^0.10.9",
     "ioredis-mock": "^8.9.0",
     "javascript-obfuscator": "^5.4.2",

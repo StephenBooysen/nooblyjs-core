@@ -1,129 +1,97 @@
 /**
- * @fileoverview Unit tests for the queueing service REST API.
- *
- * Mounts the memory queue on a bare Express application and exercises the
- * enqueue/dequeue/size/queues/purge, analytics, instance, settings, script and
- * Swagger endpoints, including named-instance routing and error handling.
+ * @fileoverview Unit tests for the queueing service REST API, written with the
+ * test kit (feature 11): a real registry with the memory queue, requests that
+ * carry an API key, and cleanup under `.temp/`.
  *
  * @author NooblyJS Team
- * @version 1.0.0
  * @since 1.0.0
  */
 
 'use strict';
 
-const express = require('express');
-const request = require('supertest');
-const EventEmitter = require('events');
+const { createTestRegistry, installMatchers } = require('../../../src/testing');
 
-const createQueue = require('../../../src/queueing');
+installMatchers();
 
 describe('Queueing routes', () => {
-  let app;
+  let t;
   let queue;
-  let otherQueue;
+  let other;
+  const api = (method, path) => t.request(method, `/services/queueing/api${path}`);
 
-  beforeEach(() => {
-    app = express();
-    app.use(express.json());
-    otherQueue = createQueue('memory', { instanceName: 'other' }, new EventEmitter());
-    const registry = {
-      getServiceInstance: jest.fn((service, provider, name) => (name === 'other' ? otherQueue : null)),
-      listInstances: jest.fn(() => [
-        { instanceName: 'default', providerType: 'memory' },
-        { instanceName: 'other', providerType: 'memory' }
-      ])
-    };
-    queue = createQueue('memory', { 'express-app': app, ServiceRegistry: registry }, new EventEmitter());
+  beforeEach(async () => {
+    t = await createTestRegistry({ services: ['queueing'], name: `queueing-routes-${process.pid}` });
+    queue = t.registry.queue('memory');
+    other = t.registry.queue('memory', { instanceName: 'other' });
   });
-
-  afterEach(() => {
-    queue.analytics?.destroy?.();
-    otherQueue.analytics?.destroy?.();
-  });
+  afterEach(() => t.cleanup());
 
   it('reports status', async () => {
-    const res = await request(app).get('/services/queueing/api/status').expect(200);
-    expect(res.body).toBe('queueing api running');
+    expect((await api('get', '/status').expect(200)).body).toBe('queueing api running');
   });
 
   it('enqueues, sizes, lists, dequeues and purges', async () => {
-    await request(app).post('/services/queueing/api/enqueue/jobs').send({ task: { id: 1 } }).expect(200);
-    await request(app).post('/services/queueing/api/enqueue/jobs').send({ task: { id: 2 } }).expect(200);
-
-    const size = await request(app).get('/services/queueing/api/size/jobs').expect(200);
-    expect(size.body).toBe(2);
-
-    const queues = await request(app).get('/services/queueing/api/queues').expect(200);
-    expect(queues.body).toContain('jobs');
-
-    const task = await request(app).get('/services/queueing/api/dequeue/jobs').expect(200);
-    expect(task.body).toEqual({ id: 1 });
-
-    await request(app).delete('/services/queueing/api/purge/jobs').expect(200);
+    await api('post', '/enqueue/jobs').send({ task: { id: 1 } }).expect(200);
+    await api('post', '/enqueue/jobs').send({ task: { id: 2 } }).expect(200);
+    expect((await api('get', '/size/jobs').expect(200)).body).toBe(2);
+    expect((await api('get', '/queues').expect(200)).body).toContain('jobs');
+    expect((await api('get', '/dequeue/jobs').expect(200)).body).toEqual({ id: 1 });
+    await api('delete', '/purge/jobs').expect(200);
     expect(await queue.size('jobs')).toBe(0);
   });
 
   it('rejects enqueue without a task', async () => {
-    await request(app).post('/services/queueing/api/enqueue/jobs').send({}).expect(400);
+    await api('post', '/enqueue/jobs').send({}).expect(400);
   });
 
   it('routes named-instance requests to that instance', async () => {
-    await request(app).post('/services/queueing/api/other/enqueue/q').send({ task: 'a' }).expect(200);
-    expect(await otherQueue.size('q')).toBe(1);
+    await api('post', '/other/enqueue/q').send({ task: 'a' }).expect(200);
+    expect(await other.size('q')).toBe(1);
     expect(await queue.size('q')).toBe(0);
-
-    const size = await request(app).get('/services/queueing/api/other/size/q').expect(200);
-    expect(size.body).toBe(1);
-    const queues = await request(app).get('/services/queueing/api/other/queues').expect(200);
-    expect(queues.body).toContain('q');
-    const task = await request(app).get('/services/queueing/api/other/dequeue/q').expect(200);
-    expect(task.body).toBe('a');
-    await request(app).delete('/services/queueing/api/other/purge/q').expect(200);
-    await request(app).get('/services/queueing/api/other/analytics').expect(200);
+    expect((await api('get', '/other/size/q').expect(200)).body).toBe(1);
+    expect((await api('get', '/other/queues').expect(200)).body).toContain('q');
+    expect((await api('get', '/other/dequeue/q').expect(200)).body).toBe('a');
+    await api('delete', '/other/purge/q').expect(200);
+    await api('get', '/other/analytics').expect(200);
   });
 
   it('hides provider failures', async () => {
-    const boom = () => Promise.reject(new Error('broker secret'));
-    jest.spyOn(queue, 'enqueue').mockImplementation(boom);
-    jest.spyOn(queue, 'dequeue').mockImplementation(boom);
-    jest.spyOn(queue, 'size').mockImplementation(boom);
-    jest.spyOn(queue, 'listQueues').mockImplementation(boom);
-    jest.spyOn(queue, 'purge').mockImplementation(boom);
-
-    const res = await request(app).post('/services/queueing/api/enqueue/jobs').send({ task: 1 }).expect(500);
+    for (const method of ['enqueue', 'dequeue', 'size', 'listQueues', 'purge']) {
+      jest.spyOn(queue, method).mockRejectedValue(new Error('broker secret'));
+    }
+    const res = await api('post', '/enqueue/jobs').send({ task: 1 }).expect(500);
     expect(JSON.stringify(res.body)).not.toContain('broker secret');
-    await request(app).get('/services/queueing/api/dequeue/jobs').expect(500);
-    await request(app).get('/services/queueing/api/size/jobs').expect(500);
-    await request(app).get('/services/queueing/api/queues').expect(500);
-    await request(app).delete('/services/queueing/api/purge/jobs').expect(500);
+    await api('get', '/dequeue/jobs').expect(500);
+    await api('get', '/size/jobs').expect(500);
+    await api('get', '/queues').expect(500);
+    await api('delete', '/purge/jobs').expect(500);
   });
 
   it('lists instances', async () => {
-    const res = await request(app).get('/services/queueing/api/instances').expect(200);
-    expect(res.body.instances.map((i) => i.name)).toEqual(['default', 'other']);
+    expect((await api('get', '/instances').expect(200)).body.instances.map((i) => i.name)).toEqual(['default', 'other']);
   });
 
   it('returns analytics, or 503 when unavailable', async () => {
     await queue.enqueue('a', 1);
-    const res = await request(app).get('/services/queueing/api/analytics').expect(200);
-    expect(res.body).toEqual(expect.any(Object));
+    expect((await api('get', '/analytics').expect(200)).body).toEqual(expect.any(Object));
+    const saved = queue.analytics;
     queue.analytics = null;
-    await request(app).get('/services/queueing/api/analytics').expect(503);
+    await api('get', '/analytics').expect(503);
+    queue.analytics = saved;
   });
 
-  it('gets and saves settings', async () => {
-    await request(app).get('/services/queueing/api/settings').expect(200);
-    await request(app).post('/services/queueing/api/settings').send({}).expect(200);
+  it('gets and saves settings, and hides failures', async () => {
+    await api('get', '/settings').expect(200);
+    await api('post', '/settings').send({}).expect(200);
     jest.spyOn(queue, 'getSettings').mockRejectedValue(new Error('x'));
     jest.spyOn(queue, 'saveSettings').mockRejectedValue(new Error('x'));
-    await request(app).get('/services/queueing/api/settings').expect(500);
-    await request(app).post('/services/queueing/api/settings').send({}).expect(500);
+    await api('get', '/settings').expect(500);
+    await api('post', '/settings').send({}).expect(500);
   });
 
   it('serves the client script and swagger docs', async () => {
-    const script = await request(app).get('/services/queueing/scripts').expect(200);
+    const script = await t.request('get', '/services/queueing/scripts').expect(200);
     expect(script.headers['content-type']).toMatch(/javascript/);
-    await request(app).get('/services/queueing/api/swagger/docs.json').expect(200);
+    await api('get', '/swagger/docs.json').expect(200);
   });
 });
