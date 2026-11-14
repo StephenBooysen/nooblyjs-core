@@ -5,35 +5,1310 @@
     "description": "Full-text and meaning-based search. This document covers the semantic search routes (feature 01); the other searching routes are not yet described here.",
     "version": "1.0.14"
   },
-  "servers": [{ "url": "/services/searching/api", "description": "Searching Service API" }],
-  "tags": [{ "name": "Semantic search", "description": "Meaning-based search with a vector index" }],
+  "servers": [
+    {
+      "url": "/services/searching/api",
+      "description": "Searching Service API"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Semantic search",
+      "description": "Meaning-based search with a vector index"
+    },
+    {
+      "name": "Documents",
+      "description": "Documents"
+    },
+    {
+      "name": "Search",
+      "description": "Search"
+    },
+    {
+      "name": "Indexes",
+      "description": "Indexes"
+    },
+    {
+      "name": "Analytics",
+      "description": "Analytics"
+    },
+    {
+      "name": "Settings",
+      "description": "Settings"
+    }
+  ],
   "components": {
     "securitySchemes": {
-      "ApiKeyAuth": { "type": "apiKey", "in": "header", "name": "x-api-key", "description": "API key for authentication" },
-      "BearerAuth": { "type": "http", "scheme": "bearer", "description": "Personal access token" }
+      "ApiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "x-api-key",
+        "description": "API key for authentication"
+      },
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Personal access token"
+      }
     }
   },
   "paths": {
     "/semantic": {
       "get": {
-        "tags": ["Semantic search"],
+        "tags": [
+          "Semantic search"
+        ],
         "summary": "Search by meaning",
         "description": "Ranks documents by vector similarity (`mode=semantic`) or by a fusion of keyword and vector ranking (`mode=hybrid`, the default). Needs the vector search provider; other providers answer 400.",
         "operationId": "semanticSearch",
-        "security": [{ "ApiKeyAuth": [] }, { "BearerAuth": [] }],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
         "parameters": [
-          { "name": "query", "in": "query", "required": true, "description": "The question or phrase", "schema": { "type": "string", "minLength": 1, "maxLength": 500 } },
-          { "name": "index", "in": "query", "required": false, "description": "Index to search", "schema": { "type": "string", "maxLength": 200 } },
-          { "name": "limit", "in": "query", "required": false, "description": "Most results to return (1 to 100, default 10)", "schema": { "type": "integer", "minimum": 1, "maximum": 100 } },
-          { "name": "mode", "in": "query", "required": false, "description": "hybrid (default) or semantic", "schema": { "type": "string", "enum": ["hybrid", "semantic"] } }
+          {
+            "name": "query",
+            "in": "query",
+            "required": true,
+            "description": "The question or phrase",
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 500
+            }
+          },
+          {
+            "name": "index",
+            "in": "query",
+            "required": false,
+            "description": "Index to search",
+            "schema": {
+              "type": "string",
+              "maxLength": 200
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "description": "Most results to return (1 to 100, default 10)",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          },
+          {
+            "name": "mode",
+            "in": "query",
+            "required": false,
+            "description": "hybrid (default) or semantic",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "hybrid",
+                "semantic"
+              ]
+            }
+          }
         ],
         "responses": {
           "200": {
             "description": "Ranked documents",
-            "content": { "application/json": { "schema": { "type": "object", "properties": { "success": { "type": "boolean" }, "mode": { "type": "string", "enum": ["hybrid", "semantic"] }, "data": { "type": "array", "items": { "type": "object" } } } } } }
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "mode": {
+                      "type": "string",
+                      "enum": [
+                        "hybrid",
+                        "semantic"
+                      ]
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    }
+                  }
+                }
+              }
+            }
           },
-          "400": { "description": "Invalid query, or the provider has no semantic search" }
+          "400": {
+            "description": "Invalid query, or the provider has no semantic search"
+          }
         }
+      }
+    },
+    "/evaluate": {
+      "post": {
+        "tags": [
+          "Semantic search"
+        ],
+        "summary": "Score meaning search against labelled queries",
+        "description": "For each case, checks whether the expected document is in the top k results and how high it ranks. Reports recall@k and mean reciprocal rank, the same numbers the knowledge service's evaluate route reports. Needs the vector provider; other providers answer 400.",
+        "operationId": "evaluateSemanticSearch",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "cases"
+                ],
+                "properties": {
+                  "cases": {
+                    "type": "array",
+                    "minItems": 1,
+                    "maxItems": 500,
+                    "items": {
+                      "type": "object",
+                      "required": [
+                        "query",
+                        "expectedId"
+                      ],
+                      "properties": {
+                        "query": {
+                          "type": "string",
+                          "maxLength": 500
+                        },
+                        "expectedId": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  },
+                  "index": {
+                    "type": "string",
+                    "maxLength": 200
+                  },
+                  "mode": {
+                    "type": "string",
+                    "enum": [
+                      "hybrid",
+                      "semantic"
+                    ],
+                    "default": "hybrid"
+                  },
+                  "k": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 100,
+                    "default": 10
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Evaluation report",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "mode": {
+                          "type": "string"
+                        },
+                        "k": {
+                          "type": "integer"
+                        },
+                        "cases": {
+                          "type": "integer"
+                        },
+                        "recallAtK": {
+                          "type": "number"
+                        },
+                        "meanReciprocalRank": {
+                          "type": "number"
+                        },
+                        "results": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "query": {
+                                "type": "string"
+                              },
+                              "expectedId": {
+                                "type": "string"
+                              },
+                              "rank": {
+                                "type": "integer",
+                                "nullable": true
+                              },
+                              "hit": {
+                                "type": "boolean"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid cases, or a provider without meaning search"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/add/": {
+      "post": {
+        "tags": [
+          "Documents"
+        ],
+        "summary": "Add a document",
+        "description": "Indexes the JSON body under a generated UUID key and returns the key.",
+        "operationId": "postAdd",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "searchContainer",
+            "in": "query",
+            "required": false,
+            "description": "Index name (default index)",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true,
+                "description": "Document to index"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "No valid session, API key or token"
+          },
+          "403": {
+            "description": "Not allowed for this caller"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        },
+        "x-permission": "searching:write"
+      }
+    },
+    "/delete/{key}": {
+      "delete": {
+        "tags": [
+          "Documents"
+        ],
+        "summary": "Remove a document",
+        "operationId": "deleteDeleteByKey",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "description": "No valid session, API key or token"
+          },
+          "403": {
+            "description": "Not allowed for this caller"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        },
+        "x-permission": "searching:write"
+      }
+    },
+    "/search/{term}": {
+      "get": {
+        "tags": [
+          "Search"
+        ],
+        "summary": "Search by keyword",
+        "description": "Searches an index (`searchContainer` query parameter; default index) for the term.",
+        "operationId": "getSearchByTerm",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "term",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "searchContainer",
+            "in": "query",
+            "required": false,
+            "description": "Index to search (default index)",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "No valid session, API key or token"
+          },
+          "403": {
+            "description": "Not allowed for this caller"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        },
+        "x-permission": "searching:read"
+      }
+    },
+    "/status": {
+      "get": {
+        "tags": [
+          "Search"
+        ],
+        "summary": "Service status",
+        "operationId": "getStatus",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "description": "No valid session, API key or token"
+          },
+          "403": {
+            "description": "Not allowed for this caller"
+          }
+        },
+        "x-permission": "searching:read"
+      }
+    },
+    "/indexes": {
+      "get": {
+        "tags": [
+          "Indexes"
+        ],
+        "summary": "List indexes",
+        "operationId": "getIndexes",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "description": "No valid session, API key or token"
+          },
+          "403": {
+            "description": "Not allowed for this caller"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        },
+        "x-permission": "searching:read"
+      }
+    },
+    "/indexes/{searchContainer}/stats": {
+      "get": {
+        "tags": [
+          "Indexes"
+        ],
+        "summary": "Statistics for one index",
+        "operationId": "getIndexesBySearchContainerStats",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "searchContainer",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "description": "No valid session, API key or token"
+          },
+          "403": {
+            "description": "Not allowed for this caller"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        },
+        "x-permission": "searching:read"
+      }
+    },
+    "/indexes/{searchContainer}": {
+      "delete": {
+        "tags": [
+          "Indexes"
+        ],
+        "summary": "Delete an index and its documents",
+        "operationId": "deleteIndexesBySearchContainer",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "searchContainer",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "description": "No valid session, API key or token"
+          },
+          "403": {
+            "description": "Not allowed for this caller"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        },
+        "x-permission": "searching:write"
+      }
+    },
+    "/indexes/{searchContainer}/clear": {
+      "delete": {
+        "tags": [
+          "Indexes"
+        ],
+        "summary": "Remove every document from an index",
+        "description": "Empties the index but keeps it.",
+        "operationId": "deleteIndexesBySearchContainerClear",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "searchContainer",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "description": "No valid session, API key or token"
+          },
+          "403": {
+            "description": "Not allowed for this caller"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        },
+        "x-permission": "searching:write"
+      }
+    },
+    "/analytics": {
+      "get": {
+        "tags": [
+          "Analytics"
+        ],
+        "summary": "Search analytics",
+        "description": "Operation counts and search term statistics.",
+        "operationId": "getAnalytics",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "description": "No valid session, API key or token"
+          },
+          "403": {
+            "description": "Not allowed for this caller"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        },
+        "x-permission": "searching:read"
+      },
+      "delete": {
+        "tags": [
+          "Analytics"
+        ],
+        "summary": "Clear search analytics",
+        "operationId": "deleteAnalytics",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "description": "No valid session, API key or token"
+          },
+          "403": {
+            "description": "Not allowed for this caller"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        },
+        "x-permission": "searching:write"
+      }
+    },
+    "/analytics/operations": {
+      "get": {
+        "tags": [
+          "Analytics"
+        ],
+        "summary": "Operation counts",
+        "operationId": "getAnalyticsOperations",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "description": "No valid session, API key or token"
+          },
+          "403": {
+            "description": "Not allowed for this caller"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        },
+        "x-permission": "searching:read"
+      }
+    },
+    "/analytics/terms": {
+      "get": {
+        "tags": [
+          "Analytics"
+        ],
+        "summary": "Search term statistics",
+        "operationId": "getAnalyticsTerms",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "description": "No valid session, API key or token"
+          },
+          "403": {
+            "description": "Not allowed for this caller"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        },
+        "x-permission": "searching:read"
+      }
+    },
+    "/settings": {
+      "get": {
+        "tags": [
+          "Settings"
+        ],
+        "summary": "Read provider settings",
+        "operationId": "getSettings",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "description": "No valid session, API key or token"
+          },
+          "403": {
+            "description": "Not allowed for this caller"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        },
+        "x-permission": "searching:read"
+      },
+      "post": {
+        "tags": [
+          "Settings"
+        ],
+        "summary": "Save provider settings",
+        "operationId": "postSettings",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true,
+                "description": "Setting names and values"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "No valid session, API key or token"
+          },
+          "403": {
+            "description": "Not allowed for this caller"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        },
+        "x-permission": "settings:manage"
+      }
+    },
+    "/suggest/{term}": {
+      "get": {
+        "tags": [
+          "Search"
+        ],
+        "summary": "Autocomplete suggestions",
+        "description": "Term completions (token-based providers).",
+        "operationId": "getSuggestByTerm",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "term",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "searchContainer",
+            "in": "query",
+            "required": false,
+            "description": "Index name",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "No valid session, API key or token"
+          },
+          "403": {
+            "description": "Not allowed for this caller"
+          },
+          "500": {
+            "description": "Server error"
+          },
+          "501": {
+            "description": "Not supported by this provider"
+          }
+        },
+        "x-permission": "searching:read"
+      }
+    },
+    "/token-stats": {
+      "get": {
+        "tags": [
+          "Indexes"
+        ],
+        "summary": "Token statistics",
+        "description": "Vocabulary and token counts (token-based providers).",
+        "operationId": "getTokenStats",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "description": "No valid session, API key or token"
+          },
+          "403": {
+            "description": "Not allowed for this caller"
+          },
+          "500": {
+            "description": "Server error"
+          },
+          "501": {
+            "description": "Not supported by this provider"
+          }
+        },
+        "x-permission": "searching:read"
+      }
+    },
+    "/autosuggest/{term}": {
+      "get": {
+        "tags": [
+          "Search"
+        ],
+        "summary": "Ranked phrase suggestions",
+        "description": "Compositional, ranked suggestions for a partial phrase (token-based providers).",
+        "operationId": "getAutosuggestByTerm",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "term",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "searchContainer",
+            "in": "query",
+            "required": false,
+            "description": "Index name",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "No valid session, API key or token"
+          },
+          "403": {
+            "description": "Not allowed for this caller"
+          },
+          "500": {
+            "description": "Server error"
+          },
+          "501": {
+            "description": "Not supported by this provider"
+          }
+        },
+        "x-permission": "searching:read"
+      }
+    },
+    "/search/{searchContainer}": {
+      "post": {
+        "tags": [
+          "Search"
+        ],
+        "summary": "Search with options",
+        "description": "Search with options in the body: fields, boost, prefix, fuzzy, combineWith and maxResults. The index comes from the path (optional).",
+        "operationId": "postSearchBySearchContainer",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "searchContainer",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "query": {
+                    "type": "string",
+                    "maxLength": 1000,
+                    "description": "Search text"
+                  },
+                  "fields": {
+                    "type": "array",
+                    "description": "Fields to search"
+                  },
+                  "boost": {
+                    "type": "object",
+                    "description": "Field weights"
+                  },
+                  "prefix": {
+                    "type": "boolean",
+                    "description": "Match word prefixes"
+                  },
+                  "fuzzy": {
+                    "type": "number",
+                    "description": "Edit distance for fuzzy matching"
+                  },
+                  "combineWith": {
+                    "type": "string",
+                    "description": "AND or OR"
+                  },
+                  "maxResults": {
+                    "type": "integer",
+                    "description": "Most results"
+                  }
+                },
+                "required": [
+                  "query"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "No valid session, API key or token"
+          },
+          "403": {
+            "description": "Not allowed for this caller"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        },
+        "x-permission": "searching:write"
+      }
+    },
+    "/add-bulk": {
+      "post": {
+        "tags": [
+          "Documents"
+        ],
+        "summary": "Add many documents",
+        "description": "The body is an array of documents or `{ documents, searchContainer }`; each document needs the configured id field (default `id`). At most 1000 per request (`SEARCH_MAX_BULK_DOCUMENTS`). Returns counts of added and skipped documents.",
+        "operationId": "postAddBulk",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "documents": {
+                    "type": "array",
+                    "description": "Documents to index"
+                  },
+                  "searchContainer": {
+                    "type": "string",
+                    "description": "Index name"
+                  }
+                },
+                "required": [
+                  "documents"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "No valid session, API key or token"
+          },
+          "403": {
+            "description": "Not allowed for this caller"
+          },
+          "413": {
+            "description": "Too large"
+          },
+          "500": {
+            "description": "Server error"
+          },
+          "501": {
+            "description": "Not supported by this provider"
+          }
+        },
+        "x-permission": "searching:write"
+      }
+    },
+    "/replace": {
+      "post": {
+        "tags": [
+          "Documents"
+        ],
+        "summary": "Replace or insert a document",
+        "description": "Replaces the document with the same id field, or adds it. The body is the document, or `{ document, searchContainer }`.",
+        "operationId": "postReplace",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "document": {
+                    "type": "object",
+                    "description": "Document with its id field"
+                  },
+                  "searchContainer": {
+                    "type": "string",
+                    "description": "Index name"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "No valid session, API key or token"
+          },
+          "403": {
+            "description": "Not allowed for this caller"
+          },
+          "500": {
+            "description": "Server error"
+          },
+          "501": {
+            "description": "Not supported by this provider"
+          }
+        },
+        "x-permission": "searching:write"
+      }
+    },
+    "/delete-bulk": {
+      "post": {
+        "tags": [
+          "Documents"
+        ],
+        "summary": "Remove many documents",
+        "description": "The body is an array of ids, or `{ ids, searchContainer }`.",
+        "operationId": "postDeleteBulk",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "ids": {
+                    "type": "array",
+                    "description": "Document ids"
+                  },
+                  "searchContainer": {
+                    "type": "string",
+                    "description": "Index name"
+                  }
+                },
+                "required": [
+                  "ids"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "No valid session, API key or token"
+          },
+          "403": {
+            "description": "Not allowed for this caller"
+          },
+          "500": {
+            "description": "Server error"
+          },
+          "501": {
+            "description": "Not supported by this provider"
+          }
+        },
+        "x-permission": "searching:write"
+      }
+    },
+    "/rebuild": {
+      "post": {
+        "tags": [
+          "Indexes"
+        ],
+        "summary": "Rebuild the index",
+        "description": "Rebuilds token structures (token-based providers).",
+        "operationId": "postRebuild",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Accepted"
+          },
+          "401": {
+            "description": "No valid session, API key or token"
+          },
+          "403": {
+            "description": "Not allowed for this caller"
+          },
+          "500": {
+            "description": "Server error"
+          },
+          "501": {
+            "description": "Not supported by this provider"
+          }
+        },
+        "x-permission": "searching:write"
       }
     }
   }

@@ -16,6 +16,7 @@ const analytics = require('../modules/analytics');
 const { sendSafeError } = require('../../shared/utils/safeError');
 const { route } = require('../../shared/utils/routePattern');
 const { capLimit, parseLimit, validate } = require('../../shared/utils/validation');
+const { evaluateRanking } = require('../../shared/utils/rankingEval');
 
 /**
  * Configures and registers search routes with the Express application.
@@ -155,6 +156,57 @@ module.exports = (options, eventEmitter, search) => {
           const results = await search[method](req.query.query, req.query.index ? { containerName: req.query.index } : undefined);
           const list = Array.isArray(results) ? results : (results?.results || []);
           res.status(200).json({ success: true, data: list.slice(0, limit), mode: method === 'semanticSearch' ? 'semantic' : 'hybrid' });
+        } catch (err) {
+          sendSafeError(res, err, { status: 500, eventEmitter });
+        }
+      }
+    );
+
+    /**
+     * POST /services/searching/api/evaluate
+     * Scores meaning search against labelled queries: for each case, does the
+     * expected document come back in the top k, and how high (recall@k and mean
+     * reciprocal rank, the same numbers the knowledge service reports). Needs the
+     * vector provider; other providers answer 400.
+     *
+     * @param {express.Request} req - body: cases [{query, expectedId}], index, mode ('hybrid'|'semantic'), k
+     * @param {express.Response} res - Express response object
+     * @return {Promise<void>}
+     */
+    app.post('/services/searching/api/evaluate',
+      validate({
+        body: {
+          cases: { type: 'array', required: true, minLength: 1, maxLength: 500 },
+          index: { type: 'string', maxLength: 200 },
+          mode: { type: 'string', enum: ['hybrid', 'semantic'] },
+          k: { type: 'integer', min: 1, max: 100 }
+        }
+      }),
+      async (req, res) => {
+        const method = req.body.mode === 'semantic' ? 'semanticSearch' : 'hybridSearch';
+        if (typeof search[method] !== 'function') {
+          return res.status(400).json({ success: false, error: 'This search provider has no semantic search. Use the vector provider.' });
+        }
+        const cases = req.body.cases;
+        const bad = cases.findIndex((c) => !c || typeof c.query !== 'string' || !c.query.trim() || c.query.length > 500
+          || (typeof c.expectedId !== 'string' && typeof c.expectedId !== 'number'));
+        if (bad !== -1) {
+          return res.status(400).json({ success: false, error: `Case ${bad + 1} needs a query (up to 500 characters) and an expectedId` });
+        }
+        try {
+          const k = req.body.k || 10;
+          const options = { limit: k, ...(req.body.index ? { containerName: req.body.index } : {}) };
+          const report = await evaluateRanking(
+            cases,
+            async (c) => {
+              const results = await search[method](c.query, options);
+              const list = Array.isArray(results) ? results : (results?.results || []);
+              return list.slice(0, k).map((hit) => String(hit.id ?? hit.key ?? hit.obj?.id ?? ''));
+            },
+            (c) => String(c.expectedId)
+          );
+          report.results = report.results.map((r, i) => ({ query: cases[i].query, expectedId: String(cases[i].expectedId), ...r }));
+          res.status(200).json({ success: true, data: { mode: method === 'semanticSearch' ? 'semantic' : 'hybrid', k, ...report } });
         } catch (err) {
           sendSafeError(res, err, { status: 500, eventEmitter });
         }

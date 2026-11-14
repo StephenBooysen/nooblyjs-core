@@ -1,0 +1,9 @@
+# Labelled questions for the knowledge evaluation test
+# (tests/unit/knowledge/knowledgeQuality.test.js). Each question should find
+# the expected file in the top results, and an answer should cite it.
+- question: How do I rotate the settings secret?
+  expectedPath: docs/settings.md
+- question: What happens to a job after its last retry attempt?
+  expectedPath: docs/queues.md
+- question: When do personal access tokens expire?
+  expectedPath: docs/sessions.md

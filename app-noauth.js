@@ -100,6 +100,9 @@ const worker = serviceRegistry.working('memory');
 const workflow = serviceRegistry.workflow('memory');
 const settings = serviceRegistry.settings('file');
 const aiservice = serviceRegistry.aiservice('ollama', {});
+// Feature 05: ask your documents. Sync a folder of the filing root from the
+// Knowledge dashboard; sync state and ratings are kept as hidden files there.
+const knowledge = serviceRegistry.knowledge('default', { dependencies: { filing, aiservice }, restore: true });
 
 const authservice = serviceRegistry.authservice('file', {
   'express-app': app

@@ -904,6 +904,9 @@ class VectorSearchService {
     }
 
     let vectors;
+    // The embedder counts texts it could not embed (a failed backend call leaves
+    // them null rather than throwing), so the difference is this batch's failures.
+    const failuresBefore = this.embedder.stats?.failures ?? 0;
     try {
       vectors = await this.embedder.embedBatch(rows.map(row => row.text));
     } catch (error) {
@@ -930,12 +933,24 @@ class VectorSearchService {
       embedded++;
     }
 
-    if (this.embedder.lastError) this.lastEmbedError = this.embedder.lastError;
+    const failed = Math.max(0, (this.embedder.stats?.failures ?? 0) - failuresBefore);
+    if (failed > 0) {
+      // Documents left without vectors stay searchable by keyword.
+      this.lastEmbedError = this.embedder.lastError || 'Embedding failed';
+      this.eventEmitter_?.emit('search:embed:error', {
+        searchContainer: name,
+        documents: touched.size,
+        failed,
+        error: this.lastEmbedError
+      });
+    }
+    if (embedded === 0 && failed > 0) return;
 
     this.eventEmitter_?.emit('search:embed:complete', {
       searchContainer: name,
       documents: touched.size,
-      vectors: embedded
+      vectors: embedded,
+      failed
     });
   }
 

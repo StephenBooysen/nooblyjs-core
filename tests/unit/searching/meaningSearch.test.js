@@ -70,12 +70,15 @@ describe('meaning search through the aiservice backend (feature 01)', () => {
   it('leaves documents without vectors when embedding fails, records why, and keeps keyword matching', async () => {
     const search = build(stubAi({ fail: true }));
     const complete = jest.fn();
+    const failed = jest.fn();
     search.testEmitter.on('search:embed:complete', complete);
+    search.testEmitter.on('search:embed:error', failed);
     await search.indexDocument('d1', 'password reset', { title: 'P' }, 'mean4');
     await search.flushEmbeddings('mean4');
     expect(search.lastEmbedError).toMatch(/embedding service unavailable/);
-    // Known gap: the completion event still fires, with no vectors.
-    expect(complete).toHaveBeenCalledWith(expect.objectContaining({ searchContainer: 'mean4', vectors: 0 }));
+    // A batch that embedded nothing reports an error, not a completion.
+    expect(failed).toHaveBeenCalledWith(expect.objectContaining({ searchContainer: 'mean4', documents: 1, failed: 1, error: expect.stringMatching(/unavailable/) }));
+    expect(complete).not.toHaveBeenCalled();
     const hits = await search.hybridSearch('password reset', { containerName: 'mean4', limit: 3 });
     expect(hits[0].title).toBe('P');
   });

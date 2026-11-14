@@ -45,4 +45,45 @@ describe('semantic search route (feature 01)', () => {
     await request(app).get('/services/searching/api/semantic').query({ query: '' }).expect(400);
     await request(app).get('/services/searching/api/semantic').query({ query: 'x'.repeat(501) }).expect(400);
   });
+
+  it('evaluates meaning search against labelled queries', async () => {
+    const app = express();
+    app.use(express.json());
+    const emitter = new EventEmitter();
+    const vector = createSearching('vector', { embedding: { backend: 'hash', dimensions: 256 } }, emitter, {});
+    searchRoutes({ 'express-app': app }, emitter, vector);
+    await vector.indexDocument('d1', 'Rotate the settings secret with SETTINGS_SECRET.', { title: 'Settings' }, 'ev');
+    await vector.indexDocument('d2', 'Queues retry failed jobs with backoff and dead letters.', { title: 'Queues' }, 'ev');
+    await vector.flushEmbeddings('ev');
+
+    const res = await request(app).post('/services/searching/api/evaluate').send({
+      index: 'ev',
+      k: 2,
+      cases: [
+        { query: 'rotate the settings secret', expectedId: 'd1' },
+        { query: 'dead letters for failed jobs', expectedId: 'd2' },
+        { query: 'unrelated words entirely', expectedId: 'd9' }
+      ]
+    }).expect(200);
+    expect(res.body.data).toEqual(expect.objectContaining({ mode: 'hybrid', k: 2, cases: 3 }));
+    expect(res.body.data.recallAtK).toBeCloseTo(2 / 3);
+    expect(res.body.data.results[0]).toEqual({ query: 'rotate the settings secret', expectedId: 'd1', rank: 1, hit: true });
+    expect(res.body.data.results[2]).toEqual(expect.objectContaining({ rank: null, hit: false }));
+  });
+
+  it('refuses evaluation without cases, with a bad case, or on a provider without meaning search', async () => {
+    const app = express();
+    app.use(express.json());
+    const emitter = new EventEmitter();
+    searchRoutes({ 'express-app': app }, emitter, { hybridSearch: async () => [] });
+    await request(app).post('/services/searching/api/evaluate').send({}).expect(400);
+    await request(app).post('/services/searching/api/evaluate').send({ cases: [] }).expect(400);
+    const bad = await request(app).post('/services/searching/api/evaluate').send({ cases: [{ query: 'q' }] }).expect(400);
+    expect(bad.body.error).toMatch(/Case 1/);
+
+    const plain = express();
+    plain.use(express.json());
+    searchRoutes({ 'express-app': plain }, emitter, { search: async () => [] });
+    await request(plain).post('/services/searching/api/evaluate').send({ cases: [{ query: 'q', expectedId: 'a' }] }).expect(400);
+  });
 });

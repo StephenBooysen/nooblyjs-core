@@ -1,0 +1,91 @@
+###
+### NooblyJS Core - Knowledge Service API (feature 05)
+###
+### Ask questions of the documents in a filing source and get cited answers.
+### app.js mounts the service with the app's filing root as the source.
+### Every request needs an API key (or a signed-in session / personal access token).
+###
+
+@baseUrl = http://localhost:9000
+@apiKey = your-api-key-here
+
+### Index new and changed files under a folder of the filing source
+POST {{baseUrl}}/services/knowledge/api/sync
+Content-Type: application/json
+x-api-key: {{apiKey}}
+
+{
+    "directory": "/"
+}
+
+### Status: counts, last sync, skipped files, ratings
+GET {{baseUrl}}/services/knowledge/api/status
+x-api-key: {{apiKey}}
+
+### Indexed files the caller may read
+GET {{baseUrl}}/services/knowledge/api/sources
+x-api-key: {{apiKey}}
+
+### Find the most relevant chunks
+POST {{baseUrl}}/services/knowledge/api/retrieve
+Content-Type: application/json
+x-api-key: {{apiKey}}
+
+{
+    "question": "How do I rotate the settings secret?",
+    "k": 5
+}
+
+### Answer with citations
+POST {{baseUrl}}/services/knowledge/api/ask
+Content-Type: application/json
+x-api-key: {{apiKey}}
+
+{
+    "question": "How do I rotate the settings secret?"
+}
+
+### Answer as it is written (server-sent events: sources, text..., done)
+POST {{baseUrl}}/services/knowledge/api/ask/stream
+Content-Type: application/json
+Accept: text/event-stream
+x-api-key: {{apiKey}}
+
+{
+    "question": "How do I rotate the settings secret?"
+}
+
+### Rate an answer
+POST {{baseUrl}}/services/knowledge/api/feedback
+Content-Type: application/json
+x-api-key: {{apiKey}}
+
+{
+    "question": "How do I rotate the settings secret?",
+    "rating": "good",
+    "citations": ["docs/settings.md"]
+}
+
+### List ratings (knowledge:write)
+GET {{baseUrl}}/services/knowledge/api/feedback?rating=bad&limit=20
+x-api-key: {{apiKey}}
+
+### Evaluate retrieval (and, with answers, citations) against labelled questions
+POST {{baseUrl}}/services/knowledge/api/evaluate
+Content-Type: application/json
+x-api-key: {{apiKey}}
+
+{
+    "yaml": "- question: How do I rotate the settings secret?\n  expectedPath: docs/settings.md\n",
+    "k": 5,
+    "answers": false
+}
+
+### Evaluate with the answers rated good as the cases
+POST {{baseUrl}}/services/knowledge/api/evaluate
+Content-Type: application/json
+x-api-key: {{apiKey}}
+
+{
+    "fromFeedback": true
+}

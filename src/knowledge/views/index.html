@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Knowledge - NooblyJS Core</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="/services/css/styles.css">
+    <link rel="stylesheet" href="/services/css/core.css">
+    <script src="/services/js/actions.js"></script>
+</head>
+<body>
+<div class="core-app">
+    <header class="navbar core-topbar">
+        <div class="core-brand">
+            <img src="/images/nooblyjs-logo.png" alt="NooblyJS Logo" class="logo">
+            <div class="name">NooblyJS<small>Core</small></div>
+        </div>
+        <div class="core-topbar-actions">
+            <div class="core-user">
+                <span id="headerUserName">User</span>
+                <div class="av" id="headerUserAvatar">U</div>
+            </div>
+            <div class="dropdown">
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li><a class="dropdown-item" href="#" id="headerLogoutBtn"><i class="bi bi-box-arrow-right me-2"></i>Logout</a></li>
+                </ul>
+            </div>
+        </div>
+    </header>
+
+    <aside class="core-sidebar" id="navigation-sidebar"></aside>
+
+    <main class="core-main">
+        <div class="core-page-header">
+            <div>
+                <h1 class="core-page-title">Knowledge</h1>
+                <p class="core-page-subtitle">Ask questions of your documents and get answers that cite their sources</p>
+            </div>
+        </div>
+
+        <div class="core-page-content">
+            <div class="alert alert-danger fade" id="kbError" role="alert"></div>
+
+            <div class="row g-3 mb-3" id="kbStats">
+                <div class="col-6 col-lg-3">
+                    <div class="core-stat-card">
+                        <div class="top"><div class="ico t"><i class="bi bi-file-earmark-text"></i></div></div>
+                        <div class="num" id="kbStatFiles">0</div>
+                        <div class="lbl">Files indexed</div>
+                    </div>
+                </div>
+                <div class="col-6 col-lg-3">
+                    <div class="core-stat-card">
+                        <div class="top"><div class="ico b"><i class="bi bi-layers"></i></div></div>
+                        <div class="num" id="kbStatChunks">0</div>
+                        <div class="lbl">Chunks</div>
+                    </div>
+                </div>
+                <div class="col-6 col-lg-3">
+                    <div class="core-stat-card">
+                        <div class="top"><div class="ico o"><i class="bi bi-arrow-repeat"></i></div></div>
+                        <div class="num core-kb-small-num" id="kbStatSync">Never</div>
+                        <div class="lbl">Last sync</div>
+                    </div>
+                </div>
+                <div class="col-6 col-lg-3">
+                    <div class="core-stat-card">
+                        <div class="top"><div class="ico g"><i class="bi bi-hand-thumbs-up"></i></div></div>
+                        <div class="num" id="kbStatFeedback">0 / 0</div>
+                        <div class="lbl">Good / bad ratings</div>
+                    </div>
+                </div>
+            </div>
+
+            <ul class="nav nav-tabs mb-3" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="ask-tab" data-bs-toggle="tab" data-bs-target="#ask" type="button" role="tab" aria-controls="ask" aria-selected="true">
+                        <i class="bi bi-chat-left-text"></i> Ask
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="sources-tab" data-bs-toggle="tab" data-bs-target="#sources" type="button" role="tab" aria-controls="sources" aria-selected="false">
+                        <i class="bi bi-folder2-open"></i> Sources
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="quality-tab" data-bs-toggle="tab" data-bs-target="#quality" type="button" role="tab" aria-controls="quality" aria-selected="false">
+                        <i class="bi bi-clipboard-check"></i> Quality
+                    </button>
+                </li>
+            </ul>
+
+            <div class="tab-content">
+                <!-- Ask -->
+                <div class="tab-pane fade show active" id="ask" role="tabpanel" aria-labelledby="ask-tab">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="core-kb-thread" id="kbThread" aria-live="polite">
+                                <p class="text-muted mb-0" id="kbEmpty">Ask a question. The answer uses only the indexed documents you may read, and cites them by number.</p>
+                            </div>
+                            <form id="kbAskForm" class="d-flex gap-2 mt-3" autocomplete="off">
+                                <label for="kbQuestion" class="visually-hidden">Question</label>
+                                <input type="text" class="form-control" id="kbQuestion" maxlength="1000" placeholder="How do I rotate the settings secret?" required>
+                                <button type="submit" class="btn btn-primary" id="kbAskBtn"><i class="bi bi-send"></i><span class="d-none d-sm-inline ms-1">Ask</span></button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sources -->
+                <div class="tab-pane fade" id="sources" role="tabpanel" aria-labelledby="sources-tab">
+                    <div class="card mb-3">
+                        <div class="card-header">Sync</div>
+                        <div class="card-body">
+                            <form id="kbSyncForm" class="row g-2 align-items-end">
+                                <div class="col-12 col-sm">
+                                    <label for="kbSyncDir" class="form-label">Folder in the filing source</label>
+                                    <input type="text" class="form-control" id="kbSyncDir" value="/" maxlength="500">
+                                </div>
+                                <div class="col-12 col-sm-auto">
+                                    <button type="submit" class="btn btn-primary w-100" id="kbSyncBtn"><i class="bi bi-arrow-repeat"></i> Sync now</button>
+                                </div>
+                            </form>
+                            <p class="text-muted small mt-2 mb-0" id="kbSyncResult">Only new and changed files are indexed. Removed files lose their chunks.</p>
+                        </div>
+                    </div>
+                    <div class="card mb-3 d-none" id="kbSkippedCard">
+                        <div class="card-header">Skipped files</div>
+                        <ul class="list-group list-group-flush" id="kbSkipped"></ul>
+                    </div>
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <span>Indexed files</span>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" id="kbRefreshSources" title="Refresh"><i class="bi bi-arrow-clockwise"></i></button>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-sm mb-0">
+                                <thead><tr><th>Path</th><th>Title</th><th class="text-end">Chunks</th><th class="d-none d-md-table-cell">Open to</th><th class="d-none d-md-table-cell">Indexed</th></tr></thead>
+                                <tbody id="kbSourcesBody"><tr><td colspan="5" class="text-muted">Nothing indexed yet.</td></tr></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quality -->
+                <div class="tab-pane fade" id="quality" role="tabpanel" aria-labelledby="quality-tab">
+                    <div class="card mb-3">
+                        <div class="card-header">Evaluate</div>
+                        <div class="card-body">
+                            <label for="kbEvalYaml" class="form-label">Questions and the file each should find (YAML)</label>
+                            <textarea class="form-control font-monospace" id="kbEvalYaml" rows="6" spellcheck="false">- question: How do I rotate the settings secret?
+  expectedPath: docs/settings.md</textarea>
+                            <div class="d-flex flex-wrap gap-2 align-items-center mt-2">
+                                <div class="form-check me-auto">
+                                    <input class="form-check-input" type="checkbox" id="kbEvalAnswers">
+                                    <label class="form-check-label" for="kbEvalAnswers">Also ask each question and check the citations (one model call per question)</label>
+                                </div>
+                                <button type="button" class="btn btn-outline-secondary" id="kbEvalFeedbackBtn">Use good ratings</button>
+                                <button type="button" class="btn btn-primary" id="kbEvalBtn"><i class="bi bi-play"></i> Run</button>
+                            </div>
+                            <div class="mt-3 d-none" id="kbEvalReport">
+                                <div class="d-flex flex-wrap gap-2 mb-2" id="kbEvalSummary"></div>
+                                <div class="table-responsive">
+                                    <table class="table table-sm mb-0">
+                                        <thead><tr><th>Question</th><th>Expected</th><th class="text-end">Rank</th><th class="text-end" id="kbEvalCitedHead">Cited</th></tr></thead>
+                                        <tbody id="kbEvalBody"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <span>Ratings</span>
+                            <select class="form-select form-select-sm w-auto" id="kbFeedbackFilter" aria-label="Filter ratings">
+                                <option value="">All</option>
+                                <option value="good">Good</option>
+                                <option value="bad">Bad</option>
+                            </select>
+                        </div>
+                        <ul class="list-group list-group-flush" id="kbFeedbackList">
+                            <li class="list-group-item text-muted">No ratings yet.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/services/js/navigation.js"></script>
+<script src="/services/js/header-init.js"></script>
+<script src="js/index.page.js"></script>
+</body>
+</html>

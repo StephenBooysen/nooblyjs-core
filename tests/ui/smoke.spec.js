@@ -18,7 +18,7 @@ const SERVICE_PATHS = [
   'logging', 'caching', 'queueing', 'fetching', 'settings',
   'notifying', 'dataservice', 'working', 'measuring',
   'scheduling', 'searching', 'workflow', 'filing',
-  'authservice', 'ai'
+  'authservice', 'ai', 'knowledge'
 ];
 
 /**

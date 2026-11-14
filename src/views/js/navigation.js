@@ -69,7 +69,8 @@ const NooblyJSNavigation = {
 
         // Advanced Application Services
         { name: 'authservice', icon: 'bi-lock-fill', title: 'Authentication', path: 'authservice', classification: 'advanced' },
-        { name: 'ai', icon: 'bi-robot', title: 'AI Service', path: 'ai', classification: 'advanced' }
+        { name: 'ai', icon: 'bi-robot', title: 'AI Service', path: 'ai', classification: 'advanced' },
+        { name: 'knowledge', icon: 'bi-book', title: 'Knowledge', path: 'knowledge', classification: 'advanced' }
     ],
 
     /**

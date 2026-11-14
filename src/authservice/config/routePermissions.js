@@ -301,13 +301,24 @@ const ROUTE_PERMISSIONS = Object.freeze({
   'POST /services/ai/api/train/data': 'ai:write',
   'DELETE /services/ai/api/train/data/:key': 'ai:write',
 
-  // authservice
+  // searching (meaning search)
   'GET /services/searching/api/semantic': 'searching:read',
+  'POST /services/searching/api/evaluate': 'searching:read',
+
+  // knowledge (feature 05). Any reader may rate an answer; reading the ratings
+  // and running an evaluation (which can call the model per case) need write.
   'POST /services/knowledge/api/ask': 'knowledge:read',
+  'POST /services/knowledge/api/ask/stream': 'knowledge:read',
   'POST /services/knowledge/api/retrieve': 'knowledge:read',
   'POST /services/knowledge/api/sync': 'knowledge:write',
   'GET /services/knowledge/api/status': 'knowledge:read',
+  'GET /services/knowledge/api/sources': 'knowledge:read',
+  'POST /services/knowledge/api/feedback': 'knowledge:read',
+  'GET /services/knowledge/api/feedback': 'knowledge:write',
+  'POST /services/knowledge/api/evaluate': 'knowledge:write',
   'GET /services/knowledge/api/swagger/docs.json': 'knowledge:read',
+
+  // authservice
   'POST /services/authservice/api/register': PUBLIC,
   'POST /services/authservice/api/login': PUBLIC,
   'POST /services/authservice/api/logout': PUBLIC,

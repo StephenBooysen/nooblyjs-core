@@ -2,34 +2,179 @@
   "openapi": "3.0.0",
   "info": {
     "title": "Knowledge Service API",
-    "description": "Answers questions from a filing source with citations. Sync indexes new and changed Markdown and text files; ask answers from the indexed chunks only.",
+    "description": "Answers questions from a filing source with citations. Sync indexes new and changed Markdown, text, HTML and PDF files; ask answers from the indexed chunks the caller may read, whole or streamed. Feedback and evaluation measure answer quality.",
     "version": "1.0.14"
   },
-  "servers": [{ "url": "/services/knowledge/api", "description": "Knowledge Service API" }],
-  "tags": [{ "name": "Knowledge", "description": "Sync, retrieve and ask" }],
+  "servers": [
+    {
+      "url": "/services/knowledge/api",
+      "description": "Knowledge Service API"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Knowledge",
+      "description": "Sync, retrieve and ask"
+    },
+    {
+      "name": "Quality",
+      "description": "Feedback and evaluation"
+    }
+  ],
   "components": {
     "securitySchemes": {
-      "ApiKeyAuth": { "type": "apiKey", "in": "header", "name": "x-api-key", "description": "API key for authentication" },
-      "BearerAuth": { "type": "http", "scheme": "bearer", "description": "Personal access token" }
+      "ApiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "x-api-key",
+        "description": "API key for authentication"
+      },
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Personal access token"
+      }
     },
     "schemas": {
       "Question": {
         "type": "object",
-        "required": ["question"],
+        "required": [
+          "question"
+        ],
         "properties": {
-          "question": { "type": "string", "minLength": 1, "maxLength": 1000, "example": "How do I rotate the settings secret?" },
-          "k": { "type": "integer", "minimum": 1, "maximum": 20, "description": "Chunks to use (default 5)" }
+          "question": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000,
+            "example": "How do I rotate the settings secret?"
+          },
+          "k": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 20,
+            "description": "Chunks to use (default 5)"
+          }
         }
       },
       "Citation": {
         "type": "object",
         "properties": {
-          "n": { "type": "integer" },
-          "path": { "type": "string" },
-          "title": { "type": "string" },
-          "heading": { "type": "string" },
-          "snippet": { "type": "string" },
-          "score": { "type": "number" }
+          "n": {
+            "type": "integer"
+          },
+          "path": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "heading": {
+            "type": "string"
+          },
+          "snippet": {
+            "type": "string"
+          },
+          "score": {
+            "type": "number"
+          }
+        }
+      },
+      "Answer": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string"
+          },
+          "citations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Citation"
+            }
+          },
+          "confidence": {
+            "type": "string",
+            "enum": [
+              "cited",
+              "low",
+              "none"
+            ],
+            "description": "cited: the answer cites a source; low: it cites none; none: no readable source matched"
+          },
+          "usage": {
+            "type": "object",
+            "nullable": true
+          }
+        }
+      },
+      "Hit": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "heading": {
+            "type": "string"
+          },
+          "snippet": {
+            "type": "string"
+          },
+          "score": {
+            "type": "number"
+          }
+        }
+      },
+      "SyncStats": {
+        "type": "object",
+        "properties": {
+          "files": {
+            "type": "integer"
+          },
+          "added": {
+            "type": "integer"
+          },
+          "changed": {
+            "type": "integer"
+          },
+          "unchanged": {
+            "type": "integer"
+          },
+          "removed": {
+            "type": "integer"
+          },
+          "skipped": {
+            "type": "integer"
+          },
+          "chunks": {
+            "type": "integer"
+          }
+        }
+      },
+      "EvalCase": {
+        "type": "object",
+        "required": [
+          "question",
+          "expectedPath"
+        ],
+        "properties": {
+          "question": {
+            "type": "string"
+          },
+          "expectedPath": {
+            "type": "string",
+            "example": "docs/settings.md"
+          },
+          "roles": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
         }
       }
     }
@@ -37,55 +182,669 @@
   "paths": {
     "/sync": {
       "post": {
-        "tags": ["Knowledge"],
+        "tags": [
+          "Knowledge"
+        ],
         "summary": "Index new and changed files",
-        "description": "Re-indexes only files whose content changed, removes files that no longer exist, and reports the counts.",
+        "description": "Re-indexes only files whose content or access rule changed, removes files that no longer exist, and reports the counts. A file that cannot be read or parsed is skipped and listed in the status.",
         "operationId": "syncKnowledge",
-        "security": [{ "ApiKeyAuth": [] }, { "BearerAuth": [] }],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
         "requestBody": {
           "required": false,
-          "content": { "application/json": { "schema": { "type": "object", "properties": { "directory": { "type": "string", "maxLength": 500, "default": "/" } } } } }
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "directory": {
+                    "type": "string",
+                    "maxLength": 500,
+                    "default": "/"
+                  }
+                }
+              }
+            }
+          }
         },
         "responses": {
-          "200": { "description": "Sync counts", "content": { "application/json": { "schema": { "type": "object", "properties": { "success": { "type": "boolean" }, "data": { "type": "object", "properties": { "files": { "type": "integer" }, "added": { "type": "integer" }, "changed": { "type": "integer" }, "unchanged": { "type": "integer" }, "removed": { "type": "integer" }, "chunks": { "type": "integer" } } } } } } } },
-          "500": { "description": "Sync failed" }
+          "200": {
+            "description": "Sync counts",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/SyncStats"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
         }
       }
     },
     "/retrieve": {
       "post": {
-        "tags": ["Knowledge"],
+        "tags": [
+          "Knowledge"
+        ],
         "summary": "Find the most relevant chunks",
+        "description": "Hybrid keyword and vector search, limited to the documents the caller may read.",
         "operationId": "retrieveKnowledge",
-        "security": [{ "ApiKeyAuth": [] }, { "BearerAuth": [] }],
-        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Question" } } } },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Question"
+              }
+            }
+          }
+        },
         "responses": {
-          "200": { "description": "Chunks, best first", "content": { "application/json": { "schema": { "type": "object", "properties": { "success": { "type": "boolean" }, "data": { "type": "array", "items": { "$ref": "#/components/schemas/Citation" } } } } } } },
-          "400": { "description": "Invalid question" }
+          "200": {
+            "description": "Matching chunks",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Hit"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
         }
       }
     },
     "/ask": {
       "post": {
-        "tags": ["Knowledge"],
+        "tags": [
+          "Knowledge"
+        ],
         "summary": "Answer a question with citations",
-        "description": "Answers from the retrieved chunks only. An answer with no citation has confidence `low`; no matching chunks gives `none`.",
+        "description": "Answers from the retrieved chunks only and cites them by number. An answer without a citation is flagged low.",
         "operationId": "askKnowledge",
-        "security": [{ "ApiKeyAuth": [] }, { "BearerAuth": [] }],
-        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Question" } } } },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Question"
+              }
+            }
+          }
+        },
         "responses": {
-          "200": { "description": "Answer", "content": { "application/json": { "schema": { "type": "object", "properties": { "success": { "type": "boolean" }, "data": { "type": "object", "properties": { "text": { "type": "string" }, "confidence": { "type": "string", "enum": ["cited", "low", "none"] }, "citations": { "type": "array", "items": { "$ref": "#/components/schemas/Citation" } } } } } } } } },
-          "400": { "description": "Invalid question" }
+          "200": {
+            "description": "The answer",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Answer"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/ask/stream": {
+      "post": {
+        "tags": [
+          "Knowledge"
+        ],
+        "summary": "Answer a question as it is written (server-sent events)",
+        "description": "Sends `sources` (the numbered chunks the model sees), then `text` events with pieces of the answer, then `done` with the same fields as /ask. An `error` event replaces `done` when the model call fails.",
+        "operationId": "askKnowledgeStream",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Question"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Event stream",
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "type": "string",
+                  "example": "event: sources\ndata: {\"sources\":[{\"n\":1,\"path\":\"docs/settings.md\"}]}\n\nevent: text\ndata: {\"text\":\"Rotate it [1].\"}\n\nevent: done\ndata: {\"text\":\"Rotate it [1].\",\"citations\":[],\"confidence\":\"cited\"}\n\n"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input"
+          }
+        }
+      }
+    },
+    "/sources": {
+      "get": {
+        "tags": [
+          "Knowledge"
+        ],
+        "summary": "List indexed files",
+        "description": "The indexed files the caller may read, with their titles, chunk counts, access roles and when they were indexed.",
+        "operationId": "listKnowledgeSources",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Indexed files",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "title": {
+                            "type": "string"
+                          },
+                          "chunks": {
+                            "type": "integer"
+                          },
+                          "roles": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "indexedAt": {
+                            "type": "string",
+                            "format": "date-time",
+                            "nullable": true
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error"
+          }
         }
       }
     },
     "/status": {
       "get": {
-        "tags": ["Knowledge"],
-        "summary": "Indexed file and chunk counts",
-        "operationId": "getKnowledgeStatus",
-        "security": [{ "ApiKeyAuth": [] }, { "BearerAuth": [] }],
-        "responses": { "200": { "description": "Counts" } }
+        "tags": [
+          "Knowledge"
+        ],
+        "summary": "Index counts and last sync",
+        "operationId": "knowledgeStatus",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "files": {
+                          "type": "integer"
+                        },
+                        "chunks": {
+                          "type": "integer"
+                        },
+                        "container": {
+                          "type": "string"
+                        },
+                        "syncing": {
+                          "type": "boolean"
+                        },
+                        "lastSync": {
+                          "type": "object",
+                          "nullable": true
+                        },
+                        "skipped": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "path": {
+                                "type": "string"
+                              },
+                              "error": {
+                                "type": "string"
+                              }
+                            }
+                          }
+                        },
+                        "feedback": {
+                          "type": "object",
+                          "properties": {
+                            "total": {
+                              "type": "integer"
+                            },
+                            "good": {
+                              "type": "integer"
+                            },
+                            "bad": {
+                              "type": "integer"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/feedback": {
+      "post": {
+        "tags": [
+          "Quality"
+        ],
+        "summary": "Rate an answer",
+        "description": "Records a good or bad rating, with the answer and the paths it cited. Good ratings with a citation can become evaluation cases (`fromFeedback`).",
+        "operationId": "rateKnowledgeAnswer",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "question",
+                  "rating"
+                ],
+                "properties": {
+                  "question": {
+                    "type": "string",
+                    "maxLength": 1000
+                  },
+                  "rating": {
+                    "type": "string",
+                    "enum": [
+                      "good",
+                      "bad"
+                    ]
+                  },
+                  "answer": {
+                    "type": "string",
+                    "maxLength": 4000
+                  },
+                  "citations": {
+                    "type": "array",
+                    "maxItems": 20,
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "comment": {
+                    "type": "string",
+                    "maxLength": 1000
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Recorded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Quality"
+        ],
+        "summary": "List ratings, newest first",
+        "operationId": "listKnowledgeFeedback",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "rating",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "good",
+                "bad"
+              ]
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 500,
+              "default": 50
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Ratings",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "total": {
+                          "type": "integer"
+                        },
+                        "good": {
+                          "type": "integer"
+                        },
+                        "bad": {
+                          "type": "integer"
+                        },
+                        "items": {
+                          "type": "array",
+                          "items": {
+                            "type": "object"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input"
+          }
+        }
+      }
+    },
+    "/evaluate": {
+      "post": {
+        "tags": [
+          "Quality"
+        ],
+        "summary": "Score retrieval and answers against labelled questions",
+        "description": "Give `cases`, `yaml` (a YAML list of cases) or `fromFeedback: true`. Reports recall@k and mean reciprocal rank; with `answers: true` it also asks each question (one model call per case) and reports how often the answer cites the expected document.",
+        "operationId": "evaluateKnowledge",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "cases": {
+                    "type": "array",
+                    "maxItems": 500,
+                    "items": {
+                      "$ref": "#/components/schemas/EvalCase"
+                    }
+                  },
+                  "yaml": {
+                    "type": "string",
+                    "maxLength": 200000
+                  },
+                  "fromFeedback": {
+                    "type": "boolean"
+                  },
+                  "k": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 20
+                  },
+                  "answers": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Report",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "cases": {
+                          "type": "integer"
+                        },
+                        "recallAtK": {
+                          "type": "number"
+                        },
+                        "meanReciprocalRank": {
+                          "type": "number"
+                        },
+                        "citationAccuracy": {
+                          "type": "number"
+                        },
+                        "results": {
+                          "type": "array",
+                          "items": {
+                            "type": "object"
+                          }
+                        },
+                        "answerResults": {
+                          "type": "array",
+                          "items": {
+                            "type": "object"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/swagger/docs.json": {
+      "get": {
+        "tags": [
+          "Knowledge"
+        ],
+        "summary": "This OpenAPI document",
+        "operationId": "knowledgeSwaggerDocs",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OpenAPI document",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
       }
     }
   }

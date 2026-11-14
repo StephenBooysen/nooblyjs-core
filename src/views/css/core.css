@@ -4003,3 +4003,62 @@ kbd,
     border-top: 1px solid var(--border);
   }
 }
+
+/* Knowledge dashboard (feature 05): question and answer thread */
+.core-kb-thread {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.core-kb-msg {
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.core-kb-msg.user {
+  align-self: flex-end;
+  background: var(--accent-tint);
+  border-color: transparent;
+  color: var(--ink);
+  max-width: 85%;
+}
+
+.core-kb-msg.answer {
+  align-self: stretch;
+  background: var(--surface);
+}
+
+.core-kb-text {
+  white-space: pre-wrap;
+}
+
+.core-kb-meta {
+  margin: 4px 0;
+}
+
+.core-kb-citations {
+  margin: 8px 0 0;
+  padding-left: 1.4rem;
+}
+
+.core-kb-citations summary {
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+
+.core-kb-rate {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.core-kb-small-num {
+  font-size: 14px;
+}
