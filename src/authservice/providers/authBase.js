@@ -826,6 +826,13 @@ class AuthBase {
       user.apiTokens = [];
     }
 
+    // The option is `scopes`. An earlier type declaration called it `permissions`;
+    // refuse that name rather than ignore it, since ignoring it would issue a
+    // token with all of the owner's permissions.
+    if (options.permissions !== undefined) {
+      throw new Error('Unknown option "permissions": use "scopes" to narrow a token');
+    }
+
     // Scopes narrow the token below its owner's grants (feature 19). Null means all of them.
     const ownerRoles = Array.isArray(user.roles) ? user.roles : [user.role || 'user'];
     const scopes = options.scopes === undefined || options.scopes === null

@@ -59,6 +59,12 @@ describe('scoped token issuance and validation', () => {
     expect((await auth.validateApiToken(created.token)).scopes).toBeNull();
   });
 
+  it('refuses a "permissions" option instead of issuing an unscoped token', async () => {
+    const auth = await freshAuth('admin');
+    await expect(auth.createApiToken(EMAIL, 'wrong-option', { permissions: ['filing:read'] })).rejects.toThrow(/use "scopes"/);
+    expect(await auth.listApiTokens(EMAIL)).toHaveLength(0);
+  });
+
   it('refuses to issue a token wider than its owner', async () => {
     const auth = await freshAuth('user');
     await expect(auth.createApiToken(EMAIL, 'bad', { scopes: ['users:manage'] })).rejects.toThrow(/wider/);

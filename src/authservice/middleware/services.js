@@ -10,6 +10,21 @@
 const { matchesAnyKey } = require('./apiKey');
 const { normalizeKeyEntries, findKeyEntry } = require('../modules/permissions');
 
+/** Prefix of personal access tokens (see authBase TOKEN_PREFIX). */
+const USER_TOKEN_PREFIX = 'dtk_';
+
+/**
+ * Whether a path under /services is an API path (a service's /api routes, the
+ * registry's /api routes or the MCP endpoint), as opposed to a dashboard page.
+ * @param {string} servicesPath Path relative to the /services mount
+ * @return {boolean}
+ */
+function isApiPath(servicesPath) {
+  return /^\/[A-Za-z0-9_-]+\/api(\/|$)/.test(servicesPath)
+    || /^\/api(\/|$)/.test(servicesPath)
+    || servicesPath === '/mcp';
+}
+
 /**
  * Creates authentication middleware for protecting the services page.
  * Validates user session tokens, enforces admin role, and redirects unauthorized users.
@@ -98,6 +113,29 @@ function createServicesAuthMiddleware(serviceRegistry) {
 
       if (!token && req.session && req.session.authToken) {
         token = req.session.authToken;
+      }
+
+      // STEP 4b: A personal access token (dtk_) in the Authorization header
+      // opens the API paths (never the dashboard pages) when its owner is an
+      // admin, the same rule as for a session token. req.user is not set, so
+      // the permission gate and MCP's per-tool checks still apply the token's
+      // scopes (feature 19); a token scoped to workflow:read stays read-only.
+      if (token && token.startsWith(USER_TOKEN_PREFIX) && authHeader?.startsWith('Bearer ') && isApiPath(req.path)) {
+        let info = null;
+        try {
+          const auth = serviceRegistry.getAuthProviderForTokens_?.() || serviceRegistry.authservice();
+          info = await auth.validateApiToken(token);
+        } catch (error) {
+          info = null;
+        }
+        if (info && info.email) {
+          const tokenRoles = Array.isArray(info.roles) ? info.roles : [];
+          if (!tokenRoles.includes('admin')) {
+            return redirectToInvalid(req, res);
+          }
+          return next();
+        }
+        return redirectToLogin(req, res);
       }
 
       // STEP 5: Validate token and check admin role
