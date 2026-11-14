@@ -4,8 +4,9 @@
  * adds the registration line to app.js when the marker `// nooblyjs:routes` is
  * there. Refuses to overwrite a file that already exists.
  *
- * `add provider` is not here yet: a provider needs the core repository's contract
- * suite, so it belongs in a core checkout.
+ * `add provider <service> <name>` works only in a nooblyjs-core checkout: it
+ * writes a provider class whose methods are the ones the service's contract suite
+ * calls, and a contract runner, then prints the `case` to add to the factory.
  *
  * @author NooblyJS Team
  * @since 1.0.14
@@ -16,6 +17,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const { parse } = require('./index');
+const { PROVIDER_TEMPLATES, providerFiles } = require('./providerTemplates');
 
 const MARKER = '// nooblyjs:routes';
 const METHODS = ['get', 'post', 'put', 'patch', 'delete'];
@@ -159,7 +161,25 @@ function registerRoute(root, slug) {
 }
 
 /**
- * Runs `nooblyjs add endpoint <METHOD> <path>` or `nooblyjs add service <name>`.
+ * Whether a folder is a nooblyjs-core checkout with the service and its contract.
+ * @param {string} root Folder
+ * @param {string} service Service name
+ * @return {boolean}
+ */
+function isCoreCheckout(root, service) {
+  try {
+    const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
+    return pkg.name === 'nooblyjs-core'
+      && fs.existsSync(path.join(root, 'src', service, 'index.js'))
+      && fs.existsSync(path.join(root, 'tests', 'contract', PROVIDER_TEMPLATES[service].contract));
+  } catch (_err) {
+    return false;
+  }
+}
+
+/**
+ * Runs `nooblyjs add endpoint <METHOD> <path>`, `nooblyjs add service <name>`
+ * or `nooblyjs add provider <service> <name>`.
  *
  * @param {string[]} args Arguments after `add`
  * @param {Object} io Streams and working directory
@@ -169,7 +189,8 @@ async function run(args, io) {
   const { positionals } = parse(args, {});
   const [kind, ...rest] = positionals;
   const root = io.cwd || process.cwd();
-  const usage = 'Usage:\n  nooblyjs add endpoint <METHOD> <path>   e.g. nooblyjs add endpoint GET /hello\n  nooblyjs add service <name>             e.g. nooblyjs add service audit-trail\n';
+  const usage = 'Usage:\n  nooblyjs add endpoint <METHOD> <path>   e.g. nooblyjs add endpoint GET /hello\n  nooblyjs add service <name>             e.g. nooblyjs add service audit-trail\n'
+    + `  nooblyjs add provider <service> <name>  in a nooblyjs-core checkout, e.g. nooblyjs add provider caching valkey\n    services: ${Object.keys(PROVIDER_TEMPLATES).join(', ')}\n`;
 
   try {
     if (kind === 'endpoint') {
@@ -201,6 +222,23 @@ async function run(args, io) {
       io.stdout.write(`Create it where your app starts:\n  const ${name.replace(/-(\w)/g, (_, c) => c.toUpperCase())} = require('./services/${name}');\n`);
       return 0;
     }
+    if (kind === 'provider') {
+      const [service, name] = rest;
+      if (!PROVIDER_TEMPLATES[service] || !SLUG.test(String(name || ''))) {
+        io.stderr.write(usage);
+        return 2;
+      }
+      if (!isCoreCheckout(root, service)) {
+        io.stderr.write('nooblyjs add provider: run this in a nooblyjs-core checkout. A provider needs the core contract suite (tests/contract/).\n');
+        return 1;
+      }
+      const { files, className, caseLines } = providerFiles({ service, name });
+      const written = writeNew(root, files);
+      io.stdout.write(`Added ${service} provider ${name} (${className})\n  ${written.join('\n  ')}\n`);
+      io.stdout.write(`Add this case to the switch in src/${service}/index.js:\n${caseLines}\n`);
+      io.stdout.write(`Then run: npx jest tests/contract/${service}.${name}.test.js\n`);
+      return 0;
+    }
     io.stderr.write(usage);
     return 2;
   } catch (error) {
@@ -209,4 +247,4 @@ async function run(args, io) {
   }
 }
 
-module.exports = { run, endpointFiles, serviceFiles, registerRoute };
+module.exports = { run, endpointFiles, serviceFiles, registerRoute, isCoreCheckout };

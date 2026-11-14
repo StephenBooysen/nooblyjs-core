@@ -17,13 +17,15 @@ const { parseArgs } = require('node:util');
 const HELP = `nooblyjs - tools for NooblyJS Core apps
 
 Usage:
-  nooblyjs create <dir> [--yes] [--template api]   Write a minimal API app into <dir>
+  nooblyjs create <dir> [--yes] [--template api|dashboard|ai]
+                                                   Write a new app into <dir> (default template: api)
   nooblyjs doctor [--skip-audit] [--dir <path>]    Check the environment; exits 1 on failure
   nooblyjs routes [--url <url>]                    List the API operations of a running app
   nooblyjs openapi [--url <url>] [--out <file>] [--client ts]
                                                    Write the OpenAPI document, or a typed TypeScript client
   nooblyjs add endpoint <METHOD> <path>            Add a route, its test, and its app.js line
   nooblyjs add service <name>                      Add a service class with destroy(), and its test
+  nooblyjs add provider <service> <name>           In a core checkout: a provider class and its contract test
   nooblyjs keys generate [--length <n>]            Print a random API key
   nooblyjs mcp [--url <url>]                       Stdio bridge to a running app's MCP endpoint
   nooblyjs help                                    Show this help

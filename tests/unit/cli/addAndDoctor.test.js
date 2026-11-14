@@ -1,16 +1,18 @@
 /**
- * @fileoverview `nooblyjs add` (feature 09): endpoint and service generators,
- * app.js registration, refusal to overwrite, and the Redis reachability checks
- * in `doctor`. Temp apps live under .temp/tests/data/.
+ * @fileoverview `nooblyjs add` (feature 09): endpoint, service and provider
+ * generators, app.js registration, refusal to overwrite, and the Redis, MongoDB
+ * and S3 reachability checks in `doctor`. Temp apps live under .temp/tests/data/.
  */
 'use strict';
 
 const fs = require('fs');
 const path = require('path');
+const vm = require('vm');
 const { testDataDir } = require('../../helpers/testData');
 const { main } = require('../../../src/cli');
-const { providerChecks } = require('../../../src/cli/doctor');
+const { providerChecks, parseMongoUrl } = require('../../../src/cli/doctor');
 const { endpointFiles, serviceFiles, registerRoute } = require('../../../src/cli/add');
+const { PROVIDER_TEMPLATES, providerFiles } = require('../../../src/cli/providerTemplates');
 
 function sink() {
   const chunks = [];
@@ -106,5 +108,103 @@ describe('doctor provider checks (feature 09)', () => {
     const checks = await providerChecks({ env: { REDIS_URL: 'not a url' }, probe });
     expect(probe).not.toHaveBeenCalled();
     expect(checks[0].status).toBe('fail');
+  });
+});
+
+describe('doctor MongoDB and S3 checks (feature 09)', () => {
+  const byName = (checks, name) => checks.find((c) => c.name === name);
+
+  it('reads MongoDB hosts without credentials, including replica sets and SRV names', () => {
+    expect(parseMongoUrl('mongodb://u:secret@h1:27018,h2/db?replicaSet=rs')).toEqual({
+      srv: false, hosts: [{ host: 'h1', port: 27018 }, { host: 'h2', port: 27017 }]
+    });
+    expect(parseMongoUrl('mongodb+srv://u:secret@cluster.example.net/db')).toEqual({ srv: true, hosts: [{ host: 'cluster.example.net', port: 27017 }] });
+    expect(parseMongoUrl('postgres://x')).toBeNull();
+  });
+
+  it('probes every MongoDB host, warns when only some answer, and never prints the password', async () => {
+    const probe = jest.fn(async (host) => (host === 'h1' ? { ok: true } : { ok: false, detail: 'ECONNREFUSED' }));
+    const checks = await providerChecks({ env: { MONGODB_URL: 'mongodb://u:secret@h1:27018,h2/db' }, probe });
+    expect(probe).toHaveBeenCalledWith('h1', 27018);
+    expect(probe).toHaveBeenCalledWith('h2', 27017);
+    expect(byName(checks, 'MongoDB connectivity')).toEqual(expect.objectContaining({ status: 'warn', detail: 'h1:27018 reachable, h2:27017 ECONNREFUSED' }));
+    expect(JSON.stringify(checks)).not.toContain('secret');
+  });
+
+  it('looks up a mongodb+srv record and fails when no target answers', async () => {
+    const resolveSrv = jest.fn(async () => [{ name: 'a.example.net', port: 27017 }]);
+    const probe = jest.fn(async () => ({ ok: false, detail: 'timed out' }));
+    const checks = await providerChecks({ env: { MONGODB_URL: 'mongodb+srv://cluster.example.net/db' }, probe, resolveSrv });
+    expect(resolveSrv).toHaveBeenCalledWith('_mongodb._tcp.cluster.example.net');
+    expect(byName(checks, 'MongoDB connectivity').status).toBe('fail');
+    const bad = await providerChecks({ env: { MONGODB_URL: 'not mongo' }, probe: jest.fn() });
+    expect(byName(bad, 'MongoDB connectivity').status).toBe('fail');
+  });
+
+  it('probes S3_ENDPOINT, or the AWS endpoint for the region, and warns without access keys', async () => {
+    const probe = jest.fn(async () => ({ ok: true }));
+    const minio = await providerChecks({ env: { S3_ENDPOINT: 'http://minio.internal:9000' }, probe });
+    expect(probe).toHaveBeenCalledWith('minio.internal', 9000);
+    expect(byName(minio, 'S3 credentials').status).toBe('warn');
+    const aws = await providerChecks({ env: { S3_BUCKET: 'b', AWS_REGION: 'eu-west-1', AWS_ACCESS_KEY_ID: 'a', AWS_SECRET_ACCESS_KEY: 'b' }, probe });
+    expect(probe).toHaveBeenCalledWith('s3.eu-west-1.amazonaws.com', 443);
+    expect(byName(aws, 'S3 credentials').status).toBe('ok');
+    const unused = await providerChecks({ env: {} });
+    expect(byName(unused, 'S3 connectivity').detail).toMatch(/not used/);
+  });
+});
+
+describe('nooblyjs add provider (feature 09)', () => {
+  let dir;
+  const run = async (args) => {
+    const out = sink();
+    const err = sink();
+    const code = await main(['add', 'provider', ...args], { stdout: out, stderr: err, cwd: dir });
+    return { code, out: out.text(), err: err.text() };
+  };
+
+  beforeEach(() => { dir = fs.mkdtempSync(path.join(testDataDir('cli'), 'provider-')); });
+  afterEach(() => fs.rmSync(dir, { recursive: true, force: true }));
+
+  it('refuses to run outside a nooblyjs-core checkout', async () => {
+    fs.writeFileSync(path.join(dir, 'package.json'), JSON.stringify({ name: 'my-app' }));
+    const res = await run(['caching', 'valkey']);
+    expect(res.code).toBe(1);
+    expect(res.err).toMatch(/nooblyjs-core checkout/);
+  });
+
+  it('rejects a service without a contract suite, and a bad name', async () => {
+    expect((await run(['workflow', 'x'])).code).toBe(2);
+    expect((await run(['caching', 'Bad_Name'])).code).toBe(2);
+  });
+
+  it('writes the provider and its contract runner in a core checkout, prints the case, and refuses to overwrite', async () => {
+    fs.writeFileSync(path.join(dir, 'package.json'), JSON.stringify({ name: 'nooblyjs-core' }));
+    fs.mkdirSync(path.join(dir, 'src', 'caching'), { recursive: true });
+    fs.writeFileSync(path.join(dir, 'src', 'caching', 'index.js'), 'module.exports = () => ({});\n');
+    fs.mkdirSync(path.join(dir, 'tests', 'contract'), { recursive: true });
+    fs.writeFileSync(path.join(dir, 'tests', 'contract', 'cache.contract.js'), 'module.exports = {};\n');
+    const res = await run(['caching', 'valkey']);
+    expect(res.code).toBe(0);
+    expect(fs.existsSync(path.join(dir, 'src', 'caching', 'providers', 'cachingValkey.js'))).toBe(true);
+    expect(fs.existsSync(path.join(dir, 'tests', 'contract', 'caching.valkey.test.js'))).toBe(true);
+    expect(res.out).toContain("case 'valkey':");
+    expect(res.out).toContain('cache = new CachingValkey(providerOptions, eventEmitter);');
+    expect((await run(['caching', 'valkey'])).code).toBe(1);
+  });
+
+  it('generates valid JavaScript for every service, with a stub per contract method', () => {
+    for (const service of Object.keys(PROVIDER_TEMPLATES)) {
+      const { files, className } = providerFiles({ service, name: 'acme-store' });
+      for (const [file, source] of Object.entries(files)) {
+        expect(() => new vm.Script(source, { filename: file })).not.toThrow();
+      }
+      const provider = Object.values(files)[0];
+      expect(provider).toContain(`class ${className}`);
+      for (const signature of PROVIDER_TEMPLATES[service].methods) {
+        expect(provider).toContain(`async ${signature} {`);
+      }
+      expect(Object.values(files)[1]).toContain('does not create');
+    }
   });
 });
