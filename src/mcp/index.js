@@ -124,6 +124,14 @@ function capResult(value) {
 }
 
 /**
+ * @param {*} value
+ * @return {boolean} Whether the value is a plain JSON object (not an array or null)
+ */
+function isPlainObject(value) {
+  return value !== null && typeof value === 'object' && !Array.isArray(value);
+}
+
+/**
  * Builds the tool catalogue. Each tool names the permission it needs and whether
  * it writes. Services are read through accessor functions, so only the services a
  * tool uses are created.
@@ -415,11 +423,14 @@ function createMcpServer({ services, openApi, allowWrite = false, resolvePrincip
       const value = await tool.run(args);
       const capped = capResult(value);
       eventEmitter?.emit?.('mcp:tool:called', { principal: principal?.principal || null, tool: tool.name, outcome: 'ok' });
+      const plain = capped.value ?? null;
       return {
         result: {
           isError: false,
-          content: [{ type: 'text', text: JSON.stringify(capped.value ?? null) }],
-          structuredContent: capped.value === undefined ? null : capped.value,
+          content: [{ type: 'text', text: JSON.stringify(plain) }],
+          // MCP requires structuredContent to be a JSON object, so a list or
+          // a single value is wrapped as { result }.
+          structuredContent: isPlainObject(plain) ? plain : { result: plain },
           truncated: capped.truncated || undefined
         }
       };

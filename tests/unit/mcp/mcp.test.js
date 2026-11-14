@@ -102,6 +102,15 @@ describe('MCP server (feature 03)', () => {
       expect(reply.result.structuredContent).toEqual({ queue: 'emails', size: 3, jobs: { waiting: 1 } });
     });
 
+    it('wraps a list result as { result }, because MCP structured content must be an object', async () => {
+      const { server } = stubServer({ scopes: null });
+      const reply = await server.handle(rpc('tools/call', { name: 'logs.recent', arguments: { level: 'error' } }), {});
+      expect(reply.result.isError).toBe(false);
+      expect(Array.isArray(reply.result.structuredContent)).toBe(false);
+      expect(reply.result.structuredContent).toEqual({ result: [{ level: 'error', message: 'boom' }] });
+      expect(JSON.parse(reply.result.content[0].text)).toEqual(reply.result.structuredContent.result);
+    });
+
     it('rejects input that does not match the tool schema, before the tool runs', async () => {
       const { server, queue } = stubServer({ scopes: null });
       const missing = await server.handle(rpc('tools/call', { name: 'queue.stats', arguments: {} }), {});

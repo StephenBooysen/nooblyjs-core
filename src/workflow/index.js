@@ -442,6 +442,16 @@ class WorkflowService {
             error: error.message
           });
 
+          // Log the failure, so the logs (and the MCP diagnose-failed-run
+          // prompt, which reads them) show which run and step failed and why.
+          this.logger?.error(`[${this.constructor.name}] Workflow step failed`, {
+            workflowName,
+            executionId: workflowId,
+            stepName,
+            stepNumber,
+            error: error.message
+          });
+
           statusCallback({
             status: 'step_error',
             stepName,
