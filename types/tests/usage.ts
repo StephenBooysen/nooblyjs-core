@@ -44,7 +44,27 @@ async function run(): Promise<void> {
   await old.prompt('hi');
 
   const auth = registry.authservice('file', { sessionIdleTimeoutMs: { admin: 600000 } });
-  await auth.createApiToken('a@example.com', 'ci', { expiresInDays: 30, permissions: ['queueing:*'] });
+  const token = await auth.createApiToken('a@example.com', 'ci', { expiresInDays: 30, scopes: ['queueing:*'] });
+  const secret: string = token.token;
+  void secret;
+
+  // @ts-expect-error: the option is scopes, not permissions
+  await auth.createApiToken('a@example.com', 'ci', { permissions: ['queueing:*'] });
+
+  const kb = registry.knowledge('default', { container: 'docs', access: (p) => (p.startsWith('internal/') ? ['support'] : ['*']), watch: true });
+  await kb.sync({ directory: 'docs' });
+  const answer = await kb.ask('How do I rotate the settings secret?', { roles: ['support'] });
+  const firstSource: string | undefined = answer.citations[0]?.path;
+  void firstSource;
+  for await (const event of kb.streamAnswer('What happens after the last retry?')) {
+    if (event.type === 'text') { const piece: string = event.text; void piece; }
+    if (event.type === 'done') void event.confidence;
+  }
+  const report = await kb.evaluate('- question: q\n  expectedPath: docs/a.md\n', { k: 3, answers: true });
+  void report.recallAtK;
+
+  // @ts-expect-error: a rating is good or bad
+  await kb.recordFeedback({ question: 'q', rating: 'meh' });
 
   // @ts-expect-error: a legacy AI provider has no embed()
   await old.embed('x');

@@ -171,9 +171,89 @@ export interface AuthService {
   addUserToRole(email: string, role: string): Promise<unknown>;
   listRoles(): Promise<string[]>;
   changePassword(email: string, currentPassword: string, newPassword: string): Promise<unknown>;
-  /** Personal access token; `permissions` narrows it to a subset of the owner's. */
-  createApiToken(email: string, name: string, options?: { expiresInDays?: number; expiresAt?: string | Date; permissions?: string[] }): Promise<unknown>;
-  validateApiToken(token: string): Promise<{ email: string; roles: string[]; permissions?: string[] | null; [field: string]: unknown }>;
+  /** Personal access token; `scopes` narrows it to a subset of the owner's permissions. The secret is returned once. */
+  createApiToken(email: string, name: string, options?: { expiresInDays?: number; expiresAt?: string | Date; scopes?: string[] }): Promise<{ id: string; name: string; token: string; tokenPrefix: string; scopes: string[] | null; createdAt: string; expiresAt: string | null }>;
+  validateApiToken(token: string): Promise<{ email: string; roles: string[]; scopes: string[] | null; [field: string]: unknown }>;
+}
+
+/** A source a knowledge answer cites. `n` matches the `[n]` marker in the answer text. */
+export interface KnowledgeCitation {
+  n: number;
+  path: string;
+  title: string;
+  heading: string;
+  snippet: string;
+  score: number;
+}
+
+export interface KnowledgeAnswer {
+  text: string;
+  citations: KnowledgeCitation[];
+  /** `cited`: the answer cites its sources; `low`: it does not; `none`: nothing relevant was found. */
+  confidence: 'cited' | 'low' | 'none';
+  usage: Record<string, unknown> | null;
+}
+
+export interface KnowledgeEvalCase {
+  question: string;
+  expectedPath: string;
+  roles?: string[];
+}
+
+export interface KnowledgeEvalReport {
+  cases: number;
+  recallAtK: number;
+  meanReciprocalRank: number;
+  results: Array<{ question: string; expectedPath: string; rank: number | null; hit: boolean }>;
+  citationAccuracy?: number;
+  answerResults?: Array<{ question: string; expectedPath: string; cited: boolean; confidence: string; citedPaths: string[] }>;
+}
+
+/** Answers questions from documents in a filing folder, with citations (feature 05). */
+export interface KnowledgeService {
+  /** Indexes new and changed files under `directory` and removes deleted ones. Calls run one at a time. */
+  sync(options?: { directory?: string }): Promise<{ files: number; added: number; changed: number; unchanged: number; removed: number; skipped: number; chunks: number }>;
+  retrieve(question: string, options?: { k?: number; roles?: string[] }): Promise<Array<{ id: string; path: string; title: string; heading: string; snippet: string; score: number }>>;
+  ask(question: string, options?: { k?: number; roles?: string[] }): Promise<KnowledgeAnswer>;
+  /** Yields `sources` first, then `text` pieces, then `done` with the full answer. */
+  streamAnswer(question: string, options?: { k?: number; roles?: string[] }): AsyncGenerator<
+    | { type: 'sources'; sources: Array<{ n: number; path: string; title: string; heading: string; score: number }> }
+    | { type: 'text'; text: string }
+    | ({ type: 'done' } & KnowledgeAnswer)
+  >;
+  /** Streams an answer to an Express response as server-sent events. */
+  askStream(res: unknown, question: string, options?: { k?: number; roles?: string[] }): Promise<(KnowledgeAnswer & { type: 'done' }) | null>;
+  recordFeedback(entry: { question: string; rating: 'good' | 'bad'; answer?: string; citations?: Array<{ path: string }>; comment?: string; user?: string | null }): Promise<{ id: string; at: string; [field: string]: unknown }>;
+  listFeedback(options?: { rating?: 'good' | 'bad'; limit?: number }): { total: number; good: number; bad: number; items: Array<Record<string, unknown>> };
+  /** Good ratings as evaluation cases. */
+  feedbackCases(): KnowledgeEvalCase[];
+  /** Scores retrieval (and, with `answers`, citation accuracy) on labelled questions, given as a list or as YAML. */
+  evaluate(cases: KnowledgeEvalCase[] | string, options?: { k?: number; answers?: boolean }): Promise<KnowledgeEvalReport>;
+  sources(options?: { roles?: string[] }): Array<{ path: string; title: string; chunks: number; roles: string[]; indexedAt: string | null }>;
+  status(): { files: number; chunks: number; container: string; syncing: boolean; lastSync: Record<string, unknown> | null; skipped: Array<{ path: string; error: string }>; feedback: { total: number; good: number; bad: number } };
+  save(): Promise<boolean>;
+  load(): Promise<boolean>;
+  /** Stops watching the source folder. */
+  destroy(): void;
+}
+
+export interface KnowledgeOptions extends ServiceOptions {
+  container?: string;
+  extensions?: string[];
+  maxChunkChars?: number;
+  overlapChars?: number;
+  topK?: number;
+  /** Roles a file is open to, given its path; default `() => ['*']` (any signed-in caller). */
+  access?: (path: string) => string[];
+  persist?: boolean;
+  restore?: boolean;
+  stateFile?: string;
+  feedbackFile?: string;
+  maxFeedback?: number;
+  /** Re-sync when files change in the filing service. */
+  watch?: boolean;
+  watchDirectory?: string;
+  watchDelayMs?: number;
 }
 
 export interface SettingsService {
@@ -311,6 +391,8 @@ export interface ServiceRegistry {
   authservice(providerType: 'api', options?: ServiceOptions): AuthService;
 
   settings(providerType: 'file' | 'encrypted', options?: ServiceOptions & { filepath?: string; secret?: string; autosave?: boolean; maskSecrets?: boolean }): SettingsService;
+
+  knowledge(providerType?: 'default', options?: KnowledgeOptions): KnowledgeService;
 
   getService(serviceName: string, providerType?: string, options?: ServiceOptions): unknown;
   shutdown(): void;
