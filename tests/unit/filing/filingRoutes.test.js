@@ -24,6 +24,7 @@ const createFiling = require('../../../src/filing');
 const registerRoutes = require('../../../src/filing/routes');
 const analytics = require('../../../src/filing/modules/analytics');
 const { testDataDir } = require('../../helpers/testData');
+const { minimalPdf } = require('../../helpers/minimalPdf');
 
 /** Stands in for an authenticated admin session; the filing tiers need a caller. */
 function asAdmin(req, _res, next) {
@@ -140,6 +141,13 @@ describe('Filing routes (local provider)', () => {
   it('only previews PDFs', async () => {
     await filing.upload('docs/a.txt', Buffer.from('a'));
     await request(app).get(`/services/filing/api/pdf-preview/${encodeURIComponent('docs/a.txt')}`).expect(400);
+  });
+
+  it('previews the text and title of a real PDF', async () => {
+    await filing.upload('docs/policy.pdf', minimalPdf(['Invoices are archived after seven years.'], { title: 'Records Policy' }));
+    const res = await request(app).get(`/services/filing/api/pdf-preview/${encodeURIComponent('docs/policy.pdf')}`).expect(200);
+    expect(res.body.metadata).toEqual(expect.objectContaining({ numPages: 1, title: 'Records Policy' }));
+    expect(res.body.preview.text).toMatch(/seven years/);
   });
 
   it('serves named-instance routes, falling back to the default instance', async () => {

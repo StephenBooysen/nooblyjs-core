@@ -1473,7 +1473,8 @@ module.exports = (options, eventEmitter, filing) => {
 
           // Parse PDF to get metadata and text
           try {
-            const data = await pdfParse(pdfBuffer);
+            // pdf.js 1.10 (inside pdf-parse) misreads a Node Buffer; a plain Uint8Array copy parses.
+            const data = await pdfParse(pdfBuffer instanceof Uint8Array ? new Uint8Array(pdfBuffer) : pdfBuffer);
 
             // Extract text from requested page
             let pageText = '';
@@ -1493,10 +1494,11 @@ module.exports = (options, eventEmitter, filing) => {
               metadata: {
                 numPages: data.numpages,
                 currentPage: page,
-                producer: data.producer || 'Unknown',
-                creator: data.creator || 'Unknown',
-                creationDate: data.creationDate,
-                title: data.title || 'Untitled'
+                // pdf-parse puts the document information dictionary in data.info.
+                producer: data.info?.Producer || 'Unknown',
+                creator: data.info?.Creator || 'Unknown',
+                creationDate: data.info?.CreationDate,
+                title: data.info?.Title || 'Untitled'
               },
               preview: {
                 text: pageText.substring(0, 2000), // First 2000 characters as preview
