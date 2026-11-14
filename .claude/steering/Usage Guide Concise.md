@@ -138,6 +138,19 @@ await scheduler.startCron({ scriptPath: 'nightly-cleanup.js' }, '0 2 * * *', 'ni
 ```javascript
 await search.add('doc-1', { title: 'Install guide', content: 'Run npm install' });   // resolves false if the key exists
 const results = await search.search('install');                                   // array of matching documents
+
+// Meaning search (vector provider): semantic by default, or keyword / hybrid per call
+const meaning = serviceRegistry.searching('vector', { instanceName: 'meaning' });
+const hits = await meaning.search('how do I set things up', { containerName: 'docs', mode: 'hybrid' });
+```
+
+### Knowledge (ask your docs)
+
+```javascript
+const kb = serviceRegistry.knowledge('default', { dependencies: { aiservice: ai }, watch: true, restore: true });
+await kb.sync({ directory: 'docs' });                       // Markdown, text, HTML, PDF; changed files only
+const { text, citations, confidence } = await kb.ask('How do I rotate the settings secret?');
+const report = await kb.evaluate(yamlCases, { k: 5, answers: true });   // recallAtK, citationAccuracy, ...
 ```
 
 ### Authentication
@@ -175,11 +188,30 @@ await filing.delete('reports/summary.txt');
 ### AI
 
 ```javascript
-const answer = await ai.prompt('What is machine learning?');
-const summary = await ai.prompt(text, { maxTokens: 500, temperature: 0.7 });
+const ai = serviceRegistry.aiservice('anthropic', { apiKey: process.env.ANTHROPIC_API_KEY, model: 'claude-sonnet-5-5' });
+const reply = await ai.complete({ messages: [{ role: 'user', content: 'What is machine learning?' }], maxTokens: 300 });
+for await (const e of ai.stream({ messages })) if (e.type === 'text_delta') process.stdout.write(e.text);
+const { vectors } = await openai.embed(['first', 'second']);   // Anthropic has no embeddings: name another provider
+const answer = await ai.prompt('What is machine learning?');   // older shape: { content, usage, model, provider }
 ```
 
-`aiservice` is backed by the provider you choose (`claude`, `openai`, `ollama`, `gemini`, `openai-kv`, `tensorflow`). For one client across providers, see the shared module in `src/aiservice/common/` (`nooblyjs-ai-common`).
+AI Service v2 (`anthropic`, `openai-compatible`, `bedrock`, `vertex`, `azure`, `mock`) has `complete`, `stream`, tools, `generateObject` and `embed`, with budgets. The older names (`claude`, `openai`, `ollama`, `gemini`, `openai-kv`, `tensorflow`) keep `prompt()` only, unless you pass `legacy: false`.
+
+### MCP and the CLI
+
+```javascript
+serviceRegistry.initialize(app, emitter, { mcp: { enabled: true, allowWrite: false } });   // POST /services/mcp
+```
+
+```bash
+claude mcp add nooblyjs -- npx nooblyjs mcp --url http://localhost:9000   # set NOOBLYJS_TOKEN or NOOBLYJS_API_KEY
+npx nooblyjs create my-app --template api|dashboard|ai --yes
+npx nooblyjs add endpoint GET /hello      # also: add service <name>; add provider <service> <name> (core checkout)
+npx nooblyjs doctor                       # env, npm audit, Redis / MongoDB / S3 reachability; exits 1 on failure
+npx nooblyjs openapi --client ts --out src/api-client.ts
+```
+
+With the login gate on, an MCP personal access token must be admin-owned; give it `scopes`. The merged OpenAPI document is at `/services/api/openapi.json`, rendered at `/services/api/docs`.
 
 ## Patterns
 
@@ -331,7 +363,8 @@ The provider names below are the case labels in each service's `index.js`. The f
 | queueing | memory, redis, rabbitmq, activemq, aws, azure, gcp, api |
 | filing | local, ftp, s3, git, gcp, api, sync |
 | authservice | memory, file, passport, google, azure, secure-email, api |
-| aiservice | claude (default), openai (`chatgpt` alias), openai-kv, ollama, gemini, tensorflow |
+| aiservice | claude (default), openai (`chatgpt` alias), openai-kv, ollama, gemini, tensorflow; AI Service v2: anthropic, openai-compatible, bedrock, vertex, azure, mock |
+| knowledge | default |
 | settings | file, encrypted |
 | fetching | node (default), axios |
 | notifying | default (in-memory), api |
@@ -370,6 +403,22 @@ describe('Order service', () => {
 ```
 
 Tests that write to disk should use the shared `testDataDir()` helper and clean up in `afterEach`. See `CONTRIBUTING.md`.
+
+Apps can use the test kit instead of wiring the registry by hand:
+
+```javascript
+const { createTestRegistry, installMatchers } = require('nooblyjs-core/testing');
+installMatchers();
+let t;
+beforeEach(async () => { t = await createTestRegistry({ services: ['caching'] }); });
+afterEach(() => t.cleanup());
+it('puts', async () => {
+  await t.request('post', '/services/caching/api/put/k').send({ a: 1 }).expect(200);   // API key already set
+  expect(t.events).toHaveEmitted('cache:put:default', { key: 'k' });
+});
+```
+
+New providers must pass their service's contract in `tests/contract/` (`npx nooblyjs add provider <service> <name>` in a core checkout).
 
 ## Key Methods
 

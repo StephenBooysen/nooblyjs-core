@@ -397,7 +397,7 @@ await search.add('article-1', {
 const results = await search.search('getting started');   // array of matching documents
 ```
 
-`add` resolves to `false` when the key already exists. Use `replace` to overwrite a document, `remove` to delete one and `addAll` to index a batch. For remote or semantic search, pick the matching provider (`api`, `solr`, `vector` or `semantic`) and see its provider file for its options.
+`add` resolves to `false` when the key already exists. Use `replace` to overwrite a document, `remove` to delete one and `addAll` to index a batch. For remote or semantic search, pick the matching provider (`api`, `solr`, `vector` or `semantic`) and see its provider file for its options; meaning search is described under the knowledge service below.
 
 Index only the fields you search on. Indexing every field of a large document uses memory with no gain in results.
 
@@ -871,27 +871,42 @@ it('caches orders', async () => {
 });
 ```
 
-Services: logging, caching, queueing, dataservice, scheduling, searching, measuring, working, workflow, notifying, fetching. Memory providers only; the kit writes under `.temp/tests/data/`.
+Services: logging, caching, queueing, dataservice, scheduling, searching, measuring, working, workflow, notifying, fetching. Memory providers only; the kit writes under `.temp/tests/data/`. `t.request(method, url)` is supertest against the kit's app with the test API key set, and `t.cleanup()` shuts the registry down, so the analytics listeners are released.
 
 ### Provider contracts
 
-`tests/contract/` holds one suite per service that every provider must pass. `npm test` runs the memory provider. Against a real Redis:
+`tests/contract/` holds one suite per service that every provider must pass: caching, queueing, filing, dataservice, searching and authservice (AI Service v2 has one under node:test). `npm test` runs the memory, file, local and git providers. Against real backends:
 
 ```bash
 docker run -d -p 6379:6379 redis:7-alpine
 RUN_REDIS_TESTS=1 REDIS_URL=redis://127.0.0.1:6379 npm run test:contract
+
+docker run -d -p 27017:27017 mongo:7
+RUN_MONGODB_TESTS=1 MONGODB_URL=mongodb://127.0.0.1:27017 npx jest tests/contract/dataservice.mongodb.test.js
 ```
+
+To add a provider in a nooblyjs-core checkout, `npx nooblyjs add provider <service> <name>` writes the provider class (a stub for each method the contract calls) and its contract runner, and prints the `case` to add to the factory. The runner fails until the factory builds the new class, then until every stub is implemented.
+
+The file auth provider loads its files after construction. Await `auth.ready` before the first call when a call may run straight after `authservice('file', ...)`.
 
 ## Knowledge Service (ask your docs)
 
 ```javascript
 const kb = serviceRegistry.knowledge('default', {
-  dependencies: { aiservice: serviceRegistry.aiservice('claude', { apiKey: process.env.ANTHROPIC_API_KEY }) }
+  dependencies: { aiservice: serviceRegistry.aiservice('anthropic', { apiKey: process.env.ANTHROPIC_API_KEY }) },
+  watch: true       // re-sync after filing create, update and delete events
 });
-await kb.sync({ directory: 'docs' });                  // new and changed Markdown and text files only
+await kb.sync({ directory: 'docs' });                  // new and changed Markdown, text, HTML and PDF files only
 const answer = await kb.ask('How do I rotate the settings secret?');
 // { text, confidence: 'cited' | 'low' | 'none', citations: [{ n, path, title, heading, snippet, score }] }
+
+// Streamed: 'sources' first, then 'text' pieces, then 'done' with the full answer
+for await (const event of kb.streamAnswer('What happens after the last retry?')) {
+  if (event.type === 'text') process.stdout.write(event.text);
+}
 ```
+
+A file that cannot be read (a scanned PDF with no text, for example) is skipped and listed in `kb.status().skipped`.
 
 To limit who can read a document, give the knowledge base an access rule. A chunk is only returned to, and only cited for, a caller holding one of its roles. `*` means any signed-in caller, and an administrator sees everything:
 
@@ -901,10 +916,28 @@ const kb = serviceRegistry.knowledge('default', {
 });
 ```
 
-Sync state is saved to `.knowledge-state.json` in the source folder. Pass `restore: true` to restore it on start-up, so the index is back without reading the files again. Measure retrieval with `evaluateRetrieval(kb, cases)` from `src/knowledge/modules/evaluate.js`.
+Sync state is saved to `.knowledge-state.json` in the source folder. Pass `restore: true` to restore it on start-up, so the index is back without reading the files again.
+
+Check answer quality with labelled questions, written as YAML:
+
+```yaml
+- question: How do I rotate the settings secret?
+  expectedPath: docs/settings.md
+- question: What happens after the last retry?
+  expectedPath: docs/queues.md
+```
+
+```javascript
+const report = await kb.evaluate(yamlText, { k: 5, answers: true });
+// { cases, recallAtK, meanReciprocalRank, citationAccuracy, results, answerResults }
+await kb.recordFeedback({ question, rating: 'good', answer: answer.text, citations: answer.citations });
+const fromRatings = await kb.evaluate(kb.feedbackCases());   // good ratings as cases
+```
+
+Run the same cases before and after changing chunking, embeddings or the model. Feedback is saved to `.knowledge-feedback.json` next to the sources (capped by `maxFeedback`).
 
 The knowledge service creates its own vector search instance (`instanceName: 'knowledge'`, hash embeddings by default). Pass `embedding: { backend: 'aiservice', aiservice }` through the searching dependency for real embeddings. 
-REST: `POST /services/knowledge/api/sync`, `/retrieve` and `/ask` (body `{ question, k }`), and `GET /services/knowledge/api/status`. The editor role has these; a plain user does not.
+REST: `POST /services/knowledge/api/ask` and `/retrieve` (body `{ question, k }`), `POST /api/ask/stream` (server-sent events: `sources`, `text`, `done`, or `error`), `GET /api/status` and `/api/sources`, `POST /api/feedback` (read permission); `POST /api/sync`, `GET /api/feedback` and `POST /api/evaluate` (body `cases`, `yaml` or `fromFeedback: true`) need write permission. The editor role has all of these; a plain user has none. The dashboard at `/services/knowledge/` has Ask, Sources and Quality tabs.
 
 Semantic search over any index with a vector provider: `GET /services/searching/api/semantic?query=...&index=...&mode=hybrid|semantic`. The searching dashboard has a Match option (Keywords, hybrid, semantic) for the same search.
 
@@ -917,7 +950,11 @@ const search = serviceRegistry.getService('searching', 'vector', {
 });
 ```
 
-If embedding fails, the documents stay searchable by keyword. `lastEmbedError` says why; the `search:embed:complete` event still fires with `vectors: 0`, which is a known gap.
+If embedding fails, the documents stay searchable by keyword. `lastEmbedError` says why, and `search:embed:error` fires with the number of documents that failed.
+
+The vector provider ranks by meaning by default (`mode: 'semantic'`); pass `mode: 'keyword'` or `'hybrid'` per search. Semantic hits appear once the background queue has embedded new documents; `await search.flushEmbeddings(index)` waits for it.
+
+Measure ranking quality with labelled queries: `POST /services/searching/api/evaluate` with `{ cases: [{ query, expectedId }], index, mode, k }` returns `recallAtK`, `meanReciprocalRank` and the rank of each expected document.
 
 ## Model Context Protocol (MCP)
 
@@ -930,7 +967,13 @@ serviceRegistry.initialize(app, eventEmitter, {
 });
 ```
 
-`POST /services/mcp` takes JSON-RPC 2.0 messages. Authenticate with an API key or a personal access token. Each tool checks the permission its REST route needs, so a user without `queueing:read` cannot read queue stats through MCP.
+`POST /services/mcp` takes JSON-RPC 2.0 messages. Authenticate with an API key or a personal access token. Each tool checks the permission its REST route needs, so a user without `queueing:read` cannot read queue stats through MCP. While the login gate is on (`servicesAuth.requireLogin`, the default), a personal access token is accepted only when an admin owns it; create it with `scopes` to keep the agent read-only:
+
+```javascript
+const { token } = await auth.createApiToken('ops@example.com', 'claude-code', { scopes: ['workflow:read', 'logging:read'] });
+```
+
+Tool results come back as text and as `structuredContent`; a list is wrapped as `{ result: [...] }`, because MCP requires an object there.
 
 From Claude Code, use the stdio bridge:
 
@@ -956,7 +999,7 @@ npx nooblyjs openapi --url http://localhost:9000 --client ts --out src/api-clien
 npx nooblyjs keys generate --length 48
 ```
 
-`doctor` checks that `REDIS_URL` and `SESSION_REDIS_URL`, when set, accept connections. `add` never overwrites a file. `routes` and `openapi` read `NOOBLYJS_API_KEY` or `NOOBLYJS_TOKEN` from the environment. The merged document is also served at `/services/api/openapi.json`.
+`doctor` checks that `REDIS_URL`, `SESSION_REDIS_URL`, `MONGODB_URL` (every replica-set host, or the SRV targets of `mongodb+srv`) and S3 (`S3_ENDPOINT`, or the AWS endpoint for `AWS_REGION` when `S3_BUCKET` is set) accept connections, when set; it never prints credentials. In a nooblyjs-core checkout, `npx nooblyjs add provider <service> <name>` scaffolds a provider and its contract test. `add` never overwrites a file. `routes` and `openapi` read `NOOBLYJS_API_KEY` or `NOOBLYJS_TOKEN` from the environment. The merged document is also served at `/services/api/openapi.json`.
 
 ### Unit Testing Services
 

@@ -26,7 +26,7 @@
 
 ## Executive Summary
 
-**NooblyJS Core** is an enterprise-grade, modular Node.js backend framework providing a comprehensive microservices platform with 16+ independently deployable services. Built on proven design patterns (Singleton, Factory, Dependency Injection), it enables rapid development of scalable, cloud-native applications with built-in support for authentication, caching, data persistence, AI integration, and workflow orchestration.
+**NooblyJS Core** is an enterprise-grade, modular Node.js backend framework providing a comprehensive microservices platform with 17 independently deployable services. Built on proven design patterns (Singleton, Factory, Dependency Injection), it enables rapid development of scalable, cloud-native applications with built-in support for authentication, caching, data persistence, AI integration, and workflow orchestration.
 
 ### Key Value Propositions
 
@@ -35,7 +35,8 @@
 - **Flexibility**: 52+ provider implementations across services for diverse backend needs
 - **Enterprise-Ready**: Built-in authentication, authorization, monitoring, analytics
 - **Developer Experience**: Automatic dependency injection, event-driven communication, comprehensive REST APIs
-- **AI-Integrated**: Native support for Claude, OpenAI, and Ollama models
+- **AI-Integrated**: one AI API (AI Service v2: `complete`, `stream`, tools, `embed`, budgets) for Anthropic, OpenAI-compatible, AWS Bedrock, Google Vertex AI and Azure, plus the older Claude, OpenAI, Ollama and Gemini providers
+- **AI-native development**: an MCP server so coding agents can operate a running app, a knowledge service for cited answers over documents, semantic search, a CLI (`create`, `add`, `doctor`, typed clients), one validated OpenAPI 3.1 document, and a test kit with provider contracts
 - **Production-Ready**: Comprehensive testing, security middleware, performance optimization
 
 ### Target Users
@@ -647,6 +648,8 @@ Full-text search with result caching and intelligent indexing.
 
 **Capabilities**:
 - Full-text search
+- Semantic (meaning) and hybrid search with the `vector` provider: embeddings from the AI service's `embed()` or a built-in hash backend, background embedding with `flushEmbeddings()`, keyword fallback when embedding fails (`search:embed:error`)
+- Ranking evaluation (`POST /services/searching/api/evaluate`): recall@k and mean reciprocal rank for labelled queries
 - Keyword filtering
 - Result ranking and sorting
 - Pagination support
@@ -852,7 +855,7 @@ AI model integration and prompting service.
 
 **Purpose**: Provide unified interface to multiple AI/LLM providers
 
-**Providers Available** (7):
+**Providers Available**: AI Service v2 (`anthropic`, `openai-compatible`, `bedrock`, `vertex`, `azure`, `mock`) gives `complete`, `stream`, tool calls, `generateObject`, `embed`, `listModels`, per-request token limits and a daily cost budget, through the shared module in `src/aiservice/common/`. The older providers below keep `prompt()`; pass `legacy: false` to give `claude`, `openai`, `ollama` or `gemini` the v2 API.
 1. **Claude** - Anthropic's Claude models (default for `aiservice`)
 2. **OpenAI** - GPT-3, GPT-4 models (`openai`, with `chatgpt` as an alias)
 3. **Ollama** - Local open-source models
@@ -905,6 +908,30 @@ AI model integration and prompting service.
 - Summarization
 - Classification and tagging
 - Question answering
+
+---
+
+### Level 5: Knowledge Services
+
+#### **Knowledge** (`src/knowledge/`)
+Answers questions from documents, with citations (retrieval-augmented generation).
+
+**Purpose**: let a team ship "ask our docs" over any filing source in a day.
+
+**Provider**: `default` (`registry.knowledge()`), built from filing, a vector search instance of its own and the AI service.
+
+**Core Capabilities**:
+- Sync Markdown, text, HTML and PDF files from a filing folder; heading-aware chunks; only changed files are re-embedded, deleted files lose their chunks; unreadable files are listed as skipped
+- Hybrid retrieval and answers that cite sources by number; an uncited answer is marked `low`
+- Streamed answers over server-sent events
+- Access rules: `access(path)` returns the roles a file is open to; chunks a caller may not read never reach the model
+- Feedback (good or bad ratings) and evaluation from YAML cases: recall@k, mean reciprocal rank, citation accuracy
+- Saved state (`restore: true`) and folder watching (`watch: true`)
+- Dashboard at `/services/knowledge/` (Ask, Sources, Quality)
+
+**Key Methods**: `sync`, `retrieve`, `ask`, `streamAnswer`, `askStream`, `recordFeedback`, `listFeedback`, `evaluate`, `sources`, `status`
+
+**Dependencies**: Logging, Filing, Searching, AIService
 
 ---
 
@@ -1079,22 +1106,18 @@ const options = {
 ### 8. Comprehensive Testing Framework
 
 **Test Types**:
-- Unit tests (Jest)
-- Integration tests (HTTP API)
-- Load tests (stress testing)
-- Component tests
-
-**Coverage**:
-- All services have test files
-- Disabled tests for external dependencies
-- Load test suite for performance validation
-- HTTP API test suite
+- Unit tests (Jest, with an enforced coverage threshold: 76% statements, actual 78% on 2026-11-13)
+- node:test suites for the ESM AI module and the AI Service v2 bridge (`npm run test:ai-common`)
+- Provider contract suites (`tests/contract/`): caching, queueing, filing, dataservice, searching, authservice; Redis and MongoDB run in CI service containers
+- Playwright UI tests on desktop and mobile Chromium, including a check that every dashboard click handler resolves
+- Security regression suites, a generated authorization matrix, OWASP ZAP baseline and gitleaks in CI
+- OpenAPI validation against the OpenAPI 3.1 schema, with the typed client compiled under `tsc --strict`
+- Load tests
 
 **Test Utilities**:
-- Mock EventEmitter
-- Mock providers
+- Test kit for apps (`nooblyjs-core/testing`): a registry with in-memory services, event matchers, authenticated requests, cleanup under `.temp/`
+- Mock EventEmitter and providers
 - Supertest for HTTP testing
-- Nock for HTTP mocking
 
 ### 9. Error Handling & Recovery
 
@@ -1106,6 +1129,13 @@ const options = {
 - Error logging with context
 - Recovery strategies
 - Timeout handling
+
+### 11. AI-Native Developer Tooling
+
+- **MCP server** (`POST /services/mcp`, off unless `mcp.enabled`): read tools for logs, queues, data, search, workflow runs, schedules and monitoring; write tools only with `mcp.allowWrite` and an admin; prompts such as `diagnose-failed-run`. Each tool checks the permission of the REST route it mirrors. `nooblyjs mcp` is a stdio bridge for Claude Code and other agents.
+- **Developer CLI** (`npx nooblyjs`): `create` (api, dashboard and ai templates), `add endpoint`, `add service`, `add provider` (core checkout, with its contract test), `doctor` (environment, audit, Redis, MongoDB and S3 reachability), `routes`, `openapi` with a typed TypeScript client, `keys generate`.
+- **OpenAPI 3.1**: one merged document for every mounted service at `/services/api/openapi.json`, every route documented, rendered at `/services/api/docs`.
+- **Semantic search**: a vector provider with hybrid ranking, embeddings from the AI service, and an evaluate route for ranking quality.
 
 ### 10. Configuration Management
 
@@ -1247,9 +1277,10 @@ See [Service Catalog](#service-catalog) for detailed endpoint documentation per 
 ### AI & LLM Integration
 | Provider | Library | Version |
 |----------|---------|---------|
-| Anthropic Claude | @anthropic-ai/sdk | 0.60.0 |
-| OpenAI | openai | 5.23.2 |
-| Google Gemini | @google/gemini-cli | 0.1.22 |
+| Shared AI module (AI Service v2) | none (`src/aiservice/common/`, plain HTTP) | in repo |
+| Anthropic Claude (legacy provider) | @anthropic-ai/sdk | 0.60.0 |
+| OpenAI (legacy provider) | openai | 5.23.2 |
+| PDF text for knowledge and filing previews | pdf-parse | 1.1.4 |
 
 ### Authentication & Authorization
 | Component | Library | Version | Purpose |

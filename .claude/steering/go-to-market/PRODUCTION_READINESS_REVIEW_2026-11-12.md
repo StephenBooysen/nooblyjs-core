@@ -19,6 +19,27 @@ Each critical and high finding below was either reproduced against an isolated i
 | Medium | 4 |
 | Low | 3 |
 
+## Status on 2026-11-13
+
+The chain no longer works: every critical and high finding is fixed, and the regression suites (feature 22) keep the reproduction steps failing. `npm audit --omit=dev --audit-level=high` reports 0 vulnerabilities. One medium finding is open (M-3), and M-4 is fixed for scripts but not for styles.
+
+| ID | Status | Where |
+|---|---|---|
+| C-1 | Fixed | Feature 15: filing settings are locked, non-admins are confined; a `user` token gets 403 on the filing root |
+| C-2 | Fixed | Feature 16: invitations need admin approval; registration is closed |
+| H-1 | Fixed | Feature 17a: active types are served as attachments with a sandbox header |
+| H-2 | Fixed | Feature 20: advisories fixed, nightly audit, CI audit gate green |
+| H-3 | Fixed | Feature 18: scripts only from the activities folder; absolute paths and `..` refused |
+| M-1 | Fixed | Feature 19: in production a general key never opens the portal |
+| M-2 | Fixed | Feature 23: no tokens in URLs; dashboards use the session cookie |
+| M-3 | Open | Feature 21 (Phase 3): lockout, invitations and cron timers are still per process |
+| M-4 | Fixed for scripts | Feature 17b: no `unsafe-inline` in the script policy, every dashboard handler verified; styles still allow it |
+| L-1 | Fixed | Feature 19: every `/services/*/api` route declares a permission, checked at the gate |
+| L-2 | Fixed | Tests write under `.temp/` (`aibase.js` uses `.temp/tests/data/aiservice` under Jest) |
+| L-3 | Fixed | The local filing provider defaults `baseDir` to `./.application/files` and `allowedTypes` to a safe list of document and image types |
+
+New since the review (Phase 2): personal access tokens were refused by the login gate on every `/services` route. An admin-owned token now opens the API paths and the MCP endpoint (never the dashboard pages), with its scopes applied (`tests/unit/security/patServicesGate.test.js`). `createApiToken` now refuses a `permissions` option, which the type declarations had named instead of `scopes`; before, it was ignored and the token got all of its owner's permissions. The file auth provider now persists password and role changes, so an old password stops working after a restart too.
+
 ## The headline chain (reproduced)
 
 | Step | Request | Result |
