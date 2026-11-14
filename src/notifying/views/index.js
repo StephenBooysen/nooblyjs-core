@@ -41,6 +41,10 @@ module.exports = (options, eventEmitter, notifier) => {
   if (options['express-app']) {
     const app = options['express-app'];
 
+    // The page's own scripts (strict CSP: no inline scripts). Only the js/
+    // folder is served, so nothing else under /services/notifying is intercepted.
+    app.use('/services/notifying/js', express.static(path.join(__dirname, 'js')));
+
     // Serve the notifying service view
     // Only serve index.html, not all static files (to avoid intercepting CSS/other assets)
     app.get('/services/notifying', (req, res) => {

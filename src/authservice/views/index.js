@@ -36,6 +36,10 @@ module.exports = (options, _eventEmitter, _auth) => {
     app.use('/services/authservice/views',
       express.static(path.join(__dirname)));
 
+    // The dashboard's own scripts, loaded relative to /services/authservice/
+    // (strict CSP: no inline scripts). Behind the login gate like the page.
+    app.use('/services/authservice/js', express.static(path.join(__dirname, 'js')));
+
     // Serve the main auth interface at the service root
     app.get('/services/authservice/', (req, res) => {
       res.sendFile(path.join(__dirname, 'index.html'));
