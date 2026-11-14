@@ -1,0 +1,782 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Data Service API",
+    "description": "REST API of the dataservice service.",
+    "version": "1.0.14"
+  },
+  "servers": [
+    {
+      "url": "/services/dataservice/api",
+      "description": "Data Service API"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Data",
+      "description": "Data"
+    },
+    {
+      "name": "Analytics",
+      "description": "Analytics"
+    },
+    {
+      "name": "Settings",
+      "description": "Settings"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "ApiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "x-api-key",
+        "description": "API key"
+      },
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Personal access token"
+      }
+    }
+  },
+  "paths": {
+    "/status": {
+      "get": {
+        "tags": [
+          "Data"
+        ],
+        "summary": "Service status",
+        "operationId": "getStatus",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "description": "No valid session, API key or token"
+          },
+          "403": {
+            "description": "Not allowed for this caller"
+          }
+        },
+        "x-permission": "dataservice:read"
+      }
+    },
+    "/analytics": {
+      "get": {
+        "tags": [
+          "Analytics"
+        ],
+        "summary": "Data analytics",
+        "description": "Total operation counts and per-container statistics.",
+        "operationId": "getAnalytics",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "description": "No valid session, API key or token"
+          },
+          "403": {
+            "description": "Not allowed for this caller"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        },
+        "x-permission": "dataservice:read"
+      },
+      "delete": {
+        "tags": [
+          "Analytics"
+        ],
+        "summary": "Clear data analytics",
+        "operationId": "deleteAnalytics",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "description": "No valid session, API key or token"
+          },
+          "403": {
+            "description": "Not allowed for this caller"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        },
+        "x-permission": "dataservice:write"
+      }
+    },
+    "/analytics/totals": {
+      "get": {
+        "tags": [
+          "Analytics"
+        ],
+        "summary": "Operation totals",
+        "operationId": "getAnalyticsTotals",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "description": "No valid session, API key or token"
+          },
+          "403": {
+            "description": "Not allowed for this caller"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        },
+        "x-permission": "dataservice:read"
+      }
+    },
+    "/analytics/containers": {
+      "get": {
+        "tags": [
+          "Analytics"
+        ],
+        "summary": "Per-container statistics",
+        "operationId": "getAnalyticsContainers",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "description": "No valid session, API key or token"
+          },
+          "403": {
+            "description": "Not allowed for this caller"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        },
+        "x-permission": "dataservice:read"
+      }
+    },
+    "/settings": {
+      "get": {
+        "tags": [
+          "Settings"
+        ],
+        "summary": "Read provider settings",
+        "operationId": "getSettings",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "description": "No valid session, API key or token"
+          },
+          "403": {
+            "description": "Not allowed for this caller"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        },
+        "x-permission": "dataservice:read"
+      },
+      "post": {
+        "tags": [
+          "Settings"
+        ],
+        "summary": "Save provider settings",
+        "operationId": "postSettings",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true,
+                "description": "Setting names and values"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "No valid session, API key or token"
+          },
+          "403": {
+            "description": "Not allowed for this caller"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        },
+        "x-permission": "settings:manage"
+      }
+    },
+    "/{container}": {
+      "post": {
+        "tags": [
+          "Data"
+        ],
+        "summary": "Add an object to a container",
+        "description": "Stores the JSON body in the container and returns its generated UUID.",
+        "operationId": "postByContainer",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "container",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true,
+                "description": "The object to store"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "No valid session, API key or token"
+          },
+          "403": {
+            "description": "Not allowed for this caller"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        },
+        "x-permission": "dataservice:write"
+      }
+    },
+    "/find/{container}": {
+      "get": {
+        "tags": [
+          "Data"
+        ],
+        "summary": "Find objects by text",
+        "description": "Returns the objects in the container whose values contain the search text (`q` query parameter).",
+        "operationId": "getFindByContainer",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "container",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": true,
+            "description": "Text to look for",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "description": "No valid session, API key or token"
+          },
+          "403": {
+            "description": "Not allowed for this caller"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        },
+        "x-permission": "dataservice:read"
+      }
+    },
+    "/count/{container}": {
+      "get": {
+        "tags": [
+          "Data"
+        ],
+        "summary": "Count the objects in a container",
+        "operationId": "getCountByContainer",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "container",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "description": "No valid session, API key or token"
+          },
+          "403": {
+            "description": "Not allowed for this caller"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        },
+        "x-permission": "dataservice:read"
+      }
+    },
+    "/{container}/{uuid}": {
+      "get": {
+        "tags": [
+          "Data"
+        ],
+        "summary": "Read an object by UUID",
+        "operationId": "getByContainerByUuid",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "container",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "uuid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "description": "No valid session, API key or token"
+          },
+          "403": {
+            "description": "Not allowed for this caller"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        },
+        "x-permission": "dataservice:read"
+      },
+      "put": {
+        "tags": [
+          "Data"
+        ],
+        "summary": "Replace an object by UUID",
+        "operationId": "putByContainerByUuid",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "container",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "uuid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true,
+                "description": "The new object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "No valid session, API key or token"
+          },
+          "403": {
+            "description": "Not allowed for this caller"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        },
+        "x-permission": "dataservice:write"
+      },
+      "delete": {
+        "tags": [
+          "Data"
+        ],
+        "summary": "Delete an object by UUID",
+        "operationId": "deleteByContainerByUuid",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "container",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "uuid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "description": "No valid session, API key or token"
+          },
+          "403": {
+            "description": "Not allowed for this caller"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        },
+        "x-permission": "dataservice:write"
+      }
+    },
+    "/jsonFind/{containerName}": {
+      "post": {
+        "tags": [
+          "Data"
+        ],
+        "summary": "Find objects matching path values",
+        "description": "The `criteria` object maps dotted paths to the values they must equal. No code is run; this replaced an older predicate-string form.",
+        "operationId": "postJsonFindByContainerName",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "containerName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "criteria": {
+                    "type": "object",
+                    "description": "Dotted paths and the values they must equal"
+                  }
+                },
+                "required": [
+                  "criteria"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "No valid session, API key or token"
+          },
+          "403": {
+            "description": "Not allowed for this caller"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        },
+        "x-permission": "dataservice:write"
+      }
+    },
+    "/jsonFindByPath/{containerName}/{path}/{value}": {
+      "get": {
+        "tags": [
+          "Data"
+        ],
+        "summary": "Find objects where a path equals a value",
+        "description": "Matches objects whose value at the dotted path (for example `address.city`) equals the given value.",
+        "operationId": "getJsonFindByPathByContainerNameByPathByValue",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "containerName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "path",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "value",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "description": "No valid session, API key or token"
+          },
+          "403": {
+            "description": "Not allowed for this caller"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        },
+        "x-permission": "dataservice:read"
+      }
+    },
+    "/jsonFindByCriteria/{containerName}": {
+      "post": {
+        "tags": [
+          "Data"
+        ],
+        "summary": "Find objects matching several path values",
+        "description": "The body maps dotted paths to the values they must equal; every pair must match.",
+        "operationId": "postJsonFindByCriteriaByContainerName",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "containerName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true,
+                "description": "Dotted paths and the values they must equal"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "No valid session, API key or token"
+          },
+          "403": {
+            "description": "Not allowed for this caller"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        },
+        "x-permission": "dataservice:write"
+      }
+    }
+  }
+}

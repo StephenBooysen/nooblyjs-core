@@ -77,7 +77,10 @@
           },
           "status": {
             "type": "string",
-            "enum": ["active", "inactive"],
+            "enum": [
+              "active",
+              "inactive"
+            ],
             "example": "active"
           }
         }
@@ -110,7 +113,12 @@
           },
           "level": {
             "type": "string",
-            "enum": ["INFO", "WARN", "ERROR", "LOG"]
+            "enum": [
+              "INFO",
+              "WARN",
+              "ERROR",
+              "LOG"
+            ]
           },
           "message": {
             "type": "object"
@@ -226,7 +234,9 @@
         "summary": "Get Service Status",
         "description": "Returns the operational status of the logging service. No authentication required.",
         "operationId": "getStatus",
-        "tags": ["Service"],
+        "tags": [
+          "Service"
+        ],
         "responses": {
           "200": {
             "description": "Service is operational",
@@ -247,11 +257,19 @@
         "summary": "List Logger Instances",
         "description": "Returns a list of all available logging service instances",
         "operationId": "listInstances",
-        "tags": ["Instances"],
+        "tags": [
+          "Instances"
+        ],
         "security": [
-          {"ApiKeyHeader": []},
-          {"BearerAuth": []},
-          {"ApiKeyQuery": []}
+          {
+            "ApiKeyHeader": []
+          },
+          {
+            "BearerAuth": []
+          },
+          {
+            "ApiKeyQuery": []
+          }
         ],
         "responses": {
           "200": {
@@ -282,11 +300,19 @@
         "summary": "Log Info Message",
         "description": "Logs an informational message through the default logging instance",
         "operationId": "logInfo",
-        "tags": ["Logging"],
+        "tags": [
+          "Logging"
+        ],
         "security": [
-          {"ApiKeyHeader": []},
-          {"BearerAuth": []},
-          {"ApiKeyQuery": []}
+          {
+            "ApiKeyHeader": []
+          },
+          {
+            "BearerAuth": []
+          },
+          {
+            "ApiKeyQuery": []
+          }
         ],
         "requestBody": {
           "description": "Log message (any valid JSON structure)",
@@ -340,11 +366,19 @@
         "summary": "Log Info Message to Instance",
         "description": "Logs an informational message to a named logger instance",
         "operationId": "logInfoToInstance",
-        "tags": ["Logging"],
+        "tags": [
+          "Logging"
+        ],
         "security": [
-          {"ApiKeyHeader": []},
-          {"BearerAuth": []},
-          {"ApiKeyQuery": []}
+          {
+            "ApiKeyHeader": []
+          },
+          {
+            "BearerAuth": []
+          },
+          {
+            "ApiKeyQuery": []
+          }
         ],
         "parameters": [
           {
@@ -409,11 +443,19 @@
         "summary": "Log Warning Message",
         "description": "Logs a warning message through the default logging instance",
         "operationId": "logWarn",
-        "tags": ["Logging"],
+        "tags": [
+          "Logging"
+        ],
         "security": [
-          {"ApiKeyHeader": []},
-          {"BearerAuth": []},
-          {"ApiKeyQuery": []}
+          {
+            "ApiKeyHeader": []
+          },
+          {
+            "BearerAuth": []
+          },
+          {
+            "ApiKeyQuery": []
+          }
         ],
         "requestBody": {
           "description": "Log message (any valid JSON structure)",
@@ -467,11 +509,19 @@
         "summary": "Log Warning Message to Instance",
         "description": "Logs a warning message to a named logger instance",
         "operationId": "logWarnToInstance",
-        "tags": ["Logging"],
+        "tags": [
+          "Logging"
+        ],
         "security": [
-          {"ApiKeyHeader": []},
-          {"BearerAuth": []},
-          {"ApiKeyQuery": []}
+          {
+            "ApiKeyHeader": []
+          },
+          {
+            "BearerAuth": []
+          },
+          {
+            "ApiKeyQuery": []
+          }
         ],
         "parameters": [
           {
@@ -536,11 +586,19 @@
         "summary": "Log Error Message",
         "description": "Logs an error message through the default logging instance",
         "operationId": "logError",
-        "tags": ["Logging"],
+        "tags": [
+          "Logging"
+        ],
         "security": [
-          {"ApiKeyHeader": []},
-          {"BearerAuth": []},
-          {"ApiKeyQuery": []}
+          {
+            "ApiKeyHeader": []
+          },
+          {
+            "BearerAuth": []
+          },
+          {
+            "ApiKeyQuery": []
+          }
         ],
         "requestBody": {
           "description": "Log message (any valid JSON structure)",
@@ -594,11 +652,19 @@
         "summary": "Log Error Message to Instance",
         "description": "Logs an error message to a named logger instance",
         "operationId": "logErrorToInstance",
-        "tags": ["Logging"],
+        "tags": [
+          "Logging"
+        ],
         "security": [
-          {"ApiKeyHeader": []},
-          {"BearerAuth": []},
-          {"ApiKeyQuery": []}
+          {
+            "ApiKeyHeader": []
+          },
+          {
+            "BearerAuth": []
+          },
+          {
+            "ApiKeyQuery": []
+          }
         ],
         "parameters": [
           {
@@ -663,11 +729,19 @@
         "summary": "Get Logs",
         "description": "Retrieves the last 1000 logs from analytics in descending order. Optional query parameter 'level' can filter by log level (INFO, WARN, ERROR, LOG)",
         "operationId": "getLogs",
-        "tags": ["Analytics"],
+        "tags": [
+          "Analytics"
+        ],
         "security": [
-          {"ApiKeyHeader": []},
-          {"BearerAuth": []},
-          {"ApiKeyQuery": []}
+          {
+            "ApiKeyHeader": []
+          },
+          {
+            "BearerAuth": []
+          },
+          {
+            "ApiKeyQuery": []
+          }
         ],
         "parameters": [
           {
@@ -676,7 +750,12 @@
             "required": false,
             "schema": {
               "type": "string",
-              "enum": ["INFO", "WARN", "ERROR", "LOG"]
+              "enum": [
+                "INFO",
+                "WARN",
+                "ERROR",
+                "LOG"
+              ]
             },
             "description": "Optional log level filter (case-insensitive)"
           }
@@ -710,11 +789,19 @@
         "summary": "Get Logs from Instance",
         "description": "Retrieves the last 1000 logs from a named logger instance's analytics. Optional query parameter 'level' can filter by log level.",
         "operationId": "getLogsFromInstance",
-        "tags": ["Analytics"],
+        "tags": [
+          "Analytics"
+        ],
         "security": [
-          {"ApiKeyHeader": []},
-          {"BearerAuth": []},
-          {"ApiKeyQuery": []}
+          {
+            "ApiKeyHeader": []
+          },
+          {
+            "BearerAuth": []
+          },
+          {
+            "ApiKeyQuery": []
+          }
         ],
         "parameters": [
           {
@@ -732,7 +819,12 @@
             "required": false,
             "schema": {
               "type": "string",
-              "enum": ["INFO", "WARN", "ERROR", "LOG"]
+              "enum": [
+                "INFO",
+                "WARN",
+                "ERROR",
+                "LOG"
+              ]
             },
             "description": "Optional log level filter (case-insensitive)"
           }
@@ -766,11 +858,19 @@
         "summary": "Get Log Statistics",
         "description": "Retrieves statistics about log levels including counts and percentages",
         "operationId": "getStats",
-        "tags": ["Analytics"],
+        "tags": [
+          "Analytics"
+        ],
         "security": [
-          {"ApiKeyHeader": []},
-          {"BearerAuth": []},
-          {"ApiKeyQuery": []}
+          {
+            "ApiKeyHeader": []
+          },
+          {
+            "BearerAuth": []
+          },
+          {
+            "ApiKeyQuery": []
+          }
         ],
         "responses": {
           "200": {
@@ -801,11 +901,19 @@
         "summary": "Get Log Statistics from Instance",
         "description": "Retrieves statistics about log levels from a named logger instance",
         "operationId": "getStatsFromInstance",
-        "tags": ["Analytics"],
+        "tags": [
+          "Analytics"
+        ],
         "security": [
-          {"ApiKeyHeader": []},
-          {"BearerAuth": []},
-          {"ApiKeyQuery": []}
+          {
+            "ApiKeyHeader": []
+          },
+          {
+            "BearerAuth": []
+          },
+          {
+            "ApiKeyQuery": []
+          }
         ],
         "parameters": [
           {
@@ -847,11 +955,19 @@
         "summary": "Get Timeline Data",
         "description": "Retrieves timeline data showing log activity per minute for each log level",
         "operationId": "getTimeline",
-        "tags": ["Analytics"],
+        "tags": [
+          "Analytics"
+        ],
         "security": [
-          {"ApiKeyHeader": []},
-          {"BearerAuth": []},
-          {"ApiKeyQuery": []}
+          {
+            "ApiKeyHeader": []
+          },
+          {
+            "BearerAuth": []
+          },
+          {
+            "ApiKeyQuery": []
+          }
         ],
         "responses": {
           "200": {
@@ -885,11 +1001,19 @@
         "summary": "Get Timeline Data from Instance",
         "description": "Retrieves timeline data from a named logger instance",
         "operationId": "getTimelineFromInstance",
-        "tags": ["Analytics"],
+        "tags": [
+          "Analytics"
+        ],
         "security": [
-          {"ApiKeyHeader": []},
-          {"BearerAuth": []},
-          {"ApiKeyQuery": []}
+          {
+            "ApiKeyHeader": []
+          },
+          {
+            "BearerAuth": []
+          },
+          {
+            "ApiKeyQuery": []
+          }
         ],
         "parameters": [
           {
@@ -934,11 +1058,19 @@
         "summary": "Get Logger Settings",
         "description": "Retrieves the current settings configuration for the default logger instance",
         "operationId": "getSettings",
-        "tags": ["Settings"],
+        "tags": [
+          "Settings"
+        ],
         "security": [
-          {"ApiKeyHeader": []},
-          {"BearerAuth": []},
-          {"ApiKeyQuery": []}
+          {
+            "ApiKeyHeader": []
+          },
+          {
+            "BearerAuth": []
+          },
+          {
+            "ApiKeyQuery": []
+          }
         ],
         "responses": {
           "200": {
@@ -967,11 +1099,19 @@
         "summary": "Save Logger Settings",
         "description": "Saves settings configuration for the default logger instance",
         "operationId": "saveSettings",
-        "tags": ["Settings"],
+        "tags": [
+          "Settings"
+        ],
         "security": [
-          {"ApiKeyHeader": []},
-          {"BearerAuth": []},
-          {"ApiKeyQuery": []}
+          {
+            "ApiKeyHeader": []
+          },
+          {
+            "BearerAuth": []
+          },
+          {
+            "ApiKeyQuery": []
+          }
         ],
         "requestBody": {
           "description": "Settings object to save",
@@ -1019,6 +1159,38 @@
           }
         }
       }
+    },
+    "/services/logging/api/swagger/docs.json": {
+      "get": {
+        "tags": [
+          "Documentation"
+        ],
+        "summary": "This OpenAPI document",
+        "operationId": "getSwaggerDocsJson",
+        "security": [
+          {
+            "ApiKeyHeader": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "description": "No valid session, API key or token"
+          },
+          "403": {
+            "description": "Not allowed for this caller"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        },
+        "x-permission": "logging:read"
+      }
     }
   },
   "tags": [
@@ -1045,6 +1217,10 @@
     {
       "name": "Settings",
       "description": "Configuration management"
+    },
+    {
+      "name": "Documentation",
+      "description": "Documentation"
     }
   ]
 }

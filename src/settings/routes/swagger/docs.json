@@ -1,0 +1,771 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Settings Service API",
+    "description": "REST API of the settings service.",
+    "version": "1.0.14"
+  },
+  "servers": [
+    {
+      "url": "/services/settings/api",
+      "description": "Settings Service API"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Settings",
+      "description": "Settings"
+    },
+    {
+      "name": "Groups",
+      "description": "Groups"
+    },
+    {
+      "name": "Values",
+      "description": "Values"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "ApiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "x-api-key",
+        "description": "API key"
+      },
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Personal access token"
+      }
+    }
+  },
+  "paths": {
+    "/status": {
+      "get": {
+        "tags": [
+          "Settings"
+        ],
+        "summary": "Service status",
+        "operationId": "getStatus",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "description": "No valid session, API key or token"
+          },
+          "403": {
+            "description": "Not allowed for this caller"
+          }
+        },
+        "x-permission": "settings:manage"
+      }
+    },
+    "/statistics": {
+      "get": {
+        "tags": [
+          "Settings"
+        ],
+        "summary": "Counts and file information",
+        "description": "Group, key and secret counts and the encrypted file details, for the dashboard.",
+        "operationId": "getStatistics",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "description": "No valid session, API key or token"
+          },
+          "403": {
+            "description": "Not allowed for this caller"
+          }
+        },
+        "x-permission": "settings:manage"
+      }
+    },
+    "/groups": {
+      "get": {
+        "tags": [
+          "Groups"
+        ],
+        "summary": "List groups",
+        "description": "Every group with its key and secret counts.",
+        "operationId": "getGroups",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "description": "No valid session, API key or token"
+          },
+          "403": {
+            "description": "Not allowed for this caller"
+          }
+        },
+        "x-permission": "settings:manage"
+      },
+      "post": {
+        "tags": [
+          "Groups"
+        ],
+        "summary": "Create a group",
+        "operationId": "postGroups",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "Group name"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Description"
+                  }
+                },
+                "required": [
+                  "name"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "No valid session, API key or token"
+          },
+          "403": {
+            "description": "Not allowed for this caller"
+          }
+        },
+        "x-permission": "settings:manage"
+      }
+    },
+    "/groups/{group}": {
+      "get": {
+        "tags": [
+          "Groups"
+        ],
+        "summary": "Read a group",
+        "description": "The group with per-key metadata. Secret values are masked unless reveal is allowed.",
+        "operationId": "getGroupsByGroup",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "group",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "description": "No valid session, API key or token"
+          },
+          "403": {
+            "description": "Not allowed for this caller"
+          }
+        },
+        "x-permission": "settings:manage"
+      },
+      "put": {
+        "tags": [
+          "Groups"
+        ],
+        "summary": "Change a group description",
+        "operationId": "putGroupsByGroup",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "group",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "description": {
+                    "type": "string",
+                    "description": "New description"
+                  }
+                },
+                "required": [
+                  "description"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "No valid session, API key or token"
+          },
+          "403": {
+            "description": "Not allowed for this caller"
+          }
+        },
+        "x-permission": "settings:manage"
+      },
+      "delete": {
+        "tags": [
+          "Groups"
+        ],
+        "summary": "Delete a group and its values",
+        "operationId": "deleteGroupsByGroup",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "group",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "description": "No valid session, API key or token"
+          },
+          "403": {
+            "description": "Not allowed for this caller"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        },
+        "x-permission": "settings:manage"
+      }
+    },
+    "/values": {
+      "get": {
+        "tags": [
+          "Values"
+        ],
+        "summary": "Every value, by group",
+        "description": "All groups as one nested key/value object.",
+        "operationId": "getValues",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "description": "No valid session, API key or token"
+          },
+          "403": {
+            "description": "Not allowed for this caller"
+          }
+        },
+        "x-permission": "settings:manage"
+      },
+      "post": {
+        "tags": [
+          "Values"
+        ],
+        "summary": "Import values",
+        "description": "Imports groups of values; `replace` empties the store first.",
+        "operationId": "postValues",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "values": {
+                    "type": "object",
+                    "description": "Groups of key/value pairs"
+                  },
+                  "replace": {
+                    "type": "boolean",
+                    "description": "Empty the store before importing"
+                  }
+                },
+                "required": [
+                  "values"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "No valid session, API key or token"
+          },
+          "403": {
+            "description": "Not allowed for this caller"
+          }
+        },
+        "x-permission": "settings:manage"
+      }
+    },
+    "/values/{group}/{key}": {
+      "get": {
+        "tags": [
+          "Values"
+        ],
+        "summary": "Read a value",
+        "operationId": "getValuesByGroupByKey",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "group",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "key",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "No valid session, API key or token"
+          },
+          "403": {
+            "description": "Not allowed for this caller"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        },
+        "x-permission": "settings:manage"
+      },
+      "post": {
+        "tags": [
+          "Values"
+        ],
+        "summary": "Set a value",
+        "operationId": "postValuesByGroupByKey",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "group",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "key",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "value": {
+                    "type": "string",
+                    "description": "Value to store (any JSON value)"
+                  },
+                  "secret": {
+                    "type": "boolean",
+                    "description": "Mask when listing"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Description"
+                  },
+                  "type": {
+                    "type": "string",
+                    "description": "Type hint for the admin screen"
+                  }
+                },
+                "required": [
+                  "value"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "No valid session, API key or token"
+          },
+          "403": {
+            "description": "Not allowed for this caller"
+          }
+        },
+        "x-permission": "settings:manage"
+      },
+      "put": {
+        "tags": [
+          "Values"
+        ],
+        "summary": "Set a value",
+        "description": "Same as POST.",
+        "operationId": "putValuesByGroupByKey",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "group",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "key",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "value": {
+                    "type": "string",
+                    "description": "Value to store (any JSON value)"
+                  },
+                  "secret": {
+                    "type": "boolean",
+                    "description": "Mask when listing"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Description"
+                  },
+                  "type": {
+                    "type": "string",
+                    "description": "Type hint for the admin screen"
+                  }
+                },
+                "required": [
+                  "value"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "No valid session, API key or token"
+          },
+          "403": {
+            "description": "Not allowed for this caller"
+          }
+        },
+        "x-permission": "settings:manage"
+      },
+      "delete": {
+        "tags": [
+          "Values"
+        ],
+        "summary": "Delete a value",
+        "operationId": "deleteValuesByGroupByKey",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "group",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "key",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "description": "No valid session, API key or token"
+          },
+          "403": {
+            "description": "Not allowed for this caller"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        },
+        "x-permission": "settings:manage"
+      }
+    },
+    "/reload": {
+      "post": {
+        "tags": [
+          "Settings"
+        ],
+        "summary": "Reload from the encrypted file",
+        "description": "Discards the in-memory copy and decrypts the file again.",
+        "operationId": "postReload",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "description": "No valid session, API key or token"
+          },
+          "403": {
+            "description": "Not allowed for this caller"
+          }
+        },
+        "x-permission": "settings:manage"
+      }
+    },
+    "/settings": {
+      "get": {
+        "tags": [
+          "Settings"
+        ],
+        "summary": "Read provider settings",
+        "operationId": "getSettings",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "description": "No valid session, API key or token"
+          },
+          "403": {
+            "description": "Not allowed for this caller"
+          }
+        },
+        "x-permission": "settings:manage"
+      },
+      "post": {
+        "tags": [
+          "Settings"
+        ],
+        "summary": "Save provider settings",
+        "operationId": "postSettings",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true,
+                "description": "Setting names and values"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "No valid session, API key or token"
+          },
+          "403": {
+            "description": "Not allowed for this caller"
+          }
+        },
+        "x-permission": "settings:manage"
+      }
+    }
+  }
+}

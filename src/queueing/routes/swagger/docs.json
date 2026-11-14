@@ -181,7 +181,9 @@
   "paths": {
     "/services/queueing/api/status": {
       "get": {
-        "tags": ["Status"],
+        "tags": [
+          "Status"
+        ],
         "summary": "Get service status",
         "description": "Returns the operational status of the queueing service. No authentication required.",
         "operationId": "getStatus",
@@ -213,7 +215,9 @@
     },
     "/services/queueing/api/instances": {
       "get": {
-        "tags": ["Instances"],
+        "tags": [
+          "Instances"
+        ],
         "summary": "List all instances",
         "description": "Returns a list of all available queueing service instances with their status and provider information.",
         "operationId": "listInstances",
@@ -244,7 +248,9 @@
     },
     "/services/queueing/api/enqueue/{queueName}": {
       "post": {
-        "tags": ["Queue Operations"],
+        "tags": [
+          "Queue Operations"
+        ],
         "summary": "Add task to queue",
         "description": "Adds a task to the end of the specified queue for processing.",
         "operationId": "enqueueTask",
@@ -266,7 +272,9 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["task"],
+                "required": [
+                  "task"
+                ],
                 "properties": {
                   "task": {
                     "$ref": "#/components/schemas/Task"
@@ -313,7 +321,9 @@
     },
     "/services/queueing/api/{instanceName}/enqueue/{queueName}": {
       "post": {
-        "tags": ["Queue Operations"],
+        "tags": [
+          "Queue Operations"
+        ],
         "summary": "Add task to queue (instance-specific)",
         "description": "Adds a task to the end of a named queue instance for processing.",
         "operationId": "enqueueTaskInstance",
@@ -345,7 +355,9 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["task"],
+                "required": [
+                  "task"
+                ],
                 "properties": {
                   "task": {
                     "$ref": "#/components/schemas/Task"
@@ -392,7 +404,9 @@
     },
     "/services/queueing/api/dequeue/{queueName}": {
       "get": {
-        "tags": ["Queue Operations"],
+        "tags": [
+          "Queue Operations"
+        ],
         "summary": "Remove task from queue",
         "description": "Removes and returns the next task from the front of the specified queue.",
         "operationId": "dequeueTask",
@@ -444,7 +458,9 @@
     },
     "/services/queueing/api/{instanceName}/dequeue/{queueName}": {
       "get": {
-        "tags": ["Queue Operations"],
+        "tags": [
+          "Queue Operations"
+        ],
         "summary": "Remove task from queue (instance-specific)",
         "description": "Removes and returns the next task from the front of a named queue instance.",
         "operationId": "dequeueTaskInstance",
@@ -506,7 +522,9 @@
     },
     "/services/queueing/api/size/{queueName}": {
       "get": {
-        "tags": ["Queue Operations"],
+        "tags": [
+          "Queue Operations"
+        ],
         "summary": "Get queue size",
         "description": "Returns the current number of tasks in the specified queue.",
         "operationId": "getQueueSize",
@@ -559,7 +577,9 @@
     },
     "/services/queueing/api/{instanceName}/size/{queueName}": {
       "get": {
-        "tags": ["Queue Operations"],
+        "tags": [
+          "Queue Operations"
+        ],
         "summary": "Get queue size (instance-specific)",
         "description": "Returns the current number of tasks in a named queue instance.",
         "operationId": "getQueueSizeInstance",
@@ -622,7 +642,9 @@
     },
     "/services/queueing/api/queues": {
       "get": {
-        "tags": ["Queue Operations"],
+        "tags": [
+          "Queue Operations"
+        ],
         "summary": "List all queues",
         "description": "Returns a list of all queue names in the default instance.",
         "operationId": "listQueues",
@@ -655,12 +677,21 @@
     },
     "/services/queueing/api/queues/{queueName}/jobs": {
       "post": {
-        "tags": ["Reliable Jobs"],
+        "tags": [
+          "Reliable Jobs"
+        ],
         "summary": "Add a reliable job",
         "description": "Adds a job with retries, backoff, dead-lettering and an optional idempotency key (feature 06). Supported by the memory and Redis queue providers; other providers answer 400.",
         "operationId": "addReliableJob",
         "parameters": [
-          { "name": "queueName", "in": "path", "required": true, "schema": { "type": "string" } }
+          {
+            "name": "queueName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
         ],
         "requestBody": {
           "required": false,
@@ -669,16 +700,33 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "data": { "description": "Job payload (any JSON value)" },
+                  "data": {
+                    "description": "Job payload (any JSON value)"
+                  },
                   "options": {
                     "type": "object",
                     "properties": {
-                      "delayMs": { "type": "integer", "minimum": 0 },
-                      "attempts": { "type": "integer", "minimum": 1 },
-                      "backoff": { "type": "object" },
-                      "priority": { "type": "integer" },
-                      "idempotencyKey": { "type": "string" },
-                      "dedupeWindowMs": { "type": "integer", "minimum": 0 }
+                      "delayMs": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "attempts": {
+                        "type": "integer",
+                        "minimum": 1
+                      },
+                      "backoff": {
+                        "type": "object"
+                      },
+                      "priority": {
+                        "type": "integer"
+                      },
+                      "idempotencyKey": {
+                        "type": "string"
+                      },
+                      "dedupeWindowMs": {
+                        "type": "integer",
+                        "minimum": 0
+                      }
                     }
                   }
                 }
@@ -687,9 +735,35 @@
           }
         },
         "responses": {
-          "201": { "description": "Job added", "content": { "application/json": { "schema": { "type": "object", "properties": { "success": { "type": "boolean" }, "data": { "type": "object", "properties": { "id": { "type": "string" } } } } } } } },
-          "400": { "description": "Invalid options, or the provider does not support reliable jobs" },
-          "500": { "description": "Server error" }
+          "201": {
+            "description": "Job added",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid options, or the provider does not support reliable jobs"
+          },
+          "500": {
+            "description": "Server error"
+          }
         }
       }
     },
@@ -796,18 +870,55 @@
     },
     "/services/queueing/api/queues/{queueName}/jobs/{jobId}": {
       "get": {
-        "tags": ["Reliable Jobs"],
+        "tags": [
+          "Reliable Jobs"
+        ],
         "summary": "Get a reliable job",
         "description": "Returns a job's state, attempts and last error.",
         "operationId": "getReliableJob",
         "parameters": [
-          { "name": "queueName", "in": "path", "required": true, "schema": { "type": "string" } },
-          { "name": "jobId", "in": "path", "required": true, "schema": { "type": "string" } }
+          {
+            "name": "queueName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "jobId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
         ],
         "responses": {
-          "200": { "description": "The job", "content": { "application/json": { "schema": { "type": "object", "properties": { "success": { "type": "boolean" }, "data": { "type": "object" } } } } } },
-          "404": { "description": "Job not found" },
-          "500": { "description": "Server error" }
+          "200": {
+            "description": "The job",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Job not found"
+          },
+          "500": {
+            "description": "Server error"
+          }
         }
       }
     },
@@ -876,16 +987,49 @@
     },
     "/services/queueing/api/queues/{queueName}/retry-dead": {
       "post": {
-        "tags": ["Reliable Jobs"],
+        "tags": [
+          "Reliable Jobs"
+        ],
         "summary": "Retry dead-lettered jobs",
         "description": "Requeues every dead-lettered job of a queue with its attempts reset.",
         "operationId": "retryDeadLetters",
         "parameters": [
-          { "name": "queueName", "in": "path", "required": true, "schema": { "type": "string" } }
+          {
+            "name": "queueName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
         ],
         "responses": {
-          "200": { "description": "Number of jobs requeued", "content": { "application/json": { "schema": { "type": "object", "properties": { "success": { "type": "boolean" }, "data": { "type": "object", "properties": { "requeued": { "type": "integer" } } } } } } } },
-          "500": { "description": "Server error" }
+          "200": {
+            "description": "Number of jobs requeued",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "requeued": {
+                          "type": "integer"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error"
+          }
         }
       }
     },
@@ -948,16 +1092,47 @@
     },
     "/services/queueing/api/queues/{queueName}/job-counts": {
       "get": {
-        "tags": ["Reliable Jobs"],
+        "tags": [
+          "Reliable Jobs"
+        ],
         "summary": "Count reliable jobs by state",
         "description": "Counts a queue's reliable jobs by state.",
         "operationId": "getReliableJobCounts",
         "parameters": [
-          { "name": "queueName", "in": "path", "required": true, "schema": { "type": "string" } }
+          {
+            "name": "queueName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
         ],
         "responses": {
-          "200": { "description": "Counts by state", "content": { "application/json": { "schema": { "type": "object", "properties": { "success": { "type": "boolean" }, "data": { "type": "object", "additionalProperties": { "type": "integer" } } } } } } },
-          "500": { "description": "Server error" }
+          "200": {
+            "description": "Counts by state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "integer"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error"
+          }
         }
       }
     },
@@ -1018,7 +1193,9 @@
     },
     "/services/queueing/api/{instanceName}/queues": {
       "get": {
-        "tags": ["Queue Operations"],
+        "tags": [
+          "Queue Operations"
+        ],
         "summary": "List all queues (instance-specific)",
         "description": "Returns a list of all queue names from a named queue instance.",
         "operationId": "listQueuesInstance",
@@ -1063,7 +1240,9 @@
     },
     "/services/queueing/api/purge/{queueName}": {
       "delete": {
-        "tags": ["Queue Operations"],
+        "tags": [
+          "Queue Operations"
+        ],
         "summary": "Purge queue",
         "description": "Purges all items from the specified queue.",
         "operationId": "purgeQueue",
@@ -1116,7 +1295,9 @@
     },
     "/services/queueing/api/{instanceName}/purge/{queueName}": {
       "delete": {
-        "tags": ["Queue Operations"],
+        "tags": [
+          "Queue Operations"
+        ],
         "summary": "Purge queue (instance-specific)",
         "description": "Purges all items from a named queue instance.",
         "operationId": "purgeQueueInstance",
@@ -1179,7 +1360,9 @@
     },
     "/services/queueing/api/analytics": {
       "get": {
-        "tags": ["Analytics"],
+        "tags": [
+          "Analytics"
+        ],
         "summary": "Get queue analytics",
         "description": "Returns analytics data for queue operations including statistics, distribution, timeline, and queue list.",
         "operationId": "getAnalytics",
@@ -1190,6 +1373,16 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Analytics"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
                 }
               }
             }
@@ -1209,23 +1402,15 @@
                 }
               }
             }
-          },
-          "500": {
-            "description": "Server error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
           }
         }
       }
     },
     "/services/queueing/api/{instanceName}/analytics": {
       "get": {
-        "tags": ["Analytics"],
+        "tags": [
+          "Analytics"
+        ],
         "summary": "Get queue analytics (instance-specific)",
         "description": "Returns analytics data for a named queue instance.",
         "operationId": "getAnalyticsInstance",
@@ -1252,6 +1437,16 @@
               }
             }
           },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
           "503": {
             "description": "Analytics not available",
             "content": {
@@ -1267,23 +1462,15 @@
                 }
               }
             }
-          },
-          "500": {
-            "description": "Server error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
           }
         }
       }
     },
     "/services/queueing/api/settings": {
       "get": {
-        "tags": ["Settings"],
+        "tags": [
+          "Settings"
+        ],
         "summary": "Get settings",
         "description": "Retrieves the current queue service settings.",
         "operationId": "getSettings",
@@ -1311,7 +1498,9 @@
         }
       },
       "post": {
-        "tags": ["Settings"],
+        "tags": [
+          "Settings"
+        ],
         "summary": "Save settings",
         "description": "Saves the queue service settings.",
         "operationId": "saveSettings",
@@ -1359,6 +1548,47 @@
           }
         }
       }
+    },
+    "/services/queueing/api/swagger/docs.json": {
+      "get": {
+        "tags": [
+          "Documentation"
+        ],
+        "summary": "This OpenAPI document",
+        "operationId": "getSwaggerDocsJson",
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "bearerToken": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "No valid session, API key or token"
+          },
+          "403": {
+            "description": "Not allowed for this caller"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        },
+        "x-permission": "queueing:read"
+      }
     }
-  }
+  },
+  "tags": [
+    {
+      "name": "Documentation",
+      "description": "Documentation"
+    }
+  ]
 }

@@ -1,0 +1,342 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Fetching Service API",
+    "description": "REST API of the fetching service.",
+    "version": "1.0.14"
+  },
+  "servers": [
+    {
+      "url": "/services/fetching/api",
+      "description": "Fetching Service API"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Fetching",
+      "description": "Fetching"
+    },
+    {
+      "name": "Analytics",
+      "description": "Analytics"
+    },
+    {
+      "name": "Settings",
+      "description": "Settings"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "ApiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "x-api-key",
+        "description": "API key"
+      },
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Personal access token"
+      }
+    }
+  },
+  "paths": {
+    "/fetch": {
+      "post": {
+        "tags": [
+          "Fetching"
+        ],
+        "summary": "Fetch a URL",
+        "description": "Fetches a URL through the fetching service, with its cache and request deduplication. Private and local addresses are refused by the SSRF guard.",
+        "operationId": "postFetch",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "url": {
+                    "type": "string",
+                    "maxLength": 2048
+                  },
+                  "options": {
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "url"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "No valid session, API key or token"
+          },
+          "403": {
+            "description": "Not allowed for this caller"
+          }
+        },
+        "x-permission": "fetching:write"
+      }
+    },
+    "/fetch/{url}": {
+      "get": {
+        "tags": [
+          "Fetching"
+        ],
+        "summary": "Fetch a URL given in the path",
+        "description": "Simple GET fetch: the URL is base64-encoded in the path. Uses the same cache and SSRF guard as POST /fetch.",
+        "operationId": "getFetchByUrl",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "url",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "description": "No valid session, API key or token"
+          },
+          "403": {
+            "description": "Not allowed for this caller"
+          }
+        },
+        "x-permission": "fetching:read"
+      }
+    },
+    "/status": {
+      "get": {
+        "tags": [
+          "Fetching"
+        ],
+        "summary": "Service status",
+        "operationId": "getStatus",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "description": "No valid session, API key or token"
+          },
+          "403": {
+            "description": "Not allowed for this caller"
+          }
+        },
+        "x-permission": "fetching:read"
+      }
+    },
+    "/analytics": {
+      "get": {
+        "tags": [
+          "Analytics"
+        ],
+        "summary": "Fetch analytics",
+        "description": "Counts, timings and cache hits for recent fetches.",
+        "operationId": "getAnalytics",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "description": "No valid session, API key or token"
+          },
+          "403": {
+            "description": "Not allowed for this caller"
+          },
+          "503": {
+            "description": "Unavailable"
+          }
+        },
+        "x-permission": "fetching:read"
+      }
+    },
+    "/list": {
+      "get": {
+        "tags": [
+          "Analytics"
+        ],
+        "summary": "Recent fetches",
+        "description": "The recent fetch operations recorded by analytics.",
+        "operationId": "getList",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "description": "No valid session, API key or token"
+          },
+          "403": {
+            "description": "Not allowed for this caller"
+          },
+          "503": {
+            "description": "Unavailable"
+          }
+        },
+        "x-permission": "fetching:read"
+      }
+    },
+    "/settings": {
+      "get": {
+        "tags": [
+          "Settings"
+        ],
+        "summary": "Read provider settings",
+        "operationId": "getSettings",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "description": "No valid session, API key or token"
+          },
+          "403": {
+            "description": "Not allowed for this caller"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        },
+        "x-permission": "fetching:read"
+      },
+      "post": {
+        "tags": [
+          "Settings"
+        ],
+        "summary": "Save provider settings",
+        "description": "Saves the provider settings listed by GET /settings.",
+        "operationId": "postSettings",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true,
+                "description": "Setting names and values"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "No valid session, API key or token"
+          },
+          "403": {
+            "description": "Not allowed for this caller"
+          }
+        },
+        "x-permission": "settings:manage"
+      }
+    },
+    "/cache": {
+      "delete": {
+        "tags": [
+          "Fetching"
+        ],
+        "summary": "Clear the fetch cache",
+        "operationId": "deleteCache",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "description": "No valid session, API key or token"
+          },
+          "403": {
+            "description": "Not allowed for this caller"
+          },
+          "503": {
+            "description": "Unavailable"
+          }
+        },
+        "x-permission": "fetching:write"
+      }
+    }
+  }
+}

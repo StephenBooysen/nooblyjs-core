@@ -16,7 +16,9 @@
       "post": {
         "summary": "Run a background task",
         "description": "Runs a new background task with the specified script and data",
-        "tags": ["Task Execution"],
+        "tags": [
+          "Task Execution"
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -73,7 +75,9 @@
       "get": {
         "summary": "Stop a background task",
         "description": "Stops the currently running background task",
-        "tags": ["Task Execution"],
+        "tags": [
+          "Task Execution"
+        ],
         "responses": {
           "200": {
             "description": "Task stopped successfully",
@@ -96,7 +100,9 @@
       "get": {
         "summary": "Service status",
         "description": "Check if the working service is running",
-        "tags": ["Service Status"],
+        "tags": [
+          "Service Status"
+        ],
         "responses": {
           "200": {
             "description": "Service is running",
@@ -116,7 +122,9 @@
       "get": {
         "summary": "Get all tasks analytics",
         "description": "Retrieves analytics for all executed tasks",
-        "tags": ["Analytics"],
+        "tags": [
+          "Analytics"
+        ],
         "responses": {
           "200": {
             "description": "Tasks analytics",
@@ -150,7 +158,9 @@
       "get": {
         "summary": "Get overall task statistics",
         "description": "Retrieves overall statistics about task executions",
-        "tags": ["Analytics"],
+        "tags": [
+          "Analytics"
+        ],
         "responses": {
           "200": {
             "description": "Overall statistics",
@@ -211,7 +221,9 @@
       "get": {
         "summary": "Get working service settings",
         "description": "Retrieves the working service configuration settings",
-        "tags": ["Settings"],
+        "tags": [
+          "Settings"
+        ],
         "responses": {
           "200": {
             "description": "Service settings",
@@ -231,7 +243,9 @@
       "post": {
         "summary": "Save working service settings",
         "description": "Updates the working service configuration settings",
-        "tags": ["Settings"],
+        "tags": [
+          "Settings"
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -268,6 +282,131 @@
           }
         }
       }
+    },
+    "/history": {
+      "get": {
+        "tags": [
+          "Working"
+        ],
+        "summary": "Recent task runs",
+        "description": "The worker run history, newest first.",
+        "operationId": "getHistory",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "description": "No valid session, API key or token"
+          },
+          "403": {
+            "description": "Not allowed for this caller"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        },
+        "x-permission": "working:read"
+      }
+    },
+    "/task/{taskId}": {
+      "get": {
+        "tags": [
+          "Working"
+        ],
+        "summary": "One task run",
+        "description": "Status and result of one task run.",
+        "operationId": "getTaskByTaskId",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "taskId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "No valid session, API key or token"
+          },
+          "403": {
+            "description": "Not allowed for this caller"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        },
+        "x-permission": "working:read"
+      }
+    },
+    "/analytics/{scriptPath}": {
+      "get": {
+        "tags": [
+          "Analytics"
+        ],
+        "summary": "Analytics for one script",
+        "description": "Run counts, failures and timings for the script at the given path.",
+        "operationId": "getAnalyticsByScriptPath",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "scriptPath",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "description": "No valid session, API key or token"
+          },
+          "403": {
+            "description": "Not allowed for this caller"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        },
+        "x-permission": "working:read"
+      }
     }
   },
   "tags": [
@@ -286,6 +425,25 @@
     {
       "name": "Service Status",
       "description": "Service status and health checks"
+    },
+    {
+      "name": "Working",
+      "description": "Working"
     }
-  ]
+  ],
+  "components": {
+    "securitySchemes": {
+      "ApiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "x-api-key",
+        "description": "API key"
+      },
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Personal access token"
+      }
+    }
+  }
 }

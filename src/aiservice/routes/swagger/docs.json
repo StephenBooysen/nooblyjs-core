@@ -6,11 +6,24 @@
     "version": "1.0.0"
   },
   "servers": [
-    { "url": "/services/ai/api", "description": "AI Service API" }
+    {
+      "url": "/services/ai/api",
+      "description": "AI Service API"
+    }
   ],
   "tags": [
-    { "name": "Default Instance", "description": "Operations on the default AI service instance" },
-    { "name": "Named Instance", "description": "Operations on a named AI service instance" }
+    {
+      "name": "Default Instance",
+      "description": "Operations on the default AI service instance"
+    },
+    {
+      "name": "Named Instance",
+      "description": "Operations on a named AI service instance"
+    },
+    {
+      "name": "Training",
+      "description": "Training"
+    }
   ],
   "components": {
     "parameters": {
@@ -19,7 +32,10 @@
         "in": "path",
         "required": true,
         "description": "Name of the AI service instance",
-        "schema": { "type": "string", "example": "default" }
+        "schema": {
+          "type": "string",
+          "example": "default"
+        }
       }
     },
     "requestBodies": {
@@ -29,7 +45,9 @@
           "application/json": {
             "schema": {
               "type": "object",
-              "required": ["prompt"],
+              "required": [
+                "prompt"
+              ],
               "properties": {
                 "prompt": {
                   "type": "string",
@@ -43,8 +61,14 @@
                 "options": {
                   "type": "object",
                   "properties": {
-                    "maxTokens": { "type": "integer", "example": 1000 },
-                    "temperature": { "type": "number", "example": 0.7 }
+                    "maxTokens": {
+                      "type": "integer",
+                      "example": 1000
+                    },
+                    "temperature": {
+                      "type": "number",
+                      "example": 0.7
+                    }
                   }
                 }
               }
@@ -65,43 +89,86 @@
       }
     },
     "responses": {
-      "Success": { "description": "Successful response" },
-      "BadRequest": { "description": "Invalid request" },
-      "ServiceDisabled": { "description": "AI service is disabled - API key not configured" },
-      "ServerError": { "description": "Internal server error" }
+      "Success": {
+        "description": "Successful response"
+      },
+      "BadRequest": {
+        "description": "Invalid request"
+      },
+      "ServiceDisabled": {
+        "description": "AI service is disabled - API key not configured"
+      },
+      "ServerError": {
+        "description": "Internal server error"
+      }
+    },
+    "securitySchemes": {
+      "ApiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "x-api-key",
+        "description": "API key"
+      },
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Personal access token"
+      }
     }
   },
   "paths": {
     "/instances": {
       "get": {
-        "tags": ["Default Instance"],
+        "tags": [
+          "Default Instance"
+        ],
         "summary": "List all AI service instances",
         "description": "Returns every registered AI service instance, including the default.",
         "responses": {
-          "200": { "$ref": "#/components/responses/Success" },
-          "500": { "$ref": "#/components/responses/ServerError" }
+          "200": {
+            "$ref": "#/components/responses/Success"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
         }
       }
     },
     "/status": {
       "get": {
-        "tags": ["Default Instance"],
+        "tags": [
+          "Default Instance"
+        ],
         "summary": "Get service status",
         "responses": {
-          "200": { "$ref": "#/components/responses/Success" }
+          "200": {
+            "$ref": "#/components/responses/Success"
+          }
         }
       }
     },
     "/prompt": {
       "post": {
-        "tags": ["Default Instance"],
+        "tags": [
+          "Default Instance"
+        ],
         "summary": "Send a prompt to the default instance",
-        "requestBody": { "$ref": "#/components/requestBodies/PromptBody" },
+        "requestBody": {
+          "$ref": "#/components/requestBodies/PromptBody"
+        },
         "responses": {
-          "200": { "$ref": "#/components/responses/Success" },
-          "400": { "$ref": "#/components/responses/BadRequest" },
-          "503": { "$ref": "#/components/responses/ServiceDisabled" },
-          "500": { "$ref": "#/components/responses/ServerError" }
+          "200": {
+            "$ref": "#/components/responses/Success"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          },
+          "503": {
+            "$ref": "#/components/responses/ServiceDisabled"
+          }
         }
       }
     },
@@ -378,134 +445,601 @@
     },
     "/analytics": {
       "get": {
-        "tags": ["Default Instance"],
+        "tags": [
+          "Default Instance"
+        ],
         "summary": "Get prompt analytics",
         "parameters": [
-          { "name": "limit", "in": "query", "required": false, "schema": { "type": "integer" } },
-          { "name": "recentLimit", "in": "query", "required": false, "schema": { "type": "integer" } }
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "recentLimit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          }
         ],
         "responses": {
-          "200": { "$ref": "#/components/responses/Success" }
+          "200": {
+            "$ref": "#/components/responses/Success"
+          }
         }
       }
     },
     "/models": {
       "get": {
-        "tags": ["Default Instance"],
+        "tags": [
+          "Default Instance"
+        ],
         "summary": "List available models",
         "responses": {
-          "200": { "$ref": "#/components/responses/Success" },
-          "500": { "$ref": "#/components/responses/ServerError" }
+          "200": {
+            "$ref": "#/components/responses/Success"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
         }
       }
     },
     "/health": {
       "get": {
-        "tags": ["Default Instance"],
+        "tags": [
+          "Default Instance"
+        ],
         "summary": "Health check",
         "responses": {
-          "200": { "$ref": "#/components/responses/Success" }
+          "200": {
+            "$ref": "#/components/responses/Success"
+          }
         }
       }
     },
     "/settings": {
       "get": {
-        "tags": ["Default Instance"],
+        "tags": [
+          "Default Instance"
+        ],
         "summary": "Get service settings",
         "responses": {
-          "200": { "$ref": "#/components/responses/Success" },
-          "500": { "$ref": "#/components/responses/ServerError" }
+          "200": {
+            "$ref": "#/components/responses/Success"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
         }
       },
       "post": {
-        "tags": ["Default Instance"],
+        "tags": [
+          "Default Instance"
+        ],
         "summary": "Save service settings",
-        "requestBody": { "$ref": "#/components/requestBodies/SettingsBody" },
+        "requestBody": {
+          "$ref": "#/components/requestBodies/SettingsBody"
+        },
         "responses": {
-          "200": { "$ref": "#/components/responses/Success" },
-          "400": { "$ref": "#/components/responses/BadRequest" },
-          "500": { "$ref": "#/components/responses/ServerError" }
+          "200": {
+            "$ref": "#/components/responses/Success"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
         }
       }
     },
     "/{instanceName}/status": {
       "get": {
-        "tags": ["Named Instance"],
+        "tags": [
+          "Named Instance"
+        ],
         "summary": "Get status for an instance",
-        "parameters": [{ "$ref": "#/components/parameters/InstanceName" }],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/InstanceName"
+          }
+        ],
         "responses": {
-          "200": { "$ref": "#/components/responses/Success" }
+          "200": {
+            "$ref": "#/components/responses/Success"
+          }
         }
       }
     },
     "/{instanceName}/prompt": {
       "post": {
-        "tags": ["Named Instance"],
+        "tags": [
+          "Named Instance"
+        ],
         "summary": "Send a prompt to a named instance",
-        "parameters": [{ "$ref": "#/components/parameters/InstanceName" }],
-        "requestBody": { "$ref": "#/components/requestBodies/PromptBody" },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/InstanceName"
+          }
+        ],
+        "requestBody": {
+          "$ref": "#/components/requestBodies/PromptBody"
+        },
         "responses": {
-          "200": { "$ref": "#/components/responses/Success" },
-          "400": { "$ref": "#/components/responses/BadRequest" },
-          "503": { "$ref": "#/components/responses/ServiceDisabled" },
-          "500": { "$ref": "#/components/responses/ServerError" }
+          "200": {
+            "$ref": "#/components/responses/Success"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          },
+          "503": {
+            "$ref": "#/components/responses/ServiceDisabled"
+          }
         }
       }
     },
     "/{instanceName}/analytics": {
       "get": {
-        "tags": ["Named Instance"],
+        "tags": [
+          "Named Instance"
+        ],
         "summary": "Get analytics for an instance",
         "parameters": [
-          { "$ref": "#/components/parameters/InstanceName" },
-          { "name": "limit", "in": "query", "required": false, "schema": { "type": "integer" } },
-          { "name": "recentLimit", "in": "query", "required": false, "schema": { "type": "integer" } }
+          {
+            "$ref": "#/components/parameters/InstanceName"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "recentLimit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          }
         ],
         "responses": {
-          "200": { "$ref": "#/components/responses/Success" }
+          "200": {
+            "$ref": "#/components/responses/Success"
+          }
         }
       }
     },
     "/{instanceName}/models": {
       "get": {
-        "tags": ["Named Instance"],
+        "tags": [
+          "Named Instance"
+        ],
         "summary": "List models for an instance",
-        "parameters": [{ "$ref": "#/components/parameters/InstanceName" }],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/InstanceName"
+          }
+        ],
         "responses": {
-          "200": { "$ref": "#/components/responses/Success" },
-          "500": { "$ref": "#/components/responses/ServerError" }
+          "200": {
+            "$ref": "#/components/responses/Success"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
         }
       }
     },
     "/{instanceName}/health": {
       "get": {
-        "tags": ["Named Instance"],
+        "tags": [
+          "Named Instance"
+        ],
         "summary": "Health check for an instance",
-        "parameters": [{ "$ref": "#/components/parameters/InstanceName" }],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/InstanceName"
+          }
+        ],
         "responses": {
-          "200": { "$ref": "#/components/responses/Success" }
+          "200": {
+            "$ref": "#/components/responses/Success"
+          }
         }
       }
     },
     "/{instanceName}/settings": {
       "get": {
-        "tags": ["Named Instance"],
+        "tags": [
+          "Named Instance"
+        ],
         "summary": "Get settings for an instance",
-        "parameters": [{ "$ref": "#/components/parameters/InstanceName" }],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/InstanceName"
+          }
+        ],
         "responses": {
-          "200": { "$ref": "#/components/responses/Success" },
-          "500": { "$ref": "#/components/responses/ServerError" }
+          "200": {
+            "$ref": "#/components/responses/Success"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
         }
       },
       "post": {
-        "tags": ["Named Instance"],
+        "tags": [
+          "Named Instance"
+        ],
         "summary": "Save settings for an instance",
-        "parameters": [{ "$ref": "#/components/parameters/InstanceName" }],
-        "requestBody": { "$ref": "#/components/requestBodies/SettingsBody" },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/InstanceName"
+          }
+        ],
+        "requestBody": {
+          "$ref": "#/components/requestBodies/SettingsBody"
+        },
         "responses": {
-          "200": { "$ref": "#/components/responses/Success" },
-          "400": { "$ref": "#/components/responses/BadRequest" },
-          "500": { "$ref": "#/components/responses/ServerError" }
+          "200": {
+            "$ref": "#/components/responses/Success"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        }
+      }
+    },
+    "/train/status": {
+      "get": {
+        "tags": [
+          "Training"
+        ],
+        "summary": "Training status",
+        "description": "Whether the provider supports training and how many examples it holds (TensorFlow and OpenAI key/value providers).",
+        "operationId": "getTrainStatus",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "description": "No valid session, API key or token"
+          },
+          "403": {
+            "description": "Not allowed for this caller"
+          }
+        },
+        "x-permission": "ai:read"
+      }
+    },
+    "/train/data": {
+      "get": {
+        "tags": [
+          "Training"
+        ],
+        "summary": "List training examples",
+        "operationId": "getTrainData",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "description": "No valid session, API key or token"
+          },
+          "403": {
+            "description": "Not allowed for this caller"
+          }
+        },
+        "x-permission": "ai:read"
+      },
+      "post": {
+        "tags": [
+          "Training"
+        ],
+        "summary": "Add a training example",
+        "operationId": "postTrainData",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "key": {
+                    "type": "string",
+                    "description": "Example key"
+                  },
+                  "text": {
+                    "type": "string",
+                    "description": "Example text"
+                  }
+                },
+                "required": [
+                  "key",
+                  "text"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "No valid session, API key or token"
+          },
+          "403": {
+            "description": "Not allowed for this caller"
+          }
+        },
+        "x-permission": "ai:write"
+      }
+    },
+    "/train/data/{key}": {
+      "delete": {
+        "tags": [
+          "Training"
+        ],
+        "summary": "Delete a training example",
+        "operationId": "deleteTrainDataByKey",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "description": "No valid session, API key or token"
+          },
+          "403": {
+            "description": "Not allowed for this caller"
+          }
+        },
+        "x-permission": "ai:write"
+      }
+    },
+    "/{instanceName}/train/status": {
+      "get": {
+        "tags": [
+          "Training"
+        ],
+        "summary": "Training status of a named instance",
+        "operationId": "getByInstanceNameTrainStatus",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "instanceName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "description": "No valid session, API key or token"
+          },
+          "403": {
+            "description": "Not allowed for this caller"
+          }
+        }
+      }
+    },
+    "/{instanceName}/train/data": {
+      "get": {
+        "tags": [
+          "Training"
+        ],
+        "summary": "List training examples of a named instance",
+        "operationId": "getByInstanceNameTrainData",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "instanceName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "description": "No valid session, API key or token"
+          },
+          "403": {
+            "description": "Not allowed for this caller"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Training"
+        ],
+        "summary": "Add a training example to a named instance",
+        "operationId": "postByInstanceNameTrainData",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "instanceName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "key": {
+                    "type": "string",
+                    "description": "Example key"
+                  },
+                  "text": {
+                    "type": "string",
+                    "description": "Example text"
+                  }
+                },
+                "required": [
+                  "key",
+                  "text"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "No valid session, API key or token"
+          },
+          "403": {
+            "description": "Not allowed for this caller"
+          }
+        }
+      }
+    },
+    "/{instanceName}/train/data/{key}": {
+      "delete": {
+        "tags": [
+          "Training"
+        ],
+        "summary": "Delete a training example from a named instance",
+        "operationId": "deleteByInstanceNameTrainDataByKey",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "instanceName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "key",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "description": "No valid session, API key or token"
+          },
+          "403": {
+            "description": "Not allowed for this caller"
+          }
         }
       }
     }

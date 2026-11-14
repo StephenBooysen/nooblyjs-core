@@ -3,10 +3,11 @@
  * references, the /services/api/openapi.json endpoint, and a drift check between
  * the documents and the routes Express registers.
  *
- * The drift check is a ratchet. Routes that have no documented operation are
- * listed in `undocumentedRoutes.baseline.json`. The test fails when a new route
- * is added without documentation, and when a baselined route gets documented
- * (remove it from the list then). The list only shrinks.
+ * The drift check: every route Express registers must have a documented
+ * operation in its service's `routes/swagger/docs.json`, and every documented
+ * operation must have a route. `undocumentedRoutes.baseline.json` lists
+ * exceptions; it is empty, and the test fails when a route is added without
+ * documentation.
  */
 'use strict';
 
@@ -50,6 +51,7 @@ describe('merged OpenAPI document (feature 10)', () => {
     registry.notifying('memory'); registry.working('memory'); registry.workflow('memory');
     registry.settings('file', { filepath: path.join(dir, 'settings.json'), secret: 'x'.repeat(32) });
     registry.aiservice('mock', {}); registry.authservice('memory', {}); registry.dataService('memory');
+    registry.knowledge('default', { container: 'openapi-kb', persist: false, dependencies: { aiservice: registry.aiservice('mock', {}) } });
     // Only services this app has mounted are part of it, as in the merged document.
     const mounted = om.mountedBases(app);
     services = om.loadServiceDocuments(SRC).filter((s) => mounted.has(om.serviceBase(s.doc, s.dir)));
@@ -108,6 +110,14 @@ describe('merged OpenAPI document (feature 10)', () => {
     expect(res.body.paths['/services/queueing/api/queues/{queueName}/jobs']).toBeDefined();
   });
 
+  it('serves the same document as YAML at /services/api/openapi.yaml', async () => {
+    const res = await request(app).get('/services/api/openapi.yaml').expect(200);
+    expect(res.headers['content-type']).toMatch(/yaml/);
+    const parsed = require('js-yaml').load(res.text);
+    expect(parsed.openapi).toBe('3.1.0');
+    expect(Object.keys(parsed.paths)).toEqual(Object.keys(registry.buildOpenApi().paths));
+  });
+
   it('documents only routes that exist', () => {
     expect(om.routelessDocumentation(routes, services)).toEqual([]);
   });
@@ -120,13 +130,30 @@ describe('merged OpenAPI document (feature 10)', () => {
     expect({ added, documentedNow }).toEqual({ added: [], documentedNow: [] });
   });
 
-  it('marks generated stubs for undocumented routes and keeps permissions on them', () => {
+  it('describes every built-in route: the merged document has no generated stubs', () => {
     const doc = registry.buildOpenApi();
     const stubs = [];
-    for (const item of Object.values(doc.paths)) {
-      for (const op of Object.values(item)) if (op['x-undocumented']) stubs.push(op);
+    for (const [p, item] of Object.entries(doc.paths)) {
+      for (const [method, op] of Object.entries(item)) if (op['x-undocumented']) stubs.push(`${method.toUpperCase()} ${p}`);
     }
-    expect(stubs.length).toBeGreaterThan(0);
-    expect(stubs.every((op) => op.responses && op.summary)).toBe(true);
+    expect(stubs).toEqual([]);
+  });
+
+  it('gives an app route with no documentation a marked stub that keeps its permission and input', () => {
+    const doc = om.buildOpenApiDocument({
+      services: [],
+      routes: [{
+        method: 'POST',
+        pattern: '/services/orders/api/orders/:id',
+        permission: 'orders:write',
+        schema: { body: { note: { type: 'string', required: true, maxLength: 200 } } }
+      }]
+    });
+    const op = doc.paths['/services/orders/api/orders/{id}'].post;
+    expect(op).toEqual(expect.objectContaining({ 'x-undocumented': true, 'x-permission': 'orders:write', tags: ['Orders'] }));
+    expect(op.summary).toBeTruthy();
+    expect(op.responses).toBeDefined();
+    expect(op.parameters).toEqual([expect.objectContaining({ name: 'id', in: 'path', required: true })]);
+    expect(op.requestBody.content['application/json'].schema).toEqual(expect.objectContaining({ required: ['note'] }));
   });
 });

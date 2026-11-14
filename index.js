@@ -301,6 +301,16 @@ class ServiceRegistry {
       }
     });
 
+    // The same document as YAML, for tools that import YAML (feature 10).
+    this.expressApp.get('/services/api/openapi.yaml', (req, res) => {
+      try {
+        const yaml = require('js-yaml');
+        res.status(200).type('application/yaml').send(yaml.dump(this.buildOpenApi(), { noRefs: true, lineWidth: -1 }));
+      } catch (error) {
+        sendSafeError(res, error, { status: 500, eventEmitter: this.eventEmitter });
+      }
+    });
+
     // Human-readable API documentation over the same document (feature 10).
     this.expressApp.get('/services/api/docs', (req, res) => {
       res.sendFile(path.join(__dirname, 'src', 'views', 'api-docs.html'));

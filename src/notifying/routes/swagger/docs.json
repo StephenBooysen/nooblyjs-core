@@ -47,7 +47,9 @@
   "paths": {
     "/topic": {
       "post": {
-        "tags": ["Topic Management"],
+        "tags": [
+          "Topic Management"
+        ],
         "summary": "Create a new notification topic",
         "description": "Creates a new notification topic for pub/sub messaging in the default instance.",
         "operationId": "createTopic",
@@ -57,7 +59,9 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["topic"],
+                "required": [
+                  "topic"
+                ],
                 "properties": {
                   "topic": {
                     "type": "string",
@@ -107,7 +111,9 @@
     },
     "/{instanceName}/topic": {
       "post": {
-        "tags": ["Topic Management"],
+        "tags": [
+          "Topic Management"
+        ],
         "summary": "Create a new notification topic in a named instance",
         "description": "Creates a new notification topic for pub/sub messaging in the specified instance.",
         "operationId": "createTopicInstance",
@@ -129,7 +135,9 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["topic"],
+                "required": [
+                  "topic"
+                ],
                 "properties": {
                   "topic": {
                     "type": "string",
@@ -179,7 +187,9 @@
     },
     "/subscribe/topic/{topic}": {
       "post": {
-        "tags": ["Subscriptions"],
+        "tags": [
+          "Subscriptions"
+        ],
         "summary": "Subscribe to a topic",
         "description": "Subscribes a callback URL to receive notifications from a topic in the default instance.",
         "operationId": "subscribeTopic",
@@ -201,7 +211,9 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["callbackUrl"],
+                "required": [
+                  "callbackUrl"
+                ],
                 "properties": {
                   "callbackUrl": {
                     "type": "string",
@@ -252,7 +264,9 @@
     },
     "/{instanceName}/subscribe/topic/{topic}": {
       "post": {
-        "tags": ["Subscriptions"],
+        "tags": [
+          "Subscriptions"
+        ],
         "summary": "Subscribe to a topic in a named instance",
         "description": "Subscribes a callback URL to receive notifications from a topic in the specified instance.",
         "operationId": "subscribeTopicInstance",
@@ -284,7 +298,9 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["callbackUrl"],
+                "required": [
+                  "callbackUrl"
+                ],
                 "properties": {
                   "callbackUrl": {
                     "type": "string",
@@ -335,7 +351,9 @@
     },
     "/unsubscribe/topic/{topic}": {
       "post": {
-        "tags": ["Subscriptions"],
+        "tags": [
+          "Subscriptions"
+        ],
         "summary": "Unsubscribe from a topic",
         "description": "Unsubscribes a callback URL from a topic's notifications in the default instance.",
         "operationId": "unsubscribeTopic",
@@ -357,7 +375,9 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["callbackUrl"],
+                "required": [
+                  "callbackUrl"
+                ],
                 "properties": {
                   "callbackUrl": {
                     "type": "string",
@@ -408,7 +428,9 @@
     },
     "/{instanceName}/unsubscribe/topic/{topic}": {
       "post": {
-        "tags": ["Subscriptions"],
+        "tags": [
+          "Subscriptions"
+        ],
         "summary": "Unsubscribe from a topic in a named instance",
         "description": "Unsubscribes a callback URL from a topic in the specified instance.",
         "operationId": "unsubscribeTopicInstance",
@@ -440,7 +462,9 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["callbackUrl"],
+                "required": [
+                  "callbackUrl"
+                ],
                 "properties": {
                   "callbackUrl": {
                     "type": "string",
@@ -491,7 +515,9 @@
     },
     "/notify/topic/{topic}": {
       "post": {
-        "tags": ["Notifications"],
+        "tags": [
+          "Notifications"
+        ],
         "summary": "Send a notification to a topic",
         "description": "Sends a notification message to all subscribers of a topic in the default instance.",
         "operationId": "notifyTopic",
@@ -513,7 +539,9 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["message"],
+                "required": [
+                  "message"
+                ],
                 "properties": {
                   "message": {
                     "description": "The message to broadcast to subscribers",
@@ -566,7 +594,9 @@
     },
     "/{instanceName}/notify/topic/{topic}": {
       "post": {
-        "tags": ["Notifications"],
+        "tags": [
+          "Notifications"
+        ],
         "summary": "Send a notification to a topic in a named instance",
         "description": "Sends a notification message to all subscribers of a topic in the specified instance.",
         "operationId": "notifyTopicInstance",
@@ -598,7 +628,9 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["message"],
+                "required": [
+                  "message"
+                ],
                 "properties": {
                   "message": {
                     "description": "The message to broadcast to subscribers",
@@ -651,7 +683,9 @@
     },
     "/analytics/overview": {
       "get": {
-        "tags": ["Analytics"],
+        "tags": [
+          "Analytics"
+        ],
         "summary": "Get analytics overview",
         "description": "Retrieve summary analytics for topics and notifications in the default instance.",
         "operationId": "getAnalyticsOverview",
@@ -712,7 +746,9 @@
     },
     "/{instanceName}/analytics/overview": {
       "get": {
-        "tags": ["Analytics"],
+        "tags": [
+          "Analytics"
+        ],
         "summary": "Get analytics overview for a named instance",
         "description": "Retrieve summary analytics for topics and notifications in the specified instance.",
         "operationId": "getAnalyticsOverviewInstance",
@@ -785,7 +821,9 @@
     },
     "/analytics/top-topics": {
       "get": {
-        "tags": ["Analytics"],
+        "tags": [
+          "Analytics"
+        ],
         "summary": "Get top topics by activity",
         "description": "Retrieve the top topics ranked by notification count in the default instance.",
         "operationId": "getTopTopics",
@@ -862,7 +900,9 @@
     },
     "/{instanceName}/analytics/top-topics": {
       "get": {
-        "tags": ["Analytics"],
+        "tags": [
+          "Analytics"
+        ],
         "summary": "Get top topics for a named instance",
         "description": "Retrieve the top topics ranked by notification count in the specified instance.",
         "operationId": "getTopTopicsInstance",
@@ -949,7 +989,9 @@
     },
     "/analytics/topics": {
       "get": {
-        "tags": ["Analytics"],
+        "tags": [
+          "Analytics"
+        ],
         "summary": "Get all topics with details",
         "description": "Retrieve detailed information about all topics ordered by last publish time in the default instance.",
         "operationId": "getTopicDetails",
@@ -1026,7 +1068,9 @@
     },
     "/{instanceName}/analytics/topics": {
       "get": {
-        "tags": ["Analytics"],
+        "tags": [
+          "Analytics"
+        ],
         "summary": "Get all topics for a named instance",
         "description": "Retrieve detailed information about all topics in the specified instance.",
         "operationId": "getTopicDetailsInstance",
@@ -1113,7 +1157,9 @@
     },
     "/settings": {
       "get": {
-        "tags": ["Settings"],
+        "tags": [
+          "Settings"
+        ],
         "summary": "Get service settings",
         "description": "Retrieves the current settings for the notifying service in the default instance.",
         "operationId": "getSettings",
@@ -1150,7 +1196,9 @@
         }
       },
       "post": {
-        "tags": ["Settings"],
+        "tags": [
+          "Settings"
+        ],
         "summary": "Save service settings",
         "description": "Saves or updates the settings for the notifying service in the default instance.",
         "operationId": "saveSettings",
@@ -1203,7 +1251,9 @@
     },
     "/status": {
       "get": {
-        "tags": ["Service"],
+        "tags": [
+          "Service"
+        ],
         "summary": "Get service status",
         "description": "Returns the operational status of the notification service.",
         "operationId": "getStatus",
@@ -1224,7 +1274,9 @@
     },
     "/instances": {
       "get": {
-        "tags": ["Service"],
+        "tags": [
+          "Service"
+        ],
         "summary": "Get available instances",
         "description": "Returns a list of all available notifying service instances.",
         "operationId": "getInstances",
@@ -1241,7 +1293,11 @@
                       "items": {
                         "type": "string"
                       },
-                      "example": ["default", "production", "staging"]
+                      "example": [
+                        "default",
+                        "production",
+                        "staging"
+                      ]
                     }
                   }
                 }
@@ -1271,7 +1327,9 @@
     },
     "/swagger/docs.json": {
       "get": {
-        "tags": ["Service"],
+        "tags": [
+          "Service"
+        ],
         "summary": "Get Swagger documentation",
         "description": "Returns the OpenAPI/Swagger specification for the Notifying Service API.",
         "operationId": "getSwaggerDocs",
@@ -1289,13 +1347,83 @@
           }
         }
       }
+    },
+    "/notifications": {
+      "get": {
+        "tags": [
+          "Notifications"
+        ],
+        "summary": "Notification history",
+        "description": "Published notifications, newest first.",
+        "operationId": "getNotifications",
+        "security": [
+          {
+            "ApiKey": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "description": "No valid session, API key or token"
+          },
+          "403": {
+            "description": "Not allowed for this caller"
+          }
+        },
+        "x-permission": "notifying:read"
+      }
+    },
+    "/{instanceName}/notifications": {
+      "get": {
+        "tags": [
+          "Notifications"
+        ],
+        "summary": "Notification history of a named instance",
+        "operationId": "getByInstanceNameNotifications",
+        "security": [
+          {
+            "ApiKey": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "instanceName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "description": "No valid session, API key or token"
+          },
+          "403": {
+            "description": "Not allowed for this caller"
+          }
+        }
+      }
     }
   },
   "components": {
     "schemas": {
       "Topic": {
         "type": "object",
-        "required": ["topic"],
+        "required": [
+          "topic"
+        ],
         "properties": {
           "topic": {
             "type": "string",
@@ -1306,7 +1434,9 @@
       },
       "Subscription": {
         "type": "object",
-        "required": ["callbackUrl"],
+        "required": [
+          "callbackUrl"
+        ],
         "properties": {
           "callbackUrl": {
             "type": "string",
@@ -1318,7 +1448,9 @@
       },
       "Notification": {
         "type": "object",
-        "required": ["message"],
+        "required": [
+          "message"
+        ],
         "properties": {
           "message": {
             "type": "object",
