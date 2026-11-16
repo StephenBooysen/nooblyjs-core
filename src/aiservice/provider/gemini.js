@@ -10,7 +10,8 @@
 'use strict';
 
 const AIServiceBase = require('./aibase');
-const fetch = globalThis.fetch || require('node-fetch');
+// Built-in fetch: Node 22 and later (engines.node).
+const fetch = globalThis.fetch;
 
 /**
  * Google Gemini AI provider implementation.

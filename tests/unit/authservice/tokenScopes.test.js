@@ -5,6 +5,8 @@
  */
 'use strict';
 
+const { route } = require('../../../src/shared/utils/routePattern');
+
 process.env.BCRYPT_COST = process.env.BCRYPT_COST || '6';
 
 const express = require('express');
@@ -79,7 +81,7 @@ describe('permission gate with a scoped token', () => {
       declarations: new RouteDeclarations({ 'GET /services/caching/api/list': 'caching:read' }),
       strict: () => true
     }));
-    app.all('/services/*', (req, res) => res.json({ reached: true }));
+    app.all(...route('/services/*'), (req, res) => res.json({ reached: true }));
     return app;
   }
 

@@ -12,14 +12,13 @@
 
 const path = require('node:path');
 const express = require('express');
-const bodyParser = require('body-parser');
 const { v4: uuidv4 } = require('uuid');
 const serviceRegistry = require('../../index');
 const { EventEmitter } = require('events');
 
 /** @type {express.Application} Express application instance */
 const app = express();
-app.use(bodyParser.json());
+app.use(express.json());
 
 /**
  * Initialize the service registry with the Express app.
