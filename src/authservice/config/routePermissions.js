@@ -214,6 +214,13 @@ const ROUTE_PERMISSIONS = Object.freeze({
   'POST /services/notifying/api/settings': 'settings:manage',
   'GET /services/notifying/api/instances': 'notifying:read',
   'GET /services/notifying/api/swagger/docs.json': 'notifying:read',
+  // webhooks (feature 12)
+  'GET /services/notifying/api/webhooks': 'notifying:read',
+  'POST /services/notifying/api/webhooks': 'notifying:write',
+  'DELETE /services/notifying/api/webhooks/:id': 'notifying:write',
+  'POST /services/notifying/api/webhooks/publish': 'notifying:write',
+  'GET /services/notifying/api/webhooks/deliveries': 'notifying:read',
+  'POST /services/notifying/api/webhooks/deliveries/:deliveryId/redeliver': 'notifying:write',
 
   // workflow
   'GET /services/workflow/api/workflows': 'workflow:read',

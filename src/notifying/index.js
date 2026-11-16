@@ -72,6 +72,28 @@ function createNotificationService(type, options, eventEmitter) {
   const instanceName = (options && options.instanceName) || 'default';
   analytics = new NotifyingAnalytics(eventEmitter, notifying, instanceName);
 
+  // Outbound webhooks (feature 12). Deliveries run on the reliable queue, so
+  // this needs the queueing and settings services, which the registry injects.
+  const deps = (options && options.dependencies) || {};
+  if (deps.queueing && deps.settings) {
+    const webhookOptions = (options && options.webhooks) || {};
+    const dispatcher = new WebhookDispatcher({
+      queue: deps.queueing,
+      settings: deps.settings,
+      logger: deps.logging,
+      eventEmitter,
+      ...webhookOptions
+    });
+    notifying.webhooks = dispatcher;
+    notifying.subscribeWebhook = (input) => dispatcher.subscribe(input);
+    notifying.listWebhooks = () => dispatcher.list();
+    notifying.unsubscribeWebhook = (id) => dispatcher.unsubscribe(id);
+    notifying.publish = (event, payload) => dispatcher.publish(event, payload);
+    notifying.redeliverWebhook = (deliveryId) => dispatcher.redeliver(deliveryId);
+    notifying.webhookDeliveries = (limit) => dispatcher.deliveries(limit);
+    // The registry calls stopConsumers() on shutdown and reset.
+    notifying.stopConsumers = () => dispatcher.stop();
+  }
   // Initialize routes, views, and scripts for the notification service
   Routes(options, eventEmitter, notifying, analytics);
   Views(options, eventEmitter, notifying);
@@ -88,28 +110,6 @@ function createNotificationService(type, options, eventEmitter) {
   // (P2-6); the notifying routes also read it per instance.
   service.analytics = analytics;
 
-  // Outbound webhooks (feature 12). Deliveries run on the reliable queue, so
-  // this needs the queueing and settings services, which the registry injects.
-  const deps = (options && options.dependencies) || {};
-  if (deps.queueing && deps.settings) {
-    const webhookOptions = (options && options.webhooks) || {};
-    const dispatcher = new WebhookDispatcher({
-      queue: deps.queueing,
-      settings: deps.settings,
-      logger: deps.logging,
-      eventEmitter,
-      ...webhookOptions
-    });
-    service.webhooks = dispatcher;
-    service.subscribeWebhook = (input) => dispatcher.subscribe(input);
-    service.listWebhooks = () => dispatcher.list();
-    service.unsubscribeWebhook = (id) => dispatcher.unsubscribe(id);
-    service.publish = (event, payload) => dispatcher.publish(event, payload);
-    service.redeliverWebhook = (deliveryId) => dispatcher.redeliver(deliveryId);
-    service.webhookDeliveries = (limit) => dispatcher.deliveries(limit);
-    // The registry calls stopConsumers() on shutdown and reset.
-    service.stopConsumers = () => dispatcher.stop();
-  }
   return service;
 }
 

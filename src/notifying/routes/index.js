@@ -15,7 +15,7 @@
 
 const { getServiceInstance } = require('../../appservice/utils/routeUtils');
 const { sendSafeError } = require('../../shared/utils/safeError');
-const { capLimit } = require('../../shared/utils/validation');
+const { capLimit, validate } = require('../../shared/utils/validation');
 
 /**
  * Configures and registers notification routes with the Express application.
@@ -423,6 +423,127 @@ module.exports = (options, eventEmitter, notifier, analytics) => {
           });
         } catch (error) {
           res.status(500).json({ error: 'Failed to retrieve topic list' });
+        }
+      });
+    }
+
+    // Outbound webhooks (feature 12). Only registered when the provider has them.
+    if (typeof notifier.listWebhooks === 'function') {
+      const webhookWrite = validate({
+        body: {
+          url: { type: 'string', required: true, maxLength: 2048 },
+          events: { type: 'array', required: true, maxLength: 100 },
+          description: { type: 'string', maxLength: 300 },
+          secret: { type: 'string', maxLength: 256 }
+        }
+      });
+
+      /**
+       * GET /services/notifying/api/webhooks
+       * Lists webhook subscriptions. Secrets are masked.
+       *
+       * @param {express.Request} req - Express request object
+       * @param {express.Response} res - Express response object
+       * @return {void}
+       */
+      app.get('/services/notifying/api/webhooks', async (req, res) => {
+        try {
+          res.status(200).json({ subscriptions: await notifier.listWebhooks() });
+        } catch (err) {
+          sendSafeError(res, err, { status: 500, eventEmitter });
+        }
+      });
+
+      /**
+       * POST /services/notifying/api/webhooks
+       * Creates a subscription. The generated secret is returned once, here.
+       *
+       * @param {express.Request} req - Express request object
+       * @param {string} req.body.url - Public HTTPS endpoint to deliver to
+       * @param {string[]} req.body.events - Event names, or ['*']
+       * @param {string=} req.body.description - Free-text label
+       * @param {string=} req.body.secret - Signing secret (generated when omitted)
+       * @param {express.Response} res - Express response object
+       * @return {void}
+       */
+      app.post('/services/notifying/api/webhooks', webhookWrite, async (req, res) => {
+        try {
+          const created = await notifier.subscribeWebhook(req.body);
+          res.status(201).json(created);
+        } catch (err) {
+          sendSafeError(res, err, { status: 500, eventEmitter });
+        }
+      });
+
+      /**
+       * DELETE /services/notifying/api/webhooks/:id
+       * Removes a subscription. Queued deliveries for it are dropped when they run.
+       *
+       * @param {express.Request} req - Express request object
+       * @param {string} req.params.id - Subscription id
+       * @param {express.Response} res - Express response object
+       * @return {void}
+       */
+      app.delete('/services/notifying/api/webhooks/:id', async (req, res) => {
+        try {
+          const removed = await notifier.unsubscribeWebhook(req.params.id);
+          if (!removed) return res.status(404).json({ error: 'Subscription not found' });
+          res.status(200).json({ success: true });
+        } catch (err) {
+          sendSafeError(res, err, { status: 500, eventEmitter });
+        }
+      });
+
+      /**
+       * POST /services/notifying/api/webhooks/publish
+       * Queues a delivery of an event to every active subscription listening for it.
+       *
+       * @param {express.Request} req - Express request object
+       * @param {string} req.body.event - Event name, for example order.created
+       * @param {*} req.body.data - JSON payload
+       * @param {express.Response} res - Express response object
+       * @return {void}
+       */
+      app.post('/services/notifying/api/webhooks/publish', validate({
+        body: { event: { type: 'string', required: true, maxLength: 120 } }
+      }), async (req, res) => {
+        try {
+          res.status(202).json(await notifier.publish(req.body.event, req.body.data));
+        } catch (err) {
+          sendSafeError(res, err, { status: 500, eventEmitter });
+        }
+      });
+
+      /**
+       * GET /services/notifying/api/webhooks/deliveries
+       * Recent deliveries, newest first. Bodies are not returned.
+       *
+       * @param {express.Request} req - Express request object
+       * @param {string=} req.query.limit - Most entries to return (max 500)
+       * @param {express.Response} res - Express response object
+       * @return {void}
+       */
+      app.get('/services/notifying/api/webhooks/deliveries', validate({
+        query: { limit: { type: 'integer', min: 1, max: 500 } }
+      }), (req, res) => {
+        const limit = req.query.limit ? Number(req.query.limit) : 50;
+        res.status(200).json({ deliveries: notifier.webhookDeliveries(limit) });
+      });
+
+      /**
+       * POST /services/notifying/api/webhooks/deliveries/:deliveryId/redeliver
+       * Queues another delivery of an earlier event under a new delivery id.
+       *
+       * @param {express.Request} req - Express request object
+       * @param {string} req.params.deliveryId - Delivery to send again
+       * @param {express.Response} res - Express response object
+       * @return {void}
+       */
+      app.post('/services/notifying/api/webhooks/deliveries/:deliveryId/redeliver', async (req, res) => {
+        try {
+          res.status(202).json(await notifier.redeliverWebhook(req.params.deliveryId));
+        } catch (err) {
+          sendSafeError(res, err, { status: 500, eventEmitter });
         }
       });
     }
