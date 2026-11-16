@@ -282,6 +282,55 @@ module.exports = (options, eventEmitter, settings) => {
     res.status(200).json({ success: true });
   }));
 
+  // ---------------------------------------------------------------------------
+  // Feature flags (feature 13). Managing flags needs settings:manage. Evaluating
+  // needs flags:evaluate, and always uses the caller's own identity, never
+  // roles or ids supplied in the body.
+  // ---------------------------------------------------------------------------
+
+  /**
+   * GET /services/settings/api/flags
+   * Lists every flag with its definition, timestamps and last evaluation time.
+   */
+  app.get('/services/settings/api/flags', route('list-flags', async (req, res) => {
+    const flags = await settings.flags.list();
+    res.status(200).json({ success: true, flags });
+  }));
+
+  /**
+   * PUT /services/settings/api/flags/:name
+   * Creates or replaces a flag definition.
+   */
+  app.put('/services/settings/api/flags/:name', route('save-flag', async (req, res) => {
+    const definition = await settings.flags.set(req.params.name, req.body);
+    res.status(200).json({ success: true, flag: { name: req.params.name, ...definition } });
+  }));
+
+  /**
+   * DELETE /services/settings/api/flags/:name
+   * Removes a flag definition.
+   */
+  app.delete('/services/settings/api/flags/:name', route('delete-flag', async (req, res) => {
+    const deleted = await settings.flags.delete(req.params.name);
+    res.status(200).json({ success: true, deleted });
+  }));
+
+  /**
+   * POST /services/settings/api/flags/:name/evaluate
+   * Evaluates a flag for the signed-in caller. Frontends use this for
+   * `isEnabled`. Identity comes from the session or token, never the body.
+   */
+  app.post('/services/settings/api/flags/:name/evaluate', route('evaluate-flag', async (req, res) => {
+    const user = req.user || {};
+    const context = {
+      userId: user.id || user.email || req.userEmail || undefined,
+      email: user.email || req.userEmail || undefined,
+      roles: Array.isArray(user.roles) ? user.roles : (Array.isArray(req.userRoles) ? req.userRoles : [])
+    };
+    const result = await settings.flags.evaluate(req.params.name, context);
+    res.status(200).json({ success: true, ...result });
+  }));
+
   // Advise that we have loaded routes
   eventEmitter.emit('settings:loading routes', {
     folder: path.join(__dirname)

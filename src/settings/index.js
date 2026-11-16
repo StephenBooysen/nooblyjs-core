@@ -13,6 +13,7 @@
 
 // Providers
 const SettingsFile = require('./providers/settings');
+const { FeatureFlags } = require('./modules/flags');
 
 // Routes, views and client scripts
 const Routes = require('./routes');
@@ -93,6 +94,16 @@ function createSettingsService(type, options, eventEmitter) {
 
   // Store all dependencies for potential use by the provider
   settingsService.dependencies = dependencies;
+
+  // Feature flags (feature 13) live in the `flags` group of this store.
+  // The registry destroys `analytics` on reset, which stops the flag poll and
+  // removes the settings listeners.
+  settingsService.flags = new FeatureFlags(settingsService, {
+    eventEmitter,
+    logger,
+    refreshMs: options.flagsRefreshMs
+  });
+  settingsService.analytics = settingsService.flags;
 
   // Initialize routes, views and client scripts for the settings service
   Routes(options, eventEmitter, settingsService);

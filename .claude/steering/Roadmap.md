@@ -75,7 +75,7 @@ Every Phase 2 feature is done; each spec's status line records the evidence and 
 | 21 | [Horizontal scaling readiness](features/21.%20Feature%20Horizontal%20Scaling%20Readiness.md) | Safe multi-replica deployments; no duplicate cron runs; closes review finding M-3 | M |
 | 07 | [OpenTelemetry observability](features/07.%20Feature%20OpenTelemetry%20Observability.md) | End-to-end traces across HTTP, queues, workers and AI | M |
 | 12 | [Webhooks and transactional outbox](features/12.%20Feature%20Webhooks%20and%20Outbox.md) | Reliable signed integrations | M |
-| 13 | [Feature flags](features/13.%20Feature%20Feature%20Flags.md) | Safe rollouts on top of settings | S |
+| 13 | [Feature flags](features/13.%20Feature%20Feature%20Flags.md) | Safe rollouts on top of settings. **Done 2026-11-16** (core; dashboard panel and OpenFeature adapter deferred) | S |
 | 14 | [Express 5, ESM and Node 22](features/14.%20Feature%20Express%205%20ESM%20and%20Node%2022.md) | Modern platform; candidate for a 2.0 release with the legacy AI removal | M |
 
 Carried over from Phase 2: a strict style policy (17b), `add endpoint` and `add service` inside core (09), S3 and cloud-provider contracts (11), live-provider checks for embeddings and knowledge answers (01, 05), reliable jobs on the cloud queue providers (06), and MCP `tools/list` filtered by the caller's permissions (calls are already checked).

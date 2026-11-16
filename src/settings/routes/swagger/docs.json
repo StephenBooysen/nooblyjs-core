@@ -23,6 +23,10 @@
     {
       "name": "Values",
       "description": "Values"
+    },
+    {
+      "name": "Flags",
+      "description": "Feature flags stored in the settings group `flags`."
     }
   ],
   "components": {
@@ -765,6 +769,219 @@
           }
         },
         "x-permission": "settings:manage"
+      }
+    },
+    "/flags": {
+      "get": {
+        "tags": [
+          "Flags"
+        ],
+        "summary": "List flags",
+        "description": "Every flag with its definition, timestamps and last evaluation time.",
+        "operationId": "getFlags",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "description": "No valid session, API key or token"
+          },
+          "403": {
+            "description": "Not allowed for this caller"
+          }
+        },
+        "x-permission": "settings:manage"
+      }
+    },
+    "/flags/{name}": {
+      "put": {
+        "tags": [
+          "Flags"
+        ],
+        "summary": "Create or replace a flag",
+        "description": "Body: enabled, rolloutPercent (0-100), description, rules (role, emailDomain or environment), variants ({name, weight}) and defaultVariant. Changes apply in this process at once and in others within the poll interval.",
+        "operationId": "putFlagsByName",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "enabled": {
+                    "type": "boolean"
+                  },
+                  "rolloutPercent": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 100
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "rules": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "enum": [
+                            "role",
+                            "emailDomain",
+                            "environment"
+                          ]
+                        },
+                        "values": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "variants": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "type": "string"
+                        },
+                        "weight": {
+                          "type": "integer",
+                          "minimum": 0
+                        }
+                      }
+                    }
+                  },
+                  "defaultVariant": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Saved"
+          },
+          "400": {
+            "description": "Invalid flag name or definition"
+          },
+          "401": {
+            "description": "No valid session, API key or token"
+          },
+          "403": {
+            "description": "Not allowed for this caller"
+          }
+        },
+        "x-permission": "settings:manage"
+      },
+      "delete": {
+        "tags": [
+          "Flags"
+        ],
+        "summary": "Delete a flag",
+        "operationId": "deleteFlagsByName",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "description": "No valid session, API key or token"
+          },
+          "403": {
+            "description": "Not allowed for this caller"
+          }
+        },
+        "x-permission": "settings:manage"
+      }
+    },
+    "/flags/{name}/evaluate": {
+      "post": {
+        "tags": [
+          "Flags"
+        ],
+        "summary": "Evaluate a flag for the caller",
+        "description": "Uses the signed-in caller's identity (session or token). The body is ignored, so callers cannot choose their own roles or ids.",
+        "operationId": "postFlagsByNameEvaluate",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Result: enabled, variant, reason"
+          },
+          "401": {
+            "description": "No valid session, API key or token"
+          },
+          "403": {
+            "description": "Not allowed for this caller"
+          }
+        },
+        "x-permission": "flags:evaluate"
       }
     }
   }

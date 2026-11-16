@@ -1021,11 +1021,97 @@
     }
   }
 
+  /**
+   * Feature flags for the browser (feature 13). Each answer is evaluated on the
+   * server for the signed-in user, so roles and ids never come from the page.
+   * Results are cached for `ttlMs`. A failed request answers "off" (fail closed).
+   *
+   * @class
+   * @example
+   * const flags = new SettingsFlags();
+   * if (await flags.isEnabled('new-checkout')) showNewCheckout();
+   */
+  class SettingsFlags {
+    /**
+     * @param {Object} [options]
+     * @param {string} [options.apiBaseUrl='/services/settings/api'] Settings API base URL.
+     * @param {Object} [options.fetchOptions] Extra fetch options (for example headers).
+     * @param {number} [options.ttlMs=30000] How long an evaluation is reused.
+     */
+    constructor(options = {}) {
+      this.apiBaseUrl = (options.apiBaseUrl || '/services/settings/api').replace(/\/$/, '');
+      this.fetchOptions = options.fetchOptions || {};
+      this.ttlMs = options.ttlMs === undefined ? 30000 : options.ttlMs;
+      this.cache_ = new Map();
+    }
+
+    /**
+     * Evaluates a flag for the signed-in user.
+     *
+     * @param {string} name Flag name.
+     * @return {Promise<{enabled: boolean, variant: string, reason: string}>}
+     */
+    async evaluate(name) {
+      const cached = this.cache_.get(name);
+      if (cached && cached.until > Date.now()) return cached.result;
+
+      const { headers: extraHeaders, ...extraInit } = this.fetchOptions;
+      try {
+        const response = await fetch(
+            `${this.apiBaseUrl}/flags/${encodeURIComponent(name)}/evaluate`, {
+              credentials: 'same-origin',
+              ...extraInit,
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', ...extraHeaders }
+            });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const body = await response.json();
+        const result = { enabled: body.enabled === true, variant: body.variant || 'off', reason: body.reason || '' };
+        this.cache_.set(name, { result, until: Date.now() + this.ttlMs });
+        return result;
+      } catch (error) {
+        if (typeof console !== 'undefined') console.warn(`[SettingsFlags] ${name}: ${error.message}`);
+        return { enabled: false, variant: 'off', reason: 'error' };
+      }
+    }
+
+    /**
+     * Whether a flag is on for the signed-in user.
+     *
+     * @param {string} name Flag name.
+     * @return {Promise<boolean>}
+     */
+    async isEnabled(name) {
+      return (await this.evaluate(name)).enabled;
+    }
+
+    /**
+     * The variant the signed-in user sees.
+     *
+     * @param {string} name Flag name.
+     * @return {Promise<string>}
+     */
+    async variant(name) {
+      return (await this.evaluate(name)).variant;
+    }
+
+    /**
+     * Drops cached answers, for example after sign-in or sign-out.
+     *
+     * @return {void}
+     */
+    clear() {
+      this.cache_.clear();
+    }
+  }
+
   // Export to global scope
   if (typeof module !== 'undefined' && module.exports) {
     module.exports = SettingsUIManager;
+    module.exports.SettingsFlags = SettingsFlags;
   } else {
     global.SettingsUIManager = SettingsUIManager;
+    global.SettingsFlags = SettingsFlags;
   }
 
 })(typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : this);

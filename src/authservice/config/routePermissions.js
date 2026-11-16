@@ -282,6 +282,10 @@ const ROUTE_PERMISSIONS = Object.freeze({
   'POST /services/settings/api/reload': 'settings:manage',
   'GET /services/settings/api/settings': 'settings:manage',
   'POST /services/settings/api/settings': 'settings:manage',
+  'GET /services/settings/api/flags': 'settings:manage',
+  'PUT /services/settings/api/flags/:name': 'settings:manage',
+  'DELETE /services/settings/api/flags/:name': 'settings:manage',
+  'POST /services/settings/api/flags/:name/evaluate': 'flags:evaluate',
 
   // ai
   'GET /services/ai/api/instances': 'ai:read',

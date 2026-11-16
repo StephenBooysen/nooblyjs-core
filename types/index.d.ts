@@ -256,7 +256,57 @@ export interface KnowledgeOptions extends ServiceOptions {
   watchDelayMs?: number;
 }
 
+export interface FlagRule {
+  type: 'role' | 'emailDomain' | 'environment';
+  values: string[];
+}
+
+export interface FlagVariant {
+  name: string;
+  /** Integer from 0 to 1000. */
+  weight: number;
+}
+
+/** A feature flag definition. Stored in the settings group `flags`. */
+export interface FlagDefinition {
+  enabled?: boolean;
+  /** Share of users on the flag, from 0 to 100. Stable per user. */
+  rolloutPercent?: number;
+  description?: string;
+  rules?: FlagRule[];
+  variants?: FlagVariant[];
+  defaultVariant?: string;
+}
+
+/** Who is asking. Rollout and variants use `userId`, falling back to `email`. */
+export interface FlagContext {
+  userId?: string;
+  email?: string;
+  roles?: string[];
+  environment?: string;
+}
+
+export interface FlagEvaluation {
+  flag: string;
+  enabled: boolean;
+  variant: string;
+  reason: string;
+}
+
+export interface FeatureFlags {
+  isEnabled(name: string, context?: FlagContext): Promise<boolean>;
+  variant(name: string, context?: FlagContext): Promise<string>;
+  evaluate(name: string, context?: FlagContext): Promise<FlagEvaluation>;
+  list(): Promise<Array<FlagDefinition & { name: string; createdAt: string | null; updatedAt: string | null; lastEvaluatedAt: string | null }>>;
+  set(name: string, definition: FlagDefinition): Promise<FlagDefinition>;
+  delete(name: string): Promise<boolean>;
+  ready(): Promise<void>;
+  refresh(): Promise<number>;
+  destroy(): void;
+}
+
 export interface SettingsService {
+  flags: FeatureFlags;
   [method: string]: unknown;
 }
 
