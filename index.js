@@ -828,6 +828,14 @@ class ServiceRegistry {
    * @returns {Object} Workflow service instance
    */
   workflow(providerType = 'memory', options = {}) {
+    // Clustered: the workflow snapshot lives in the shared store (feature 21).
+    if (this.clusterConfig?.enabled && this.stateStore && !options.stateStore) {
+      options = {
+        ...options,
+        stateStore: this.stateStore,
+        stateKey: options.stateKey || `workflow:state:${options.instanceName || 'default'}`
+      };
+    }
     return this.getService('workflow', providerType, options);
   }
 

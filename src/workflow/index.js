@@ -143,6 +143,37 @@ class WorkflowService {
     if (options.state) {
       this.importState(options.state);
     }
+
+    /**
+     * Clustered persistence (feature 21). With a shared state store, the
+     * snapshot is loaded on start (unless `options.state` is given) and saved
+     * after each change. Saves run one at a time. Writers are last-writer-wins:
+     * two replicas running workflows at once can overwrite each other's
+     * snapshot, so `stateStore` suits a single active writer or a restart.
+     * @private
+     */
+    this.sharedState_ = options.stateStore || null;
+    this.stateKey_ = options.stateKey || 'workflow:state:default';
+    this.saveQueue_ = Promise.resolve();
+    this.ready_ = Promise.resolve();
+    if (this.sharedState_ && !options.state) {
+      this.ready_ = this.sharedState_.get(this.stateKey_)
+        .then((snapshot) => { if (snapshot) this.importState(snapshot); })
+        .catch((error) => {
+          eventEmitter?.emit?.('workflow:state-error', { phase: 'load', error: error.message });
+        });
+    }
+  }
+
+  /**
+   * Resolves once the shared snapshot (if any) has been loaded and the saves
+   * queued so far have finished. Resolves at once without a shared store.
+   *
+   * @return {Promise<void>}
+   */
+  async ready() {
+    await this.ready_;
+    await this.saveQueue_;
   }
 
   /**
@@ -155,6 +186,14 @@ class WorkflowService {
    */
   notifyChange_(kind, detail = {}) {
     this.eventEmitter_?.emit('workflow:state:changed', { kind, ...detail, at: new Date().toISOString() });
+    if (this.sharedState_) {
+      // Each save takes the snapshot when it runs, so the last one written is the latest state.
+      this.saveQueue_ = this.saveQueue_
+        .then(() => this.sharedState_.set(this.stateKey_, this.exportState()))
+        .catch((error) => {
+          this.eventEmitter_?.emit?.('workflow:state-error', { phase: 'save', error: error.message });
+        });
+    }
   }
 
   /**
