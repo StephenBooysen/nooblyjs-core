@@ -25,9 +25,16 @@ const UNDECLARED = '*';
  * @param {Object=} options.eventEmitter Receives auth:permission-denied
  * @param {Object=} options.declarations RouteDeclarations: the permission each route declares (checked first)
  * @param {function(): boolean=} options.strict Returns true in strictAuth mode, where a route with no declaration is refused
+ * @param {function(import('express').Request, string): boolean=} options.anonymousDenied Returns true when an anonymous caller must be refused on this path (API keys required and the path not excluded)
  * @return {function(import('express').Request, import('express').Response, import('express').NextFunction): Promise<void>} Middleware
  */
-function createPermissionGate({ resolvePrincipal, eventEmitter = null, declarations = null, strict = () => false }) {
+function createPermissionGate({
+  resolvePrincipal,
+  eventEmitter = null,
+  declarations = null,
+  strict = () => false,
+  anonymousDenied = () => false
+}) {
   return async function permissionGate(req, res, next) {
     const path = (req.originalUrl || req.url || '').split('?')[0];
     let needed = declarations ? declarations.forRequest(req.method, path) : null;
@@ -47,8 +54,19 @@ function createPermissionGate({ resolvePrincipal, eventEmitter = null, declarati
     } catch (_err) {
       principal = null;
     }
-    // No caller identity here: the portal guard or the service decides (e.g. a public route).
-    if (!principal) return next();
+    // No caller identity. When API keys are required, a declared non-public route
+    // is never open to an anonymous caller, even if a service forgot its own
+    // key check (feature 19). Otherwise the portal guard or the service decides.
+    if (!principal) {
+      if (anonymousDenied(req, path)) {
+        return res.status(401).json({
+          error: 'Unauthorized',
+          message: 'API key is required. Provide it via the x-api-key header or an Authorization header.',
+          code: 'MISSING_API_KEY'
+        });
+      }
+      return next();
+    }
 
     // A session or token grants what its roles grant; an API key grants its scopes,
     // and a plain (unscoped) key grants everything, as it did before scopes existed.

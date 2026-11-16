@@ -21,6 +21,8 @@ const { sendSafeError } = require('./src/shared/utils/safeError');
 const { assertServiceOptions } = require('./src/shared/utils/optionSchema');
 const OPTION_SCHEMAS = require('./src/shared/config/optionSchemas');
 const { createPermissionGate } = require('./src/authservice/middleware/permissionGate');
+const { createOriginCheck } = require('./src/authservice/middleware/originCheck');
+const { isExcludedPath, DEFAULT_EXCLUDE_PATHS } = require('./src/authservice/middleware/apiKey');
 const { RouteDeclarations, findUndeclaredRoutes, listApiRoutes } = require('./src/authservice/modules/routeDeclarations');
 const { buildOpenApiDocument, loadServiceDocuments, mountedBases } = require('./src/shared/utils/openapi');
 const { mountMcp } = require('./src/mcp');
@@ -257,6 +259,18 @@ class ServiceRegistry {
       });
     }
 
+    // Feature 23: refuse cross-site state-changing requests that ride on the
+    // session cookie (defence in depth behind SameSite=strict). Opt out with
+    // security.csrf.enabled = false.
+    const csrfConfig = normalizedSecurityConfig.csrf || {};
+    if (csrfConfig.enabled !== false) {
+      const envOrigins = (process.env.CORS_ORIGINS || '').split(',').map((o) => o.trim()).filter(Boolean);
+      this.expressApp.use('/services', createOriginCheck({
+        allowedOrigins: [...ensureArray(csrfConfig.allowedOrigins || []), ...envOrigins],
+        eventEmitter: this.eventEmitter
+      }));
+    }
+
     // Apply authentication middleware to all /services routes
     // This enforces both authentication and admin role requirement across all service endpoints
     this.expressApp.use('/services', this.servicesAuthMiddleware);
@@ -267,7 +281,13 @@ class ServiceRegistry {
       resolvePrincipal: (req) => this.resolveRequestPrincipal(req),
       eventEmitter: this.eventEmitter,
       declarations: this.routeDeclarations,
-      strict: () => this.strictAuth
+      strict: () => this.strictAuth,
+      // Anonymous callers are refused on declared routes while API keys are required,
+      // except on the paths the API-key middleware excludes (status pages and the like).
+      anonymousDenied: (req) => requireApiKey === true && !isExcludedPath(
+        [(req.originalUrl || '').split('?')[0], req.path],
+        excludePaths || DEFAULT_EXCLUDE_PATHS
+      )
     }));
 
     // Serve the service registry landing page
@@ -980,6 +1000,24 @@ class ServiceRegistry {
         const info = await this.authservice().validateApiToken(bearer);
         // A token may carry fewer permissions than its owner's roles (feature 19).
         return { principal: info.email, roles: info.roles, tokenScopes: info.scopes ?? null };
+      } catch (_err) {
+        return null;
+      }
+    }
+
+    // A browser session token (Bearer, or the cookie's authToken) is validated the
+    // same way the API-key middleware validates it, so the gate sees the owner's roles.
+    const sessionToken = bearer || (req.session && req.session.authToken) || null;
+    if (sessionToken) {
+      const auth = this.getAuthProviderForTokens_();
+      try {
+        const session = auth && typeof auth.validateSession === 'function'
+          ? await auth.validateSession(sessionToken)
+          : null;
+        if (session && session.email) {
+          const roles = Array.isArray(session.roles) ? session.roles : (session.role ? [session.role] : ['user']);
+          return { principal: session.email, roles };
+        }
       } catch (_err) {
         return null;
       }

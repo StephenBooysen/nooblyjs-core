@@ -439,5 +439,6 @@ function isSameOriginWrite(req) {
 }
 
 module.exports = {
-  createServicesAuthMiddleware
+  createServicesAuthMiddleware,
+  isPathPublic
 };
