@@ -12,6 +12,7 @@ const fs = require('node:fs').promises;
 const fsSync = require('fs');
 const path = require('node:path');
 const { resolveWithin } = require('../modules/pathSafety');
+const { registerFilingRoot } = require('../../working/modules/filingRoots');
 const {
   applyRuntimeSettings,
   numberRule,
@@ -63,6 +64,8 @@ class LocalFilingProvider {
 
     /** @private @const {string} Absolute storage root, resolved once. */
     this.rootDir_ = path.resolve(this.settings.baseDir);
+    // Feature 18: a working service must not run scripts from this store.
+    registerFilingRoot(this.rootDir_);
   }
 
   /**

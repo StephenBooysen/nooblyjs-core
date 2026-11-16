@@ -70,6 +70,23 @@ function httpError(message, statusCode) {
  * @return {void}
  */
 module.exports = (app, eventEmitter, scheduler) => {
+  /**
+   * Feature 18: a schedule created over HTTP may only name a script inside the
+   * activities folder. Refused with 400 before anything is stored.
+   * @param {string} scriptPath - Submitted script path
+   * @return {void}
+   */
+  const checkScript = (scriptPath) => {
+    const worker = scheduler && scheduler.worker_;
+    if (worker && typeof worker.assertActivityPath === 'function') {
+      try {
+        worker.assertActivityPath(scriptPath);
+      } catch (err) {
+        throw httpError(err.message, 400);
+      }
+    }
+  };
+
   if (!app || !scheduler || typeof scheduler.pause !== 'function') return;
 
   /**
@@ -166,6 +183,7 @@ module.exports = (app, eventEmitter, scheduler) => {
     const scriptPath = typeof body.scriptPath === 'string' ? body.scriptPath.trim() : '';
     if (!name) throw httpError('name is required', 400);
     if (!scriptPath) throw httpError('scriptPath is required', 400);
+    checkScript(scriptPath);
     if (await scheduler.getSchedule(name)) throw httpError(`Schedule "${name}" already exists`, 409);
     const { cron, intervalSeconds } = cadenceOf(body, true);
     const data = body.data === undefined ? null : body.data;
@@ -201,7 +219,10 @@ module.exports = (app, eventEmitter, scheduler) => {
     const changes = {};
     if (cron) changes.cron = cron;
     if (intervalSeconds) changes.intervalSeconds = intervalSeconds;
-    if (body.scriptPath !== undefined) changes.scriptPath = String(body.scriptPath).trim();
+    if (body.scriptPath !== undefined) {
+      checkScript(String(body.scriptPath).trim());
+      changes.scriptPath = String(body.scriptPath).trim();
+    }
     if (body.data !== undefined) changes.data = body.data;
     if (body.description !== undefined) changes.description = body.description ? String(body.description).trim() : null;
     if (body.group !== undefined) changes.group = body.group ? String(body.group).trim() : null;

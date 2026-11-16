@@ -12,6 +12,7 @@ const path = require('node:path');
 const fs = require('node:fs').promises;
 const CommitQueue = require('../sync/CommitQueue');
 const { resolveWithin } = require('../modules/pathSafety');
+const { registerFilingRoot } = require('../../working/modules/filingRoots');
 const { applyRuntimeSettings, numberRule, booleanRule, stringRule } = require('../modules/settingsPolicy');
 
 /** Settings that may change while the service runs. Repository and path options are fixed. */
@@ -54,6 +55,8 @@ class GitFilingProvider {
 
     this.repoUrl = options.repoUrl;
     this.localPath = path.resolve(options.localPath || './git-repo');
+    // Feature 18: a working service must not run scripts from this store.
+    registerFilingRoot(this.localPath);
     this.branch = options.branch || 'main';
     this.userId = options.userId || 'default-user';
     this.userEmail = options.userEmail || 'user@example.com';

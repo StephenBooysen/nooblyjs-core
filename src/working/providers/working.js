@@ -59,6 +59,7 @@ const os = require('node:os');
 const crypto = require('node:crypto');
 const { ClientError } = require('../../shared/utils/httpErrors');
 const { resolveWithin } = require('../../filing/modules/pathSafety');
+const { listFilingRoots, normalizeRoot } = require('../modules/filingRoots');
 
 /** @const {number} Queue processor poll interval in ms. */
 const QUEUE_TICK_MS = 1000;
@@ -241,6 +242,10 @@ class WorkerManager {
     const filingProvider = options.dependencies?.filing?.provider;
     const filingRoot = filingProvider?.rootDir_ || filingProvider?.settings?.baseDir;
     assertNoFilingOverlap(this.activitiesRoot_, filingRoot ? path.resolve(filingRoot) : null);
+    // Feature 18: also refuse any filing store created in this process, wired or not.
+    for (const root of listFilingRoots()) {
+      assertNoFilingOverlap(normalizeRoot(this.activitiesRoot_), root);
+    }
 
     /** @private {boolean} Explicit opt-in for absolute script paths (deprecated). */
     this.allowAbsolutePaths_ = options.allowAbsolutePaths === true;
@@ -583,11 +588,31 @@ class WorkerManager {
     if (typeof scriptPath !== 'string' || scriptPath.trim() === '') {
       throw new ClientError(400, 'scriptPath must be a non-empty string');
     }
-    if (path.isAbsolute(scriptPath) && !this.allowAbsolutePaths_) {
+    // Windows drive paths and backslashes are refused on every platform, so the
+    // rule does not depend on where the server runs (feature 18).
+    const windowsStyle = /^[A-Za-z]:/.test(scriptPath) || scriptPath.includes('\\');
+    if ((path.isAbsolute(scriptPath) || windowsStyle) && !this.allowAbsolutePaths_) {
       throw new ClientError(400, 'Absolute script paths are not allowed; use a path inside the activities folder');
     }
     if (!ACTIVITY_EXTENSIONS.has(path.extname(scriptPath).toLowerCase())) {
       throw new ClientError(400, 'Activity scripts must be .js, .mjs or .cjs files');
+    }
+  }
+
+  /**
+   * Checks a script path for HTTP callers that define schedules or workflows,
+   * so a path that escapes the activities folder is refused before anything is
+   * stored. Adds the lexical containment check to `validateActivityPath`; the
+   * symlink check still happens when the script runs (feature 18).
+   *
+   * @param {string} scriptPath Candidate script path.
+   * @return {void}
+   * @throws {ClientError} 400 when the path is not an acceptable activity path.
+   */
+  assertActivityPath(scriptPath) {
+    this.validateActivityPath(scriptPath);
+    if (!path.isAbsolute(scriptPath)) {
+      resolveWithin(this.activitiesRoot_, scriptPath);
     }
   }
 

@@ -22,6 +22,7 @@ const { summarizeExecution, summarizeExecutions, classifyExecution } = require('
 const Routes = require('./routes');
 const Views = require('./views');
 const Scripts = require('./scripts');
+const { ClientError } = require('../shared/utils/httpErrors');
 
 /** @type {WorkflowAnalytics} */
 let analyticsInstance = null;
@@ -215,9 +216,9 @@ class WorkflowService {
   assertSafeSteps_(steps) {
     for (const step of steps) {
       try {
-        this.workingService_?.validateActivityPath?.(step);
+        this.workingService_?.assertActivityPath?.(step);
       } catch (err) {
-        throw new Error(`Invalid workflow step "${step}": ${err.message}`);
+        throw new ClientError(400, `Invalid workflow step "${step}": ${err.message}`);
       }
     }
   }
