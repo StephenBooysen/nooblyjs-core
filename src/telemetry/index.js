@@ -16,6 +16,8 @@
  */
 
 const { setSpanIdsProvider } = require('./requestContext');
+const { CARRIER_KEY, setActivePropagation, currentCarrier, continueTrace } = require('./propagation');
+const { createServiceMetrics } = require('./metrics');
 
 /** Whether the process-wide OpenTelemetry context manager has been installed. */
 let contextManagerInstalled = false;
@@ -49,6 +51,23 @@ function optionalRequire(name) {
  */
 function isAsyncFunction(fn) {
   return typeof fn === 'function' && fn.constructor && fn.constructor.name === 'AsyncFunction';
+}
+
+/**
+ * Adds GenAI semantic-convention attributes from a model call's result:
+ * the model, and input and output token counts when the result reports them.
+ *
+ * @param {Object} span The active span
+ * @param {string} providerType Model provider name, for gen_ai.system
+ * @param {*} result The method's return value
+ */
+function recordGenAi(span, providerType, result) {
+  if (!result || typeof result !== 'object') return;
+  span.setAttribute('gen_ai.system', String(providerType));
+  if (typeof result.model === 'string') span.setAttribute('gen_ai.response.model', result.model);
+  const usage = result.usage && typeof result.usage === 'object' ? result.usage : {};
+  if (typeof usage.input_tokens === 'number') span.setAttribute('gen_ai.usage.input_tokens', usage.input_tokens);
+  if (typeof usage.output_tokens === 'number') span.setAttribute('gen_ai.usage.output_tokens', usage.output_tokens);
 }
 
 /**
@@ -137,6 +156,21 @@ class Telemetry {
 
     this.api_ = api;
     this.tracer_ = this.provider_.getTracer('nooblyjs-core');
+    setActivePropagation({ api, tracer: this.tracer_ });
+    this.metrics_ = null;
+    if (this.options_.metrics) {
+      const sdkMetrics = optionalRequire('@opentelemetry/sdk-metrics');
+      if (sdkMetrics) {
+        const metricsExporter = this.options_.metricsExporter
+          || (exporterName === 'otlp' ? 'otlp' : exporterName === 'memory' ? 'memory' : 'console');
+        this.metrics_ = createServiceMetrics(sdkMetrics, {
+          exporter: metricsExporter,
+          endpoint: this.options_.endpoint || process.env.OTEL_EXPORTER_OTLP_ENDPOINT,
+          otlp: optionalRequire('@opentelemetry/exporter-metrics-otlp-http'),
+          intervalMs: this.options_.metricsIntervalMs
+        });
+      }
+    }
     setSpanIdsProvider(() => {
       const span = api.trace.getActiveSpan();
       if (!span) return null;
@@ -148,6 +182,7 @@ class Telemetry {
     return this.setStatus_({
       enabled: true,
       active: true,
+      metrics: Boolean(this.metrics_),
       reason: processors.length === 0 ? 'no exporter: spans are recorded but not sent' : `exporter: ${exporterName}`
     });
   }
@@ -196,6 +231,7 @@ class Telemetry {
    * @return {void}
    */
   instrument(instance, serviceName, providerType, instanceName) {
+    const self = this;
     if (!this.active || !this.instrumentServices_ || !instance || typeof instance !== 'object') return;
     if (this.excluded_.has(serviceName) || instance[INSTRUMENTED]) return;
 
@@ -216,17 +252,30 @@ class Telemetry {
 
         const method = descriptor.value;
         const spanName = `${serviceName}.${name}`;
+        // Queue producers pass their trace context on the item (feature 07).
+        const propagates = serviceName === 'queueing' && name === 'enqueue';
         instance[name] = function instrumented(...args) {
+          const started = Date.now();
           return tracer.startActiveSpan(spanName, { attributes }, async (span) => {
+            let failed = false;
             try {
-              return await method.apply(this, args);
+              let callArgs = args;
+              if (propagates && args[1] && typeof args[1] === 'object' && !Array.isArray(args[1]) && !args[1][CARRIER_KEY]) {
+                const carrier = currentCarrier();
+                if (carrier) callArgs = [args[0], { ...args[1], [CARRIER_KEY]: carrier }, ...args.slice(2)];
+              }
+              const result = await method.apply(this, callArgs);
+              if (serviceName === 'aiservice') recordGenAi(span, providerType, result);
+              return result;
             } catch (error) {
+              failed = true;
               // The error type only: messages can carry input data.
               span.setAttribute('error.type', error && error.name ? error.name : 'Error');
               span.setStatus({ code: api.SpanStatusCode.ERROR });
               throw error;
             } finally {
               span.end();
+              self.metrics_?.record(serviceName, name, Date.now() - started, failed);
             }
           });
         };
@@ -242,7 +291,12 @@ class Telemetry {
    */
   async shutdown() {
     setSpanIdsProvider(null);
+    setActivePropagation(null);
     this.active = false;
+    if (this.metrics_) {
+      await this.metrics_.shutdown().catch(() => {});
+      this.metrics_ = null;
+    }
     if (this.provider_) {
       await this.provider_.shutdown().catch(() => {});
       this.provider_ = null;
@@ -260,6 +314,24 @@ class Telemetry {
     this.status_ = status;
     this.eventEmitter_?.emit?.('telemetry:status', status);
     return status;
+  }
+
+  /**
+   * Runs a queue consumer's work as a child of the producer's span (feature 07).
+   * Use it on the item a consumer received. Without tracing, it just runs `fn`.
+   *
+   * @template T
+   * @param {*} item The queued item (carries `_trace` when the producer was traced)
+   * @param {string} spanName Name for the consumer span
+   * @param {function(): (T|Promise<T>)} fn The consumer's work
+   * @return {Promise<T>}
+   *
+   * @example
+   * const { telemetry } = registry;
+   * await telemetry.continueTrace(job.data, 'orders.process', () => handle(job.data));
+   */
+  continueTrace(item, spanName, fn) {
+    return continueTrace(item, spanName, fn);
   }
 
   /**

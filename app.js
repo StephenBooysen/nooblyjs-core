@@ -176,6 +176,17 @@ const options = {
     enabled: process.env.CLUSTER_MODE === 'true',
     redisUrl: process.env.REDIS_URL || process.env.SESSION_REDIS_URL || undefined
   },
+  // Feature 07: OpenTelemetry tracing and metrics. Off unless OTEL_ENABLED=true
+  // or an OTLP endpoint is set; the SDK packages are optional (see docs).
+  telemetry: {
+    enabled: process.env.OTEL_ENABLED === 'true' || Boolean(process.env.OTEL_EXPORTER_OTLP_ENDPOINT),
+    serviceName: process.env.OTEL_SERVICE_NAME || 'nooblyjs-app',
+    exporter: process.env.OTEL_TRACES_EXPORTER || (process.env.OTEL_EXPORTER_OTLP_ENDPOINT ? 'otlp' : 'console'),
+    endpoint: process.env.OTEL_EXPORTER_OTLP_ENDPOINT || undefined,
+    metrics: process.env.OTEL_METRICS_ENABLED === 'true',
+    metricsIntervalMs: process.env.OTEL_METRICS_EXPORT_INTERVAL_MS ? Number(process.env.OTEL_METRICS_EXPORT_INTERVAL_MS) : undefined,
+    sampleRatio: process.env.OTEL_SAMPLE_RATIO ? Number(process.env.OTEL_SAMPLE_RATIO) : undefined
+  },
   apiKeys: configuredApiKeys,
   requireApiKey: configuredApiKeys.length > 0,
   excludePaths: [

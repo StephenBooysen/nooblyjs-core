@@ -13,6 +13,7 @@
  */
 
 const crypto = require('node:crypto');
+const { continueTrace } = require('../../telemetry/propagation');
 const { ClientError } = require('../../shared/utils/httpErrors');
 const { assertUrlAllowed } = require('../../fetching/modules/ssrfGuard');
 const { signPayload, SIGNATURE_HEADER } = require('../../shared/utils/webhookSignature');
@@ -267,6 +268,18 @@ class WebhookDispatcher {
    * @private
    */
   async deliver_(job) {
+    // The span is a child of the request that published the event (feature 07).
+    return continueTrace(job.data, 'webhook deliver', () => this.deliverOnce_(job));
+  }
+
+  /**
+   * One delivery attempt, without the trace wrapper.
+   *
+   * @param {Object} job Queue job
+   * @return {Promise<void>}
+   * @private
+   */
+  async deliverOnce_(job) {
     const { deliveryId, subscriptionId, event, body } = job.data;
     const subs = await this.settings_.getGroup(WEBHOOK_GROUP).catch(() => ({}));
     const sub = subs[subscriptionId];

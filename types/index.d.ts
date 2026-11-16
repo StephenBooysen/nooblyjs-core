@@ -316,6 +316,12 @@ export interface TelemetryOptions {
   instrumentServices?: boolean;
   /** Services never wrapped (default: logging and telemetry). */
   excludeServices?: string[];
+  /** Export service call duration and error metrics (needs @opentelemetry/sdk-metrics). */
+  metrics?: boolean;
+  /** Where metrics go. Defaults to OTLP when the exporter is otlp, else console. */
+  metricsExporter?: 'otlp' | 'memory' | 'console';
+  /** How often metrics are exported, in milliseconds (default 60000). */
+  metricsIntervalMs?: number;
 }
 
 /** Outbound webhook subscription, as listed (secret masked). */
