@@ -4,7 +4,7 @@ A powerful set of modular Node.js backend services built with the singleton patt
 
 ## Features
 
-- **Modular Architecture**: 17 services (plus the MCP endpoint) with clear separation of concerns
+- **Modular Architecture**: 16 services with dashboards (plus the MCP endpoint and app-service base classes) with clear separation of concerns
 - **Dependency Injection**: Built-in service dependency resolution and injection
 - **Multiple Providers**: Most services support multiple backends (e.g., Redis/Memcached for caching, MongoDB/File for data)
 - **Event-Driven**: Global event emitter for inter-service communication
@@ -31,28 +31,29 @@ Core foundational services that power all other services. These services have no
 |---------|---------|-----------|
 | **Logging** | Centralized logging system | Memory, File, API |
 | **Caching** | In-memory and distributed caching | Memory, Redis, Memcached, File, API |
-| **Queueing** | Message queuing and job processing | Memory, Redis, RabbitMQ, AWS SQS, Azure Queue, GCP Pub/Sub, API |
+| **Queueing** | Message queuing and job processing; reliable jobs (retries, dead-letter queue) on Memory and Redis | Memory, Redis, RabbitMQ, ActiveMQ, AWS SQS, Azure Queue, GCP Pub/Sub, API |
 | **Fetching** | HTTP requests with caching | Node.js native, Axios |
-| **Notifying** | Notification delivery system | Memory, API |
+| **Settings** | Grouped, encrypted settings; feature flags | File, Encrypted |
+| **Notifying** | Notification delivery; signed webhooks with a transactional outbox | Default (in process), API |
 
 ### 💼 Business Services
 Services that provide extended business logic and data operations. These services build on infrastructure services to provide data management and processing capabilities.
 
 | Service | Purpose | Providers |
 |---------|---------|-----------|
-| **Data Service** | Data persistence and CRUD operations | Memory, File, MongoDB, DocumentDB, SimpleDB |
-| **Working** | Worker/activity execution engine | Memory-based task execution |
-| **Measuring** | Metrics collection and aggregation | Memory-based metrics storage |
+| **Data Service** | Data persistence and CRUD operations | Memory, File, MongoDB, DocumentDB, SimpleDB, API |
+| **Working** | Worker-thread activity execution | Default (worker threads), API |
+| **Measuring** | Metrics collection and aggregation | Default (in memory), API |
 
 ### ⚙️ Application Services
 Services that form user-facing application interfaces. These services leverage both infrastructure and business services to provide application-level functionality.
 
 | Service | Purpose | Providers |
 |---------|---------|-----------|
-| **Scheduling** | Task scheduling and cron jobs | Memory-based scheduler |
-| **Searching** | Full-text, semantic and hybrid search | Memory, Vector (embeddings), Solr, API |
-| **Workflow** | Workflow and pipeline orchestration | Memory-based with step execution |
-| **Filing** | File operations and storage | Local filesystem, FTP, S3, Git, Sync |
+| **Scheduling** | Task scheduling, cron and intervals | In-process scheduler (one instance per process) |
+| **Searching** | Full-text, semantic and hybrid search | Memory, Vector, Semantic, Tokens, Files, Solr, API |
+| **Workflow** | Workflow and pipeline orchestration | Memory, API |
+| **Filing** | File operations and storage | Local filesystem, FTP, S3, Git, GCP, Sync, API |
 
 ### ⭐ Advanced Application Services
 Sophisticated services that leverage most underlying services and are almost fully stand-alone applications.
@@ -760,9 +761,25 @@ const options = {
   excludePaths: ['/public', '/health']
 };
 
-// Requests must include header:
-// Authorization: Bearer <api-key>
+// Send the key in a header, one of:
+//   x-api-key: <api-key>
+//   Authorization: Bearer <api-key>
+//   Authorization: ApiKey <api-key>
+// Keys in the query string are not accepted: they leak into logs and Referer headers.
 ```
+
+Without a key (and with `requireApiKey` on), a request to a declared, non-public route is
+refused with `401 MISSING_API_KEY`, even if the service behind the route has no key check of
+its own. Paths in `excludePaths` (by default `/services/*/status`, `/services/` and
+`/services/*/views/*`) stay open.
+
+### Cross-Site Requests
+
+State-changing requests that authenticate only with the session cookie are refused with
+`403 CSRF_ORIGIN_MISMATCH` when their `Origin` (or `Referer`) names another site. Requests
+that send an `Authorization` header or an `x-api-key` are not affected. Trusted origins come
+from `security.csrf.allowedOrigins` and `CORS_ORIGINS`. Set `security.csrf.enabled: false` to
+turn the check off.
 
 ### Dashboard Sign-in
 
@@ -778,8 +795,8 @@ Every `/services/*/api` route declares the permission it needs in
 | Role | Grants |
 |---|---|
 | `admin` | everything (`*`) |
-| `editor` | `filing:*`, `searching:*`, `dataservice:*`, `caching:*`, `queueing:*`, `logging:read`, `measuring:read`, `profile:*` |
-| `user` | `filing:read`, `searching:read`, `profile:*` |
+| `editor` | `filing:*`, `searching:*`, `dataservice:*`, `caching:*`, `queueing:*`, `knowledge:*`, `logging:read`, `measuring:read`, `profile:*`, `flags:evaluate` |
+| `user` | `filing:read`, `searching:read`, `profile:*`, `flags:evaluate` |
 
 Roles are set in `src/authservice/modules/permissions.js` (`ROLE_PERMISSIONS`).
 
@@ -892,6 +909,6 @@ For issues, questions, or contributions, please contact the NooblyJS Team or ope
 
 ## Version
 
-Current version: 1.0.10
+Current version: 1.2.0
 
-Node.js requirement: >= 18 (CI tests Node 22 and 24)
+Node.js requirement: >= 22 (CI tests Node 22 and 24)

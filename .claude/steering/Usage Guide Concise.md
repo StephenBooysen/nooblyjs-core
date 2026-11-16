@@ -107,14 +107,14 @@ setInterval(async () => {
 
 ```javascript
 // Runs a script in a worker. The completion callback receives the result.
-working.start('./activities/resize-image.js', { file: 'a.png' }, (status, data) => {
+working.start('resize-image.js', { file: 'a.png' }, (status, data) => {
   logger.info('Resize finished', { status, data });
 });
 ```
 
 ### Workflows
 
-A workflow is a named list of step scripts. Each step runs in order and receives the output of the step before it.
+A workflow is a named list of step scripts. Steps run in order. Each step receives the original input plus a `steps` array holding the output of every step before it.
 
 ```javascript
 await workflow.defineWorkflow('order-flow', ['validate.js', 'charge.js', 'notify.js']);
