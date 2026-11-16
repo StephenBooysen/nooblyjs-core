@@ -12,7 +12,9 @@
 
 'use strict';
 
-const AWS = require('aws-sdk');
+const { loadOptionalModule } = require('../../shared/utils/optionalRequire');
+
+const AWS = loadOptionalModule('aws-sdk', "dataService('simpledb')");
 const { v4: uuidv4 } = require('uuid');
 
 /**

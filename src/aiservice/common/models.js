@@ -130,6 +130,11 @@ export const PROVIDERS = {
 /** @type {ModelInfo[]} */
 export const MODELS = [
   // Anthropic
+  // Fable: 1M context, 128K max output. Prices from Anthropic's pricing page, 2026-11-12.
+  // Fable 5.2 rejects a custom temperature (omit temperature, top_p and top_k) and always thinks adaptively.
+  { id: 'claude-fable-5-2', provider: 'anthropic', label: 'Fable 5.2', contextWindow: 1_000_000, pricing: { input: 8, output: 40, cacheRead: 0.2, cacheWrite: 10 }, pricingReviewedAt: '2026-11-12', supportsTemperature: false },
+  { id: 'claude-fable-5-1', provider: 'anthropic', label: 'Fable 5.1', contextWindow: 1_000_000, pricing: { input: 10, output: 50, cacheRead: 0.25, cacheWrite: 12.5 }, pricingReviewedAt: '2026-11-12' },
+  { id: 'claude-fable-5', provider: 'anthropic', label: 'Fable 5', contextWindow: 1_000_000, pricing: { input: 10, output: 50, cacheRead: 1, cacheWrite: 12.5 }, pricingReviewedAt: '2026-11-12' },
   { id: 'claude-opus-5-5', provider: 'anthropic', label: 'Opus 5.5', contextWindow: 1_000_000, pricing: { input: 4, output: 20, cacheRead: 0.2, cacheWrite: 5 }, pricingReviewedAt: '2026-09-25' },
   { id: 'claude-sonnet-5-5', provider: 'anthropic', label: 'Sonnet 5.5', contextWindow: 1_000_000, pricing: { input: 2, output: 10, cacheRead: 0.2, cacheWrite: 2.5 }, pricingReviewedAt: '2026-09-25' },
   { id: 'claude-haiku-4-5', provider: 'anthropic', label: 'Haiku 4.5', contextWindow: 200_000, pricing: { input: 1, output: 5, cacheRead: 0.1, cacheWrite: 1.25 }, pricingReviewedAt: '2026-09-25', aliases: ['claude-haiku-4-5-20251001'] },

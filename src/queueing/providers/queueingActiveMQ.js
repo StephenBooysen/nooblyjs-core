@@ -14,6 +14,8 @@
 
 'use strict';
 
+const { loadOptionalModule } = require('../../shared/utils/optionalRequire');
+
 // Lazy load dependencies only when the ActiveMQ provider is instantiated/used.
 let stompit;
 const axios = require('axios');
@@ -538,7 +540,7 @@ class QueueingActiveMQ {
     this.connecting_ = new Promise((resolve, reject) => {
       try {
         if (!stompit) {
-          stompit = require('stompit');
+          stompit = loadOptionalModule('stompit', "queue('activemq')");
         }
 
         const connectOptions = {

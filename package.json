@@ -87,7 +87,8 @@
     "test:ui": "playwright test",
     "test:ui:headed": "playwright test --headed --project=chromium",
     "test:ui:report": "playwright show-report .temp/tests/playwright/report",
-    "test:contract": "jest tests/contract"
+    "test:contract": "jest tests/contract",
+    "probe": "node scripts/probe.js"
   },
   "jest": {
     "modulePaths": [
@@ -200,7 +201,8 @@
     "@opentelemetry/sdk-trace-node": "^2.0.0",
     "@opentelemetry/sdk-trace-base": "^2.0.0",
     "@opentelemetry/resources": "^2.0.0",
-    "@opentelemetry/exporter-trace-otlp-http": "^0.200.0"
+    "@opentelemetry/exporter-trace-otlp-http": "^0.200.0",
+    "nodemailer": "^10.5.0"
   },
   "peerDependenciesMeta": {
     "@aws-sdk/client-s3": {
@@ -249,6 +251,9 @@
       "optional": true
     },
     "@opentelemetry/exporter-trace-otlp-http": {
+      "optional": true
+    },
+    "nodemailer": {
       "optional": true
     }
   },
