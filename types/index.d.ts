@@ -256,6 +256,29 @@ export interface KnowledgeOptions extends ServiceOptions {
   watchDelayMs?: number;
 }
 
+/** Outbound webhook subscription, as listed (secret masked). */
+export interface WebhookSubscription {
+  id: string;
+  url: string;
+  events: string[];
+  description: string;
+  active: boolean;
+  failures: number;
+  createdAt: string;
+  secret: string;
+}
+
+export interface WebhookDelivery {
+  deliveryId: string;
+  subscriptionId: string;
+  event: string;
+  status: 'queued' | 'delivered' | 'failed' | 'dead' | 'skipped';
+  attempt: number;
+  code: number | null;
+  error: string | null;
+  at: string;
+}
+
 export interface SettingsService {
   [method: string]: unknown;
 }

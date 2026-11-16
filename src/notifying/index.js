@@ -15,6 +15,7 @@ const Routes = require('./routes');
 const Views = require('./views');
 const Scripts = require('./scripts');
 const NotifyingAnalytics = require('./modules/analytics');
+const { WebhookDispatcher } = require('./modules/webhooks');
 
 /**
  * Creates a notification service instance with messaging capabilities.
@@ -86,6 +87,29 @@ function createNotificationService(type, options, eventEmitter) {
   // Expose analytics so the registry can remove its listeners on shutdown/reset
   // (P2-6); the notifying routes also read it per instance.
   service.analytics = analytics;
+
+  // Outbound webhooks (feature 12). Deliveries run on the reliable queue, so
+  // this needs the queueing and settings services, which the registry injects.
+  const deps = (options && options.dependencies) || {};
+  if (deps.queueing && deps.settings) {
+    const webhookOptions = (options && options.webhooks) || {};
+    const dispatcher = new WebhookDispatcher({
+      queue: deps.queueing,
+      settings: deps.settings,
+      logger: deps.logging,
+      eventEmitter,
+      ...webhookOptions
+    });
+    service.webhooks = dispatcher;
+    service.subscribeWebhook = (input) => dispatcher.subscribe(input);
+    service.listWebhooks = () => dispatcher.list();
+    service.unsubscribeWebhook = (id) => dispatcher.unsubscribe(id);
+    service.publish = (event, payload) => dispatcher.publish(event, payload);
+    service.redeliverWebhook = (deliveryId) => dispatcher.redeliver(deliveryId);
+    service.webhookDeliveries = (limit) => dispatcher.deliveries(limit);
+    // The registry calls stopConsumers() on shutdown and reset.
+    service.stopConsumers = () => dispatcher.stop();
+  }
   return service;
 }
 

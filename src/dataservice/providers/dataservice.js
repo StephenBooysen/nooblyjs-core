@@ -8,6 +8,8 @@
 
 'use strict';
 
+const outbox = require('../modules/outbox');
+
 const { v4: uuidv4 } = require('uuid');
 
 /**
@@ -390,6 +392,46 @@ class InMemoryDataServiceProvider {
    */
   async close() {
     // No-op for in-memory provider, included for API consistency
+  }
+
+  /**
+   * Stores an object under a key the caller chooses. Used by the transactional
+   * outbox, where both keys are known before the write, so repair is idempotent.
+   * @param {string} containerName Container, created when missing
+   * @param {string} objectKey Key to store under
+   * @param {Object} jsonObject Object to store (copied)
+   * @return {Promise<string>} The key
+   */
+  async addWithKey(containerName, objectKey, jsonObject) {
+    if (!containerName || typeof containerName !== 'string' || containerName.trim() === '') {
+      throw new Error('Invalid containerName: must be a non-empty string');
+    }
+    if (!objectKey || typeof objectKey !== 'string') throw new Error('Invalid objectKey: must be a non-empty string');
+    if (!this.containers.has(containerName)) this.createContainer(containerName);
+    this.containers.get(containerName).set(objectKey, structuredClone(jsonObject));
+    return objectKey;
+  }
+
+  /**
+   * Writes an event and its record so the event is never lost (feature 12).
+   * See modules/outbox.js.
+   * @param {string} containerName Container for the record
+   * @param {Object} record Record to store
+   * @param {{name: string, payload?: *}} event Event to publish later
+   * @return {Promise<{key: string, eventId: string}>}
+   */
+  async addWithEvent(containerName, record, event) {
+    return outbox.addWithEvent(this, containerName, record, event);
+  }
+
+  /**
+   * Publishes pending outbox events (feature 12). Call it on a schedule or from a worker.
+   * @param {function(Object): Promise<*>} publish Receives each event
+   * @param {Object=} options See modules/outbox.js
+   * @return {Promise<{published: number, failed: number}>}
+   */
+  async relayOutbox(publish, options) {
+    return outbox.relayOutbox(this, publish, options);
   }
 
 }

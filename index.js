@@ -411,7 +411,8 @@ class ServiceRegistry {
     // Level 1 services (Infrastructure - Use foundation services)
     this.serviceDependencies.set('caching', ['logging']);
     this.serviceDependencies.set('queueing', ['logging']);
-    this.serviceDependencies.set('notifying', ['logging']);
+    // queueing and settings carry webhook deliveries and subscriptions (feature 12).
+    this.serviceDependencies.set('notifying', ['logging', 'queueing', 'settings']);
     this.serviceDependencies.set('appservice', ['logging']);
     this.serviceDependencies.set('fetching', ['logging']);
     this.serviceDependencies.set('settings', ['logging']);

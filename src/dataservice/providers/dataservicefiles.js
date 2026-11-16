@@ -8,6 +8,8 @@
 
 'use strict';
 
+const outbox = require('../modules/outbox');
+
 const fs = require('node:fs').promises;
 const path = require('node:path');
 const { v4: uuidv4 } = require('uuid');
@@ -551,6 +553,47 @@ class FileDataRingProvider {
   async close() {
     // No-op for file provider, included for API consistency
   }
+  /**
+   * Stores an object under a key the caller chooses. Used by the transactional
+   * outbox, where both keys are known before the write, so repair is idempotent.
+   * @param {string} containerName The container name.
+   * @param {string} objectKey Key to store under.
+   * @param {Object} jsonObject Object to store.
+   * @return {Promise<string>} The key.
+   */
+  async addWithKey(containerName, objectKey, jsonObject) {
+    this._validateContainerName(containerName);
+    this._assertSafeKey(objectKey);
+    await this._withContainerLock(containerName, async () => {
+      const data = await this._readContainerData(containerName);
+      data[objectKey] = jsonObject;
+      await this._writeContainerData(containerName, data);
+    });
+    return objectKey;
+  }
+
+  /**
+   * Writes an event and its record so the event is never lost (feature 12).
+   * See modules/outbox.js.
+   * @param {string} containerName Container for the record.
+   * @param {Object} record Record to store.
+   * @param {{name: string, payload?: *}} event Event to publish later.
+   * @return {Promise<{key: string, eventId: string}>}
+   */
+  async addWithEvent(containerName, record, event) {
+    return outbox.addWithEvent(this, containerName, record, event);
+  }
+
+  /**
+   * Publishes pending outbox events (feature 12).
+   * @param {function(Object): Promise<*>} publish Receives each event.
+   * @param {Object=} options See modules/outbox.js.
+   * @return {Promise<{published: number, failed: number}>}
+   */
+  async relayOutbox(publish, options) {
+    return outbox.relayOutbox(this, publish, options);
+  }
+
 }
 
 module.exports = FileDataRingProvider;
