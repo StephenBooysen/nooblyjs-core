@@ -29,7 +29,7 @@ Rank work by **impact ÷ effort**, but treat anything that blocks safe release a
 
 ## Phase 1: Foundations (weeks 3–8): mostly done as of 2026-11-13
 
-Done: 02, 08, 19, 23, 22b (ZAP baseline, gitleaks and the authorization matrix run on GitHub Actions and pass for 4f982f3), the `working` service, the dashboard panel and the named-instance routes of 06, and the Phase 1 part of 20. Still open: reliable jobs on the cloud queue providers (SQS, Azure, RabbitMQ, GCP, ActiveMQ), which need a store and a live service to test against; and the first scheduled run of the nightly audit (20b), which has not yet fired (the workflow is on the default branch and runs at 03:17 UTC). See the status line in each feature spec.
+Done: 02, 08, 19, 23, 22b (ZAP baseline, gitleaks and the authorization matrix run on GitHub Actions and pass for 4f982f3), the `working` service, the dashboard panel and the named-instance routes of 06, and the Phase 1 part of 20. Closed 2026-11-16: the first scheduled nightly audit (20b) ran on 2026-11-14 and 2026-11-15 and passed. Still open: reliable jobs on the cloud queue providers (SQS, Azure, RabbitMQ, GCP, ActiveMQ). Those providers refuse reliable options with a clear 400, which feature 06 allows; they need a live service to build natively. Decided 2026-11-16: the explicit refusal is accepted as the Phase 1 exit for these providers; native support is a Phase 3 carry-over. See the status line in each feature spec.
 
 **Goal:** the building blocks every later feature needs, plus least-privilege access. **Exit:** one AI API with streaming, tools and embeddings; at-least-once jobs; typed public API; every route declares a permission.
 
@@ -78,7 +78,9 @@ Every Phase 2 feature is done; each spec's status line records the evidence and 
 | 13 | [Feature flags](features/13.%20Feature%20Feature%20Flags.md) | Safe rollouts on top of settings | S |
 | 14 | [Express 5, ESM and Node 22](features/14.%20Feature%20Express%205%20ESM%20and%20Node%2022.md) | Modern platform; candidate for a 2.0 release with the legacy AI removal | M |
 
-Carried over from Phase 2: a strict style policy (17b), `add endpoint` and `add service` inside core (09), S3 and cloud-provider contracts (11), live-provider checks for embeddings and knowledge answers (01, 05), reliable jobs on the cloud queue providers (06), and the production policy for general API keys on the data-plane API (they get 401 behind the login gate in production; decide whether data-plane keys should reach `/services/*/api` there), MCP `tools/list` filtered by the caller's permissions (calls are already checked), and Playwright runs writing `.application/` instead of `.temp/`.
+Carried over from Phase 2: a strict style policy (17b), `add endpoint` and `add service` inside core (09), S3 and cloud-provider contracts (11), live-provider checks for embeddings and knowledge answers (01, 05), reliable jobs on the cloud queue providers (06), and MCP `tools/list` filtered by the caller's permissions (calls are already checked).
+
+Resolved 2026-11-16: data-plane API keys reach `/services/*/api` in production only when scoped (an unscoped general key is refused there; dashboard pages still need an admin key; the permission gate applies key scopes). The UI test server writes its logs, data and files to `.temp/tests/playwright/app-data/` (`NOOBLYJS_DATA_ROOT`).
 
 Feature 04 moves to Phase 2 if a customer needs agentic automation sooner. Feature 21 moves earlier as soon as anyone deploys more than one replica.
 

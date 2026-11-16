@@ -101,6 +101,20 @@ function createServicesAuthMiddleware(serviceRegistry) {
           req.apiKeyScopes = entry.scopes;
           return next();
         }
+
+        // Data-plane keys reach the API paths so the programmatic clients of
+        // /services/*/api work. The dashboard pages still need an admin key.
+        // The permission gate applies the key's scopes to each route. In
+        // production a general key must be scoped: an unscoped key (a plain
+        // string) would have full API access.
+        if (isApiPath(req.path)) {
+          const dataEntry = findKeyEntry(apiKey, normalizeKeyEntries(getConfiguredApiKeys(serviceRegistry)));
+          if (dataEntry && !(production && dataEntry.scopes === null)) {
+            req.apiKey = apiKey;
+            req.apiKeyScopes = dataEntry.scopes;
+            return next();
+          }
+        }
       }
 
       // STEP 4: Extract token from multiple sources

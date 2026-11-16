@@ -67,9 +67,11 @@ app.get('/', (req, res) => {
 });
 
 const eventEmitter = new EventEmitter();
+// NOOBLYJS_DATA_ROOT moves logs and data (Playwright points it at .temp/).
+const dataRoot = process.env.NOOBLYJS_DATA_ROOT || path.join(__dirname, '.application');
 serviceRegistry.initialize(app, eventEmitter, {
-  logDir: path.join(__dirname, './.application/', 'logs'),
-  dataDir: path.join(__dirname, './.application/', 'data'),
+  logDir: path.join(dataRoot, 'logs'),
+  dataDir: path.join(dataRoot, 'data'),
   security: {
     apiKeyAuth: {
       requireApiKey: false,
@@ -88,7 +90,7 @@ const cacheMetrics = serviceRegistry.getService('caching', 'memory', { instanceN
 const fetching = serviceRegistry.fetching('node');
 const dataservice = serviceRegistry.dataService('file');
 // Keep uploads out of the app root (N-15); see app.js.
-const filingBaseDir = process.env.FILING_BASE_DIR || path.join(__dirname, '.application', 'files');
+const filingBaseDir = process.env.FILING_BASE_DIR || path.join(dataRoot, 'files');
 require('node:fs').mkdirSync(filingBaseDir, { recursive: true });
 const filing = serviceRegistry.filing('local', { baseDir: filingBaseDir });
 const queue = serviceRegistry.queue('memory');
@@ -98,7 +100,7 @@ const measuring = serviceRegistry.measuring('memory');
 const notifying = serviceRegistry.notifying('memory');
 const worker = serviceRegistry.working('memory');
 const workflow = serviceRegistry.workflow('memory');
-const settings = serviceRegistry.settings('file');
+const settings = serviceRegistry.settings('file', { filepath: path.join(dataRoot, 'settings', 'settings.enc.json') });
 const aiservice = serviceRegistry.aiservice('ollama', {});
 // Feature 05: ask your documents. Sync a folder of the filing root from the
 // Knowledge dashboard; sync state and ratings are kept as hidden files there.

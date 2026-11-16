@@ -107,7 +107,11 @@ describe('services auth middleware', () => {
       const app = makeApp({ registry: { globalOptions: { adminApiKeys: ['admin-key'], apiKeys: ['general-key'] } } });
       const ok = await request(app).get('/services/caching/api/list').set('x-api-key', 'admin-key').expect(200);
       expect(ok.body.apiKey).toBe('admin-key');
-      await request(app).get('/services/caching/api/list').set('x-api-key', 'general-key').expect(401);
+      // A general key reaches the API paths (data plane) but not the portal pages.
+      const data = await request(app).get('/services/caching/api/list').set('x-api-key', 'general-key').expect(200);
+      expect(data.body.apiKey).toBe('general-key');
+      const page = await request(app).get('/services/').set('x-api-key', 'general-key');
+      expect(page.status).not.toBe(200);
     });
 
     it('falls back to general keys and reads the security config', async () => {

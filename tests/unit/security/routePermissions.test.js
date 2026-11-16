@@ -112,10 +112,35 @@ describe('portal guard and data-plane keys (M-1)', () => {
     return app;
   }
 
-  it('does not let a general key open the portal in production without admin keys', async () => {
+  it('lets a scoped general key reach the API paths in production, but not the dashboard pages', async () => {
+    process.env.NODE_ENV = 'production';
+    const scoped = [{ key: 'general-key-1234567890', name: 'data', scopes: ['caching:read'] }];
+    const app = portalFor({ apiKeys: scoped });
+    await request(app).get('/services/caching/api/list').set('x-api-key', 'general-key-1234567890').expect(200);
+    const page = await request(app)
+      .get('/services/caching/views/index.html')
+      .set('accept', 'text/html')
+      .set('x-api-key', 'general-key-1234567890');
+    expect(page.body.reached).toBeUndefined();
+  });
+
+  it('refuses an unscoped general key on the API paths in production', async () => {
     process.env.NODE_ENV = 'production';
     const app = portalFor({ apiKeys: ['general-key-1234567890'] });
     const res = await request(app).get('/services/caching/api/list').set('x-api-key', 'general-key-1234567890');
+    expect(res.status).not.toBe(200);
+  });
+
+  it('still accepts an unscoped general key on the API paths in development', async () => {
+    process.env.NODE_ENV = 'development';
+    const app = portalFor({ apiKeys: ['general-key-1234567890'] });
+    await request(app).get('/services/caching/api/list').set('x-api-key', 'general-key-1234567890').expect(200);
+  });
+
+  it('refuses an unknown key on the API paths in production', async () => {
+    process.env.NODE_ENV = 'production';
+    const app = portalFor({ apiKeys: ['general-key-1234567890'] });
+    const res = await request(app).get('/services/caching/api/list').set('x-api-key', 'wrong-key-1234567890');
     expect(res.status).not.toBe(200);
   });
 

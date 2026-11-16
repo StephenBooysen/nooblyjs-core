@@ -9,6 +9,7 @@
 
 'use strict';
 
+const path = require('node:path');
 const { defineConfig, devices } = require('@playwright/test');
 
 const PORT = Number(process.env.UI_TEST_PORT) || 11100;
@@ -37,7 +38,11 @@ module.exports = defineConfig({
   webServer: process.env.UI_TEST_BASE_URL ? undefined : {
     command: 'node ./app-noauth.js',
     url: `${BASE_URL}/services/logging/api/status`,
-    env: { PORT: String(PORT), ALLOW_NOAUTH: '1' },
+    env: {
+      PORT: String(PORT),
+      ALLOW_NOAUTH: '1',
+      NOOBLYJS_DATA_ROOT: path.join(__dirname, '.temp', 'tests', 'playwright', 'app-data')
+    },
     reuseExistingServer: !process.env.CI,
     timeout: 60000
   }
