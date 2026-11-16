@@ -64,8 +64,8 @@ class MeasuringService {
   /**
    * Filters measures within a specified date range.
    * @param {string} metricName The name of the metric.
-   * @param {Date} startDate The start date of the period (inclusive).
-   * @param {Date} endDate The end date of the period (inclusive).
+   * @param {Date=} startDate The start date of the period (inclusive). Omit for no lower bound.
+   * @param {Date=} endDate The end date of the period (inclusive). Omit for no upper bound.
    * @return {Array<{value: number, timestamp: Date}>} An array of measures within the period.
    * @private
    */
@@ -75,9 +75,12 @@ class MeasuringService {
     if (!measures) {
       return [];
     }
+    // A missing bound is open: total('visits') covers all time.
+    const from = startDate ? new Date(startDate).getTime() : -Infinity;
+    const to = endDate ? new Date(endDate).getTime() : Infinity;
     return measures.filter((measure) => {
       const timestamp = measure.timestamp.getTime();
-      return timestamp >= startDate.getTime() && timestamp <= endDate.getTime();
+      return timestamp >= from && timestamp <= to;
     });
   }
 

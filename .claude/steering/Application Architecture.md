@@ -342,8 +342,8 @@ dependencies:initialized
 │                                                                             │
 │  ┌─────────────────────────────────────────────────────────────────────┐   │
 │  │                    API Key Authentication                            │   │
-│  │  • Header: x-api-key, Authorization: Bearer, ApiKey                 │   │
-│  │  • Query: ?apiKey=...                                                │   │
+│  │  • Header: x-api-key or Authorization: Bearer / ApiKey (no query)   │   │
+│  │  • Anonymous callers refused on declared routes (401)               │   │
 │  │  • Configurable exclude paths (e.g., /status endpoints)             │   │
 │  └─────────────────────────────────────────────────────────────────────┘   │
 │                                                                             │
@@ -372,6 +372,13 @@ In strictAuth mode (on by default in production) a route with no declaration is 
 3. **MCP tools** (`src/mcp/index.js`): each tool repeats the permission check of the REST route it mirrors, and write tools need `mcp.allowWrite` and the admin wildcard.
 
 In production, a general (non-admin) API key does not pass the portal guard, so it cannot call `/services/*/api` either while `requireLogin` is on; configure admin keys (`security.servicesAuth.apiKeys`) for programmatic access.
+
+### Request Protections
+
+- **Anonymous refusal.** When API keys are required, a declared non-public route refuses a caller with no identity (`401 MISSING_API_KEY`), whether or not the service has its own key check. Excluded paths (`DEFAULT_EXCLUDE_PATHS` in `src/authservice/middleware/apiKey.js`) stay open.
+- **Cross-site writes.** `createOriginCheck()` (`src/authservice/middleware/originCheck.js`) refuses state-changing requests that carry only the session cookie when their `Origin` or `Referer` is another site (`403 CSRF_ORIGIN_MISMATCH`, event `auth:csrf-origin-rejected`). It is on by default; `security.csrf.enabled: false` turns it off.
+- **Invitations.** An invitation code is revoked after five failed redeems (`INVITATION_MAX_FAILED_REDEEMS` or the `maxFailedRedeems` option). The revocation emits `auth:invitation-revoked`.
+- **Code execution boundary.** Activities run only from a folder that does not overlap any registered filing store (`src/working/modules/filingRoots.js`); Windows-style paths are refused on every platform. `assertActivityPath()` applies the containment check on the HTTP and workflow paths.
 
 ### Middleware Chain Setup
 

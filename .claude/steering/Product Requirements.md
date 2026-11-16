@@ -289,12 +289,6 @@ High-performance data caching with multiple backend support.
 - `getAnalytics()` - Get cache statistics
 - `getSettings()` / `saveSettings(settings)` - Read and persist service settings
 
-**Performance Characteristics**:
-- Memory: <1ms latency
-- Redis: 1-5ms latency
-- Memcached: 1-5ms latency
-- File: 5-50ms latency
-
 **Dependencies**: Logging
 
 **Use Cases**:
@@ -330,17 +324,11 @@ Asynchronous message processing and task distribution.
 - Message persistence
 
 **Key Methods**:
-- `push(queueName, message)` - Enqueue message
-- `pop(queueName)` - Dequeue message
-- `peek(queueName, count)` - View messages without removing
-- `getStatus(queueName)` - Queue statistics
-- `purge(queueName)` - Clear queue
-
-**Performance Characteristics**:
-- Memory: <1ms push/pop
-- Redis: 5-10ms push/pop
-- RabbitMQ: 10-20ms push/pop
-- AWS SQS: 50-100ms push/pop
+- `enqueue(queueName, item)` - Add a message (reliable options when the provider supports them)
+- `dequeue(queueName)` - Take the next message
+- `size(queueName)` - Messages waiting
+- `listQueues()` - Queue names
+- `purge(queueName)` - Clear a queue
 
 **Dependencies**: Logging
 
@@ -355,35 +343,30 @@ Asynchronous message processing and task distribution.
 ---
 
 #### **Notifying Service** (`src/notifying/`)
-Multi-channel notification delivery system.
+In-process topic messaging, plus outbound webhooks with signed deliveries.
 
-**Purpose**: Centralize notification management across multiple channels
+**Purpose**: Deliver notifications between parts of an application, and to external systems through signed webhooks
 
 **Providers Available** (2):
-1. **Memory** - In-process notification queue
-2. **API** - Remote notification service
+1. **Default** - In-process topics, with a notification history
+2. **API** - Proxies to a remote notifying service
 
 **Core Capabilities**:
-- Topic-based pub/sub messaging
-- Notification queuing and delivery
-- Subscriber management
-- Delivery tracking
-- Topic filtering
+- Topic messaging: `createTopic`, `subscribe(topic, callback)`, `unsubscribe`, `notify`, `getNotifications`
+- Outbound webhooks (feature 12): subscriptions with a secret, deliveries on the reliable queue, a delivery history, and redelivery. Each request is signed with `NooblyJS-Signature`.
+- REST and dashboard for webhook subscriptions and deliveries
 
-**Key Methods**:
-- `publish(topic, message)` - Publish notification
-- `subscribe(topic, handler)` - Subscribe to topic
-- `unsubscribe(topic, handler)` - Unsubscribe
-- `getSubscribers(topic)` - List subscribers
+**Key Methods** (webhooks, `src/notifying/modules/webhooks.js`):
+- `subscribe(input)`, `list()`, `unsubscribe(id)` - manage subscriptions
+- `publish(event, payload)` - queue an event for every matching subscription
+- `redeliver(deliveryId)`, `deliveries(limit)` - retry and inspect deliveries
 
-**Dependencies**: Logging
+**Dependencies**: Logging, Queueing, Settings (webhook deliveries and subscriptions are stored in settings)
 
 **Use Cases**:
-- User notifications
-- System alerts
-- Event notifications
-- Webhooks
-- Email/SMS delivery coordination
+- User notifications and system alerts
+- Webhooks to partner systems, with signed, retried delivery
+- Coordinating email or SMS delivery through the transactional outbox (dataservice `addWithEvent` and `relayOutbox`, MongoDB)
 
 ---
 
@@ -460,6 +443,7 @@ Grouped key/value settings, with the option to store them encrypted.
 
 **Capabilities**:
 - Grouped settings, with validation on the REST API (400 for invalid input)
+- Feature flags (feature 13) live in the `flags` group: evaluated through the `flags:evaluate` permission, exposed as an OpenFeature provider, and managed from a dashboard panel
 - Embeddable UI: `new SettingsUIManager({ containerId }).initialize()` from `/services/settings/scripts/js/index.js`
 - Reload from disk through the REST API
 
@@ -508,13 +492,6 @@ Unified data persistence layer with multi-database support.
 - Criteria-based filtering
 - Sorting and pagination
 
-**Performance Considerations**:
-- Memory: Fastest (in-process)
-- File: Good for small datasets
-- MongoDB: Best for large datasets and complex queries
-- DocumentDB: AWS-integrated, auto-scaling
-- SimpleDB: Simple key-value access
-
 **Dependencies**: Logging, Queueing
 
 **Use Cases**:
@@ -527,117 +504,104 @@ Unified data persistence layer with multi-database support.
 ---
 
 #### **Working Service** (`src/working/`)
-Worker thread and activity execution engine.
+Runs activities (small scripts) in worker threads, outside the request cycle.
 
-**Purpose**: Execute long-running tasks asynchronously without blocking requests
+**Purpose**: Run long or CPU-heavy work without blocking requests, with queued tasks and results.
+
+**Providers**: `default` (worker threads) and `api` (proxies to a remote working service).
 
 **Capabilities**:
-- Activity execution from files
-- Worker script management
-- Task queuing and scheduling
-- Error handling and recovery
-- Result capture and storage
-- Worker lifecycle management
+- Starts an activity from a script path under the activities folder, or a named activity
+- Keeps tasks on a queue, with a bounded number of threads (`maxThreads`)
+- Reports status and results through a completion callback
+- Refuses activity folders that overlap a filing store, and paths that leave the activities folder (feature 18)
+- Reliable tasks are acknowledged only when their worker finishes
 
-**Key Methods**:
-- `executeActivity(activityPath, input)` - Run activity
-- `executeWorker(workerScript, data)` - Execute worker
-- `getStatus(workerId)` - Get execution status
-- `getResult(workerId)` - Get execution result
+**Key Methods** (`src/working/providers/working.js`):
+- `start(scriptPath, data, completionCallback, startOptions)` - run a script
+- `startActivity(name, data, completionCallback)` - run a named activity
+- `hasActivity(name)`, `hasActivityRegistry()` - check what is available
+- `validateActivityPath(path)`, `assertActivityPath(path)` - refuse unsafe paths
+- `stop()` - stop the processor and fail anything still waiting
 
-**Activity Structure**:
+**Activity contract**: a CommonJS module that exports `run(data)`. The worker's result is what `run` returns; a thrown error is reported as an error status.
+
 ```javascript
-module.exports = async (input, context) => {
-  // Process input
-  // Access context.logging, context.cache, etc.
-  return result;
-};
+// activities/greet.js
+exports.run = async (data) => ({ greeting: `Hello, ${data.name}` });
 ```
 
 **Dependencies**: Logging, Queueing, Caching
 
 **Use Cases**:
 - Background job processing
-- Long-running computations
-- Data transformations
-- Report generation
-- File processing
+- Report generation and file processing
+- Steps of a workflow (a workflow step names an activity; unsafe steps are refused)
+- Scheduled tasks (the scheduling service starts activities)
 
 ---
 
 #### **Measuring Service** (`src/measuring/`)
-Metrics collection and performance analysis.
+Records numeric measures over time and reports totals and averages.
 
-**Purpose**: Collect, aggregate, and analyze application performance metrics
+**Purpose**: Keep counts and values such as requests, errors and durations, and report them over a period
 
-**Capabilities**:
-- Custom metric recording
-- Time-series data collection
-- Aggregation and statistics
-- Performance tracking
-- Metric querying
+**Providers**: `default` (in memory) and `api` (proxies to a remote measuring service).
 
-**Key Methods**:
-- `record(metricName, value, tags)` - Record metric
-- `getMetrics(name)` - Retrieve metrics
-- `getStats(name)` - Get aggregated stats
-- `clear(name)` - Clear metrics
+**Key Methods** (`src/measuring/provider/measuring.js`):
+- `add(metricName, value)` - record a measure with its timestamp
+- `list(metricName, startDate, endDate)` - measures in a period
+- `total(metricName, startDate, endDate)` - sum in a period
+- `average(metricName, startDate, endDate)` - mean in a period
 
-**Metric Types**:
-- Counters (request counts, errors)
-- Gauges (memory usage, connections)
-- Histograms (response times, sizes)
-- Timers (operation duration)
+Either date may be omitted. `total('visits')` covers all time; a start date alone keeps measures from that point on, and an end date alone keeps measures up to it.
 
 **Dependencies**: Logging, Queueing, Caching
 
 **Use Cases**:
-- Request/response metrics
-- Performance monitoring
-- Error rate tracking
-- Custom business metrics
-- SLA tracking
+- Request and error counts
+- Durations and sizes for performance monitoring
+- Usage reports, fed to the dashboard
 
 ---
 
-### Level 3: Application Services
-
 #### **Scheduling Service** (`src/scheduling/`)
-Task scheduling and cron job management.
+Runs activities on a cron expression or at an interval.
 
-**Purpose**: Execute tasks on defined schedules with reliability and monitoring
+**Purpose**: Run recurring tasks reliably, with pause, resume and a run history
+
+**Providers**: one in-process scheduler per process (`registry.scheduling()` returns the same instance on every call).
 
 **Capabilities**:
-- One-time task scheduling
-- Recurring task scheduling (cron expressions)
-- Timezone support
-- Task execution history
-- Failure handling and retry
-- Task cancellation
+- Interval tasks: `start(name, scriptPath, intervalSeconds, ...)` fires immediately, then every interval
+- Cron tasks: `startCron(task, cron, name, callback)` with a standard 5-field expression (minute, hour, day of month, month, day of week)
+- Pause and resume; minutes skipped while paused are not replayed on resume
+- `update(name, changes)` switches a task between cron and interval without losing its callback or history
+- Run history: `listRuns` and `getRun` keep the last 50 runs per task, including fires skipped at the concurrency cap
+- `getStats()` for the dashboard and the monitoring endpoints
 
-**Key Methods**:
-- `scheduleOnce(jobName, scheduledTime, handler)` - Schedule once
-- `scheduleCron(jobName, cronExpression, handler)` - Recurring schedule
-- `cancel(jobName)` - Cancel job
-- `getStatus(jobName)` - Get job status
-- `getHistory(jobName)` - Get execution history
+**Key Methods** (`src/scheduling/providers/scheduling.js`):
+- `start(taskName, scriptPath, dataOrInterval, intervalSecondsOrCallback, executionCallback, options)`
+- `startCron(task, cron, taskName, callback)`
+- `runNow(taskName)`, `pause(taskName)`, `resume(taskName)`, `update(taskName, changes)`
+- `cancel(taskId)`, `stop(taskName)`, `isRunning(taskName)`
+- `listSchedules()`, `getSchedule(taskName)`, `listRuns(...)`, `getRun(...)`, `getStats()`
 
-**Supported Cron Formats**:
+**Cron example**:
 ```
-* * * * * * (second minute hour day month dayOfWeek)
-0 */5 * * * * (Every 5 minutes)
-0 0 * * * * (Every day at midnight)
-0 0 0 * * 0 (Every Sunday at midnight)
+0 */5 * * *     every five minutes
+0 0 * * *       every day at midnight
+0 0 * * 0       every Sunday at midnight
 ```
 
-**Dependencies**: Logging, Working
+**Dependencies**: Logging, Working (the scheduler starts activities through the working service)
 
 **Use Cases**:
-- Data cleanup tasks
-- Report generation on schedule
+- Data cleanup and retention
+- Report generation on a schedule
 - Cache warming
 - Periodic health checks
-- Backup scheduling
+- Scheduled workflow runs
 
 ---
 
@@ -658,10 +622,11 @@ Full-text search with result caching and intelligent indexing.
 - Custom search filters
 
 **Key Methods**:
-- `search(query, filters, options)` - Execute search
-- `index(data)` - Index data for searching
-- `reindex()` - Rebuild search index
+- `search(query, options)` - Execute search
+- `add(key, document)`, `addAll(documents)`, `replace(document)`, `remove(key)` - Maintain the index
+- `suggest(...)`, `autoSuggest(...)` - Suggestions as the user types
 - `getStats()` - Get search statistics
+- `saveToDisk()`, `loadFromDisk()` - Persist and restore indexes
 
 **Search Features**:
 - Prefix matching
@@ -669,11 +634,6 @@ Full-text search with result caching and intelligent indexing.
 - Phrase search
 - Wildcard support
 - Fuzzy matching (provider dependent)
-
-**Performance**:
-- Cached results: <10ms
-- Index search: <100ms for large datasets
-- Full reindex: Variable based on dataset size
 
 **Dependencies**: Logging. The registry injects no other service. Caching, DataService, Queueing, Working and Scheduling are optional collaborators that an application wires in itself.
 
@@ -687,58 +647,40 @@ Full-text search with result caching and intelligent indexing.
 ---
 
 #### **Workflow Service** (`src/workflow/`)
-Complex multi-step workflow orchestration engine.
+Runs named, multi-step workflows. Each step is an activity run by the working service.
 
-**Purpose**: Define and execute multi-step workflows with error handling and state management
+**Purpose**: Define a sequence of activities, run it on demand or on a schedule, and keep its history
+
+**Providers**: `memory` (all state in memory, persisted by the host) and `api`.
 
 **Capabilities**:
-- Step-by-step workflow execution
-- Sequential and conditional execution
-- Input/output chaining between steps
-- Error handling and recovery
-- Timeout management
-- State persistence
-- Progress tracking
+- Define, update, star, import and export workflows (identified by name)
+- Run a workflow on demand, with input and a status callback; `startExecution` returns at once
+- Schedules: a workflow can run on a cron expression (it reuses the scheduling cron parser)
+- Execution history, capped per workflow (`maxExecutionsPerWorkflow`, default 1000)
+- State snapshot: `exportState()` and `importState()`. On import, runs that were in progress become interrupted failures, and overdue schedules are caught up once. A `workflow:state:changed` event tells the host when to save.
+- Steps are checked before a workflow is defined: a step that the working service would refuse (for example a path outside the activities folder) is rejected with `400`
 
-**Key Methods**:
-- `defineWorkflow(name, steps)` - Define workflow
-- `execute(workflowName, input)` - Execute workflow
-- `getStatus(executionId)` - Get execution status
-- `cancel(executionId)` - Cancel execution
+**Key Methods** (`src/workflow/index.js`):
+- `defineWorkflow(name, steps, metadata)`, `createWorkflow(data)`, `updateWorkflow(name, changes)`, `deleteWorkflow(name)`
+- `runWorkflow(name, data, statusCallback, options)`, `executeWorkflow(name, input, options)`, `startExecution(name, input, options)`
+- `getExecution(id)`, `listExecutions(...)`
+- `listWorkflows(...)`, `getWorkflow(name)`, `setStarred(name, starred)`, `markViewed(name)`
+- `exportWorkflow(name)`, `importWorkflow(data, options)`, `exportState()`, `importState(snapshot)`
 
-**Step Format**:
+**Definition example**:
 ```javascript
-module.exports = async (input, context) => {
-  // Input: output from previous step
-  // context: { logging, dataservice, cache, ... }
-  return output; // Feeds to next step
-};
+await workflow.defineWorkflow('greet-flow', ['greet.js']);
+const execution = await workflow.runWorkflow('greet-flow', { name: 'Ada' });
 ```
-
-**Workflow Definition**:
-```javascript
-const workflow = [
-  './steps/fetch-data.js',
-  './steps/transform-data.js',
-  './steps/validate-data.js',
-  './steps/store-data.js'
-];
-```
-
-**Error Handling**:
-- Step-level try/catch
-- Fallback steps
-- Retry logic
-- Error callback steps
 
 **Dependencies**: Logging, Queueing, Scheduling, Measuring, Working
 
 **Use Cases**:
-- Data pipeline orchestration
-- ETL (Extract, Transform, Load) processes
-- Multi-service workflows
-- Long-running business processes
-- Approval workflows
+- Data pipelines (extract, transform, load) built from activities
+- Scheduled reports and housekeeping
+- Multi-step business processes with a visible history
+- Approval flows (with the agentic workflow feature when it ships; see the roadmap)
 
 ---
 
@@ -818,13 +760,14 @@ User authentication and authorization system.
 - Permission management
 
 **Key Methods**:
-- `register(userData)` - Register new user
-- `login(email, password)` - User login
-- `logout(sessionId)` - User logout
-- `verifyToken(token)` - Verify JWT token
-- `getUserProfile(userId)` - Get user data
-- `updateProfile(userId, data)` - Update profile
-- `changePassword(userId, oldPass, newPass)` - Change password
+- `createUser(userData)` - Create a user
+- `authenticateUser(email, password)` - Sign in and create a session
+- `validateSession(token)` - Check a session token
+- `logout(token)` - End a session
+- `getUser(email)`, `updateUser(email, updates)` - Read and update a user
+- `changePassword(email, currentPassword, newPassword)` - Change a password; revokes the user's sessions
+- `createApiToken(email, tokenName, options)`, `validateApiToken(value)` - Personal access tokens
+- `createInvitation`, `approveInvitation`, `redeemInvitation(code, password)` - Invitations
 
 **Session Management**:
 - HTTPOnly cookies by default
@@ -851,63 +794,33 @@ User authentication and authorization system.
 ---
 
 #### **AIService** (`src/aiservice/`)
-AI model integration and prompting service.
+One API for calling AI models, with streaming, tools, structured output and embeddings.
 
-**Purpose**: Provide unified interface to multiple AI/LLM providers
+**Purpose**: Give application code one way to call every model provider, with token and cost limits
 
-**Providers Available**: AI Service v2 (`anthropic`, `openai-compatible`, `bedrock`, `vertex`, `azure`, `mock`) gives `complete`, `stream`, tool calls, `generateObject`, `embed`, `listModels`, per-request token limits and a daily cost budget, through the shared module in `src/aiservice/common/`. The older providers below keep `prompt()`; pass `legacy: false` to give `claude`, `openai`, `ollama` or `gemini` the v2 API.
-1. **Claude** - Anthropic's Claude models (default for `aiservice`)
-2. **OpenAI** - GPT-3, GPT-4 models (`openai`, with `chatgpt` as an alias)
-3. **Ollama** - Local open-source models
-4. **Gemini** - Google Gemini models
-5. **OpenAI-KV** - Azure OpenAI, authenticated through Azure Key Vault
-6. **TensorFlow** - Experimental progressive LSTM provider (optional `@tensorflow/tfjs-node`)
-7. Shared AI module - `src/aiservice/common/` (`nooblyjs-ai-common`), one way to call every model provider including AWS Bedrock, Google Vertex AI and Azure
+**Providers (AI Service v2)**: `anthropic`, `openai-compatible`, `bedrock`, `vertex`, `azure` and `mock`. They use the shared module in `src/aiservice/common/` (`nooblyjs-ai-common`, no dependencies), which also carries the model catalogue, discovery, token estimates, cost, retry and SSE.
 
-**Core Capabilities**:
-- Text generation
-- Response streaming
-- Prompt management
-- Model selection and switching
-- Token counting
-- Conversation history management
-- Custom instructions/system prompts
+**Legacy providers**: `claude` (the default), `openai` (alias `chatgpt`), `ollama`, `gemini`, `openai-kv` (Azure OpenAI through Azure Key Vault) and `tensorflow` (experimental). They keep `prompt()` and their old classes. Pass `legacy: false` to give `claude`, `openai`, `ollama` or `gemini` the v2 API.
 
-**Key Methods**:
-- `generate(prompt, options)` - Generate response
-- `stream(prompt, options)` - Stream response
-- `countTokens(text)` - Estimate token count
-- `listModels()` - Available models
-- `setModel(modelName)` - Switch model
+**Key Methods** (v2 bridge, `src/aiservice/provider/aiCommon.js`):
+- `complete(request)` - a single reply with usage
+- `streamToResponse(res, request)` - a streamed reply over server-sent events
+- `generateObject(request)` - asks for JSON that follows a schema and returns the parsed object; a reply that is not JSON is refused with `422`
+- `embed(texts, options)` and `embedder()` - embeddings for semantic search and knowledge
+- `listModels()` - the models available to the configured provider
+- `prompt(prompt, options)` - legacy call, kept for the older providers
 
-**Supported Models**:
-- Claude 3 family (Opus, Sonnet, Haiku)
-- GPT-4, GPT-3.5-turbo
-- Ollama local models
-- Custom fine-tuned models
+**Limits**: `budgets.maxTokensPerRequest` (default 8192) and `budgets.maxCostPerDay` (default unlimited). A request that would exceed either is refused before it is sent.
 
-**Advanced Features**:
-- Temperature and sampling controls
-- Top-P (nucleus sampling)
-- Token limits
-- Custom stop sequences
-- Vision capabilities (where supported)
-
-**Performance**:
-- Response time: 100-5000ms depending on model/prompt
-- Streaming latency: <100ms to first token
-- Token processing: <1ms per token
+**Model catalogue**: the shared module lists current models for each provider (for example the Claude 5 family, GPT-5.6, Gemini 2.5 and 3.x, Grok 4.x, DeepSeek). Check `models.js` in the shared module for the current list and prices.
 
 **Dependencies**: Logging, Caching, Workflow, Queueing
 
 **Use Cases**:
-- Content generation
-- Code assistance
-- Customer support chatbots
-- Data analysis and insights
-- Summarization
-- Classification and tagging
-- Question answering
+- Content generation and summarization
+- Classification, tagging and structured extraction
+- Question answering over a knowledge base (with the knowledge service)
+- Agent-style tool use (with the MCP endpoint and workflows)
 
 ---
 
@@ -936,6 +849,42 @@ Answers questions from documents, with citations (retrieval-augmented generation
 ---
 
 > Note: the earlier "Requesting Service" entry described a planned request router. It was never built and has been removed. Request routing is provided by Express and the per-service routes.
+
+---
+
+## Cross-Cutting Capabilities
+
+These are not services in the registry's dependency graph, but applications rely on them.
+
+### MCP Server (`src/mcp/`)
+- **What**: a Model Context Protocol endpoint at `POST /services/mcp` (JSON-RPC over Streamable HTTP), so coding agents such as Claude Code can read logs, queues, data and workflow runs of a running app
+- **Off by default**: enabled with `mcp.enabled`; write tools also need `mcp.allowWrite` and the admin wildcard
+- **Permissions**: every tool repeats the permission check of the REST route it mirrors; a caller must be identified
+- **Stdio bridge**: `nooblyjs mcp` connects a stdio-based agent to a running app
+
+### OpenAPI and Typed Clients (`src/shared/utils/openapi.js`)
+- **What**: one merged OpenAPI 3.1 document from every service's `routes/swagger/docs.json`, at `GET /services/api/openapi.json` (and `.yaml`), with Swagger UI at `/services/api/docs`
+- **Drift**: every route must be documented; an undocumented route fails the OpenAPI test
+- **Clients**: `nooblyjs openapi --client ts` writes a typed TypeScript client; CI compiles it with `tsc --strict`
+
+### Developer CLI (`src/cli/`, `bin/nooblyjs.js`)
+- `create` (templates `api`, `dashboard`, `ai`), `add endpoint|service|provider`, `doctor`, `routes`, `openapi`, `keys generate`, `mcp`
+- `add provider` works in a core checkout and writes the provider's contract test
+
+### Telemetry (`src/telemetry/`)
+- **What**: OpenTelemetry tracing across HTTP requests, queue messages, workers and AI calls (GenAI attributes)
+- **Off by default**: `telemetry: { enabled: true }`; exporter `console`, `otlp` or `memory`; `OTEL_SDK_DISABLED` turns it off and `OTEL_EXPORTER_OTLP_ENDPOINT` sets the collector
+- **Dependencies**: the OpenTelemetry packages are optional peers
+
+### Test Kit and Contracts (`src/testing/`, `testing.js`)
+- `nooblyjs-core/testing` gives application tests a registry (`createTestRegistry()`), event matchers (`installMatchers()`) and an event recorder (`EventRecorder`)
+- Provider contract suites in `tests/contract/` run the same expectations against every provider of a service (caching, queueing, dataservice, filing, searching, authservice)
+
+### Shared Modules
+- **Shared AI module** (`src/aiservice/common/`): see AIService
+- **Feature flags**: see Settings
+- **UI kit** (`public/ui/`): the frame and components that the NooblyJS AI host draws hosted apps into
+- **Filing store and activities boundary**: the working service refuses an activities folder that overlaps a filing store
 
 ---
 
@@ -1244,69 +1193,82 @@ See [Service Catalog](#service-catalog) for detailed endpoint documentation per 
 
 ## Technical Stack
 
-### Runtime & Web Framework
-- **Node.js**: v18+ (async/await, ES6 modules)
-- **Express.js**: v4.19.2 (web framework and routing)
-- **Nodemon**: Development auto-reload
-- **PM2**: Process management (recommended for production)
+Versions below come from `package.json`. Cloud SDKs, OpenTelemetry and nodemailer are optional peer dependencies: a provider loads its SDK only when it is used (`src/shared/utils/optionalRequire.js`).
 
-### Databases & Data Stores
-| Service | Library | Version | Notes |
-|---------|---------|---------|-------|
-| MongoDB | mongodb | 6.19.0 | Document database |
-| SimpleDB | AWS SDK | 2.1620.0 | AWS key-value store |
-| DocumentDB | AWS SDK | 2.1620.0 | AWS managed MongoDB |
-| Local FS | fs (native) | - | JSON file storage |
+### Runtime & Web Framework
+- **Node.js**: 22 or later (CI runs Node 22 and 24). The package ships CommonJS and ESM entry points with named exports (`esm/`).
+- **Express.js**: 5.3 (`^5.3.0`). Route patterns that must work on Express 4 and 5 use `route()` (`src/shared/utils/routePattern.js`).
+- **Security middleware**: helmet (headers and CSP), express-rate-limit, cors, bcryptjs (password hashing).
+- **Nodemon**: development auto-reload.
+
+### Data Stores (provider libraries)
+| Provider | Library | Notes |
+|----------|---------|-------|
+| MongoDB, DocumentDB | mongodb 6.19 (peer, optional) | Document database; the transactional outbox runs here |
+| SimpleDB | aws-sdk v2 (optional, not in the dev install) | AWS key-value store |
+| File | none (`fs`) | Encrypted or plain JSON on disk |
+| Local filing | none (`fs`) | Storage root from `FILING_BASE_DIR` |
 
 ### Caching & Message Queuing
-| Service | Library | Version | Notes |
-|---------|---------|---------|-------|
-| Redis | redis | 5.5.6 | Distributed cache/queue |
-| Redis (Mock) | redis-mock | 8.9.0 | Testing |
-| Memcached | memjs | 1.3.0 | High-performance cache |
-| RabbitMQ | amqplib | 0.10.9 | Message broker |
+| Provider | Library | Notes |
+|----------|---------|-------|
+| Redis (cache, queue, reliable jobs, session store) | ioredis 5.6 | `REDIS_URL` / `SESSION_REDIS_URL` |
+| Memcached | memjs 1.3 (peer, optional) | |
+| RabbitMQ | amqplib 0.10 (peer, optional) | Reliable options refused (see the roadmap) |
+| ActiveMQ | stompit (peer, optional) | Reliable options refused |
+| AWS SQS, Azure Queue, GCP | `@aws-sdk/client-sqs`, `@azure/storage-queue`, `@google-cloud/tasks` (peers) | Reliable options refused |
 
-### Cloud Platform SDKs
-| Provider | Library | Version |
-|----------|---------|---------|
-| AWS | aws-sdk | 2.1620.0 |
-| AWS (v3) | @aws-sdk/* | 3.614.0 |
-| Azure | @azure/identity | 4.13.0 |
-| Google Cloud | @google-cloud/storage | 7.17.0 |
+### Cloud Platform SDKs (optional peers)
+| Provider | Library |
+|----------|---------|
+| AWS S3 and SQS | `@aws-sdk/client-s3`, `@aws-sdk/client-sqs` 3.614+ |
+| Azure | `@azure/identity` 4.13+, `@azure/keyvault-secrets` 4.11+, `@azure/storage-queue` 12.26+ |
+| Google Cloud | `@google-cloud/storage` 5.18+, `@google-cloud/tasks` 6.2+ |
+
+### Observability
+| Component | Library | Notes |
+|-----------|---------|-------|
+| OpenTelemetry tracing | `@opentelemetry/api` 1.9, `sdk-trace-node` 2.0, `exporter-trace-otlp-http` 0.200 (optional peers) | Queue propagation and GenAI attributes (feature 07) |
+| Email for invitation codes | nodemailer 10.5 (optional peer) | Used only when `SMTP_URL` is set |
 
 ### AI & LLM Integration
-| Provider | Library | Version |
-|----------|---------|---------|
-| Shared AI module (AI Service v2) | none (`src/aiservice/common/`, plain HTTP) | in repo |
-| Anthropic Claude (legacy provider) | @anthropic-ai/sdk | 0.60.0 |
-| OpenAI (legacy provider) | openai | 5.23.2 |
-| PDF text for knowledge and filing previews | pdf-parse | 1.1.4 |
+| Provider | Library | Notes |
+|----------|---------|-------|
+| Shared AI module (AI Service v2) | none (`src/aiservice/common/`, plain HTTP) | Anthropic, OpenAI-compatible, Bedrock, Vertex AI, Azure, mock |
+| Anthropic Claude (legacy provider) | @anthropic-ai/sdk 0.60 | Kept until 2.0.0 |
+| OpenAI (legacy provider) | openai 5.23 | Kept until 2.0.0 |
+| PDF text for knowledge and filing previews | pdf-parse 1.1 | |
 
 ### Authentication & Authorization
-| Component | Library | Version | Purpose |
-|-----------|---------|---------|---------|
-| Passport | passport | 0.7.0 | Auth framework |
-| OAuth | passport-google-oauth20 | 2.0.0 | Google OAuth |
-| Local | passport-local | 1.0.0 | Username/password |
-| Sessions | express-session | 1.17.3 | Session management |
+| Component | Library | Purpose |
+|-----------|---------|---------|
+| Passport | passport 0.7 | Auth framework |
+| Google OAuth | passport-google-oauth20 2.0 | Sign-in |
+| Azure AD | passport-azure-ad 4.3 | Sign-in |
+| Local | passport-local 1.0 | Username and password |
+| Sessions | express-session 1.17 | Session cookie (Redis or in-process store) |
 
 ### Utilities & Tools
-| Component | Library | Version |
-|-----------|---------|---------|
-| UUID | uuid | 11.1.0 |
-| File Upload | multer | 2.0.2 |
-| Git Ops | simple-git | 3.28.0 |
-| FTP | ftp | 0.3.10 |
-| HTTP Client | axios | 1.7.7 |
-| Environment | dotenv | 17.2.1 |
+| Component | Library | Notes |
+|-----------|---------|-------|
+| UUID | uuid 11 | |
+| File upload | multer 2 | Limits enforced by `createUploadMiddleware` |
+| Git operations | simple-git 4 | Git filing provider |
+| FTP | ftp 0.3 | FTP filing provider |
+| HTTP client | axios 1.7 | Fetching provider |
+| YAML | js-yaml 4 | Settings and knowledge front matter |
+| Environment | dotenv 17 | |
 
 ### Testing & Quality
-| Tool | Library | Version |
-|------|---------|---------|
-| Test Framework | jest | 30.0.3 |
-| HTTP Mocking | nock | 13.5.6 |
-| HTTP Testing | supertest | 7.1.4 |
-| Request Handling | body-parser | 1.20.2 |
+| Tool | Library | Notes |
+|------|---------|-------|
+| Unit and contract tests | jest 30 | `npm test`; coverage threshold enforced in CI |
+| Shared AI module tests | node:test | `npm run test:ai-common` |
+| UI tests | @playwright/test 1.63 | Desktop and mobile Chromium |
+| HTTP mocking and testing | nock 13, supertest 7 | |
+| Type checks | typescript 5.9, @types/node 24 | `npm run check:types` |
+| Dead-code check | knip 6 | |
+| Dependency hygiene | Renovate; nightly `npm audit` | Feature 20 |
 
 ---
 
@@ -1495,29 +1457,48 @@ spec:
 
 ### Authentication & Authorization
 
-#### API Key Authentication
+#### API Keys
 - **Purpose**: Service-to-service and third-party API authentication
-- **Method**: Bearer token in Authorization header
-- **Validation**: On every request to protected endpoints
-- **Storage**: Environment variables (never in code)
-- **Rotation**: Recommended quarterly
+- **Method**: `x-api-key` header, or `Authorization: Bearer` / `ApiKey` header. Query-string keys are not accepted.
+- **Scopes**: a plain string key is full access; an object key `{ key, name, scopes }` reaches only those permissions
+- **Anonymous callers**: when keys are required, a declared non-public route refuses a caller with no identity (`401 MISSING_API_KEY`)
+- **Storage**: environment variables or settings (never in code)
+- **Rotation**: recommended quarterly; `nooblyjs keys generate` prints a new key
+
+#### Personal Access Tokens
+- **Purpose**: Scripts and coding agents acting for one user
+- **Method**: `dtk_` token sent as a Bearer header; it opens `/services/*/api` only when its owner is an admin
+- **Scopes**: a token may be narrowed to fewer permissions than its owner holds; it cannot be wider
 
 #### Session Authentication
-- **Purpose**: User login sessions
-- **Method**: HTTPOnly secure cookies
-- **Duration**: Configurable TTL (default 24 hours)
-- **Storage**: Configurable (memory, Redis, database)
-- **Invalidation**: Logout or timeout
+- **Purpose**: Dashboard sign-in
+- **Method**: httpOnly, SameSite=Strict session cookie. Nothing that grants access is kept in the browser.
+- **Idle timeout**: 30 minutes for admin sessions, 8 hours for other users (`sessionIdleTimeoutMs` overrides)
+- **Absolute TTL**: the cookie's max age, 24 hours by default
+- **Storage**: a pruning in-process store, or Redis when `SESSION_REDIS_URL` or `REDIS_URL` is set
+- **Invalidation**: logout, idle timeout, or a password change
 
-#### OAuth 2.0
-- **Purpose**: Third-party identity provider integration
-- **Providers**: Google OAuth 2.0 ready
-- **Flow**: Authorization code flow with PKCE support
-- **Scopes**: Configurable per provider
+#### Cross-Site Requests
+- **Check**: state-changing requests that carry only the session cookie are refused (`403 CSRF_ORIGIN_MISMATCH`) when their `Origin` or `Referer` is another site
+- **Trusted origins**: `security.csrf.allowedOrigins` and `CORS_ORIGINS`
+- **Opt-out**: `security.csrf.enabled: false`
 
-#### Multi-Factor Authentication (Future)
-- **Planned**: TOTP support
-- **Implementation**: In AuthService providers
+#### Route Permissions (RBAC)
+- **Declaration**: every `/services/*/api` route declares a permission (`service:action`) in `src/authservice/config/routePermissions.js`
+- **Roles**: `admin` (everything), `editor` (read and write to filing, searching, dataservice, caching, queueing, knowledge; read logging and measuring), `user` (read filing and searching, own profile, evaluate flags)
+- **Strict mode**: on by default in production; a route with no declaration is refused and start-up fails
+- **Verification**: the authorization matrix is generated from the declarations and runs on every pull request
+
+#### Invitations
+- **Purpose**: Account creation without open sign-up
+- **Controls**: invitation codes are hashed at rest; an approved invitation has an expiry; a code is revoked after five failed redeems; codes can be delivered by email when `SMTP_URL` is set
+
+#### OAuth 2.0 and Sign-In Providers
+- **Providers**: Google (`passport-google-oauth20`), Azure AD (`passport-azure-ad`), secure email, and Passport local
+- **Redirects**: after sign-in a person returns to a same-origin page they were heading to, then `loginSuccessRedirectUrl`, then `/services`
+
+#### Multi-Factor Authentication
+- **Status**: no built-in second factor. Sign-in through an external identity provider (Google, Azure AD) is the available route.
 
 ### Data Security
 
@@ -1782,76 +1763,29 @@ logger.info('User login', {
 
 ## Roadmap & Future Enhancements
 
-### Phase 1: Core Platform (Current)
-- ✓ Service registry and dependency injection
-- ✓ 16+ modular services
-- ✓ Multi-provider architecture
-- ✓ Event-driven communication
-- ✓ REST API auto-generation
+The full plan, with what is still open, is in [Roadmap.md](Roadmap.md). Each feature's spec under `features/` records its status and evidence.
 
-### Phase 2: Enterprise Features (Q1-Q2 2026)
-- [ ] Role-based access control (RBAC) improvements
-- [ ] Multi-factor authentication (TOTP)
-- [ ] GraphQL API support
-- [ ] Webhook management service
-- [ ] API gateway integration
-- [ ] Service mesh compatibility (Istio)
+### Delivered (2026-11-12 to 2026-11-16)
 
-### Phase 3: AI/ML Enhancement (Q2-Q3 2026)
-- [ ] Fine-tuning model support
-- [ ] Embedding service for similarity search
-- [ ] Vector database integration (Pinecone, Weaviate)
-- [ ] RAG (Retrieval Augmented Generation) service
-- [ ] Model training pipeline service
+| Area | What shipped |
+|------|--------------|
+| Security | Filing authorization and locked settings; invitation hardening; code-execution boundary for activities; safe content serving and strict CSP for script handlers; route-level RBAC with scoped keys; session and token hygiene; authorization matrix, ZAP baseline and secret scanning in CI; nightly dependency audit |
+| AI | AI Service v2 on the shared module (complete, stream, tools, embeddings) for six providers; semantic search; knowledge service with cited answers, streaming, feedback and evaluation |
+| Platform | Reliable jobs (retries, dead-letter queue) on memory and Redis; TypeScript types and validated config; Express 5; dual CommonJS and ESM entry points; Node 22 |
+| Developer experience | MCP server; OpenAPI 3.1 document and generated typed client; `nooblyjs` CLI (`create`, `add`, `doctor`, `routes`, `openapi`, `keys`, `mcp`); test kit and provider contract suites |
+| Operations | OpenTelemetry tracing; webhooks with signed delivery and a scheduled relay; MongoDB transactional outbox; feature flags with an OpenFeature provider; workflow state snapshot and restore |
 
-### Phase 4: Analytics & Insights (Q3-Q4 2026)
-- [ ] Advanced analytics service
-- [ ] Real-time dashboarding
-- [ ] Anomaly detection
-- [ ] Predictive analytics
-- [ ] Custom report builder
+### Still open
 
-### Phase 5: Developer Experience (Q4 2026-Q1 2027)
-- [ ] CLI tool for scaffolding
-- [ ] VSCode extension
-- [ ] API documentation generator
-- [ ] Test generation tools
-- [ ] Performance profiler
+- **Horizontal scaling:** shared lockouts, invitations, cron and interval claims, and the workflow snapshot are in place. A two-replica test needs a database-backed auth provider.
+- **Agentic workflows:** AI, agent, approval and branch steps with durable state. Not started.
+- **Reliable jobs on other queue providers:** RabbitMQ, ActiveMQ, AWS, Azure, GCP and the API proxy refuse reliable options with a clear error.
+- **Live-provider checks:** semantic search and knowledge answers have not been evaluated against a real embedding provider or a real model.
+- **Release 2.0.0:** removal of the legacy AI providers (`claude`, `openai`, `ollama`, `gemini`) and strict CSP without `'unsafe-inline'` for styles.
 
-### Phase 6: Advanced Capabilities (2027)
-- [ ] Service mesh integration (Kubernetes-native)
-- [ ] Distributed tracing (OpenTelemetry)
-- [ ] Advanced security (mTLS, secrets management)
-- [ ] Multi-region deployment
-- [ ] Edge computing support
+### Future providers
 
-### Future Providers
-
-**Caching**:
-- DynamoDB
-- Elasticache
-- Hazelcast
-
-**DataService**:
-- PostgreSQL
-- MySQL
-- CockroachDB
-- Cassandra
-
-**Queueing**:
-- Kafka
-- Apache Pulsar
-- AWS EventBridge
-
-**AIService**:
-- LLaMA
-- Mistral
-- Local embeddings
-
-**Filing**:
-- Azure Blob Storage
-- MinIO
-- Backblaze B2
+Providers are added through the provider pattern (`npx nooblyjs add provider`). Candidates are a Valkey cache, further object stores and a managed vector database. Each new provider must pass its service's contract suite before it is listed as supported.
 
 ---
 

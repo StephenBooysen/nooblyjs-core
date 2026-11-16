@@ -11,6 +11,7 @@
 'use strict';
 
 const { sendSafeError } = require('../../shared/utils/safeError');
+const { ClientError } = require('../../shared/utils/httpErrors');
 const { capLimit } = require('../../shared/utils/validation');
 
 /**
@@ -24,6 +25,22 @@ const { capLimit } = require('../../shared/utils/validation');
  * @param {Object} analytics - Analytics module for measurement insights
  * @return {void}
  */
+/**
+ * Parses a date path segment. An unparseable value is refused with 400 rather
+ * than being treated as an empty range (which would report 0 silently).
+ *
+ * @param {string} value Date text from the URL
+ * @return {Date} The parsed date
+ * @throws {ClientError} 400 when the value is not a date
+ */
+function parseDateSegment(value) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    throw new ClientError(400, `Invalid date: ${value}. Use an ISO date such as 2026-01-31`);
+  }
+  return date;
+}
+
 module.exports = (options, eventEmitter, measuring, analytics) => {
   if (options['express-app'] && measuring) {
     const app = options['express-app'];
@@ -82,8 +99,8 @@ module.exports = (options, eventEmitter, measuring, analytics) => {
           const measures = await Promise.resolve(
             measuring.list(
               req.params.metric,
-              new Date(req.params.datestart),
-              new Date(req.params.dateend)
+              parseDateSegment(req.params.datestart),
+              parseDateSegment(req.params.dateend)
             )
           );
           res.status(200).json(measures);
@@ -111,8 +128,8 @@ module.exports = (options, eventEmitter, measuring, analytics) => {
           const total = await Promise.resolve(
             measuring.total(
               req.params.metric,
-              new Date(req.params.datestart),
-              new Date(req.params.dateend)
+              parseDateSegment(req.params.datestart),
+              parseDateSegment(req.params.dateend)
             )
           );
           res.status(200).json(total);
@@ -140,8 +157,8 @@ module.exports = (options, eventEmitter, measuring, analytics) => {
           const average = await Promise.resolve(
             measuring.average(
               req.params.metric,
-              new Date(req.params.datestart),
-              new Date(req.params.dateend)
+              parseDateSegment(req.params.datestart),
+              parseDateSegment(req.params.dateend)
             )
           );
           res.status(200).json(average);
