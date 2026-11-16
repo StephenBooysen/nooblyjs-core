@@ -59,8 +59,8 @@ function codeMatchesHash(presentedCode, storedHash) {
 /**
  * Resolves and validates the `invitations` configuration block.
  *
- * @param {Object=} config - `{ mode, allowedDomains, deliverCode }`
- * @return {{mode: string, allowedDomains: string[], deliverCode: ?Function}}
+ * @param {Object=} config - `{ mode, allowedDomains, deliverCode, maxFailedRedeems }`
+ * @return {{mode: string, allowedDomains: string[], deliverCode: ?Function, maxFailedRedeems: number}}
  * @throws {Error} When the mode is unknown
  *
  * @example
@@ -75,7 +75,12 @@ function resolveInvitationPolicy(config = {}) {
     ? config.allowedDomains.map((d) => String(d).trim().toLowerCase()).filter(Boolean)
     : [];
   const deliverCode = config && typeof config.deliverCode === 'function' ? config.deliverCode : null;
-  return { mode, allowedDomains, deliverCode };
+  // Feature 16: a code is revoked after this many failed redemptions (default 5).
+  const maxFailed = Number(
+    (config && config.maxFailedRedeems) ?? process.env.INVITATION_MAX_FAILED_REDEEMS
+  );
+  const maxFailedRedeems = Number.isInteger(maxFailed) && maxFailed > 0 ? maxFailed : 5;
+  return { mode, allowedDomains, deliverCode, maxFailedRedeems };
 }
 
 /**

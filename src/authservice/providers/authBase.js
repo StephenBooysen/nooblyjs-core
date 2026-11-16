@@ -1192,6 +1192,24 @@ class AuthBase {
     try {
       const strength = await this.validatePasswordStrength(password);
       if (!strength.valid) {
+        // Feature 16: a code that keeps failing is revoked, so a leaked code
+        // cannot be probed with many passwords. An administrator issues a new one.
+        record.failedRedeems = (record.failedRedeems || 0) + 1;
+        if (record.failedRedeems >= this.invitationPolicy_.maxFailedRedeems) {
+          record.status = 'pending';
+          record.codeHash = null;
+          record.approvedAt = null;
+          record.expiresAt = null;
+          record.failedRedeems = 0;
+          await this.persistInvitations_(record);
+          this.eventEmitter_?.emit('auth:invitation-revoked', {
+            invitationId: record.id,
+            email: record.email,
+            reason: 'too-many-failed-redeems'
+          });
+          throw new ClientError(400, 'Too many failed attempts. This invitation code has been revoked; ask an administrator for a new one.');
+        }
+        await this.persistInvitations_(record);
         throw new ClientError(400, 'Password does not meet strength requirements: ' + strength.errors.join(', '));
       }
 

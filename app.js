@@ -222,7 +222,13 @@ const notifying = serviceRegistry.notifying('memory');
 const worker = serviceRegistry.working('memory');
 const workflow = serviceRegistry.workflow('memory');
 const fetching = serviceRegistry.fetching('node');
-const authservice = serviceRegistry.authservice('file');
+// Feature 16: invitation codes are emailed when SMTP_URL and MAIL_FROM are set
+// (nodemailer is an optional peer). Without them, codes are shown to the admin.
+const { createMailer, invitationCodeSender } = require('./src/notifying/modules/mail');
+const invitationMailer = createMailer({ logger: log });
+const authservice = serviceRegistry.authservice('file', invitationMailer
+  ? { invitations: { deliverCode: invitationCodeSender(invitationMailer) } }
+  : {});
 const settings = serviceRegistry.settings('file');
 const aiservice = serviceRegistry.aiservice('ollama', {});
 // Feature 05: ask your documents. Sync a folder of the filing root from the
