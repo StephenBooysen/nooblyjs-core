@@ -13,6 +13,7 @@
 const { postLoginRedirect } = require('../modules/redirect');
 const rateLimit = require('express-rate-limit');
 const { sendSafeError } = require('../../shared/utils/safeError');
+const { createStateStore, keyPart, SharedRateLimitStore } = require('../../shared/utils/stateStore');
 const { capLimit, validate } = require('../../shared/utils/validation');
 
 /**
@@ -40,9 +41,14 @@ module.exports = (options, eventEmitter, auth, analytics) => {
 
     // P1-3: Brute-force protection on login.
     // (1) Per-IP rate limit on the login endpoint.
+    // With a shared state store (feature 21) the counts are shared too, so the
+    // limit holds across replicas. Otherwise express-rate-limit keeps its own.
+    const sharedStore = options.stateStore && options.stateStore.kind === 'redis' ? options.stateStore : null;
+    const loginWindowMs = Number(process.env.LOGIN_RATE_WINDOW_MS) || 15 * 60 * 1000;
     const loginRateLimiter = rateLimit({
-      windowMs: Number(process.env.LOGIN_RATE_WINDOW_MS) || 15 * 60 * 1000,
+      windowMs: loginWindowMs,
       max: Number(process.env.LOGIN_RATE_LIMIT_MAX) || 10,
+      ...(sharedStore ? { store: new SharedRateLimitStore(sharedStore, loginWindowMs, 'rl:login:') } : {}),
       standardHeaders: true,
       legacyHeaders: false,
       message: {
@@ -57,38 +63,49 @@ module.exports = (options, eventEmitter, auth, analytics) => {
     const LOCK_THRESHOLD = Number(process.env.LOGIN_LOCK_THRESHOLD) || 5;
     const LOCK_WINDOW_MS = Number(process.env.LOGIN_LOCK_WINDOW_MS) || 15 * 60 * 1000;
     const LOCK_DURATION_MS = Number(process.env.LOGIN_LOCK_MS) || 15 * 60 * 1000;
-    const failedLogins = new Map(); // email -> { count, firstAt, lockedUntil }
+    // The counts and locks live in the shared state store, so every replica
+    // sees the same failures (feature 21). The keys hold a hash of the email,
+    // not the address. With the default memory store this behaves as before.
+    const stateStore = options.stateStore || createStateStore();
+    const lockKey = (email) => `auth:lock:${keyPart(email)}`;
+    const failKey = (email) => `auth:fail:${keyPart(email)}`;
 
-    const loginLockUntil = (email) => {
-      const rec = failedLogins.get(email);
-      if (rec && rec.lockedUntil && rec.lockedUntil > Date.now()) {
-        return rec.lockedUntil;
+    // If the shared store is unreachable, a login is not blocked by the lock
+    // check and the failure is logged. That fails open for the lockout only.
+    const stateOrFallback = async (action, fallback) => {
+      try {
+        return await action();
+      } catch (error) {
+        eventEmitter.emit('auth:lockout-state-error', { error: error.message });
+        return fallback;
       }
-      return 0;
     };
 
-    const recordLoginFailure = (email) => {
-      const now = Date.now();
-      const rec = failedLogins.get(email) || { count: 0, firstAt: now, lockedUntil: 0 };
-      if (now - rec.firstAt > LOCK_WINDOW_MS) {
-        rec.count = 0;
-        rec.firstAt = now;
-      }
-      rec.count += 1;
-      if (rec.count >= LOCK_THRESHOLD) {
-        rec.lockedUntil = now + LOCK_DURATION_MS;
-      }
-      failedLogins.set(email, rec);
-    };
+    const loginLockUntil = (email) => stateOrFallback(async () => {
+      const until = await stateStore.get(lockKey(email));
+      return until && until > Date.now() ? until : 0;
+    }, 0);
 
-    const clearLoginFailures = (email) => failedLogins.delete(email);
+    const recordLoginFailure = (email) => stateOrFallback(async () => {
+      const count = await stateStore.incr(failKey(email), LOCK_WINDOW_MS);
+      if (count >= LOCK_THRESHOLD) {
+        await stateStore.set(lockKey(email), Date.now() + LOCK_DURATION_MS, LOCK_DURATION_MS);
+      }
+    }, undefined);
+
+    const clearLoginFailures = (email) => stateOrFallback(async () => {
+      await stateStore.del(failKey(email));
+      await stateStore.del(lockKey(email));
+    }, undefined);
 
     // Invitation endpoints are public, so they are rate limited per IP. The
     // code is 128 bits, which makes guessing infeasible; the limit stops a
     // flood of requests and redemption attempts from one source.
+    const invitationWindowMs = Number(process.env.INVITATION_RATE_WINDOW_MS) || 15 * 60 * 1000;
     const invitationRateLimiter = rateLimit({
-      windowMs: Number(process.env.INVITATION_RATE_WINDOW_MS) || 15 * 60 * 1000,
+      windowMs: invitationWindowMs,
       max: Number(process.env.INVITATION_RATE_LIMIT_MAX) || 20,
+      ...(sharedStore ? { store: new SharedRateLimitStore(sharedStore, invitationWindowMs, 'rl:invite:') } : {}),
       standardHeaders: true,
       legacyHeaders: false,
       message: {
@@ -156,7 +173,7 @@ module.exports = (options, eventEmitter, auth, analytics) => {
         const { email, password, returnUrl } = req.body;
 
         // Per-account lockout check (P1-3).
-        const lockedUntil = email ? loginLockUntil(email) : 0;
+        const lockedUntil = email ? await loginLockUntil(email) : 0;
         if (lockedUntil) {
           const retryAfter = Math.ceil((lockedUntil - Date.now()) / 1000);
           res.set('Retry-After', String(retryAfter));
@@ -169,7 +186,7 @@ module.exports = (options, eventEmitter, auth, analytics) => {
 
         try {
           const result = await auth.authenticateUser(email, password);
-          clearLoginFailures(email);
+          await clearLoginFailures(email);
           eventEmitter.emit('auth:login-api', { email });
 
           // Establish Passport session so req.isAuthenticated() returns true
@@ -210,7 +227,7 @@ module.exports = (options, eventEmitter, auth, analytics) => {
         } catch (error) {
           // Record the failure for per-account lockout (P1-3).
           if (email) {
-            recordLoginFailure(email);
+            await recordLoginFailure(email);
           }
           // Return user-friendly error response
           res.status(401).json({

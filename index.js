@@ -28,6 +28,7 @@ const createKnowledgeService = require('./src/knowledge');
 const { normalizeKeyEntries, findKeyEntry } = require('./src/authservice/modules/permissions');
 const { Telemetry } = require('./src/telemetry');
 const { createRequestContextMiddleware } = require('./src/telemetry/requestContext');
+const { createStateStore } = require('./src/shared/utils/stateStore');
 
 const ensureArray = (value) => {
   if (Array.isArray(value)) {
@@ -161,6 +162,12 @@ class ServiceRegistry {
     };
 
     this.globalOptions.apiKeys = apiKeys;
+
+    // Shared state for horizontal scaling (feature 21): memory by default,
+    // Redis when cluster.redisUrl is set. Services read it from their options.
+    this.clusterConfig = globalOptions.cluster || {};
+    this.stateStore = createStateStore(this.clusterConfig);
+    this.globalOptions.stateStore = this.stateStore;
     this.globalOptions.requireApiKey = requireApiKey;
 
     if (hasCustomExcludePaths) {
@@ -991,6 +998,43 @@ class ServiceRegistry {
     return missing;
   }
 
+  /**
+   * Refuses to run clustered (cluster.enabled) when a service uses a provider
+   * whose state lives in one process or on one disk (feature 21). Each entry in
+   * the error names the service and provider, and the provider to switch to.
+   * Call it after the services are created, like verifyRouteDeclarations().
+   *
+   * @return {Array<string>} The offending "service:provider" pairs (empty when clustered-safe or not clustered)
+   * @throws {Error} When clustered and any such provider is in use, unless listed in cluster.allowLocalProviders
+   */
+  verifyClusterMode() {
+    if (!this.clusterConfig || !this.clusterConfig.enabled) return [];
+    const allowed = new Set(this.clusterConfig.allowLocalProviders || []);
+    // provider -> the shared alternative to switch to
+    const LOCAL = {
+      'caching:memory': 'a Redis cache (caching redis)',
+      'caching:file': 'a Redis cache (caching redis)',
+      'queueing:memory': 'a Redis queue (queueing redis)',
+      'dataservice:memory': 'a MongoDB dataservice (dataservice mongodb)',
+      'dataservice:file': 'a MongoDB dataservice (dataservice mongodb)',
+      'authservice:memory': 'a database-backed authservice',
+      'authservice:file': 'a database-backed authservice',
+      'filing:local': 'a shared filing provider (filing gcp, filing api or filing sync)',
+      'settings:file': 'a shared settings store, or list it in cluster.allowLocalProviders when every replica shares one volume'
+    };
+    const offending = [];
+    for (const key of this.services.keys()) {
+      const [serviceName, providerType] = key.split(':');
+      const pair = `${serviceName}:${providerType}`;
+      if (LOCAL[pair] && !allowed.has(pair)) offending.push(pair);
+    }
+    const unique = [...new Set(offending)];
+    if (unique.length === 0) return [];
+    const message = `Clustered mode refuses process-local providers: ${unique
+      .map((pair) => `${pair} (use ${LOCAL[pair]})`).join('; ')}`;
+    throw new Error(message);
+  }
+
   getEventEmitter() {
     return this.eventEmitter;
   }
@@ -1044,6 +1088,7 @@ class ServiceRegistry {
       return;
     }
     await this.telemetry?.shutdown();
+    await this.stateStore?.close?.();
 
     // Per-service teardown timeout so one hung disconnect cannot block the
     // whole shutdown (P2-5).

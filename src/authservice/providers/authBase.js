@@ -35,6 +35,24 @@ const BCRYPT_COST = parseInt(process.env.BCRYPT_COST, 10) || 12;
  * Provides user management, role-based access, and session handling.
  * @class
  */
+/** Invitation fields that hold dates. JSON stores them as strings. */
+const INVITATION_DATE_FIELDS = ['createdAt', 'approvedAt', 'expiresAt', 'usedAt'];
+
+/**
+ * Turns a stored invitation back into the shape the provider uses, with Date
+ * objects for its dates.
+ *
+ * @param {Object} raw Stored record
+ * @return {Object} Record with dates restored
+ */
+function reviveInvitation(raw) {
+  const record = { ...raw };
+  for (const field of INVITATION_DATE_FIELDS) {
+    if (typeof record[field] === 'string') record[field] = new Date(record[field]);
+  }
+  return record;
+}
+
 class AuthBase {
   /**
    * Initializes the authentication provider.
@@ -66,6 +84,13 @@ class AuthBase {
      * @protected {!Map<string, Object>}
      */
     this.invitations_ = new Map();
+    /**
+     * Shared store for invitations (feature 21). Set only for a Redis state
+     * store, so that an invitation issued on one replica can be redeemed on
+     * another. Null when invitations live in this process.
+     * @protected {?Object}
+     */
+    this.stateStore_ = options.stateStore && options.stateStore.kind === 'redis' ? options.stateStore : null;
     /**
      * Idle timeouts in ms. An admin session that is idle for longer than
      * `admin` (default 30 minutes) expires; other sessions use `user` (8 hours).
@@ -1062,7 +1087,7 @@ class AuthBase {
 
     const { record, code } = this.newInvitationRecord_({ name, email, mobile, approve: autoApprove });
     this.invitations_.set(record.id, record);
-    await this.persistInvitations_();
+    await this.persistInvitations_(record);
 
     this.eventEmitter_?.emit('auth:invitation-requested', { email, invitationId: record.id, status: record.status });
 
@@ -1100,7 +1125,7 @@ class AuthBase {
     }
     const { record, code } = this.newInvitationRecord_({ name, email, mobile, approve: true });
     this.invitations_.set(record.id, record);
-    await this.persistInvitations_();
+    await this.persistInvitations_(record);
     this.eventEmitter_?.emit('auth:invitation-approved', { email, invitationId: record.id, mode: 'admin' });
     return { ...publicInvitation(record), code };
   }
@@ -1114,12 +1139,12 @@ class AuthBase {
    * @throws {ClientError} 404 when not found, 409 when not pending.
    */
   async approveInvitation(id) {
-    const record = this.findInvitationById_(id);
+    const record = await this.findInvitationById_(id);
     if (record.status !== 'pending') {
       throw new ClientError(409, 'Only pending invitations can be approved');
     }
     const code = this.issueInvitationCode_(record);
-    await this.persistInvitations_();
+    await this.persistInvitations_(record);
     this.eventEmitter_?.emit('auth:invitation-approved', { email: record.email, invitationId: record.id, mode: 'admin' });
     return { ...publicInvitation(record), code };
   }
@@ -1138,7 +1163,7 @@ class AuthBase {
       throw new ClientError(400, 'Invitation code and password are required');
     }
 
-    const record = this.findInvitationByCode_(code);
+    const record = await this.findInvitationByCode_(code);
     if (!record || record.status === 'pending') {
       throw new ClientError(400, 'Invitation code is invalid or expired');
     }
@@ -1150,6 +1175,13 @@ class AuthBase {
     }
     // Claim the invitation so two concurrent redemptions cannot both succeed.
     if (record.redeeming) {
+      throw new ClientError(409, 'This invitation is being redeemed');
+    }
+
+    // Across replicas the in-memory flag above is not enough, so claim the
+    // invitation in the shared store. The claim is released if redemption fails.
+    const claimKey = `auth:invite-redeem:${record.id}`;
+    if (this.stateStore_ && !(await this.stateStore_.setIfAbsent(claimKey, 1, 10 * 60 * 1000))) {
       throw new ClientError(409, 'This invitation is being redeemed');
     }
 
@@ -1170,11 +1202,14 @@ class AuthBase {
       record.status = 'used';
       record.usedAt = new Date();
       record.codeHash = null;
-      await this.persistInvitations_();
+      await this.persistInvitations_(record);
       this.eventEmitter_?.emit('auth:invitation-redeemed', { invitationId: record.id, email: record.email });
       return user;
     } finally {
       record.redeeming = false;
+      if (this.stateStore_ && record.status !== 'used') {
+        await this.stateStore_.del(claimKey).catch(() => {});
+      }
     }
   }
 
@@ -1209,12 +1244,12 @@ class AuthBase {
    * @throws {ClientError} 404 when not found, 409 when already redeemed.
    */
   async recreateInvitation(id) {
-    const record = this.findInvitationById_(id);
+    const record = await this.findInvitationById_(id);
     if (record.status === 'used') {
       throw new ClientError(409, 'Cannot recreate an invitation that has already been redeemed');
     }
     const code = this.issueInvitationCode_(record);
-    await this.persistInvitations_();
+    await this.persistInvitations_(record);
     this.eventEmitter_?.emit('auth:invitation-recreated', { invitationId: record.id, email: record.email });
     return { ...publicInvitation(record), code };
   }
@@ -1239,7 +1274,7 @@ class AuthBase {
     if (!code) {
       throw new ClientError(400, 'Invitation code is required');
     }
-    const record = this.findInvitationByCode_(code);
+    const record = await this.findInvitationByCode_(code);
     if (!record) {
       throw new ClientError(404, 'Invitation not found');
     }
@@ -1297,11 +1332,28 @@ class AuthBase {
    * @return {Object} The record
    * @throws {ClientError} 404 when not found
    */
-  findInvitationById_(id) {
-    const record = id ? this.invitations_.get(id) : undefined;
+  async findInvitationById_(id) {
+    const record = id ? await this.loadInvitation_(id) : undefined;
     if (!record) {
       throw new ClientError(404, 'Invitation not found');
     }
+    return record;
+  }
+
+  /**
+   * Loads an invitation: from this process, or from the shared store when
+   * there is one. A loaded record is cached locally so the file snapshot keeps it.
+   *
+   * @private
+   * @param {string} id Invitation id
+   * @return {Promise<Object|undefined>} The record
+   */
+  async loadInvitation_(id) {
+    if (!this.stateStore_) return this.invitations_.get(id);
+    const raw = await this.stateStore_.get(`auth:invite:${id}`);
+    if (!raw) return undefined;
+    const record = reviveInvitation(raw);
+    this.invitations_.set(record.id, record);
     return record;
   }
 
@@ -1312,7 +1364,14 @@ class AuthBase {
    * @param {string} code Plain invitation code
    * @return {Object|null} The record, or null
    */
-  findInvitationByCode_(code) {
+  async findInvitationByCode_(code) {
+    if (this.stateStore_) {
+      if (typeof code !== 'string' || code === '') return null;
+      const id = await this.stateStore_.get(`auth:invite-code:${hashInvitationCode(code)}`);
+      if (!id) return null;
+      const record = await this.loadInvitation_(id);
+      return record && record.codeHash && codeMatchesHash(code, record.codeHash) ? record : null;
+    }
     for (const record of this.invitations_.values()) {
       if (record.codeHash && codeMatchesHash(code, record.codeHash)) {
         return record;
@@ -1328,9 +1387,27 @@ class AuthBase {
    * @protected
    * @return {Promise<void>}
    */
-  async persistInvitations_() {
+  async persistInvitations_(changed) {
+    if (this.stateStore_ && changed) {
+      await this.shareInvitation_(changed);
+    }
     if (typeof this.saveInvitations_ === 'function') {
       await this.saveInvitations_(Array.from(this.invitations_.values()));
+    }
+  }
+
+  /**
+   * Writes one invitation to the shared store, and its code hash index entry.
+   *
+   * @private
+   * @param {Object} record The record that changed
+   * @return {Promise<void>}
+   */
+  async shareInvitation_(record) {
+    this.invitations_.set(record.id, record);
+    await this.stateStore_.set(`auth:invite:${record.id}`, record);
+    if (record.codeHash) {
+      await this.stateStore_.set(`auth:invite-code:${record.codeHash}`, record.id);
     }
   }
 
