@@ -305,6 +305,19 @@ export interface FeatureFlags {
   destroy(): void;
 }
 
+export interface TelemetryOptions {
+  enabled?: boolean;
+  serviceName?: string;
+  exporter?: 'console' | 'otlp' | 'memory' | 'none';
+  endpoint?: string;
+  /** Share of new traces recorded, from 0 to 1. */
+  sampleRatio?: number;
+  /** Wrap async service methods in spans (default true). */
+  instrumentServices?: boolean;
+  /** Services never wrapped (default: logging and telemetry). */
+  excludeServices?: string[];
+}
+
 export interface SettingsService {
   flags: FeatureFlags;
   [method: string]: unknown;
@@ -408,6 +421,8 @@ export interface InitializeOptions extends CommonOptions {
   /** Turn option warnings into errors. Recommended in CI. */
   strictOptions?: boolean;
   security?: Record<string, unknown>;
+  /** OpenTelemetry tracing (feature 07). Off unless enabled; the SDK packages are optional. */
+  telemetry?: TelemetryOptions;
 }
 
 export interface ServiceRegistry {

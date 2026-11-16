@@ -10,6 +10,21 @@
 
 const os = require('os');
 
+const { correlationFields } = require('../../telemetry/requestContext');
+
+/**
+ * Prefixes a log line with the request id, and the trace id when telemetry
+ * is active, so every line written during a request can be grouped (feature 07).
+ * @param {string} line The formatted line.
+ * @return {string} The line, prefixed when a request is in flight.
+ */
+function withRequestFields(line) {
+  const fields = correlationFields();
+  const keys = Object.keys(fields);
+  if (keys.length === 0) return line;
+  return `[${keys.map((k) => `${k}=${fields[k]}`).join(' ')}] ${line}`;
+}
+
 /**
  * A class that implements a console logger with formatted output.
  * Provides methods for logging info, warning, and error messages to the console.
@@ -89,6 +104,17 @@ class Logging {
    * @return {string} The formatted message.
    */
   formatMessage_(message, meta) {
+    return withRequestFields(this.formatBody_(message, meta));
+  }
+
+  /**
+   * Formats the message body (without request correlation).
+   * @private
+   * @param {string} message The message to log.
+   * @param {*=} meta Optional metadata to include in the log.
+   * @return {string} The formatted message.
+   */
+  formatBody_(message, meta) {
     if (meta === undefined || meta === null) {
       return message;
     }

@@ -26,6 +26,8 @@ const { buildOpenApiDocument, loadServiceDocuments, mountedBases } = require('./
 const { mountMcp } = require('./src/mcp');
 const createKnowledgeService = require('./src/knowledge');
 const { normalizeKeyEntries, findKeyEntry } = require('./src/authservice/modules/permissions');
+const { Telemetry } = require('./src/telemetry');
+const { createRequestContextMiddleware } = require('./src/telemetry/requestContext');
 
 const ensureArray = (value) => {
   if (Array.isArray(value)) {
@@ -78,6 +80,15 @@ class ServiceRegistry {
     if (eventEmitter) {
       this.eventEmitter = eventEmitter;    
     } 
+
+    // Request context (feature 07): request ids in every log line, with or
+    // without OpenTelemetry. Mounted first so every later middleware sees it.
+    this.telemetry = new Telemetry(globalOptions.telemetry || {}, this.eventEmitter);
+    this.telemetryStatus = this.telemetry.start();
+    if (expressApp) {
+      expressApp.use(createRequestContextMiddleware());
+      if (this.telemetry.active) expressApp.use(this.telemetry.middleware());
+    }
 
     const {
       security: incomingSecurityConfig = {},
@@ -503,6 +514,9 @@ class ServiceRegistry {
     }
 
     this.services.set(serviceKey, service);
+
+    // Wrap async service methods in spans when telemetry is active (feature 07).
+    this.telemetry?.instrument(service, serviceName, providerType, instanceName);
 
     // Emit event for service creation with dependencies
     this.eventEmitter.emit('service:created', {
@@ -1028,6 +1042,7 @@ class ServiceRegistry {
     if (!this.initialized) {
       return;
     }
+    await this.telemetry?.shutdown();
 
     // Per-service teardown timeout so one hung disconnect cannot block the
     // whole shutdown (P2-5).
