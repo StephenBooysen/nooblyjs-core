@@ -14,7 +14,10 @@ const { createRedisJobStore } = require('../../../src/queueing/modules/redisJobS
 const { ClientError } = require('../../../src/shared/utils/httpErrors');
 
 const REDIS_ENABLED = process.env.RUN_REDIS_TESTS === '1';
-const REDIS_PORT = Number(process.env.REDIS_TEST_PORT || 6379);
+/** Port from REDIS_URL (as the other Redis suites use), else REDIS_TEST_PORT, else 6379. */
+const REDIS_PORT = Number(
+  (process.env.REDIS_URL && new URL(process.env.REDIS_URL).port) || process.env.REDIS_TEST_PORT || 6379
+);
 
 /** Waits until a condition holds, polling in real time. */
 async function waitFor(check, timeoutMs = 5000) {

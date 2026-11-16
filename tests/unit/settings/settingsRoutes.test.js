@@ -26,13 +26,15 @@ describe('Settings routes', () => {
   let app;
   /** @type {string} Temporary directory holding the encrypted file */
   let tempDir;
+  /** @type {Object} Settings service, stopped in afterAll */
+  let settingsService;
 
   beforeAll(() => {
     tempDir = fs.mkdtempSync(path.join(testDataDir('settings'), 'nooblyjs-settings-routes-'));
     app = express();
     app.use(express.json());
 
-    createSettings('file', {
+    settingsService = createSettings('file', {
       'express-app': app,
       filepath: path.join(tempDir, 'settings.enc.json'),
       secret: 'route-test-secret',
@@ -41,6 +43,7 @@ describe('Settings routes', () => {
   });
 
   afterAll(() => {
+    settingsService?.flags?.destroy?.();
     fs.rmSync(tempDir, { recursive: true, force: true });
   });
 

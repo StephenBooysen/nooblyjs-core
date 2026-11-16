@@ -47,9 +47,11 @@ for (const url of PAGES) {
   test(`every data-onclick handler on ${url} resolves`, async ({ page, request }) => {
     const response = await page.goto(url);
     expect(response.status()).toBe(200);
+    // Read the HTML over the request API: a page that redirects itself in the
+    // browser (e.g. to sign-in) discards the body of the navigation response.
+    const html = await (await request.get(url)).text();
     await page.waitForLoadState('networkidle');
 
-    const html = await response.text();
     const scripts = await page.evaluate(() => [...document.scripts].map((s) => s.src).filter(Boolean));
     const sources = [html];
     const broken = [];

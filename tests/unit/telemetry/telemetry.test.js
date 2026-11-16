@@ -222,7 +222,7 @@ describeOtel('telemetry (feature 07)', () => {
 describe('telemetry without the OpenTelemetry packages', () => {
   it('reports the packages as missing and keeps the request id in logs', async () => {
     jest.resetModules();
-    jest.doMock('@opentelemetry/api', () => { throw new Error("Cannot find module '@opentelemetry/api'"); });
+    jest.doMock('@opentelemetry/api', () => { throw new Error("Cannot find module '@opentelemetry/api'"); }, { virtual: true });
     const { Telemetry: Isolated } = require('../../../src/telemetry');
     const { createRequestContextMiddleware: middleware, correlationFields: fields } = require('../../../src/telemetry/requestContext');
 

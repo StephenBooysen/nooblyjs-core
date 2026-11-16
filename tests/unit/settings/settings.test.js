@@ -34,11 +34,18 @@ describe('Settings', () => {
    * @param {Object=} overrides Provider option overrides.
    * @return {Object} A settings service instance.
    */
-  const create = (overrides = {}) => createSettings('file', {
-    filepath,
-    secret: 'unit-test-secret',
-    ...overrides
-  }, mockEventEmitter);
+  /** Every instance made by create(), so afterEach can stop their flag pollers. */
+  let created = [];
+
+  const create = (overrides = {}) => {
+    const service = createSettings('file', {
+      filepath,
+      secret: 'unit-test-secret',
+      ...overrides
+    }, mockEventEmitter);
+    created.push(service);
+    return service;
+  };
 
   beforeEach(() => {
     tempDir = fs.mkdtempSync(path.join(testDataDir('settings'), 'nooblyjs-settings-'));
@@ -49,6 +56,8 @@ describe('Settings', () => {
   });
 
   afterEach(() => {
+    for (const service of created) service.flags?.destroy?.();
+    created = [];
     fs.rmSync(tempDir, { recursive: true, force: true });
     jest.restoreAllMocks();
   });

@@ -51,13 +51,14 @@ describe('outbound webhooks (feature 12)', () => {
     settings = createSettings('file', {
       filepath: path.join(dir, 'settings.enc.json'),
       secret: 'webhook-test-secret',
-      refreshMs: 0
+      flagsRefreshMs: 0
     }, emitter);
   });
 
   afterEach(async () => {
     if (dispatcher) await dispatcher.stop();
     dispatcher = null;
+    settings.flags?.destroy?.();
     emitter.removeAllListeners();
     fs.rmSync(dir, { recursive: true, force: true });
   });
