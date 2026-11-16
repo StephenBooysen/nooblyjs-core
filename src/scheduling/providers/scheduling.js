@@ -24,6 +24,7 @@
 'use strict';
 
 const analytics = require('../modules/analytics');
+const crypto = require('node:crypto');
 const { parseCron, matches, isValid, nextMatch } = require('./cronExpression');
 
 /** @const {number} How often to evaluate cron expressions, in ms (1 minute). */
@@ -69,6 +70,15 @@ class SchedulerProvider {
   constructor(options = {}, eventEmitter, workingService) {
     /** @private @const {?EventEmitter} */
     this.eventEmitter_ = eventEmitter || null;
+
+    /**
+     * Shared state (feature 21). When set, each cron fire is claimed in the
+     * shared store first, so one fire runs once across replicas.
+     * @private @const {?Object}
+     */
+    this.stateStore_ = options.stateStore || null;
+    /** @private @const {string} This process, recorded as the claim owner. */
+    this.owner_ = crypto.randomUUID();
 
     /** @private @const {!Map<string, !Object>} */
     this.tasks_ = new Map();
@@ -491,7 +501,7 @@ class SchedulerProvider {
             missedMinute: new Date(minute).toISOString()
           });
         }
-        this.executeTask_(task);
+        this.fireCron_(task, minute);
         break; // At most one catch-up fire per evaluation.
       }
     }
@@ -527,6 +537,39 @@ class SchedulerProvider {
   // ---------------------------------------------------------------------------
   // Execution
   // ---------------------------------------------------------------------------
+
+  /**
+   * Runs a cron fire once per minute across replicas. The first replica to
+   * claim the (task, minute) key runs it; the others skip it. Without a shared
+   * store the fire always runs, as before.
+   *
+   * @param {!Object} task The cron task record
+   * @param {number} minute Start of the minute being fired, in milliseconds
+   * @return {void}
+   * @private
+   */
+  fireCron_(task, minute) {
+    if (!this.stateStore_) {
+      this.executeTask_(task);
+      return;
+    }
+    const key = `scheduler:cron:${task.name}:${minute}`;
+    // The claim expires after two minutes, so a crashed replica cannot block a later fire.
+    this.stateStore_.setIfAbsent(key, this.owner_, 120000)
+      .then((won) => {
+        if (won) {
+          this.executeTask_(task);
+        } else {
+          this.logger?.info?.('[SchedulerProvider] Another replica runs this fire', { taskName: task.name });
+        }
+      })
+      .catch((error) => {
+        this.logger?.error?.('[SchedulerProvider] Could not claim a cron fire; skipping it', {
+          taskName: task.name,
+          error: error.message
+        });
+      });
+  }
 
   /**
    * Executes a single fire of a scheduled task, honouring concurrency,

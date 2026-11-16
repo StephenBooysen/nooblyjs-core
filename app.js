@@ -171,6 +171,12 @@ if (configuredApiKeys.length === 0 && !isProduction) {
 const options = {
   logDir: path.join(__dirname, './.application/', 'logs'),
   dataDir: path.join(__dirname, './.application/', 'data'),
+  // Feature 21: CLUSTER_MODE=true shares login lockouts, invitations and cron fires
+  // through REDIS_URL, and refuses process-local providers at start-up.
+  cluster: {
+    enabled: process.env.CLUSTER_MODE === 'true',
+    redisUrl: process.env.REDIS_URL || process.env.SESSION_REDIS_URL || undefined
+  },
   apiKeys: configuredApiKeys,
   requireApiKey: configuredApiKeys.length > 0,
   excludePaths: [
@@ -216,6 +222,8 @@ const knowledge = serviceRegistry.knowledge('default', { dependencies: { filing,
 // Feature 19: every /services/*/api route must declare a permission. In production
 // (strictAuth) an undeclared route stops start-up here.
 serviceRegistry.verifyRouteDeclarations();
+// Feature 21: in clustered mode, refuse providers whose state lives in one process.
+serviceRegistry.verifyClusterMode();
 
 /**
  * Setup production health checks for load balancers and orchestration

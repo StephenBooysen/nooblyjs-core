@@ -358,10 +358,22 @@ export interface InitializeOptions extends CommonOptions {
   /** Turn option warnings into errors. Recommended in CI. */
   strictOptions?: boolean;
   security?: Record<string, unknown>;
+  /** Horizontal scaling (feature 21). Shares lockouts, invitations and cron fires through Redis. */
+  cluster?: ClusterOptions;
+}
+
+export interface ClusterOptions {
+  enabled?: boolean;
+  /** Redis URL for shared state. Without it, state stays in each process. */
+  redisUrl?: string;
+  /** "service:provider" pairs allowed in clustered mode despite being process-local. */
+  allowLocalProviders?: string[];
 }
 
 export interface ServiceRegistry {
   initialize(expressApp: unknown, eventEmitter?: unknown, globalOptions?: InitializeOptions): ServiceRegistry;
+  /** Throws in clustered mode when a process-local provider is in use; returns the offending pairs otherwise. */
+  verifyClusterMode(): string[];
 
   cache(providerType: 'memory' | 'file' | 'aws' | 'azure' | 'gcp' | 'api', options?: ServiceOptions): CacheService;
   cache(providerType: 'redis', options?: RedisCacheOptions): CacheService;
