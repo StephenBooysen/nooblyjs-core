@@ -128,13 +128,15 @@ class QueueingApi {
     }
   }
 
-  async enqueue(queueName, task, options = {}) {
+  async enqueue(queueName, task, options) {
     this.validateQueueName_(queueName, 'enqueue');
     try {
-      const response = await this.client.post(`/services/queueing/api/enqueue/${queueName}`, { task, options });
+      // Feature 06: send `options` only when given, so a plain enqueue stays plain.
+      const body = options === undefined ? { task } : { task, options };
+      const response = await this.client.post(`/services/queueing/api/enqueue/${queueName}`, body);
       if (this.eventEmitter_)
         this.eventEmitter_.emit(`queue:enqueue:${this.instanceName_}`, { queueName, item: task });
-      return response.data;
+      return options === undefined ? response.data : response.data.jobId;
     } catch (error) {
       if (this.eventEmitter_)
         this.eventEmitter_.emit(`queue:error:${this.instanceName_}`, { operation: 'enqueue', queueName, error: error.message });

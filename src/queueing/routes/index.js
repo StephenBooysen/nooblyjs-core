@@ -100,15 +100,22 @@ module.exports = (options, eventEmitter, queue) => {
     const createEnqueueHandler = (queue) => {
       return async (req, res) => {
         const { queueName } = req.params;
-        const { task } = req.body;
+        const { task, options: jobOptions } = req.body;
         if (!queueName) {
           return res.status(400).json({ error: 'Bad Request: Missing queue name' });
         }
         if (task) {
           try {
-            await queue.enqueue(queueName, task);
-            eventEmitter.emit('api-queueing-enqueue', { queueName });
-            res.status(200).json({ success: true });
+            // Feature 06: `options` asks for a reliable job (retries, backoff,
+            // dead letters) and returns its id. Without it, a plain enqueue.
+            if (jobOptions === undefined) {
+              await queue.enqueue(queueName, task);
+              eventEmitter.emit('api-queueing-enqueue', { queueName });
+              return res.status(200).json({ success: true });
+            }
+            const jobId = await queue.enqueue(queueName, task, jobOptions);
+            eventEmitter.emit('api-queueing-enqueue', { queueName, jobId });
+            res.status(200).json({ success: true, jobId });
           } catch (err) {
             eventEmitter.emit('api-queueing-enqueue-error', { error: err.message });
             sendSafeError(res, err, { status: 500, eventEmitter });
