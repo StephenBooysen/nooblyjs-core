@@ -57,6 +57,15 @@ function contract(name, makeStore, teardown = async () => {}) {
       expect(await store.del('gone')).toBe(true);
       expect(await store.get('gone')).toBeNull();
     });
+
+    it('keeps a named index of unique members, empty when unused', async () => {
+      const name = `idx-${Math.random().toString(36).slice(2)}`;
+      expect(await store.indexMembers(name)).toEqual([]);
+      await store.addToIndex(name, 'a');
+      await store.addToIndex(name, 'b');
+      await store.addToIndex(name, 'a');
+      expect((await store.indexMembers(name)).sort()).toEqual(['a', 'b']);
+    });
   });
 }
 

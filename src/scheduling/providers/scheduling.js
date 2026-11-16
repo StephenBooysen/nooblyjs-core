@@ -911,7 +911,28 @@ class SchedulerProvider {
     return () => {
       task.lastTickAt = Date.now();
       if (task.paused) return;
-      this.executeTask_(task, 'schedule');
+      if (!this.stateStore_) {
+        this.executeTask_(task, 'schedule');
+        return;
+      }
+      // Clustered: each interval window is claimed once, so one replica runs
+      // the tick (the same claim the cron fires use, keyed by window instead of minute).
+      const windowMs = task.intervalSeconds * 1000;
+      const key = `scheduler:interval:${task.name}:${Math.floor(Date.now() / windowMs)}`;
+      this.stateStore_.setIfAbsent(key, this.owner_, windowMs * 2)
+        .then((won) => {
+          if (won) {
+            this.executeTask_(task, 'schedule');
+          } else {
+            this.logger?.info?.('[SchedulerProvider] Another replica runs this tick', { taskName: task.name });
+          }
+        })
+        .catch((error) => {
+          this.logger?.error?.('[SchedulerProvider] Could not claim an interval tick; skipping it', {
+            taskName: task.name,
+            error: error.message
+          });
+        });
     };
   }
 

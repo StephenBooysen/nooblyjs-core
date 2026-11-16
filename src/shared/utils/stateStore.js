@@ -117,6 +117,28 @@ class MemoryStateStore {
   }
 
   /**
+   * Adds a member to a named index (a set with no expiry).
+   * @param {string} name Index name
+   * @param {string} member
+   * @return {Promise<void>}
+   */
+  async addToIndex(name, member) {
+    const key = `index:${name}`;
+    const entry = this.live_(key) || { value: [], expiresAt: 0 };
+    if (!entry.value.includes(member)) entry.value = [...entry.value, member];
+    this.entries_.set(key, entry);
+  }
+
+  /**
+   * @param {string} name Index name
+   * @return {Promise<string[]>} Members, empty when the index does not exist
+   */
+  async indexMembers(name) {
+    const entry = this.live_(`index:${name}`);
+    return entry ? [...entry.value] : [];
+  }
+
+  /**
    * Releases resources. Nothing to release in memory.
    * @return {Promise<void>}
    */
@@ -174,6 +196,16 @@ class RedisStateStore {
   /** @return {Promise<number>} */
   async incr(key, ttlMs) {
     return Number(await this.client_.eval(INCR_WITH_TTL, 1, this.k_(key), ttlMs));
+  }
+
+  /** @return {Promise<void>} */
+  async addToIndex(name, member) {
+    await this.client_.sadd(this.k_(`index:${name}`), String(member));
+  }
+
+  /** @return {Promise<string[]>} */
+  async indexMembers(name) {
+    return this.client_.smembers(this.k_(`index:${name}`));
   }
 
   /** @return {Promise<boolean>} */

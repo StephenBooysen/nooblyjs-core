@@ -122,4 +122,55 @@ async function relayOutbox(store, publish, options = {}) {
   return { published, failed };
 }
 
-module.exports = { OUTBOX_CONTAINER, addWithEvent, relayOutbox };
+/**
+ * Starts a scheduled relay: every `intervalMs` it publishes pending entries.
+ *
+ * Runs do not overlap in one process. When a state store is given (clustered
+ * mode), each window is claimed once, so only one replica relays per window.
+ * A replica that crashes mid-run leaves its entries pending for a later window.
+ *
+ * @param {Object} store A dataservice provider
+ * @param {function(Object): Promise<*>} publish Publish function, see relayOutbox
+ * @param {Object} options
+ * @param {number} options.intervalMs Time between runs, in milliseconds
+ * @param {number=} options.limit Most entries per run (default 100)
+ * @param {Object=} options.stateStore Shared state store for the window claim
+ * @param {Object=} options.logger Logger with error/info
+ * @param {EventEmitter=} options.eventEmitter Receives outbox:relayed after runs that moved entries
+ * @return {{runOnce: function(): Promise<?Object>, stop: function(): void}}
+ */
+function startRelay(store, publish, options) {
+  const { intervalMs, limit, stateStore = null, logger = null, eventEmitter = null } = options;
+  if (!(intervalMs > 0)) throw new Error('startRelay needs a positive intervalMs');
+  const owner = crypto.randomUUID();
+  let running = false;
+
+  const runOnce = async () => {
+    if (running) return null;
+    running = true;
+    try {
+      if (stateStore) {
+        const key = `outbox:relay:${Math.floor(Date.now() / intervalMs)}`;
+        const won = await stateStore.setIfAbsent(key, owner, intervalMs * 2);
+        if (!won) return null;
+      }
+      const result = await relayOutbox(store, publish, { limit });
+      if (result.published || result.failed) eventEmitter?.emit?.('outbox:relayed', result);
+      return result;
+    } catch (error) {
+      logger?.error?.('[Outbox] Relay run failed', { error: error.message });
+      return null;
+    } finally {
+      running = false;
+    }
+  };
+
+  const timer = setInterval(() => { runOnce(); }, intervalMs);
+  timer.unref?.();
+  return {
+    runOnce,
+    stop: () => clearInterval(timer)
+  };
+}
+
+module.exports = { OUTBOX_CONTAINER, addWithEvent, relayOutbox, startRelay };

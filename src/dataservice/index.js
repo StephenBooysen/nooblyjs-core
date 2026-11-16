@@ -13,6 +13,7 @@
 const Routes = require('./routes');
 const Views = require('./views');
 const analytics = require('./modules/analytics');
+const outbox = require('./modules/outbox');
 
 /**
  * Helper function to get nested values from objects using dot notation.
@@ -71,7 +72,7 @@ function getNestedValue(obj, path) {
  * await dataService.remove('users', 'user-uuid-123');
  */
 function createDataserviceService(type, options, eventEmitter) {
-  const { dependencies = {}, ...providerOptions } = options;
+  const { dependencies = {}, outbox: outboxOptions = null, ...providerOptions } = options;
   const logger = dependencies.logging;
   const filing = dependencies.filing;
 
@@ -245,6 +246,28 @@ function createDataserviceService(type, options, eventEmitter) {
   // Add close method if provider supports it (for cleanup)
   if (typeof provider.close === 'function') {
     service.close = provider.close.bind(provider);
+  }
+
+  // Transactional outbox (feature 12): the write and its event are durable together.
+  // Only providers that implement the outbox expose it; the others leave these undefined.
+  if (typeof provider.addWithEvent === 'function') {
+    service.addWithKey = (containerName, key, record) => provider.addWithKey(containerName, key, record);
+    service.addWithEvent = (containerName, record, event) => provider.addWithEvent(containerName, record, event);
+    service.relayOutbox = (publish, relayOptions) => provider.relayOutbox(publish, relayOptions);
+  }
+
+  // Scheduled relay: runs when `outbox: { intervalMs, publish }` is configured.
+  // The registry calls stopConsumers() on shutdown and reset.
+  if (outboxOptions && outboxOptions.intervalMs > 0 && typeof outboxOptions.publish === 'function') {
+    const relay = outbox.startRelay(provider, outboxOptions.publish, {
+      intervalMs: outboxOptions.intervalMs,
+      limit: outboxOptions.limit,
+      stateStore: outboxOptions.stateStore || null,
+      logger,
+      eventEmitter
+    });
+    service.outboxRelay = relay;
+    service.stopConsumers = () => relay.stop();
   }
 
   // Initialize routes and views for the data service with the complete service object

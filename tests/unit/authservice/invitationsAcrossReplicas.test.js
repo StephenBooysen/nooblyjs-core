@@ -53,6 +53,20 @@ describeRedis('invitations across replicas (feature 21)', () => {
     expect(results.filter((r) => r.status === 'fulfilled')).toHaveLength(1);
   });
 
+  it('lists the invitations of every replica from the shared index', async () => {
+    const issuerA = replicaWith();
+    const issuerB = replicaWith();
+    const viewer = replicaWith();
+    const stamp = Date.now();
+    const a = await issuerA.createInvitation({ name: 'List A', email: `list-a-${stamp}@example.test` });
+    const b = await issuerB.createInvitation({ name: 'List B', email: `list-b-${stamp}@example.test` });
+
+    const listed = await viewer.listInvitations();
+    const ids = listed.map((inv) => inv.id);
+    expect(ids).toEqual(expect.arrayContaining([a.id, b.id]));
+    expect(listed.every((inv) => !('codeHash' in inv))).toBe(true);
+  });
+
   it('refuses an unknown code on every replica', async () => {
     const replica = replicaWith();
     await expect(replica.getInvitation('INV-00000000000000000000000000000000')).rejects.toThrow(/not found/);

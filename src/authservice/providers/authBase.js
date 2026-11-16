@@ -53,6 +53,9 @@ function reviveInvitation(raw) {
   return record;
 }
 
+/** Shared-store index of every invitation id, for clustered listings (feature 21). */
+const INVITATION_INDEX = 'invitations';
+
 class AuthBase {
   /**
    * Initializes the authentication provider.
@@ -1259,7 +1262,11 @@ class AuthBase {
    * @return {Promise<Array<Object>>} Client-safe invitations.
    */
   async listInvitations() {
-    return Array.from(this.invitations_.values(), publicInvitation);
+    if (!this.stateStore_) return Array.from(this.invitations_.values(), publicInvitation);
+    // Clustered: every replica lists the invitations of all replicas, from the shared index.
+    const ids = await this.stateStore_.indexMembers(INVITATION_INDEX);
+    const records = await Promise.all(ids.map((id) => this.loadInvitation_(id)));
+    return records.filter(Boolean).map(publicInvitation);
   }
 
   /**
@@ -1406,6 +1413,7 @@ class AuthBase {
   async shareInvitation_(record) {
     this.invitations_.set(record.id, record);
     await this.stateStore_.set(`auth:invite:${record.id}`, record);
+    await this.stateStore_.addToIndex(INVITATION_INDEX, record.id);
     if (record.codeHash) {
       await this.stateStore_.set(`auth:invite-code:${record.codeHash}`, record.id);
     }
