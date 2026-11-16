@@ -13,6 +13,7 @@ const { loadOptionalModule } = require('../../shared/utils/optionalRequire');
 /** @return {{MongoClient: Function}} The mongodb driver, loaded on first use */
 const mongodb = () => loadOptionalModule('mongodb', 'MongoDB dataservice');
 const MongoBaseProvider = require('./MongoBaseProvider');
+const outbox = require('../modules/outbox');
 
 /**
  * A class that implements a MongoDB data storage provider.
@@ -92,6 +93,63 @@ class MongoDBDataServiceProvider extends MongoBaseProvider {
       });
       throw new Error(`Failed to create container '${containerName}': ${error.message}`);
     }
+  }
+
+  /**
+   * Writes an event and its record in one transaction when the server supports
+   * transactions (a replica set or sharded cluster), so both exist or neither
+   * does. On a standalone server it falls back to the ordered writes of the
+   * outbox, which the relay repairs. See modules/outbox.js (feature 12).
+   *
+   * @param {string} containerName Container for the record
+   * @param {Object} record Record to store
+   * @param {{name: string, payload?: *}} event Event to publish later
+   * @return {Promise<{key: string, eventId: string}>}
+   */
+  async addWithEvent(containerName, record, event) {
+    await this.ensureConnection_();
+    if (this.transactions_ === false) return outbox.addWithEvent(this, containerName, record, event);
+    const eventId = require('node:crypto').randomUUID();
+    const recordKey = require('node:crypto').randomUUID();
+    const entry = {
+      id: eventId,
+      container: containerName,
+      recordKey,
+      record: structuredClone(record),
+      event: { name: event.name, payload: event.payload === undefined ? null : structuredClone(event.payload) },
+      status: 'pending',
+      attempts: 0,
+      lastError: null,
+      createdAt: new Date().toISOString()
+    };
+    const session = this.client_.startSession();
+    try {
+      await session.withTransaction(async () => {
+        await this.getCollection_(outbox.OUTBOX_CONTAINER).insertOne(this.keyedDocument_(eventId, entry), { session });
+        await this.getCollection_(containerName).insertOne(this.keyedDocument_(recordKey, record), { session });
+      });
+      this.transactions_ = true;
+      return { key: recordKey, eventId };
+    } catch (error) {
+      // Standalone servers refuse transactions: remember that and use the ordered path.
+      if (error && (error.code === 20 || /Transaction numbers|replica set/i.test(error.message || ''))) {
+        this.transactions_ = false;
+        return outbox.addWithEvent(this, containerName, record, event);
+      }
+      throw error;
+    } finally {
+      await session.endSession().catch(() => {});
+    }
+  }
+
+  /**
+   * Relays pending outbox entries. See outbox.relayOutbox.
+   * @param {Function} publish
+   * @param {Object=} options
+   * @return {Promise<{published: number, failed: number}>}
+   */
+  async relayOutbox(publish, options) {
+    return outbox.relayOutbox(this, publish, options);
   }
 }
 

@@ -160,6 +160,43 @@ class MongoBaseProvider {
   }
 
   /**
+   * Stores an object under a key the caller chooses (feature 12, the outbox).
+   * A key that already exists is left as it is: the outbox repairs a record
+   * this way, and it must be safe to repeat.
+   *
+   * @param {string} containerName
+   * @param {string} objectKey
+   * @param {Object} jsonObject
+   * @return {Promise<string>} The key
+   */
+  async addWithKey(containerName, objectKey, jsonObject) {
+    await this.ensureConnection_();
+    if (!containerName || typeof containerName !== 'string' || containerName.trim() === '') {
+      throw new Error('Invalid containerName: must be a non-empty string');
+    }
+    if (!objectKey || typeof objectKey !== 'string') throw new Error('Invalid objectKey: must be a non-empty string');
+    try {
+      await this.getCollection_(containerName).insertOne(this.keyedDocument_(objectKey, jsonObject));
+    } catch (error) {
+      if (error && error.code === 11000) return objectKey;
+      throw new Error(`Failed to add object to container '${containerName}': ${error.message}`);
+    }
+    return objectKey;
+  }
+
+  /**
+   * Document for a key-addressed insert.
+   * @param {string} objectKey
+   * @param {Object} jsonObject
+   * @return {Object}
+   * @private
+   */
+  keyedDocument_(objectKey, jsonObject) {
+    const now = new Date();
+    return { ...structuredClone(jsonObject), uuid: objectKey, _createdAt: now, _updatedAt: now };
+  }
+
+  /**
    * Gets a JSON object by UUID.
    * @param {string} containerName The name of the container.
    * @param {string} objectKey The unique UUID.
