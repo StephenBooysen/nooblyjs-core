@@ -23,6 +23,7 @@
  */
 
 const crypto = require('node:crypto');
+const { createOpenFeatureProvider } = require('./openFeatureProvider');
 const fs = require('node:fs/promises');
 const path = require('node:path');
 
@@ -304,6 +305,17 @@ class FeatureFlags {
       });
     }
     return result;
+  }
+
+  /**
+   * An OpenFeature provider over these flags, for `OpenFeature.setProvider()`.
+   * The OpenFeature SDK is not required by NooblyJS.
+   *
+   * @param {{name?: string}=} options
+   * @return {Object} The provider
+   */
+  openFeatureProvider(options = {}) {
+    return createOpenFeatureProvider(this, options);
   }
 
   /**

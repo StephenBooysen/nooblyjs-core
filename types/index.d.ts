@@ -303,6 +303,8 @@ export interface FeatureFlags {
   ready(): Promise<void>;
   refresh(): Promise<number>;
   destroy(): void;
+  /** An OpenFeature provider over these flags (use with OpenFeature.setProvider). */
+  openFeatureProvider(options?: { name?: string }): unknown;
 }
 
 export interface TelemetryOptions {
