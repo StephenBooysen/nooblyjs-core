@@ -54,7 +54,7 @@ The dependency graph is hard-coded in `initializeServiceDependencies()` (the sou
 | Level | Service → dependencies |
 |---|---|
 | 0 | `logging` |
-| 1 | `caching`, `queueing`, `notifying`, `appservice`, `fetching`, `settings` → logging |
+| 1 | `caching`, `queueing`, `appservice`, `fetching`, `settings` → logging · `notifying` → logging, queueing, settings (webhooks, feature 12) |
 | 2 | `dataservice` → logging, queueing · `working`, `measuring` → logging, queueing, caching |
 | 3 | `scheduling` → logging, working · `searching` → logging · `workflow` → logging, queueing, scheduling, measuring, working · `filing` → logging, queueing, dataservice |
 | 4 | `authservice` → logging, caching, dataservice · `aiservice` → logging, caching, workflow, queueing |
