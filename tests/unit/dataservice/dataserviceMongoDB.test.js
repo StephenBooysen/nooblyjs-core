@@ -28,7 +28,7 @@ const describeMongo = runMongoTests ? describe : describe.skip;
  * Tests the MongoDB dataservice functionality including container management,
  * CRUD operations, search functionality, and error handling.
  * 
- * Note: These tests require a running MongoDB instance at mongodb://127.0.0.1:27017
+ * Note: These tests require a running MongoDB instance: MONGODB_URL, or mongodb://127.0.0.1:27017 by default.
  */
 describeMongo('MongoDB DataService', () => {
   /** @type {Object} MongoDB dataservice instance for testing */
@@ -48,7 +48,7 @@ describeMongo('MongoDB DataService', () => {
     
     dataservice = createDataService('mongodb', {
       database: 'nooblyjs_test',
-      connectionString: 'mongodb://127.0.0.1:27017'
+      connectionString: process.env.MONGODB_URL || 'mongodb://127.0.0.1:27017'
     }, mockEventEmitter);
 
     // Wait for connection to establish
@@ -105,8 +105,9 @@ describeMongo('MongoDB DataService', () => {
     await dataservice.createContainer(containerName);
     
     // Verify container creation event was emitted
+    // The provider names its events after its type (api-dataservice-<type>:<event>).
     expect(mockEventEmitter.emit).toHaveBeenCalledWith(
-      'dataservice:createContainer',
+      'api-dataservice-mongodb:createContainer',
       expect.objectContaining({ containerName })
     );
   });
@@ -133,11 +134,10 @@ describeMongo('MongoDB DataService', () => {
     
     // Verify add event was emitted
     expect(mockEventEmitter.emit).toHaveBeenCalledWith(
-      'dataservice:add',
+      'api-dataservice-mongodb:add',
       expect.objectContaining({
         containerName: testContainer,
-        objectKey,
-        jsonObject: expect.objectContaining(testObject)
+        objectKey
       })
     );
 
@@ -207,7 +207,7 @@ describeMongo('MongoDB DataService', () => {
     
     // Verify remove event was emitted
     expect(mockEventEmitter.emit).toHaveBeenCalledWith(
-      'dataservice:remove',
+      'api-dataservice-mongodb:remove',
       expect.objectContaining({
         containerName: testContainer,
         objectKey

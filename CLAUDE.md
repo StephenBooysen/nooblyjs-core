@@ -30,6 +30,7 @@ NooblyJS Core is a modular Node.js backend framework: a set of services (logging
 - `npm run build` — `scripts/build.js`
 - `npm run check:types` — type-checks `types/index.d.ts` against `types/tests/usage.ts` (in CI)
 - `npm run test:contract` — provider contract suites in `tests/contract/` (caching, queueing, filing, dataservice, searching, authservice); memory, file, local and git runners also run in `npm test`. Redis needs `RUN_REDIS_TESTS=1 REDIS_URL=redis://…`, MongoDB `RUN_MONGODB_TESTS=1 MONGODB_URL=mongodb://…` (CI runs both as service containers)
+- `npm run build:esm` / `npm run check:esm` — regenerate or verify the ESM wrappers in `esm/` (named exports for the package's ESM subpaths; `tests/unit/packaging` checks them)
 - `npm run test:ai-common` / `npm run check:ai-common` — node:test suites for the shared AI module, the AI Service v2 bridge, its provider contract (mock; `AI_CONTRACT_PROVIDER` plus a key for a real one) and knowledge streaming; and the module's type check. CI runs both
 
 There is no linter. Jest runs with `forceExit` and `detectOpenHandles`; tests must clean up timers/handles in `afterEach`/`afterAll`. Tests that write to disk get their directory from `tests/helpers/testData.js` (`testDataDir()` → `.temp/tests/data/`); the file logger defaults to `.temp/logs/`. Nothing a test run creates should appear outside `.temp/` (see `.claude/rules/output-locations.md`).
