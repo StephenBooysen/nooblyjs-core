@@ -7,6 +7,8 @@
  */
 'use strict';
 
+const { route } = require('../../../src/shared/utils/routePattern');
+
 const express = require('express');
 const request = require('supertest');
 const { createPermissionGate } = require('../../../src/authservice/middleware/permissionGate');
@@ -34,7 +36,7 @@ app.use('/services', createPermissionGate({
   declarations: new RouteDeclarations(),
   strict: () => true
 }));
-app.all('/services/*', (req, res) => res.json({ reached: true }));
+app.all(...route('/services/*'), (req, res) => res.json({ reached: true }));
 
 const ENTRIES = Object.entries(ROUTE_PERMISSIONS).map(([key, permission]) => {
   const [method, pattern] = key.split(' ');

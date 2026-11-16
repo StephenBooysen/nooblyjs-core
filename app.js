@@ -16,10 +16,9 @@ const express = require('express');
 // Patch Express so rejected async route handlers are forwarded to the error
 // handler instead of becoming unhandled rejections (P0-5). Must be required
 // before routes are registered.
-require('express-async-errors');
+// Express 5 handles rejected promises in middleware and routes natively.
 const helmet = require('helmet');
 const cors = require('cors');
-const bodyParser = require('body-parser');
 const session = require('express-session');
 const passport = require('passport');
 const { v4: uuidv4 } = require('uuid');
@@ -70,7 +69,7 @@ app.use(cors({
 }));
 
 // Body parsers with explicit size limits (P2-2).
-app.use(bodyParser.json({ limit: BODY_LIMIT }));
+app.use(express.json({ limit: BODY_LIMIT }));
 app.use(express.urlencoded({ extended: true, limit: BODY_LIMIT }));
 
 /**

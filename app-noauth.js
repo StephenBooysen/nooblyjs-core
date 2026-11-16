@@ -28,10 +28,9 @@ if (process.env.ALLOW_NOAUTH !== '1') {
 const fs = require('node:fs');
 const path = require('node:path');
 const express = require('express');
-require('express-async-errors');
+// Express 5 handles rejected promises in middleware and routes natively.
 const helmet = require('helmet');
 const { helmetCspOption } = require('./src/shared/utils/contentSecurityPolicy');
-const bodyParser = require('body-parser');
 const { EventEmitter } = require('events');
 
 const BODY_LIMIT = process.env.BODY_LIMIT || '1mb';
@@ -40,7 +39,7 @@ const serviceRegistry = require('.');
 
 const app = express();
 app.use(helmet({ contentSecurityPolicy: helmetCspOption() }));
-app.use(bodyParser.json({ limit: BODY_LIMIT }));
+app.use(express.json({ limit: BODY_LIMIT }));
 app.use(express.urlencoded({ extended: true, limit: BODY_LIMIT }));
 
 // Configure MIME types for static files

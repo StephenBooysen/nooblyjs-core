@@ -5,6 +5,8 @@
  */
 'use strict';
 
+const { route } = require('../../../src/shared/utils/routePattern');
+
 const express = require('express');
 const request = require('supertest');
 const { createPermissionGate } = require('../../../src/authservice/middleware/permissionGate');
@@ -31,7 +33,7 @@ function appWith(strict) {
     }),
     strict: () => strict
   }));
-  app.all('/services/*', (req, res) => res.json({ reached: true }));
+  app.all(...route('/services/*'), (req, res) => res.json({ reached: true }));
   return app;
 }
 

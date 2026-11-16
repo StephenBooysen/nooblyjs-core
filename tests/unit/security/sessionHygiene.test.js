@@ -12,6 +12,8 @@
 
 'use strict';
 
+const { route } = require('../../../src/shared/utils/routePattern');
+
 const express = require('express');
 const request = require('supertest');
 const EventEmitter = require('events');
@@ -118,7 +120,7 @@ describe('Security regression: cross-origin writes with a session cookie (M-2)',
       next();
     });
     app.use('/services', createServicesAuthMiddleware(registry));
-    app.all('/services/*', (_req, res) => res.json({ reached: true }));
+    app.all(...route('/services/*'), (_req, res) => res.json({ reached: true }));
     return app;
   }
 

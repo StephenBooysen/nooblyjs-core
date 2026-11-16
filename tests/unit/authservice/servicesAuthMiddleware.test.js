@@ -13,6 +13,8 @@
 
 'use strict';
 
+const { route } = require('../../../src/shared/utils/routePattern');
+
 const express = require('express');
 const request = require('supertest');
 
@@ -46,7 +48,7 @@ function makeApp({ registry: overrides = {}, user, session } = {}) {
     next();
   });
   app.use('/services', createServicesAuthMiddleware(registry));
-  app.all('/services/*', (req, res) => res.json({ reached: true, user: req.user || null, apiKey: req.apiKey || null }));
+  app.all(...route('/services/*'), (req, res) => res.json({ reached: true, user: req.user || null, apiKey: req.apiKey || null }));
   return app;
 }
 

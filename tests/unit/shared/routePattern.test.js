@@ -11,7 +11,7 @@
 
 const express = require('express');
 const request = require('supertest');
-const pathToRegexp = require('path-to-regexp'); // Express 4's (0.1.x)
+const pathToRegexp = require('path-to-regexp-v0'); // Express 4's matcher (0.1.x), kept as a dev alias
 const { route, compileRoute } = require('../../../src/shared/utils/routePattern');
 
 /** Every pattern the service routes pass to route(), with paths to try. */
