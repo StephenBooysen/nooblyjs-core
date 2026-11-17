@@ -1,7 +1,7 @@
 /**
  * @fileoverview Light App - all AI provider instances.
  *
- * Creates one named AI service instance per provider (default/ollama, claude,
+ * Creates one named AI service instance per provider (default, ollama,
  * openai, gemini) and sends the same prompt to each. The instances appear in
  * the AI Service dashboard's INSTANCE dropdown.
  * --use-system-ca
@@ -68,38 +68,40 @@ const dataService = serviceRegistry.dataService('file', options );
 const tokensStore = (name) =>
   path.join(__dirname, './.application/data', `ai-tokens-${name}.json`);
 
-// Default instance - Ollama (no API key required).
-const defaultAi = serviceRegistry.aiservice('ollama', {
+// Default instance - Claude when a key is set, else the mock provider.
+const defaultAi = process.env.ANTHROPIC_API_KEY
+  ? serviceRegistry.aiservice('anthropic', {
+    apiKey: process.env.ANTHROPIC_API_KEY,
+    model: process.env.ANTHROPIC_MODEL,
+    'express-app': app,
+    tokensStorePath: tokensStore('default')
+  })
+  : serviceRegistry.aiservice('mock', { 'express-app': app, tokensStorePath: tokensStore('default') });
+
+// Named instance - Ollama through its OpenAI-compatible endpoint (no key needed).
+const ollamaAi = serviceRegistry.aiservice('openai-compatible', {
+  instanceName: 'ollama',
+  baseUrl: process.env.OLLAMA_ENDPOINT || 'http://localhost:11434/v1',
   model: process.env.OLLAMA_MODEL,
-  endpoint: process.env.OLLAMA_ENDPOINT,
   'express-app': app,
-  tokensStorePath: tokensStore('default')
+  tokensStorePath: tokensStore('ollama')
 });
 
-// Named instance - Claude.
-const claudeAi = serviceRegistry.aiservice('claude', {
-  instanceName: 'claude',
-  apikey: process.env.ANTHROPIC_API_KEY,
-  model: process.env.ANTHROPIC_MODEL,
-  'express-app': app,
-  tokensStorePath: tokensStore('claude')
-});
-
-// Named instance - OpenAI (Azure).
-const openaiAi = serviceRegistry.aiservice('openai', {
+// Named instance - OpenAI through its OpenAI-compatible endpoint.
+const openaiAi = serviceRegistry.aiservice('openai-compatible', {
   instanceName: 'openai',
-  apiKey: process.env.AZURE_OPENAI_API_KEY,
-  endpoint: process.env.AZURE_OPENAI_ENDPOINT,
-  deployment: process.env.AZURE_OPENAI_DEPLOYMENT,
-  apiVersion: process.env.AZURE_OPENAI_API_VERSION,
+  baseUrl: 'https://api.openai.com/v1',
+  apiKey: process.env.OPENAI_API_KEY,
+  model: process.env.OPENAI_MODEL,
   'express-app': app,
   tokensStorePath: tokensStore('openai')
 });
 
-// Named instance - Gemini.
-const geminiAi = serviceRegistry.aiservice('gemini', {
+// Named instance - Gemini through Google's OpenAI-compatible endpoint.
+const geminiAi = serviceRegistry.aiservice('openai-compatible', {
   instanceName: 'gemini',
-  apikey: process.env.GEMINI_API_KEY,
+  baseUrl: 'https://generativelanguage.googleapis.com/v1beta/openai',
+  apiKey: process.env.GEMINI_API_KEY,
   model: process.env.GEMINI_MODEL,
   'express-app': app,
   tokensStorePath: tokensStore('gemini')
@@ -136,8 +138,8 @@ if (process.env.AZURE_KEYVAULT_URL) {
 // Send the same prompt to every instance.
 const PROMPT = 'Please give me an inspiring quote';
 const instances = [
-  { name: 'default (ollama)', svc: defaultAi },
-  { name: 'claude', svc: claudeAi },
+  { name: 'default', svc: defaultAi },
+  { name: 'ollama', svc: ollamaAi },
   { name: 'openai', svc: openaiAi },
   { name: 'gemini', svc: geminiAi }
 ];

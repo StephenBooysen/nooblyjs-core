@@ -37,7 +37,7 @@ registry.queue('memory');
 
 const filing = registry.filing('local', { baseDir: path.join(__dirname, 'docs') });
 const ai = process.env.ANTHROPIC_API_KEY
-  ? registry.aiservice('claude', { apiKey: process.env.ANTHROPIC_API_KEY })
+  ? registry.aiservice('anthropic', { apiKey: process.env.ANTHROPIC_API_KEY })
   : registry.aiservice('mock', {});
 const knowledge = registry.knowledge('default', { dependencies: { filing, aiservice: ai } });
 

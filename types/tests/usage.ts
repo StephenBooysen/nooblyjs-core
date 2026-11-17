@@ -38,10 +38,10 @@ async function run(): Promise<void> {
   const width: number = vectors[0].length;
   void text; void width;
 
-  const modern = registry.aiservice('openai', { legacy: false });
-  await modern.embed('x');
-  const old = registry.aiservice('claude', { apiKey: 'k' });
-  await old.prompt('hi');
+  const compatible = registry.aiservice('openai-compatible', { apiKey: 'k', baseUrl: 'http://localhost:11434/v1' });
+  await compatible.embed('x');
+  const kv = registry.aiservice('openai-kv', { keyVaultUrl: 'https://vault.example' });
+  await kv.prompt('hi');
 
   const auth = registry.authservice('file', { sessionIdleTimeoutMs: { admin: 600000 } });
   const token = await auth.createApiToken('a@example.com', 'ci', { expiresInDays: 30, scopes: ['queueing:*'] });

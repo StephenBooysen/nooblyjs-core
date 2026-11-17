@@ -55,12 +55,11 @@ const AI_COMMON = {
     baseUrl: { type: 'string' },
     budgets: { type: 'object' },
     embeddings: { type: 'object' },
-    script: { type: 'array' },
-    legacy: { type: 'boolean' }
+    script: { type: 'array' }
   }
 };
 
-/** Options the legacy AI providers read in their constructors (aibase.js and each provider). */
+/** Options the openai-kv and tensorflow providers read in their constructors (aibase.js). */
 const AI_LEGACY_BASE = {
   model: { type: 'string' },
   apiKey: { type: 'string' },
@@ -69,8 +68,7 @@ const AI_LEGACY_BASE = {
   maxtokens: { type: 'number', legacyOf: 'maxTokens' },
   temperature: { type: 'number' },
   tokensStorePath: { type: 'string' },
-  username: { type: 'string' },
-  legacy: { type: 'boolean' }
+  username: { type: 'string' }
 };
 
 const schemas = {
@@ -184,11 +182,6 @@ const schemas = {
     vertex: AI_COMMON,
     azure: AI_COMMON,
     mock: AI_COMMON,
-    claude: { keys: { ...AI_LEGACY_BASE, ...AI_COMMON.keys } },
-    openai: { keys: { ...AI_LEGACY_BASE, ...AI_COMMON.keys, endpoint: { type: 'string' }, apiVersion: { type: 'string' }, deployment: { type: 'string' } } },
-    chatgpt: { keys: { ...AI_LEGACY_BASE, ...AI_COMMON.keys, endpoint: { type: 'string' }, apiVersion: { type: 'string' }, deployment: { type: 'string' } } },
-    gemini: { keys: { ...AI_LEGACY_BASE, ...AI_COMMON.keys, endpoint: { type: 'string' }, apiVersion: { type: 'string' } } },
-    ollama: { keys: { ...AI_LEGACY_BASE, ...AI_COMMON.keys, endpoint: { type: 'string' }, stream: { type: 'boolean' } } },
     'openai-kv': {
       keys: {
         ...AI_LEGACY_BASE,

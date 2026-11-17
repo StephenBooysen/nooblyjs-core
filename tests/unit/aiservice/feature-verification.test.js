@@ -43,21 +43,21 @@ describe('AI Service - Feature Verification', () => {
     const validAPIOptions = { url: 'http://localhost:3000' };
 
     it('should create Claude service instance', () => {
-      const service = createAIService('claude', validClaudeOptions, eventEmitter);
+      const service = createAIService('anthropic', validClaudeOptions, eventEmitter);
 
       expect(service).toBeDefined();
       expect(typeof service.prompt).toBe('function');
     });
 
     it('should create OpenAI service instance', () => {
-      const service = createAIService('chatgpt', validChatGPTOptions, eventEmitter);
+      const service = createAIService('openai-compatible', validChatGPTOptions, eventEmitter);
 
       expect(service).toBeDefined();
       expect(typeof service.prompt).toBe('function');
     });
 
     it('should create Ollama service instance', () => {
-      const service = createAIService('ollama', validOllamaOptions, eventEmitter);
+      const service = createAIService('openai-compatible', validOllamaOptions, eventEmitter);
 
       expect(service).toBeDefined();
       expect(typeof service.prompt).toBe('function');
@@ -72,20 +72,20 @@ describe('AI Service - Feature Verification', () => {
     });
 
     it('should pass event emitter to service', () => {
-      const service = createAIService('claude', validClaudeOptions, eventEmitter);
+      const service = createAIService('anthropic', validClaudeOptions, eventEmitter);
 
       expect(service.eventEmitter_).toBe(eventEmitter);
     });
 
     it('should include analytics module in service', () => {
-      const service = createAIService('claude', validClaudeOptions, eventEmitter);
+      const service = createAIService('anthropic', validClaudeOptions, eventEmitter);
 
       expect(typeof service.getPromptAnalytics).toBe('function');
       expect(service.promptAnalytics).toBeDefined();
     });
 
     it('should have routes and views setup', () => {
-      const service = createAIService('claude', {
+      const service = createAIService('anthropic', {
         ...validClaudeOptions,
         'express-app': mockExpressApp()
       }, eventEmitter);
@@ -94,7 +94,7 @@ describe('AI Service - Feature Verification', () => {
     });
 
     it('should handle missing event emitter gracefully', () => {
-      const service = createAIService('claude', validClaudeOptions);
+      const service = createAIService('anthropic', validClaudeOptions);
 
       expect(service).toBeDefined();
       expect(typeof service.prompt).toBe('function');
@@ -103,285 +103,6 @@ describe('AI Service - Feature Verification', () => {
 
   // ============================================================================
   // CLAUDE PROVIDER TESTS
-  // ============================================================================
-
-  describe('Claude Provider', () => {
-    const validOptions = { apikey: 'sk-test-key-valid' };
-
-    it('should require API key', () => {
-      expect(() => {
-        createAIService('claude', {}, eventEmitter);
-      }).toThrow();
-    });
-
-    it('should initialize with API key', () => {
-      const service = createAIService('claude', validOptions, eventEmitter);
-
-      expect(service).toBeDefined();
-    });
-
-    it('should have default model set in settings', () => {
-      const service = createAIService('claude', validOptions, eventEmitter);
-
-      expect(service.settings.model).toBeDefined();
-      expect(typeof service.settings.model).toBe('string');
-    });
-
-    it('should allow custom model override', () => {
-      const customModel = 'claude-custom';
-      const service = createAIService('claude', {
-        ...validOptions,
-        model: customModel
-      }, eventEmitter);
-
-      expect(service.settings.model).toBe(customModel);
-    });
-
-    it('should have getSettings method', () => {
-      const service = createAIService('claude', validOptions, eventEmitter);
-
-      expect(typeof service.getSettings).toBe('function');
-    });
-
-    it('should have saveSettings method', () => {
-      const service = createAIService('claude', validOptions, eventEmitter);
-
-      expect(typeof service.saveSettings).toBe('function');
-    });
-
-    it('should have listModels method', () => {
-      const service = createAIService('claude', validOptions, eventEmitter);
-
-      expect(typeof service.listModels).toBe('function');
-    });
-
-    it('should have client configured', () => {
-      const service = createAIService('claude', validOptions, eventEmitter);
-
-      expect(service.client_).toBeDefined();
-    });
-
-    it('should emit ai:prompt event on successful prompt (with mock)', async () => {
-      const service = createAIService('claude', validOptions, eventEmitter);
-
-      // Mock the client response
-      service.client_.messages = {
-        create: jest.fn().mockResolvedValue({
-          content: [{ text: 'Test response' }],
-          usage: { input_tokens: 10, output_tokens: 20 }
-        })
-      };
-
-      await service.prompt('Test prompt');
-
-      expect(eventEmitter.emit).toHaveBeenCalledWith('ai:prompt:complete', expect.any(Object));
-    });
-
-    it('should handle settings with description', async () => {
-      const service = createAIService('claude', validOptions, eventEmitter);
-
-      const settings = await service.getSettings();
-      expect(settings.desciption).toBeDefined();
-      expect(settings.list).toBeDefined();
-      expect(Array.isArray(settings.list)).toBe(true);
-    });
-  });
-
-  // ============================================================================
-  // OPENAI PROVIDER TESTS
-  // ============================================================================
-
-  describe('OpenAI Provider', () => {
-    it('should require API key', () => {
-      expect(() => {
-        createAIService('chatgpt', {}, eventEmitter);
-      }).toThrow();
-    });
-
-    it('should initialize with API key', () => {
-      const service = createAIService('chatgpt', {
-        apiKey: 'test-key'
-      }, eventEmitter);
-
-      expect(service).toBeDefined();
-    });
-
-    it('should have default model', () => {
-      const service = createAIService('chatgpt', {
-        apiKey: 'test-key'
-      }, eventEmitter);
-
-      expect(service.model_).toBeDefined();
-      expect(service.model_).toBe('gpt-3.5-turbo');
-    });
-
-    it('should allow custom model', () => {
-      const service = createAIService('chatgpt', {
-        apiKey: 'test-key',
-        model: 'gpt-4'
-      }, eventEmitter);
-
-      expect(service.model_).toBe('gpt-4');
-    });
-
-    it('should have getSettings method', () => {
-      const service = createAIService('chatgpt', {
-        apiKey: 'test-key'
-      }, eventEmitter);
-
-      expect(typeof service.getSettings).toBe('function');
-    });
-
-    it('should have saveSettings method', () => {
-      const service = createAIService('chatgpt', {
-        apiKey: 'test-key'
-      }, eventEmitter);
-
-      expect(typeof service.saveSettings).toBe('function');
-    });
-
-    it('should have OpenAI client configured', () => {
-      const service = createAIService('chatgpt', {
-        apiKey: 'test-key'
-      }, eventEmitter);
-
-      expect(service.client_).toBeDefined();
-    });
-
-    it('should emit ai:prompt on success (with mock)', async () => {
-      const service = createAIService('chatgpt', {
-        apiKey: 'test-key'
-      }, eventEmitter);
-
-      service.client_.chat = {
-        completions: {
-          create: jest.fn().mockResolvedValue({
-            choices: [{ message: { content: 'Test response' } }],
-            usage: { prompt_tokens: 10, completion_tokens: 20, total_tokens: 30 }
-          })
-        }
-      };
-
-      await service.prompt('Test prompt');
-
-      expect(eventEmitter.emit).toHaveBeenCalledWith('ai:prompt:complete', expect.any(Object));
-    });
-
-    it('should handle saveSettings', async () => {
-      const service = createAIService('chatgpt', {
-        apiKey: 'test-key'
-      }, eventEmitter);
-
-      await expect(service.saveSettings({
-        model: 'gpt-4',
-        maxtokens: 2000
-      })).resolves.toBeUndefined();
-    });
-  });
-
-  // ============================================================================
-  // OLLAMA PROVIDER TESTS
-  // ============================================================================
-
-  describe('Ollama Provider', () => {
-    it('should initialize without API key', () => {
-      const service = createAIService('ollama', {
-        baseUrl: 'http://localhost:11434'
-      }, eventEmitter);
-
-      expect(service).toBeDefined();
-    });
-
-    it('should have default baseUrl', () => {
-      const service = createAIService('ollama', {}, eventEmitter);
-
-      expect(service.endpoint).toBeDefined();
-      expect(service.endpoint).toBe('http://localhost:11434');
-    });
-
-    it('should allow custom baseUrl', () => {
-      const customUrl = 'http://192.168.1.100:11434';
-      const service = createAIService('ollama', {
-        endpoint: customUrl
-      }, eventEmitter);
-
-      expect(service.endpoint).toBe(customUrl);
-    });
-
-    it('should have default model', () => {
-      const service = createAIService('ollama', {
-        endpoint: 'http://localhost:11434'
-      }, eventEmitter);
-
-      expect(service.model).toBeDefined();
-      expect(service.model).toBe('llama3.2');
-    });
-
-    it('should allow custom model', () => {
-      const service = createAIService('ollama', {
-        model: 'mistral'
-      }, eventEmitter);
-
-      expect(service.model).toBe('mistral');
-    });
-
-    it('should have getSettings method', () => {
-      const service = createAIService('ollama', {}, eventEmitter);
-
-      expect(typeof service.getSettings).toBe('function');
-    });
-
-    it('should have saveSettings method', () => {
-      const service = createAIService('ollama', {}, eventEmitter);
-
-      expect(typeof service.saveSettings).toBe('function');
-    });
-
-    it('should have listModels method', () => {
-      const service = createAIService('ollama', {}, eventEmitter);
-
-      expect(typeof service.listModels).toBe('function');
-    });
-
-    it('should have isRunning method', () => {
-      const service = createAIService('ollama', {}, eventEmitter);
-
-      expect(typeof service.isRunning).toBe('function');
-    });
-
-    it('should have estimateTokenCount_ helper', () => {
-      const service = createAIService('ollama', {}, eventEmitter);
-
-      expect(typeof service.estimateTokenCount_).toBe('function');
-    });
-
-    it('should estimate token count (roughly 1 token per 4 chars)', () => {
-      const service = createAIService('ollama', {}, eventEmitter);
-
-      const estimate = service.estimateTokenCount_('This is a test');
-      expect(estimate).toBeGreaterThan(0);
-      expect(typeof estimate).toBe('number');
-    });
-
-    it('should return 0 for null/undefined text', () => {
-      const service = createAIService('ollama', {}, eventEmitter);
-
-      expect(service.estimateTokenCount_(null)).toBe(0);
-      expect(service.estimateTokenCount_(undefined)).toBe(0);
-      expect(service.estimateTokenCount_('')).toBe(0);
-    });
-
-    it('should handle settings', async () => {
-      const service = createAIService('ollama', {}, eventEmitter);
-
-      const settings = await service.getSettings();
-      expect(settings).toBeDefined();
-      expect(settings.list).toBeDefined();
-    });
-  });
-
-  // ============================================================================
-  // API PROVIDER TESTS
   // ============================================================================
 
   describe('API Provider', () => {
@@ -413,92 +134,60 @@ describe('AI Service - Feature Verification', () => {
   // BASE CLASS FUNCTIONALITY TESTS
   // ============================================================================
 
-  describe('Base Class Functionality', () => {
-    const validOllamaOptions = { baseUrl: 'http://localhost:11434' };
-
-    it('should have eventEmitter_ property', () => {
-      const service = createAIService('ollama', validOllamaOptions, eventEmitter);
-
-      expect(service.eventEmitter_).toBe(eventEmitter);
-    });
-
-    it('should track token usage', () => {
-      const service = createAIService('ollama', validOllamaOptions, eventEmitter);
-
-      expect(typeof service.trackUsage_).toBe('function');
-    });
-
-    it('should store token usage data', () => {
-      const service = createAIService('ollama', validOllamaOptions, eventEmitter);
-
-      expect(service.tokensStorePath_).toBeDefined();
-    });
-
-    it('should have getAnalytics method', () => {
-      const service = createAIService('ollama', validOllamaOptions, eventEmitter);
-
-      expect(typeof service.getAnalytics).toBe('function');
-    });
-  });
-
-  // ============================================================================
-  // ANALYTICS MODULE TESTS
-  // ============================================================================
-
   describe('Analytics Module', () => {
     const validClaudeOptions = { apikey: 'sk-test-key-valid' };
 
     it('should be accessible via promptAnalytics property', () => {
-      const service = createAIService('claude', validClaudeOptions, eventEmitter);
+      const service = createAIService('anthropic', validClaudeOptions, eventEmitter);
 
       const analytics = service.promptAnalytics;
       expect(analytics).toBeDefined();
     });
 
     it('should have getAnalytics method', () => {
-      const service = createAIService('claude', validClaudeOptions, eventEmitter);
+      const service = createAIService('anthropic', validClaudeOptions, eventEmitter);
 
       const analytics = service.promptAnalytics;
       expect(typeof analytics.getAnalytics).toBe('function');
     });
 
     it('should have getOverview method', () => {
-      const service = createAIService('claude', validClaudeOptions, eventEmitter);
+      const service = createAIService('anthropic', validClaudeOptions, eventEmitter);
 
       const analytics = service.promptAnalytics;
       expect(typeof analytics.getOverview).toBe('function');
     });
 
     it('should have getTopPrompts method', () => {
-      const service = createAIService('claude', validClaudeOptions, eventEmitter);
+      const service = createAIService('anthropic', validClaudeOptions, eventEmitter);
 
       const analytics = service.promptAnalytics;
       expect(typeof analytics.getTopPrompts).toBe('function');
     });
 
     it('should have getTopRecent method', () => {
-      const service = createAIService('claude', validClaudeOptions, eventEmitter);
+      const service = createAIService('anthropic', validClaudeOptions, eventEmitter);
 
       const analytics = service.promptAnalytics;
       expect(typeof analytics.getTopRecent).toBe('function');
     });
 
     it('should have recordPrompt method', () => {
-      const service = createAIService('claude', validClaudeOptions, eventEmitter);
+      const service = createAIService('anthropic', validClaudeOptions, eventEmitter);
 
       const analytics = service.promptAnalytics;
       expect(typeof analytics.recordPrompt).toBe('function');
     });
 
     it('should have clear method', () => {
-      const service = createAIService('claude', validClaudeOptions, eventEmitter);
+      const service = createAIService('anthropic', validClaudeOptions, eventEmitter);
 
       const analytics = service.promptAnalytics;
       expect(typeof analytics.clear).toBe('function');
     });
 
     it('should initialize with empty analytics', () => {
-      const service = createAIService('claude', validClaudeOptions, eventEmitter);
+      const service = createAIService('anthropic', validClaudeOptions, eventEmitter);
 
       const analytics = service.promptAnalytics;
       const overview = analytics.getOverview();
@@ -508,7 +197,7 @@ describe('AI Service - Feature Verification', () => {
     });
 
     it('should record prompt data', () => {
-      const service = createAIService('claude', validClaudeOptions, eventEmitter);
+      const service = createAIService('anthropic', validClaudeOptions, eventEmitter);
 
       const analytics = service.promptAnalytics;
 
@@ -528,7 +217,7 @@ describe('AI Service - Feature Verification', () => {
     });
 
     it('should aggregate multiple calls to same prompt', () => {
-      const service = createAIService('claude', validClaudeOptions, eventEmitter);
+      const service = createAIService('anthropic', validClaudeOptions, eventEmitter);
 
       const analytics = service.promptAnalytics;
 
@@ -548,7 +237,7 @@ describe('AI Service - Feature Verification', () => {
     });
 
     it('should track token totals correctly', () => {
-      const service = createAIService('claude', validClaudeOptions, eventEmitter);
+      const service = createAIService('anthropic', validClaudeOptions, eventEmitter);
 
       const analytics = service.promptAnalytics;
 
@@ -570,7 +259,7 @@ describe('AI Service - Feature Verification', () => {
     });
 
     it('should return top prompts sorted by call count', () => {
-      const service = createAIService('claude', validClaudeOptions, eventEmitter);
+      const service = createAIService('anthropic', validClaudeOptions, eventEmitter);
 
       const analytics = service.promptAnalytics;
 
@@ -588,7 +277,7 @@ describe('AI Service - Feature Verification', () => {
     });
 
     it('should return recent prompts sorted by timestamp', () => {
-      const service = createAIService('claude', validClaudeOptions, eventEmitter);
+      const service = createAIService('anthropic', validClaudeOptions, eventEmitter);
 
       const analytics = service.promptAnalytics;
 
@@ -608,7 +297,7 @@ describe('AI Service - Feature Verification', () => {
     });
 
     it('should respect limit parameter', () => {
-      const service = createAIService('claude', validClaudeOptions, eventEmitter);
+      const service = createAIService('anthropic', validClaudeOptions, eventEmitter);
 
       const analytics = service.promptAnalytics;
 
@@ -625,7 +314,7 @@ describe('AI Service - Feature Verification', () => {
     });
 
     it('should clear analytics data', () => {
-      const service = createAIService('claude', validClaudeOptions, eventEmitter);
+      const service = createAIService('anthropic', validClaudeOptions, eventEmitter);
 
       const analytics = service.promptAnalytics;
 
@@ -637,7 +326,7 @@ describe('AI Service - Feature Verification', () => {
     });
 
     it('should handle anonymous users correctly', () => {
-      const service = createAIService('claude', validClaudeOptions, eventEmitter);
+      const service = createAIService('anthropic', validClaudeOptions, eventEmitter);
 
       const analytics = service.promptAnalytics;
 
@@ -651,7 +340,7 @@ describe('AI Service - Feature Verification', () => {
     });
 
     it('should generate full analytics payload', () => {
-      const service = createAIService('claude', validClaudeOptions, eventEmitter);
+      const service = createAIService('anthropic', validClaudeOptions, eventEmitter);
 
       const analytics = service.promptAnalytics;
 
@@ -668,7 +357,7 @@ describe('AI Service - Feature Verification', () => {
     });
 
     it('should respect custom limits in getAnalytics', () => {
-      const service = createAIService('claude', validClaudeOptions, eventEmitter);
+      const service = createAIService('anthropic', validClaudeOptions, eventEmitter);
 
       const analytics = service.promptAnalytics;
 
@@ -695,7 +384,7 @@ describe('AI Service - Feature Verification', () => {
 
     it('should configure routes with express app', () => {
       const app = mockExpressApp();
-      const service = createAIService('claude', {
+      const service = createAIService('anthropic', {
         ...validClaudeOptions,
         'express-app': app
       }, eventEmitter);
@@ -706,14 +395,14 @@ describe('AI Service - Feature Verification', () => {
     });
 
     it('should handle missing express app gracefully', () => {
-      const service = createAIService('claude', validClaudeOptions, eventEmitter);
+      const service = createAIService('anthropic', validClaudeOptions, eventEmitter);
 
       expect(service).toBeDefined();
     });
 
     it('should pass analytics to routes', () => {
       const app = mockExpressApp();
-      const service = createAIService('claude', {
+      const service = createAIService('anthropic', {
         ...validClaudeOptions,
         'express-app': app
       }, eventEmitter);
@@ -731,7 +420,7 @@ describe('AI Service - Feature Verification', () => {
 
     it('should configure views with express app', () => {
       const app = mockExpressApp();
-      const service = createAIService('claude', {
+      const service = createAIService('anthropic', {
         ...validClaudeOptions,
         'express-app': app
       }, eventEmitter);
@@ -747,7 +436,7 @@ describe('AI Service - Feature Verification', () => {
         done();
       });
 
-      createAIService('claude', {
+      createAIService('anthropic', {
         ...validClaudeOptions,
         'express-app': app
       }, eventEmitter);
@@ -758,71 +447,30 @@ describe('AI Service - Feature Verification', () => {
   // SETTINGS MANAGEMENT TESTS
   // ============================================================================
 
-  describe('Settings Management', () => {
-    const validClaudeOptions = { apikey: 'sk-test-key-valid' };
-
-    it('should allow saving settings without errors', async () => {
-      const service = createAIService('claude', validClaudeOptions, eventEmitter);
-
-      await expect(service.saveSettings({
-        maxtokens: 2000
-      })).resolves.toBeUndefined();
-    });
-
-    it('should handle null/undefined settings', async () => {
-      const service = createAIService('claude', validClaudeOptions, eventEmitter);
-
-      await expect(service.saveSettings({})).resolves.toBeUndefined();
-    });
-
-    it('should return settings structure', async () => {
-      const service = createAIService('claude', validClaudeOptions, eventEmitter);
-
-      const settings = await service.getSettings();
-      expect(settings).toHaveProperty('list');
-      expect(Array.isArray(settings.list)).toBe(true);
-    });
-
-    it('should have settings with proper structure', async () => {
-      const service = createAIService('claude', validClaudeOptions, eventEmitter);
-
-      const settings = await service.getSettings();
-      settings.list.forEach(setting => {
-        expect(setting).toHaveProperty('setting');
-        expect(setting).toHaveProperty('type');
-        expect(setting).toHaveProperty('values');
-      });
-    });
-  });
-
-  // ============================================================================
-  // EVENT SYSTEM TESTS
-  // ============================================================================
-
   describe('Event System', () => {
     const validClaudeOptions = { apikey: 'sk-test-key-valid' };
 
     it('should emit events through eventEmitter', () => {
-      const service = createAIService('claude', validClaudeOptions, eventEmitter);
+      const service = createAIService('anthropic', validClaudeOptions, eventEmitter);
 
       expect(eventEmitter.emit).toBeDefined();
     });
 
     it('should accept eventEmitter in constructor', () => {
       const customEmitter = new EventEmitter();
-      const service = createAIService('claude', validClaudeOptions, customEmitter);
+      const service = createAIService('anthropic', validClaudeOptions, customEmitter);
 
       expect(service.eventEmitter_).toBe(customEmitter);
     });
 
     it('should handle missing eventEmitter', () => {
       expect(() => {
-        createAIService('claude', validClaudeOptions);
+        createAIService('anthropic', validClaudeOptions);
       }).not.toThrow();
     });
 
     it('should have eventEmitter property after creation', () => {
-      const service = createAIService('claude', validClaudeOptions, eventEmitter);
+      const service = createAIService('anthropic', validClaudeOptions, eventEmitter);
 
       expect(service.eventEmitter_).toBeDefined();
     });
@@ -836,7 +484,7 @@ describe('AI Service - Feature Verification', () => {
     const validClaudeOptions = { apikey: 'sk-test-key-valid' };
 
     it('should accept logging dependency', () => {
-      const service = createAIService('claude', {
+      const service = createAIService('anthropic', {
         ...validClaudeOptions,
         dependencies: {
           logging: mockLogger
@@ -847,7 +495,7 @@ describe('AI Service - Feature Verification', () => {
     });
 
     it('should accept multiple dependencies', () => {
-      const service = createAIService('claude', {
+      const service = createAIService('anthropic', {
         ...validClaudeOptions,
         dependencies: {
           logging: mockLogger,
@@ -861,7 +509,7 @@ describe('AI Service - Feature Verification', () => {
     });
 
     it('should handle empty dependencies object', () => {
-      const service = createAIService('claude', {
+      const service = createAIService('anthropic', {
         ...validClaudeOptions,
         dependencies: {}
       }, eventEmitter);
@@ -870,7 +518,7 @@ describe('AI Service - Feature Verification', () => {
     });
 
     it('should handle missing dependencies', () => {
-      const service = createAIService('claude', validClaudeOptions, eventEmitter);
+      const service = createAIService('anthropic', validClaudeOptions, eventEmitter);
 
       expect(service).toBeDefined();
     });
@@ -887,21 +535,9 @@ describe('AI Service - Feature Verification', () => {
       }).toThrow();
     });
 
-    it('should throw on Claude with missing API key', () => {
-      expect(() => {
-        createAIService('claude', {}, eventEmitter);
-      }).toThrow();
-    });
-
-    it('should throw on OpenAI with missing API key', () => {
-      expect(() => {
-        createAIService('chatgpt', {}, eventEmitter);
-      }).toThrow();
-    });
-
     it('should not require API key for Ollama', () => {
       expect(() => {
-        createAIService('ollama', {}, eventEmitter);
+        createAIService('openai-compatible', {}, eventEmitter);
       }).not.toThrow();
     });
 
@@ -917,43 +553,13 @@ describe('AI Service - Feature Verification', () => {
   // TOKEN TRACKING TESTS
   // ============================================================================
 
-  describe('Token Tracking', () => {
-    const validOllamaOptions = { baseUrl: 'http://localhost:11434' };
-
-    it('should have token tracking path', () => {
-      const service = createAIService('ollama', validOllamaOptions, eventEmitter);
-
-      expect(service.tokensStorePath_).toBeDefined();
-      expect(typeof service.tokensStorePath_).toBe('string');
-    });
-
-    it('should use the application data directory by default', () => {
-      const service = createAIService('ollama', validOllamaOptions, eventEmitter);
-
-      // The default token store lives under the runtime data directory
-      // (./.application/data), matching the framework's documented data dir.
-      expect(service.tokensStorePath_).toContain('data');
-      expect(service.tokensStorePath_).toContain('ai-tokens.json');
-    });
-
-    it('should have trackUsage_ method', () => {
-      const service = createAIService('ollama', validOllamaOptions, eventEmitter);
-
-      expect(typeof service.trackUsage_).toBe('function');
-    });
-  });
-
-  // ============================================================================
-  // INTEGRATION TESTS
-  // ============================================================================
-
   describe('Service Integration', () => {
     const validClaudeOptions = { apikey: 'sk-test-key-valid' };
     const validChatGPTOptions = { apiKey: 'sk-test-key-valid' };
     const validOllamaOptions = { baseUrl: 'http://localhost:11434' };
 
     it('should have all required methods on service instance', () => {
-      const service = createAIService('claude', validClaudeOptions, eventEmitter);
+      const service = createAIService('anthropic', validClaudeOptions, eventEmitter);
 
       expect(typeof service.prompt).toBe('function');
       expect(typeof service.getSettings).toBe('function');
@@ -963,11 +569,11 @@ describe('AI Service - Feature Verification', () => {
 
     it('should initialize working providers with consistent interface', () => {
       // Test only working providers (skip API which has a bug)
-      const providers = ['claude', 'chatgpt', 'ollama'];
+      const providers = ['anthropic', 'openai-compatible', 'mock'];
       const options = {
-        claude: validClaudeOptions,
-        chatgpt: validChatGPTOptions,
-        ollama: validOllamaOptions
+        anthropic: validClaudeOptions,
+        'openai-compatible': { ...validOllamaOptions, apiKey: 'sk-test' },
+        mock: {}
       };
 
       providers.forEach(provider => {
@@ -982,8 +588,8 @@ describe('AI Service - Feature Verification', () => {
     it('should maintain event emitter across multiple services', () => {
       const sharedEmitter = new EventEmitter();
 
-      const service1 = createAIService('claude', validClaudeOptions, sharedEmitter);
-      const service2 = createAIService('ollama', validOllamaOptions, sharedEmitter);
+      const service1 = createAIService('anthropic', validClaudeOptions, sharedEmitter);
+      const service2 = createAIService('openai-compatible', validOllamaOptions, sharedEmitter);
 
       expect(service1.eventEmitter_).toBe(sharedEmitter);
       expect(service2.eventEmitter_).toBe(sharedEmitter);
@@ -998,7 +604,7 @@ describe('AI Service - Feature Verification', () => {
     const validClaudeOptions = { apikey: 'sk-test-key-valid' };
 
     it('should accept and use maxTokens option', () => {
-      const service = createAIService('claude', {
+      const service = createAIService('anthropic', {
         ...validClaudeOptions,
         maxTokens: 5000
       }, eventEmitter);
@@ -1007,7 +613,7 @@ describe('AI Service - Feature Verification', () => {
     });
 
     it('should accept and use temperature option', () => {
-      const service = createAIService('claude', {
+      const service = createAIService('anthropic', {
         ...validClaudeOptions,
         temperature: 0.5
       }, eventEmitter);
@@ -1016,12 +622,12 @@ describe('AI Service - Feature Verification', () => {
     });
 
     it('should handle edge case temperatures', () => {
-      const service1 = createAIService('claude', {
+      const service1 = createAIService('anthropic', {
         ...validClaudeOptions,
         temperature: 0
       }, eventEmitter);
 
-      const service2 = createAIService('claude', {
+      const service2 = createAIService('anthropic', {
         ...validClaudeOptions,
         temperature: 1
       }, eventEmitter);

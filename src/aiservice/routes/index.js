@@ -39,7 +39,7 @@ module.exports = (options, eventEmitter, aiService, analytics) => {
 
   const app = options['express-app'];
   const ServiceRegistry = options.ServiceRegistry;
-  const providerType = options.providerType || 'claude';
+  const providerType = options.providerType || 'anthropic';
 
   // Serve the OpenAPI spec consumed by the Swagger UI on the dashboard.
   // Registered before the auth guard so API documentation stays public.

@@ -56,7 +56,7 @@ describe('AI service routes', () => {
       listInstances: jest.fn(() => [{ instanceName: 'other', providerType: 'ollama' }]),
       getServiceInstance: jest.fn(() => other)
     };
-    registerRoutes({ 'express-app': app, ServiceRegistry: registry, providerType: 'claude' }, eventEmitter, provider, analytics);
+    registerRoutes({ 'express-app': app, ServiceRegistry: registry, providerType: 'anthropic' }, eventEmitter, provider, analytics);
   });
 
   it('lists instances including the default', async () => {

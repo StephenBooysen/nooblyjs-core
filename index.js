@@ -614,7 +614,7 @@ class ServiceRegistry {
       'workflow': 'memory',
       'notifying': 'memory',
       'authservice': 'file',
-      'aiservice': 'claude',
+      'aiservice': 'anthropic',
       'knowledge': 'default',
       'fetching': 'node',
       'settings': 'file'
@@ -920,13 +920,13 @@ class ServiceRegistry {
 
   /**
    * Get the AI service
-   * @param {string} providerType - 'claude', 'chatgpt', or 'ollama'
+   * @param {string} providerType - 'anthropic', 'openai-compatible', 'bedrock', 'vertex', 'azure', 'mock', 'openai-kv' or 'tensorflow'
    * @param {Object} options - Provider-specific options
-   * @param {string} options.apiKey - API key for the provider (required for claude/chatgpt)
+   * @param {string} options.apiKey - API key for the provider (anthropic, openai-compatible, ...)
    * @param {string} options.model - Model to use (optional)
    * @returns {Object} AI service instance
    */
-  aiservice(providerType = 'claude', options = {}) {
+  aiservice(providerType = 'anthropic', options = {}) {
     return this.getService('aiservice', providerType, options);
   }
 

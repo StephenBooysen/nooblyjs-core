@@ -111,11 +111,11 @@ describeOtel('trace context and metrics (feature 07)', () => {
       async chat() { return { model: 'claude-test', usage: { input_tokens: 12, output_tokens: 7 }, text: 'hi' }; }
     }
     const ai = new AIService();
-    telemetry.instrument(ai, 'aiservice', 'claude', 'default');
+    telemetry.instrument(ai, 'aiservice', 'anthropic', 'default');
     await ai.chat();
     const span = telemetry.finishedSpans().find((s) => s.name === 'aiservice.chat');
     expect(span.attributes).toMatchObject({
-      'gen_ai.system': 'claude',
+      'gen_ai.system': 'anthropic',
       'gen_ai.response.model': 'claude-test',
       'gen_ai.usage.input_tokens': 12,
       'gen_ai.usage.output_tokens': 7

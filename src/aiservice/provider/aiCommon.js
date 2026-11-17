@@ -307,6 +307,19 @@ class AICommon {
   getSettings() {
     return { ...this.settings, provider: this.providerId_ };
   }
+
+  /**
+   * Applies settings from the dashboard. Only `model` is accepted, and it is
+   * kept in memory: it resets on restart. Set the model in the constructor
+   * options to keep it.
+   * @param {{model?: string}} next Settings to apply
+   */
+  saveSettings(next = {}) {
+    if (typeof next.model === 'string' && next.model.trim()) {
+      this.options_ = { ...this.options_, model: next.model.trim() };
+      this.settings.model = next.model.trim();
+    }
+  }
 }
 
 /**

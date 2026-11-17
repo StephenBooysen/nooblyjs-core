@@ -216,7 +216,7 @@ async function demoEmbed(texts) {
 // and passes the *instance* through dependencies. The key never crosses into
 // the searching service.
 //
-//   const aiservice = serviceRegistry.aiservice('openai', {
+//   const aiservice = serviceRegistry.aiservice('openai-compatible', {
 //     apiKey: process.env.OPENAI_API_KEY
 //   });
 //

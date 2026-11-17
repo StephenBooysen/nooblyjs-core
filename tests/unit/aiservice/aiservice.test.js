@@ -79,7 +79,7 @@ describe('AI Service Factory', () => {
    * and that all dependencies are injected correctly.
    */
   it('should create Claude AI service with dependencies', () => {
-    const aiService = createAIService('claude', mockOptions, mockEventEmitter);
+    const aiService = createAIService('anthropic', mockOptions, mockEventEmitter);
 
     expect(aiService).toBeDefined();
     expect(aiService.logger).toBe(mockDependencies.logging);
@@ -88,9 +88,9 @@ describe('AI Service Factory', () => {
     expect(aiService.queueing).toBe(mockDependencies.queueing);
     expect(aiService.dependencies).toBe(mockDependencies);
     expect(mockDependencies.logging.info).toHaveBeenCalledWith(
-      '[AI:CLAUDE] AI service initialized',
+      '[AI:ANTHROPIC] AI service initialized',
       expect.objectContaining({
-        provider: 'claude',
+        provider: 'anthropic',
         hasLogging: true,
         hasCaching: true,
         hasWorkflow: true,
@@ -106,7 +106,7 @@ describe('AI Service Factory', () => {
    * and that all dependencies are injected correctly.
    */
   it('should create ChatGPT AI service with dependencies', () => {
-    const aiService = createAIService('chatgpt', mockOptions, mockEventEmitter);
+    const aiService = createAIService('openai-compatible', mockOptions, mockEventEmitter);
 
     expect(aiService).toBeDefined();
     expect(aiService.logger).toBe(mockDependencies.logging);
@@ -114,9 +114,9 @@ describe('AI Service Factory', () => {
     expect(aiService.workflow).toBe(mockDependencies.workflow);
     expect(aiService.queueing).toBe(mockDependencies.queueing);
     expect(mockDependencies.logging.info).toHaveBeenCalledWith(
-      '[AI:CHATGPT] AI service initialized',
+      '[AI:OPENAI-COMPATIBLE] AI service initialized',
       expect.objectContaining({
-        provider: 'chatgpt',
+        provider: 'openai-compatible',
         hasLogging: true,
         hasCaching: true,
         hasWorkflow: true,
@@ -132,7 +132,7 @@ describe('AI Service Factory', () => {
    * and that all dependencies are injected correctly.
    */
   it('should create Ollama AI service with dependencies', () => {
-    const aiService = createAIService('ollama', mockOptions, mockEventEmitter);
+    const aiService = createAIService('openai-compatible', mockOptions, mockEventEmitter);
 
     expect(aiService).toBeDefined();
     expect(aiService.logger).toBe(mockDependencies.logging);
@@ -140,9 +140,9 @@ describe('AI Service Factory', () => {
     expect(aiService.workflow).toBe(mockDependencies.workflow);
     expect(aiService.queueing).toBe(mockDependencies.queueing);
     expect(mockDependencies.logging.info).toHaveBeenCalledWith(
-      '[AI:OLLAMA] AI service initialized',
+      '[AI:OPENAI-COMPATIBLE] AI service initialized',
       expect.objectContaining({
-        provider: 'ollama',
+        provider: 'openai-compatible',
         hasLogging: true,
         hasCaching: true,
         hasWorkflow: true,
@@ -168,7 +168,7 @@ describe('AI Service Factory', () => {
       },
       apiKey: 'test-api-key'
     };
-    const aiService = createAIService('claude', minimalOptions, mockEventEmitter);
+    const aiService = createAIService('anthropic', minimalOptions, mockEventEmitter);
 
     expect(aiService).toBeDefined();
     expect(aiService.logger).toBeUndefined();
@@ -199,16 +199,16 @@ describe('AI Service Factory', () => {
       apiKey: 'test-api-key'
     };
 
-    const aiService = createAIService('claude', partialOptions, mockEventEmitter);
+    const aiService = createAIService('anthropic', partialOptions, mockEventEmitter);
 
     expect(aiService.logger).toBe(mockDependencies.logging);
     expect(aiService.cache).toBe(mockDependencies.caching);
     expect(aiService.workflow).toBeUndefined();
     expect(aiService.queueing).toBeUndefined();
     expect(mockDependencies.logging.info).toHaveBeenCalledWith(
-      '[AI:CLAUDE] AI service initialized',
+      '[AI:ANTHROPIC] AI service initialized',
       expect.objectContaining({
-        provider: 'claude',
+        provider: 'anthropic',
         hasLogging: true,
         hasCaching: true,
         hasWorkflow: false,
@@ -224,18 +224,18 @@ describe('AI Service Factory', () => {
    * with proper formatting and level handling.
    */
   it('should provide logging functionality when logger is injected', () => {
-    const aiService = createAIService('claude', mockOptions, mockEventEmitter);
+    const aiService = createAIService('anthropic', mockOptions, mockEventEmitter);
 
     aiService.log('info', 'Test message', { test: 'data' });
     aiService.log('error', 'Error message');
     aiService.log('invalidLevel', 'Should not log');
 
     expect(mockDependencies.logging.info).toHaveBeenCalledWith(
-      '[AI:CLAUDE] Test message',
+      '[AI:ANTHROPIC] Test message',
       { test: 'data' }
     );
     expect(mockDependencies.logging.error).toHaveBeenCalledWith(
-      '[AI:CLAUDE] Error message',
+      '[AI:ANTHROPIC] Error message',
       {}
     );
   });

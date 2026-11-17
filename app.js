@@ -230,7 +230,9 @@ const authservice = serviceRegistry.authservice('file', invitationMailer
   ? { invitations: { deliverCode: invitationCodeSender(invitationMailer) } }
   : {});
 const settings = serviceRegistry.settings('file');
-const aiservice = serviceRegistry.aiservice('ollama', {});
+const aiservice = process.env.ANTHROPIC_API_KEY
+  ? serviceRegistry.aiservice('anthropic', { apiKey: process.env.ANTHROPIC_API_KEY })
+  : serviceRegistry.aiservice('mock', {});
 // Feature 05: ask your documents. Sync a folder of the filing root from the
 // Knowledge dashboard; sync state and ratings are kept as hidden files there.
 const knowledge = serviceRegistry.knowledge('default', { dependencies: { filing, aiservice }, restore: true });

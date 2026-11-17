@@ -100,7 +100,9 @@ const notifying = serviceRegistry.notifying('memory');
 const worker = serviceRegistry.working('memory');
 const workflow = serviceRegistry.workflow('memory');
 const settings = serviceRegistry.settings('file', { filepath: path.join(dataRoot, 'settings', 'settings.enc.json') });
-const aiservice = serviceRegistry.aiservice('ollama', {});
+const aiservice = process.env.ANTHROPIC_API_KEY
+  ? serviceRegistry.aiservice('anthropic', { apiKey: process.env.ANTHROPIC_API_KEY })
+  : serviceRegistry.aiservice('mock', {});
 // Feature 05: ask your documents. Sync a folder of the filing root from the
 // Knowledge dashboard; sync state and ratings are kept as hidden files there.
 const knowledge = serviceRegistry.knowledge('default', { dependencies: { filing, aiservice }, restore: true });

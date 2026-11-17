@@ -57,7 +57,7 @@ describe('option validation (feature 08)', () => {
 
   it('covers authservice, aiservice and the other services (feature 08)', () => {
     for (const [service, provider] of [
-      ['authservice', 'file'], ['authservice', 'google'], ['aiservice', 'anthropic'], ['aiservice', 'claude'],
+      ['authservice', 'file'], ['authservice', 'google'], ['aiservice', 'anthropic'], ['aiservice', 'openai-compatible'],
       ['settings', 'file'], ['workflow', 'memory'], ['scheduling', 'memory'], ['working', 'default'],
       ['notifying', 'memory'], ['measuring', 'default'], ['searching', 'api']
     ]) {

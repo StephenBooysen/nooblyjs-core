@@ -141,7 +141,7 @@ export interface EmbedResult {
   usage: { input_tokens: number };
 }
 
-/** The shared-module AI service (anthropic, bedrock, vertex, azure, openai-compatible, mock, or a legacy name with legacy: false). */
+/** The shared-module AI service (anthropic, bedrock, vertex, azure, openai-compatible, mock). */
 export interface AIService {
   prompt(prompt: string, options?: { maxTokens?: number; system?: string }): Promise<{ content: string; usage: unknown; model: string | null; provider: string }>;
   complete(request: AIRequest): Promise<AIReply>;
@@ -151,9 +151,11 @@ export interface AIService {
   embed(texts: string | string[], options?: { model?: string; dimensions?: number }): Promise<EmbedResult>;
   listModels(): Promise<Array<{ id: string; label: string; contextWindow: number | null; pricing: unknown }>>;
   getSettings(): Record<string, unknown>;
+  /** Applies `model` in memory; it resets on restart. */
+  saveSettings(settings: { model?: string }): void;
 }
 
-/** A legacy AI provider (claude, openai, ollama, gemini, openai-kv, tensorflow): prompt() only. */
+/** An openai-kv or tensorflow AI provider: prompt() only. */
 export interface LegacyAIService {
   prompt(prompt: string, options?: { maxTokens?: number; temperature?: number }): Promise<unknown>;
   getSettings?(): unknown;
@@ -378,7 +380,6 @@ export interface LegacyAIOptions extends ServiceOptions {
   maxTokens?: number;
   temperature?: number;
   endpoint?: string;
-  legacy?: true;
 }
 
 export interface AuthOptions extends ServiceOptions {
@@ -490,8 +491,7 @@ export interface ServiceRegistry {
   filing(providerType: 'ftp' | 'gcp' | 'git' | 'api' | 'sync', options?: ServiceOptions): FilingService;
 
   aiservice(providerType: 'anthropic' | 'openai-compatible' | 'bedrock' | 'vertex' | 'azure' | 'mock', options?: SharedAIOptions): AIService;
-  aiservice(providerType: 'claude' | 'openai' | 'chatgpt' | 'ollama' | 'gemini', options: SharedAIOptions & { legacy: false }): AIService;
-  aiservice(providerType: 'claude' | 'openai' | 'chatgpt' | 'ollama' | 'gemini' | 'openai-kv' | 'tensorflow', options?: LegacyAIOptions): LegacyAIService;
+  aiservice(providerType: 'openai-kv' | 'tensorflow', options?: LegacyAIOptions): LegacyAIService;
 
   authservice(providerType: 'memory' | 'file' | 'passport' | 'secure-email', options?: AuthOptions): AuthService;
   authservice(providerType: 'google', options: OAuthOptions): AuthService;

@@ -6,7 +6,7 @@
 ###
 ### Example server setup with AI service:
 ### const serviceRegistry = new ServiceRegistry();
-### serviceRegistry.registerService('aiservice', 'claude', { apiKey: 'your-claude-api-key' });
+### serviceRegistry.registerService('aiservice', 'anthropic', { apiKey: 'your-claude-api-key' });
 ###
 
 @baseUrl = http://localhost:3000
