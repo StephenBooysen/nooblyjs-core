@@ -11,7 +11,7 @@
 'use strict';
 
 const axios = require('axios');
-const { assertUrlAllowed } = require('../modules/ssrfGuard');
+const { assertUrlAllowed, followRedirects } = require('../modules/ssrfGuard');
 
 /**
  * A class that implements HTTP fetching using axios.
@@ -172,7 +172,26 @@ class FetchingAxios {
       Object.assign(axiosConfig, options.axiosConfig);
     }
 
-    const response = await this.axiosInstance(axiosConfig);
+    // Redirects are followed here, not by axios, so each hop passes the SSRF guard.
+    // Redirect statuses come back as responses; other 4xx/5xx still throw as before.
+    const hasBody = axiosConfig.data !== undefined;
+    const { url: finalUrl, response } = await followRedirects(url, {
+      method: axiosConfig.method,
+      hasBody,
+      send: async (target, { method, keepBody }) => {
+        const hop = await this.axiosInstance({
+          ...axiosConfig,
+          url: target,
+          method,
+          data: keepBody ? axiosConfig.data : undefined,
+          maxRedirects: 0,
+          // A caller's own validateStatus still decides what counts as an error.
+          validateStatus: axiosConfig.validateStatus ??
+            ((status) => status < 400 || [301, 302, 303, 307, 308].includes(status))
+        });
+        return { status: hop.status, location: hop.headers?.location ?? null, response: hop };
+      }
+    }, this.ssrfOptions_);
 
     // Normalize axios response to match fetch API response
     const normalizedResponse = {

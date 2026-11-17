@@ -160,8 +160,60 @@ async function assertUrlAllowed(rawUrl, options = {}) {
   return parsed;
 }
 
+
+const REDIRECT_STATUSES = new Set([301, 302, 303, 307, 308]);
+const MAX_REDIRECTS = 5;
+
+/**
+ * Sends a request and follows redirects by hand, validating every hop.
+ *
+ * Providers must not let their HTTP client follow redirects: the guard only
+ * sees the URL the caller asked for, so a public URL that redirects to a
+ * private address would bypass it. Each redirect target is checked with
+ * {@link assertUrlAllowed} before it is requested.
+ *
+ * @param {string} startUrl - The URL the caller asked for (already validated).
+ * @param {Object} request - The request to make.
+ * @param {string} request.method - HTTP method of the first request.
+ * @param {boolean} request.hasBody - Whether the first request carries a body.
+ * @param {function(string, {method: string, keepBody: boolean}): Promise<{status: number, location: (string|null), response: *}>} request.send
+ *   Performs one hop without following redirects.
+ * @param {SsrfOptions} [ssrf] - Options passed to the guard for each hop.
+ * @param {number} [maxRedirects=5] - Redirects allowed before failing.
+ * @return {Promise<{url: string, response: *}>} The final URL and provider response.
+ * @throws {ClientError} 400 when a redirect target is refused or there are too many hops.
+ */
+async function followRedirects(startUrl, request, ssrf = {}, maxRedirects = MAX_REDIRECTS) {
+  let url = startUrl;
+  let method = request.method;
+  let keepBody = request.hasBody;
+
+  for (let hop = 0; ; hop++) {
+    const result = await request.send(url, { method, keepBody });
+    if (!REDIRECT_STATUSES.has(result.status) || !result.location) {
+      return { url, response: result.response };
+    }
+    if (hop >= maxRedirects) {
+      throw new ClientError(400, 'Too many redirects');
+    }
+
+    const next = new URL(result.location, url).toString();
+    await assertUrlAllowed(next, ssrf);
+    url = next;
+
+    // 301-303 turn anything but GET/HEAD into a GET without a body (fetch and
+    // browsers do the same); 307 and 308 keep the method and body.
+    if (result.status < 307 && method !== 'GET' && method !== 'HEAD') {
+      method = 'GET';
+      keepBody = false;
+    }
+  }
+}
+
 module.exports = {
   assertUrlAllowed,
+  followRedirects,
+  MAX_REDIRECTS,
   isPrivateAddress,
   isPrivateIPv4,
   isPrivateIPv6

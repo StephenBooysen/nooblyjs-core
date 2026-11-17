@@ -10,7 +10,7 @@
 
 'use strict';
 
-const { assertUrlAllowed } = require('../modules/ssrfGuard');
+const { assertUrlAllowed, followRedirects } = require('../modules/ssrfGuard');
 
 /**
  * A class that implements HTTP fetching using Node.js native fetch API.
@@ -166,7 +166,21 @@ class FetchingNode {
     delete fetchOptions.next;
     delete fetchOptions.cache;
 
-    const response = await fetch(url, fetchOptions);
+    // Redirects are followed here, not by fetch, so each hop passes the SSRF guard.
+    const hasBody = fetchOptions.body !== undefined && fetchOptions.body !== null;
+    const { url: finalUrl, response } = await followRedirects(url, {
+      method: fetchOptions.method,
+      hasBody,
+      send: async (target, { method, keepBody }) => {
+        const hop = await fetch(target, {
+          ...fetchOptions,
+          method,
+          body: keepBody ? fetchOptions.body : undefined,
+          redirect: 'manual'
+        });
+        return { status: hop.status, location: hop.headers.get('location'), response: hop };
+      }
+    }, this.ssrfOptions_);
 
     // Clone the response so it can be used multiple times
     const clonedResponse = response.clone();
@@ -174,7 +188,7 @@ class FetchingNode {
     // Store metadata
     if (!clonedResponse._fetchMetadata) {
       clonedResponse._fetchMetadata = {
-        url: url,
+        url: finalUrl,
         cacheKey: cacheKey,
         timestamp: Date.now()
       };

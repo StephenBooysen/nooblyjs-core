@@ -13,7 +13,6 @@ These come from the phase 1 merge (2026-11-16) and gate a release:
 
 - **Staging check of the new refusals.** Anonymous callers are refused on declared, non-public API routes whenever API keys are required, and cross-site cookie writes are refused by default (`security.csrf.enabled=false` opts out). Both are covered by tests, but neither has run against a deployment yet.
 - **Allow-side authorization matrix.** The matrix test checks only that callers are refused where permissions deny. The allow-side checks were dropped because the phase 1 role table differs from main's. Restore them against the current role table.
-- **SSRF redirect bypass (security, fix first).** The fetching guard checks only the requested URL. The Node provider follows redirects, and the redirect target is not checked. Confirmed locally: with `ssrf.allowedHosts: ['localhost']`, a `localhost` URL that redirects to `127.0.0.1` returns the private server's body, while a direct request to `127.0.0.1` is refused. Fix: `redirect: 'manual'` and re-validate each hop, with a regression test for this case.
 - **Next release.** `v1.2.0` is tagged. The phase 1 merge (after the tag) is unreleased; tag the next version once CI is green on `main`.
 
 ### Phase 3: scale and completeness
