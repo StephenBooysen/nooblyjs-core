@@ -10,35 +10,30 @@ This document describes the architecture of NooblyJS Core, a modular Node.js bac
 
 ## High-Level Overview
 
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                              Express Application                            │
-│  ┌─────────────────────────────────────────────────────────────────────────┐│
-│  │                         Middleware Layer                                ││
-│  │  ┌──────────────┐  ┌───────────────────┐  ┌────────────────────────┐    ││
-│  │  │ Body Parser  │  │ Session/Passport  │  │ API Key Authentication │    ││
-│  │  └──────────────┘  └───────────────────┘  └────────────────────────┘    ││
-│  └─────────────────────────────────────────────────────────────────────────┘│
-│  ┌─────────────────────────────────────────────────────────────────────────┐│
-│  │                        Service Registry (Singleton)                     ││
-│  │  ┌─────────────────────────────────────────────────────────────────────┐││
-│  │  │                    Event Emitter (Global Bus)                       │││
-│  │  └─────────────────────────────────────────────────────────────────────┘││
-│  │  ┌─────────────────────────────────────────────────────────────────────┐││
-│  │  │                    Dependency Graph & Resolution                    │││
-│  │  └─────────────────────────────────────────────────────────────────────┘││
-│  │  ┌─────────────────────────────────────────────────────────────────────┐││
-│  │  │                    Service Instance Registry                        │││
-│  │  │    Map<"serviceName:providerType:instanceName", ServiceInstance>    │││
-│  │  └─────────────────────────────────────────────────────────────────────┘││
-│  └─────────────────────────────────────────────────────────────────────────┘│
-│  ┌─────────────────────────────────────────────────────────────────────────┐│
-│  │                 Services (17, plus the MCP endpoint)                    ││
-│  │  ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐            ││
-│  │  │ logging │ │ caching │ │  data   │ │workflow │ │   ai    │  ...       ││
-│  │  └─────────┘ └─────────┘ └─────────┘ └─────────┘ └─────────┘            ││
-│  └─────────────────────────────────────────────────────────────────────────┘│
-└─────────────────────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TB
+  subgraph APP["Express application"]
+    subgraph MW["Middleware layer"]
+      BP["Body parser"]
+      SP["Session / Passport"]
+      AK["API key authentication"]
+    end
+    subgraph REG["Service registry (singleton)"]
+      EE["Event emitter (global bus)"]
+      DG["Dependency graph and resolution"]
+      SIR["Service instance registry<br/>Map of serviceName:providerType:instanceName"]
+    end
+    subgraph SVC["Services (17, plus the MCP endpoint)"]
+      S1["logging"]
+      S2["caching"]
+      S3["data"]
+      S4["workflow"]
+      S5["ai"]
+      S6["..."]
+    end
+    MW --> REG
+    REG --> SVC
+  end
 ```
 
 ## Service Registry Pattern
@@ -72,35 +67,74 @@ const dataCache = registry.cache('redis', { instanceName: 'data-cache' });
 
 Dependencies are defined in `initializeServiceDependencies()` (`index.js`), which is the source of truth, and form a directed acyclic graph:
 
-```
-Level 0 (Foundation)
-└── logging          []
-
-Level 1 (Infrastructure)
-├── caching          [logging]
-├── queueing         [logging]
-├── notifying        [logging]
-├── appservice       [logging]
-├── fetching         [logging]
-└── settings         [logging]
-
-Level 2 (Business Logic)
-├── dataservice      [logging, queueing]
-├── working          [logging, queueing, caching]
-└── measuring        [logging, queueing, caching]
-
-Level 3 (Application)
-├── scheduling       [logging, working]
-├── searching        [logging]
-├── workflow         [logging, queueing, scheduling, measuring, working]
-└── filing           [logging, queueing, dataservice]
-
-Level 4 (Integration)
-├── authservice      [logging, caching, dataservice]
-└── aiservice        [logging, caching, workflow, queueing]
-
-Level 5 (Knowledge)
-└── knowledge        [logging, filing, searching, aiservice]
+```mermaid
+flowchart BT
+  %% Arrows point from a service to the services it depends on.
+  subgraph L0["Level 0 (Foundation)"]
+    logging
+  end
+  subgraph L1["Level 1 (Infrastructure)"]
+    caching
+    queueing
+    notifying
+    appservice
+    fetching
+    settings
+  end
+  subgraph L2["Level 2 (Business logic)"]
+    dataservice
+    working
+    measuring
+  end
+  subgraph L3["Level 3 (Application)"]
+    scheduling
+    searching
+    workflow
+    filing
+  end
+  subgraph L4["Level 4 (Integration)"]
+    authservice
+    aiservice
+  end
+  subgraph L5["Level 5 (Knowledge)"]
+    knowledge
+  end
+  caching --> logging
+  queueing --> logging
+  notifying --> logging
+  appservice --> logging
+  fetching --> logging
+  settings --> logging
+  dataservice --> logging
+  dataservice --> queueing
+  working --> logging
+  working --> queueing
+  working --> caching
+  measuring --> logging
+  measuring --> queueing
+  measuring --> caching
+  scheduling --> logging
+  scheduling --> working
+  searching --> logging
+  workflow --> logging
+  workflow --> queueing
+  workflow --> scheduling
+  workflow --> measuring
+  workflow --> working
+  filing --> logging
+  filing --> queueing
+  filing --> dataservice
+  authservice --> logging
+  authservice --> caching
+  authservice --> dataservice
+  aiservice --> logging
+  aiservice --> caching
+  aiservice --> workflow
+  aiservice --> queueing
+  knowledge --> logging
+  knowledge --> filing
+  knowledge --> searching
+  knowledge --> aiservice
 ```
 
 `registry.knowledge()` creates its own vector search instance (`instanceName: 'knowledge'`) unless `options.dependencies.searching` is given, so the knowledge index never mixes with the app's own search indexes.
@@ -233,64 +267,34 @@ class CacheProvider {
 
 ### HTTP Request Lifecycle
 
-```
-Client Request
-     │
-     ▼
-┌─────────────────┐
-│  Express App    │
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────────────────────────────────────────────┐
-│                   Middleware Chain                       │
-│  ┌───────────┐  ┌──────────┐  ┌─────────────────────┐  │
-│  │bodyParser │→ │ session  │→ │ apiKeyAuth (if req) │  │
-│  └───────────┘  └──────────┘  └─────────────────────┘  │
-└────────────────────────┬────────────────────────────────┘
-                         │
-                         ▼
-┌─────────────────────────────────────────────────────────┐
-│           Service Route Handler                          │
-│  /services/{serviceName}/api/{operation}                 │
-│                                                          │
-│  1. Extract parameters from request                      │
-│  2. Get service instance (from registry or default)      │
-│  3. Call provider method                                 │
-│  4. Emit event for analytics                             │
-│  5. Return JSON response                                 │
-└─────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TD
+  client(["Client request<br/>/services/{serviceName}/api/{operation}"]) --> express["Express app"]
+  express --> bp["bodyParser"]
+  bp --> sess["session"]
+  sess --> apikey["apiKeyAuth (if required)"]
+  apikey --> h1["1. Extract parameters from request"]
+  h1 --> h2["2. Get service instance (from registry or default)"]
+  h2 --> h3["3. Call provider method"]
+  h3 --> h4["4. Emit event for analytics"]
+  h4 --> h5["5. Return JSON response"]
 ```
 
 ### Service Call Flow
 
-```
-Application Code
-     │
-     │  registry.cache('redis', { instanceName: 'api-cache' })
-     ▼
-┌─────────────────────────────────────────────────────────┐
-│                   ServiceRegistry                        │
-│                                                          │
-│  1. Check Map for "caching:redis:api-cache"             │
-│  2. If not found:                                        │
-│     a. Resolve dependencies (logging)                    │
-│     b. Load factory: require('./src/caching')           │
-│     c. Call factory(type, mergedOptions, eventEmitter)  │
-│     d. Store in Map                                      │
-│  3. Return service instance                              │
-└────────────────────────┬────────────────────────────────┘
-                         │
-                         ▼
-┌─────────────────────────────────────────────────────────┐
-│                  Service Instance                        │
-│                                                          │
-│  cache.put('key', value)                                │
-│     │                                                    │
-│     ├─► Provider.put()    (actual storage)              │
-│     ├─► trackOperation()  (analytics)                   │
-│     └─► eventEmitter.emit('cache:put:api-cache', {...}) │
-└─────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TD
+  app(["Application code<br/>registry.cache('redis', { instanceName: 'api-cache' })"]) --> r1
+  subgraph REG["ServiceRegistry"]
+    r1["1. Check Map for caching:redis:api-cache"] --> r2{"Found?"}
+    r2 -- "No" --> r3["2a. Resolve dependencies (logging)<br/>2b. Load factory require('./src/caching')<br/>2c. Call factory(type, mergedOptions, eventEmitter)<br/>2d. Store in Map"]
+    r2 -- "Yes" --> r4["3. Return service instance"]
+    r3 --> r4
+  end
+  r4 --> inst["Service instance<br/>cache.put('key', value)"]
+  inst --> p["Provider.put() (actual storage)"]
+  inst --> an["trackOperation() (analytics)"]
+  inst --> ev["eventEmitter.emit('cache:put:api-cache', ...)"]
 ```
 
 ## Event-Driven Architecture
@@ -324,43 +328,34 @@ dependencies:initialized
 
 ### Event Flow Example
 
-```
-┌──────────────┐     emit('cache:put:default')      ┌─────────────────┐
-│ CacheService │ ──────────────────────────────────►│  EventEmitter   │
-└──────────────┘                                    └────────┬────────┘
-                                                             │
-                    ┌────────────────────────────────────────┼────────────────────────────────────────┐
-                    │                                        │                                        │
-                    ▼                                        ▼                                        ▼
-           ┌───────────────┐                      ┌───────────────────┐                    ┌─────────────────┐
-           │CacheAnalytics │                      │ LoggingService    │                    │ CustomListener  │
-           │ (stats track) │                      │ (audit logging)   │                    │ (app-specific)  │
-           └───────────────┘                      └───────────────────┘                    └─────────────────┘
+```mermaid
+flowchart TD
+  cs["CacheService"] -- "emit('cache:put:default')" --> ee["EventEmitter"]
+  ee --> ca["CacheAnalytics (stats tracking)"]
+  ee --> la["LoggingService (audit logging)"]
+  ee --> cl["CustomListener (app-specific)"]
 ```
 
 ## Security Architecture
 
 ### Authentication Layers
 
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                          Security Middleware                                 │
-│                                                                             │
-│  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │                    API Key Authentication                            │   │
-│  │  • Header: x-api-key or Authorization: Bearer / ApiKey (no query)   │   │
-│  │  • Anonymous callers refused on declared routes (401)               │   │
-│  │  • Configurable exclude paths (e.g., /status endpoints)             │   │
-│  └─────────────────────────────────────────────────────────────────────┘   │
-│                                                                             │
-│  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │                    Services Authentication                           │   │
-│  │  • Session-based login for UI dashboards (authservice)              │   │
-│  │  • Sign-in providers: Passport.js, Google, Azure, secure email      │   │
-│  │  • User stores: file, memory, API                                   │   │
-│  │  • Configurable via security.servicesAuth.requireLogin              │   │
-│  └─────────────────────────────────────────────────────────────────────┘   │
-└─────────────────────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TB
+  subgraph SM["Security middleware"]
+    subgraph AKS["API key authentication"]
+      AK1["Header: x-api-key or Authorization: Bearer / ApiKey (no query)"]
+      AK2["Anonymous callers refused on declared routes (401)"]
+      AK3["Configurable exclude paths (e.g. /status endpoints)"]
+    end
+    subgraph SAS["Services authentication"]
+      SA1["Session-based login for UI dashboards (authservice)"]
+      SA2["Sign-in providers: Passport.js, Google, Azure, secure email"]
+      SA3["User stores: file, memory, API"]
+      SA4["Configurable via security.servicesAuth.requireLogin"]
+    end
+    AKS ~~~ SAS
+  end
 ```
 
 ### Authorization
@@ -407,68 +402,30 @@ app.post('/services/caching/api/put/:key', authMiddleware, handler);
 
 ### Provider Abstraction
 
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                         Service Consumer                                     │
-│                                                                             │
-│  const dataService = registry.dataService('mongodb');                       │
-│  await dataService.add('users', { name: 'John' });                          │
-└────────────────────────────────────┬────────────────────────────────────────┘
-                                     │
-                                     │ Unified Interface
-                                     ▼
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                         DataService Factory                                  │
-│                                                                             │
-│  switch(type) {                                                             │
-│    case 'mongodb':  return new DataServiceMongoDB(...)                      │
-│    case 'file':     return new DataServiceFiles(...)                        │
-│    case 'memory':   return new DataService(...)                             │
-│  }                                                                          │
-└────────────────────────────────────┬────────────────────────────────────────┘
-                                     │
-              ┌──────────────────────┼──────────────────────┐
-              │                      │                      │
-              ▼                      ▼                      ▼
-     ┌─────────────────┐   ┌─────────────────┐   ┌─────────────────┐
-     │   MongoDB       │   │   File System   │   │   In-Memory     │
-     │   Provider      │   │   Provider      │   │   Provider      │
-     └─────────────────┘   └─────────────────┘   └─────────────────┘
+```mermaid
+flowchart TD
+  consumer["Service consumer<br/>registry.dataService('mongodb')<br/>dataService.add('users', { name: 'John' })"] -- "Unified interface" --> factory
+  factory["DataService factory<br/>switch(type): mongodb, file, memory"]
+  factory --> mongo["MongoDB provider"]
+  factory --> fsp["File system provider"]
+  factory --> memp["In-memory provider"]
 ```
 
 ### Workflow Execution
 
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                         Workflow Service                                     │
-│                                                                             │
-│  1. POST /services/workflow/api/defineworkflow  (name + steps)            │
-│  2. POST /services/workflow/api/start           (workflow + input)         │
-└────────────────────────────────────┬────────────────────────────────────────┘
-                                     │
-                                     ▼
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                      Sequential Step Execution                               │
-│                                                                             │
-│  ┌─────────┐     ┌─────────┐     ┌─────────┐                              │
-│  │ Step 1  │ ──► │ Step 2  │ ──► │ Step 3  │                              │
-│  │validate │     │ charge  │     │ notify  │                              │
-│  └────┬────┘     └────┬────┘     └────┬────┘                              │
-│       │               │               │                                     │
-│       │ emit          │ emit          │ emit                               │
-│       ▼               ▼               ▼                                     │
-│  workflow:step:start/end for each step                                     │
-│  workflow:complete when finished                                           │
-└─────────────────────────────────────────────────────────────────────────────┘
-                                     │
-                                     │ Uses Working Service
-                                     ▼
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                         Working Service                                      │
-│                                                                             │
-│  Executes each step file in isolation with data passing                    │
-│  Handles timeouts, retries, and error reporting                            │
-└─────────────────────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TD
+  subgraph WF["Workflow service"]
+    d1["1. POST /services/workflow/api/defineworkflow (name + steps)"] --> d2["2. POST /services/workflow/api/start (workflow + input)"]
+  end
+  WF --> SS
+  subgraph SS["Sequential step execution"]
+    s1["Step 1: validate"] --> s2["Step 2: charge"] --> s3["Step 3: notify"]
+  end
+  s1 -. "emit" .-> ev["workflow:step:start/end for each step<br/>workflow:complete when finished"]
+  s2 -. "emit" .-> ev
+  s3 -. "emit" .-> ev
+  SS -- "uses" --> WS["Working service<br/>executes each step file in isolation with data passing<br/>handles timeouts, retries and error reporting"]
 ```
 
 ## REST API Structure
@@ -536,24 +493,17 @@ GET|PUT        /services/workflow/api/state       (export / import the in-memory
 
 Each service provides a web dashboard at `/services/{serviceName}/`:
 
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│  Service Dashboard                                                          │
-│  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │  Tab Navigation: Dashboard | UI | Data | Settings                    │   │
-│  └─────────────────────────────────────────────────────────────────────┘   │
-│  ┌───────────────┐  ┌─────────────────────────────────────────────────┐   │
-│  │               │  │                                                   │   │
-│  │  Left Nav     │  │  Main Content Area                               │   │
-│  │  (Items List) │  │  (Operations, Forms, Results)                    │   │
-│  │               │  │                                                   │   │
-│  │  - Search     │  │                                                   │   │
-│  │  - Item 1     │  │                                                   │   │
-│  │  - Item 2     │  │                                                   │   │
-│  │  - Item 3     │  │                                                   │   │
-│  │               │  │                                                   │   │
-│  └───────────────┘  └─────────────────────────────────────────────────┘   │
-└─────────────────────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TB
+  subgraph DASH["Service dashboard"]
+    NAV["Tab navigation: Dashboard | UI | Data | Settings"]
+    subgraph BODY["Body"]
+      direction LR
+      LEFT["Left nav (items list)<br/>- Search<br/>- Item 1<br/>- Item 2<br/>- Item 3"]
+      MAIN["Main content area<br/>(operations, forms, results)"]
+    end
+    NAV --> BODY
+  end
 ```
 
 ### Static File Serving

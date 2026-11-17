@@ -18,6 +18,9 @@ Read the spec before writing or restructuring a document.
 - Recommended keys: `title`, `description` (one sentence), `tags` (list). Add `resource`
   only when the doc describes a concrete asset with a canonical URI.
 - Keep the body as structured markdown (headings, lists, tables, fenced code).
+- Draw every diagram (architecture, flow, sequence, layers, dependencies, state, layout)
+  as a ```` ```mermaid ```` block, never as ASCII or box-drawing art. Directory trees,
+  command listings and code samples are not diagrams and stay as plain text.
 - Use relative markdown links between concepts.
 - Extra producer-defined keys are allowed; do not invent fields the spec does not
   need.

@@ -101,42 +101,17 @@ The framework implements a 5-level hierarchical architecture where services are 
 
 ### Architectural Layers
 
-```
-┌─────────────────────────────────────────────────────┐
-│ Level 4: Integration Layer                          │
-│ ┌─────────────────────────────────────────────────┐ │
-│ │ AuthService | AIService                         │ │
-│ └─────────────────────────────────────────────────┘ │
-└─────────────────────────────────────────────────────┘
-             ↑ Depends on
-┌─────────────────────────────────────────────────────┐
-│ Level 3: Application Layer                          │
-│ ┌─────────────────────────────────────────────────┐ │
-│ │ Scheduling | Searching | Workflow | Filing     │ │
-│ └─────────────────────────────────────────────────┘ │
-└─────────────────────────────────────────────────────┘
-             ↑ Depends on
-┌─────────────────────────────────────────────────────┐
-│ Level 2: Business Logic Layer                       │
-│ ┌─────────────────────────────────────────────────┐ │
-│ │ DataService | Working | Measuring              │ │
-│ └─────────────────────────────────────────────────┘ │
-└─────────────────────────────────────────────────────┘
-             ↑ Depends on
-┌─────────────────────────────────────────────────────┐
-│ Level 1: Infrastructure Layer                       │
-│ ┌─────────────────────────────────────────────────┐ │
-│ │ Caching | Queueing | Notifying | Fetching      │ │
-│ │ AppService | Settings                           │ │
-│ └─────────────────────────────────────────────────┘ │
-└─────────────────────────────────────────────────────┘
-             ↑ Depends on
-┌─────────────────────────────────────────────────────┐
-│ Level 0: Foundation Layer                           │
-│ ┌─────────────────────────────────────────────────┐ │
-│ │ Logging Service                                 │ │
-│ └─────────────────────────────────────────────────┘ │
-└─────────────────────────────────────────────────────┘
+```mermaid
+flowchart TB
+  L4["Level 4: Integration layer<br/>AuthService, AIService"]
+  L3["Level 3: Application layer<br/>Scheduling, Searching, Workflow, Filing"]
+  L2["Level 2: Business logic layer<br/>DataService, Working, Measuring"]
+  L1["Level 1: Infrastructure layer<br/>Caching, Queueing, Notifying, Fetching, AppService, Settings"]
+  L0["Level 0: Foundation layer<br/>Logging Service"]
+  L4 -- "depends on" --> L3
+  L3 -- "depends on" --> L2
+  L2 -- "depends on" --> L1
+  L1 -- "depends on" --> L0
 ```
 
 ### Key Architectural Components
