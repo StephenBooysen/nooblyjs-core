@@ -10,7 +10,7 @@ A powerful set of modular Node.js backend services built with the singleton patt
 - **Event-Driven**: Global event emitter for inter-service communication
 - **Authentication**: sessions, API keys, scoped personal access tokens and OAuth (Google, Azure, Passport), with a declared permission on every API route
 - **Workflow Orchestration**: Build complex workflows with step execution and queuing
-- **AI Integration**: one API (`complete`, `stream`, tools, `embed`) for Anthropic, OpenAI-compatible, AWS Bedrock, Google Vertex AI and Azure, plus the older Claude, OpenAI, Ollama and Gemini providers
+- **AI Integration**: one API (`complete`, `stream`, tools, `embed`) for Anthropic, OpenAI-compatible (OpenAI, Ollama, Gemini and other compatible servers), AWS Bedrock, Google Vertex AI and Azure
 - **Knowledge (RAG)**: cited answers over documents in any filing source, streamed, with feedback and evaluation
 - **Semantic Search**: vector and hybrid search with embeddings from the AI service
 - **MCP Server**: coding agents such as Claude Code can read logs, queues, data and workflow runs of a running app
@@ -61,7 +61,7 @@ Sophisticated services that leverage most underlying services and are almost ful
 | Service | Purpose | Providers |
 |---------|---------|-----------|
 | **Auth Service** | User authentication and authorization | File, Memory, Passport, Google OAuth, Azure AD, secure email |
-| **AI Service** | Model calls, streaming, tools and embeddings | Anthropic, OpenAI-compatible, Bedrock, Vertex AI, Azure, mock; legacy Claude, OpenAI, Ollama, Gemini |
+| **AI Service** | Model calls, streaming, tools and embeddings | Anthropic, OpenAI-compatible, Bedrock, Vertex AI, Azure, mock; openai-kv and TensorFlow |
 | **Knowledge** | Cited answers over a filing source (RAG) | Default (filing + vector search + AI service) |
 
 ## Quick Start
@@ -909,6 +909,6 @@ For issues, questions, or contributions, please contact the NooblyJS Team or ope
 
 ## Version
 
-Current version: 1.2.0
+Current version: 2.0.0
 
 Node.js requirement: >= 22 (CI tests Node 22 and 24)

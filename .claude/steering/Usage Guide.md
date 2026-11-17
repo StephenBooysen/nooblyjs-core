@@ -534,7 +534,7 @@ Google sign-in uses the `google` provider and the `/services/authservice/api/goo
 #### Using Claude
 
 ```javascript
-const ai = serviceRegistry.aiservice('claude');   // uses ANTHROPIC_API_KEY from the environment
+const ai = serviceRegistry.aiservice('anthropic', { apiKey: process.env.ANTHROPIC_API_KEY });
 
 const answer = await ai.prompt('What is the capital of France?');
 
@@ -547,7 +547,7 @@ const analysis = await ai.prompt(`Summarise this review:\n\n${review}`, {
 #### Using OpenAI
 
 ```javascript
-const ai = serviceRegistry.aiservice('openai');   // reads OPENAI_API_KEY
+const ai = serviceRegistry.aiservice('openai-compatible', { baseUrl: 'https://api.openai.com/v1', apiKey: process.env.OPENAI_API_KEY });
 const reply = await ai.prompt('Write a product description for a laptop', { maxTokens: 200 });
 ```
 
@@ -946,7 +946,7 @@ Meaning search needs embeddings. With the `aiservice` backend, documents and que
 ```javascript
 const search = serviceRegistry.getService('searching', 'vector', {
   instanceName: 'meaning',
-  embedding: { backend: 'aiservice', aiservice: serviceRegistry.aiservice('claude', { apiKey }), dimensions: 768 }
+  embedding: { backend: 'aiservice', aiservice: serviceRegistry.aiservice('anthropic', { apiKey }), dimensions: 768 }
 });
 ```
 

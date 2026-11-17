@@ -13,7 +13,7 @@ Call a model through one API whatever the provider, read the reply and its usage
 - **Budgets are enforced before the call.** `maxTokensPerRequest` limits the size of one request. `maxCostPerDay` stops calls once the day's estimated spend is reached. A request over either limit is refused with `429` before it is sent.
 - **Structured output is a request for JSON.** `generateObject` asks the model for JSON that follows your schema, then parses it. A reply that is not JSON is refused with `422`.
 - **Embeddings turn text into vectors.** Vectors of similar texts are close together, which is what meaning search and knowledge retrieval use (tutorials 13 and 16).
-- **Legacy providers keep their old API.** `claude`, `openai`, `ollama` and `gemini` keep `prompt()`. Pass `legacy: false` to give them the new API.
+- **The 1.x names were removed in 2.0.0.** `claude`, `openai`, `ollama` and `gemini` now throw a message that names the replacement: `anthropic`, or `openai-compatible` with a `baseUrl`. `openai-kv` and `tensorflow` keep their own `prompt()` API.
 
 ## Walk-through
 
@@ -106,7 +106,7 @@ The dashboard is at `/services/ai`.
 | `vertex` | v2 | Google Vertex AI; Google credentials |
 | `azure` | v2 | Azure OpenAI; endpoint and key |
 | `mock` | v2 | Scripted replies, no network |
-| `claude`, `openai`, `ollama`, `gemini` | legacy | Old classes and `prompt()`; `legacy: false` for the new API |
+| `claude`, `openai`, `ollama`, `gemini` | removed in 2.0.0 | Use `anthropic`, or `openai-compatible` with a `baseUrl` |
 | `openai-kv` | legacy | Azure OpenAI with keys from Azure Key Vault |
 | `tensorflow` | legacy | Experimental; needs `@tensorflow/tfjs-node` |
 

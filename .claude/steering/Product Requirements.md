@@ -800,7 +800,7 @@ One API for calling AI models, with streaming, tools, structured output and embe
 
 **Providers (AI Service v2)**: `anthropic`, `openai-compatible`, `bedrock`, `vertex`, `azure` and `mock`. They use the shared module in `src/aiservice/common/` (`nooblyjs-ai-common`, no dependencies), which also carries the model catalogue, discovery, token estimates, cost, retry and SSE.
 
-**Legacy providers**: `claude` (the default), `openai` (alias `chatgpt`), `ollama`, `gemini`, `openai-kv` (Azure OpenAI through Azure Key Vault) and `tensorflow` (experimental). They keep `prompt()` and their old classes. Pass `legacy: false` to give `claude`, `openai`, `ollama` or `gemini` the v2 API.
+**Removed in 2.0.0**: the `claude` (default), `openai` (alias `chatgpt`), `ollama` and `gemini` providers. Use `anthropic` for Claude, or `openai-compatible` with a `baseUrl` for OpenAI, Ollama and Gemini. The default provider is `anthropic`. **Still present**: `openai-kv` (Azure OpenAI through Azure Key Vault) and `tensorflow` (experimental), which keep `prompt()`.
 
 **Key Methods** (v2 bridge, `src/aiservice/provider/aiCommon.js`):
 - `complete(request)` - a single reply with usage
@@ -1781,7 +1781,7 @@ The full plan, with what is still open, is in [Roadmap.md](Roadmap.md). Each fea
 - **Agentic workflows:** AI, agent, approval and branch steps with durable state. Not started.
 - **Reliable jobs on other queue providers:** RabbitMQ, ActiveMQ, AWS, Azure, GCP and the API proxy refuse reliable options with a clear error.
 - **Live-provider checks:** semantic search and knowledge answers have not been evaluated against a real embedding provider or a real model.
-- **Release 2.0.0:** removal of the legacy AI providers (`claude`, `openai`, `ollama`, `gemini`) and strict CSP without `'unsafe-inline'` for styles.
+- **Release 2.0.0 (shipped):** removal of the legacy AI providers (`claude`, `openai`, `ollama`, `gemini`), strict CSP without `'unsafe-inline'` for styles, and typings for the named ESM exports.
 
 ### Future providers
 

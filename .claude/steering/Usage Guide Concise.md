@@ -42,7 +42,7 @@ const scheduler = serviceRegistry.scheduling('memory');
 const search    = serviceRegistry.searching('memory');
 const working   = serviceRegistry.working('memory');
 const auth      = serviceRegistry.authservice('file');
-const ai        = serviceRegistry.aiservice('claude');
+const ai        = serviceRegistry.aiservice('anthropic', { apiKey: process.env.ANTHROPIC_API_KEY });
 const filing    = serviceRegistry.filing('local');
 
 // Multiple named instances of the same service
@@ -195,7 +195,7 @@ const { vectors } = await openai.embed(['first', 'second']);   // Anthropic has 
 const answer = await ai.prompt('What is machine learning?');   // older shape: { content, usage, model, provider }
 ```
 
-AI Service v2 (`anthropic`, `openai-compatible`, `bedrock`, `vertex`, `azure`, `mock`) has `complete`, `stream`, tools, `generateObject` and `embed`, with budgets. The older names (`claude`, `openai`, `ollama`, `gemini`, `openai-kv`, `tensorflow`) keep `prompt()` only, unless you pass `legacy: false`.
+AI Service v2 (`anthropic`, `openai-compatible`, `bedrock`, `vertex`, `azure`, `mock`) has `complete`, `stream`, tools, `generateObject` and `embed`, with budgets. `openai-kv` and `tensorflow` keep `prompt()` only. The 1.x names `claude`, `openai`, `ollama` and `gemini` were removed in 2.0.0: use `anthropic`, or `openai-compatible` with a `baseUrl`.
 
 ### MCP and the CLI
 
