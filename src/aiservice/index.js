@@ -77,11 +77,11 @@ function createAIService(type, options, eventEmitter) {
   // Shared AI module (feature 02): one API for every model host.
   const SHARED_TYPES = ['anthropic', 'openai-compatible', 'bedrock', 'vertex', 'azure', 'mock'];
   const REMOVED_TYPES = {
-    claude: 'anthropic',
-    openai: 'openai-compatible',
-    chatgpt: 'openai-compatible',
-    ollama: 'openai-compatible (baseUrl: http://localhost:11434/v1)',
-    gemini: 'openai-compatible (baseUrl: the Gemini OpenAI-compatible endpoint)'
+    claude: 'Use "anthropic".',
+    openai: 'Use "openai-compatible" with a baseUrl such as https://api.openai.com/v1.',
+    chatgpt: 'Use "openai-compatible" with a baseUrl such as https://api.openai.com/v1.',
+    ollama: 'Use "openai-compatible" with a baseUrl such as http://localhost:11434/v1.',
+    gemini: 'Use "openai-compatible" with the Gemini OpenAI-compatible baseUrl.'
   };
 
   if (SHARED_TYPES.includes(type)) {
@@ -91,7 +91,7 @@ function createAIService(type, options, eventEmitter) {
   } else if (type === 'tensorflow') {
     aiservice = new AITensorFlow(providerOptions, eventEmitter);
   } else if (REMOVED_TYPES[type]) {
-    throw new Error(`AI provider "${type}" was removed in 2.0.0. Use "${REMOVED_TYPES[type]}" instead.`);
+    throw new Error(`AI provider "${type}" was removed in 2.0.0. ${REMOVED_TYPES[type]}`);
   } else {
     throw new Error(`Unsupported AI provider type: ${type}`);
   }

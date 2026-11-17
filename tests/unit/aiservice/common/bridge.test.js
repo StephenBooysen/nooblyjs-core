@@ -112,8 +112,15 @@ test('listModels() reads the catalogue', async () => {
   assert.ok(models.some((m) => m.id.startsWith('claude-')));
 });
 
-test('legacy: false sends an older provider name to the shared module', () => {
-  const ai = createAI('claude', { legacy: false, apiKey: 'x' }, new EventEmitter());
+test('the 1.x provider names were removed and say what replaces them', () => {
+  assert.throws(() => createAI('claude', { apiKey: 'x' }, new EventEmitter()), /removed in 2\.0\.0.*"anthropic"/);
+  assert.throws(() => createAI('openai', { apiKey: 'x' }, new EventEmitter()), /"openai-compatible"/);
+  assert.throws(() => createAI('ollama', {}, new EventEmitter()), /"openai-compatible"/);
+  assert.throws(() => createAI('gemini', { apiKey: 'x' }, new EventEmitter()), /"openai-compatible"/);
+});
+
+test('anthropic is the shared Claude provider', () => {
+  const ai = createAI('anthropic', { apiKey: 'x' }, new EventEmitter());
   assert.equal(typeof ai.complete, 'function');
   assert.equal(ai.getSettings().provider, 'anthropic');
 });
@@ -143,9 +150,7 @@ test('streams a reply to a client as server-sent events', async () => {
   assert.match(res.body, /event: done/);
 });
 
-test('the factory keeps legacy names on their old classes and gives shared names the bridge', () => {
-  const legacy = createAI('claude', { apiKey: 'x' }, new EventEmitter());
-  assert.equal(typeof legacy.complete, 'undefined');
+test('the factory gives every shared name the bridge', () => {
   const shared = createAI('mock', { script: [{ text: 'hi' }] }, new EventEmitter());
   assert.equal(typeof shared.complete, 'function');
 });
