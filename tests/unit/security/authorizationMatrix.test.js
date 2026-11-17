@@ -186,6 +186,15 @@ describe('authorization matrix', () => {
       expect(denied.filter((r) => r.caller !== 'anonymous' && r.code).every((r) => r.code === 'PERMISSION_DENIED')).toBe(true);
     });
 
+    // Allow side. A caller whose grants or scopes include a route's permission must
+    // reach the handler. Services may still refuse more (see the note above), so a
+    // refusal here is a finding: either the grant table or the route's declaration is wrong.
+    it('lets a caller through where its grants or scopes allow it', () => {
+      const refused = rows.filter((r) => r.caller !== 'anonymous' && r.caller !== 'unscopedKey' &&
+        r.permission !== null && r.permission !== 'public' && permissionAllows(r.caller, r.permission) && r.status !== REACHED);
+      expect(refused.map(describeRow)).toEqual([]);
+    });
+
     it('denies a plain user every admin action', () => {
       const adminish = rows.filter((r) => r.caller === 'user' && /:(admin|manage)$/.test(r.permission || '') && r.permission !== 'profile:manage');
       expect(adminish.length).toBeGreaterThan(0);
@@ -220,6 +229,15 @@ describe('authorization matrix', () => {
       const leaks = rows.filter((r) => ['user', 'scopedKey'].includes(r.caller) && r.permission !== null &&
         !permissionAllows(r.caller, r.permission) && r.status === REACHED);
       expect(leaks.map(describeRow)).toEqual([]);
+    });
+
+    // With the portal on, non-admins reach only the paths the portal exempts (filing and
+    // the profile API). Every other service is admin-only by design, so only those count here.
+    it('lets a caller through where its grants or scopes allow it (portal guard on)', () => {
+      const refused = rows.filter((r) => r.caller !== 'anonymous' && r.caller !== 'unscopedKey' &&
+        r.permission !== null && r.permission !== 'public' && permissionAllows(r.caller, r.permission) &&
+        (r.caller === 'admin' || isPathPublic(r.servicesPath, r.method)) && r.status !== REACHED);
+      expect(refused.map(describeRow)).toEqual([]);
     });
 
     it('a user can still reach their profile and read documents', () => {

@@ -90,6 +90,8 @@ function callerRoles(req) {
   if (req.user && Array.isArray(req.user.roles)) return req.user.roles;
   if (req.user && req.user.role) return [req.user.role];
   if (Array.isArray(req.userRoles)) return req.userRoles;
+  // Set by the permission gate when it resolved a session or token (portal guard off).
+  if (req.principal && Array.isArray(req.principal.roles)) return req.principal.roles;
   return [];
 }
 

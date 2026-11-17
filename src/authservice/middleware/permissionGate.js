@@ -68,6 +68,9 @@ function createPermissionGate({
       return next();
     }
 
+    // Later middleware (the filing tiers) reads the roles of the caller from here.
+    req.principal = principal;
+
     // A session or token grants what its roles grant; an API key grants its scopes,
     // and a plain (unscoped) key grants everything, as it did before scopes existed.
     let granted;
