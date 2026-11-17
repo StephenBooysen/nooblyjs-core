@@ -1,0 +1,74 @@
+/* Restore 12px base font: this page is sized in rem against a 12px root
+           (previously provided by public/styles.css before the CSS consolidation). */
+        html { font-size: 12px; }
+        :root {
+            --custom-primary: var(--accent);
+            --custom-secondary: var(--muted);
+            --custom-warning: var(--warn-border);
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .auth-container {
+            max-width: 500px;
+            width: 100%;
+            padding: 1rem;
+        }
+
+        .auth-card .card-body {
+            padding: 2.5rem 2rem;
+        }
+
+        .auth-card .text-center p {
+            font-size: 1.2rem;
+            color: var(--muted);
+            margin-bottom: 0;
+        }
+
+        .form-label {
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            font-size: 1.2rem;
+        }
+
+        .auth-card .form-control {
+            font-size: 1.2rem;
+            padding: 0.4rem 0.75rem;
+        }
+
+        .auth-card .btn {
+            font-size: 1.2rem;
+            padding: 0.5rem 1rem;
+        }
+
+        .invitation-code {
+            background: var(--surface-sunken);
+            border: 2px dashed var(--custom-primary);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            text-align: center;
+        }
+
+        .invitation-code-label {
+            font-size: 1.2rem;
+            color: var(--muted);
+            margin-bottom: 0.5rem;
+        }
+
+        .invitation-code-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--custom-primary);
+            font-family: monospace;
+            word-break: break-all;
+        }
+
+        .copy-btn {
+            margin-top: 1rem;
+        }

@@ -45,137 +45,6 @@
    *
    * @const {string}
    */
-  const STYLES = `
-.dtcs-root {
-  --dtcs-ink: var(--ink-900, #0f172a);
-  --dtcs-ink-soft: var(--ink-600, #64748b);
-  --dtcs-line: var(--line, #e5e7eb);
-  --dtcs-line-2: var(--line-2, #eef1f4);
-  --dtcs-surface: var(--surface, #ffffff);
-  --dtcs-surface-2: var(--bg, #f6f7f8);
-  --dtcs-accent: var(--brand-600, #0f766e);
-  --dtcs-danger: var(--danger-700, #b91c1c);
-  --dtcs-warn: #b45309;
-  font-family: inherit;
-  color: var(--dtcs-ink);
-  font-size: 13px;
-  box-sizing: border-box;
-}
-.dtcs-root *, .dtcs-root *::before, .dtcs-root *::after { box-sizing: inherit; }
-
-.dtcs-head {
-  display: flex; align-items: center; justify-content: space-between;
-  gap: 12px; flex-wrap: wrap; margin-bottom: 14px;
-}
-.dtcs-title { font-size: 15px; font-weight: 700; margin: 0; }
-.dtcs-sub { font-size: 12px; color: var(--dtcs-ink-soft); margin: 2px 0 0 0; }
-
-.dtcs-stats { display: flex; gap: 8px; flex-wrap: wrap; }
-.dtcs-stat {
-  border: 1px solid var(--dtcs-line); border-radius: 8px;
-  padding: 6px 10px; background: var(--dtcs-surface); min-width: 68px;
-}
-.dtcs-stat .n { font-size: 15px; font-weight: 700; line-height: 1.1; }
-.dtcs-stat .l {
-  font-size: 10px; color: var(--dtcs-ink-soft);
-  text-transform: uppercase; letter-spacing: .05em;
-}
-
-.dtcs-body { display: grid; grid-template-columns: 216px 1fr; gap: 14px; align-items: start; }
-@media (max-width: 720px) { .dtcs-body { grid-template-columns: 1fr; } }
-
-.dtcs-panel {
-  border: 1px solid var(--dtcs-line); border-radius: 10px;
-  background: var(--dtcs-surface); overflow: hidden;
-}
-.dtcs-panel-head {
-  display: flex; align-items: center; justify-content: space-between; gap: 8px;
-  padding: 10px 12px; border-bottom: 1px solid var(--dtcs-line-2);
-  background: var(--dtcs-surface-2);
-}
-.dtcs-panel-head h4 { margin: 0; font-size: 12px; font-weight: 700; }
-.dtcs-panel-body { padding: 8px; }
-
-.dtcs-group {
-  display: flex; align-items: center; gap: 8px; width: 100%;
-  padding: 8px 10px; border: 0; border-radius: 8px;
-  background: transparent; color: inherit; font: inherit; text-align: left;
-  cursor: pointer;
-}
-.dtcs-group:hover { background: var(--dtcs-surface-2); }
-.dtcs-group.active { background: var(--dtcs-accent); color: #fff; }
-.dtcs-group .name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.dtcs-group .count {
-  font-size: 10px; font-weight: 700; padding: 1px 7px; border-radius: 999px;
-  background: var(--dtcs-line); color: var(--dtcs-ink);
-}
-.dtcs-group.active .count { background: rgba(255,255,255,.25); color: #fff; }
-
-.dtcs-table { width: 100%; border-collapse: collapse; }
-.dtcs-table th {
-  text-align: left; font-size: 10px; font-weight: 700; letter-spacing: .06em;
-  text-transform: uppercase; color: var(--dtcs-ink-soft);
-  padding: 9px 12px; background: var(--dtcs-surface-2);
-  border-bottom: 1px solid var(--dtcs-line);
-}
-.dtcs-table td {
-  padding: 10px 12px; border-bottom: 1px solid var(--dtcs-line-2);
-  vertical-align: middle; word-break: break-word;
-}
-.dtcs-table tr:last-child td { border-bottom: 0; }
-.dtcs-key { font-weight: 600; font-family: ui-monospace, "JetBrains Mono", monospace; font-size: 12px; }
-.dtcs-key .desc { font-family: inherit; font-weight: 400; font-size: 11px; color: var(--dtcs-ink-soft); }
-.dtcs-value { font-family: ui-monospace, "JetBrains Mono", monospace; font-size: 12px; }
-.dtcs-empty { padding: 22px 12px; text-align: center; color: var(--dtcs-ink-soft); }
-
-.dtcs-btn {
-  display: inline-flex; align-items: center; gap: 6px;
-  height: 30px; padding: 0 11px; border-radius: 8px;
-  border: 1px solid var(--dtcs-line); background: var(--dtcs-surface);
-  color: var(--dtcs-ink); font: inherit; font-size: 12px; font-weight: 600;
-  cursor: pointer; white-space: nowrap;
-}
-.dtcs-btn:hover:not(:disabled) { background: var(--dtcs-surface-2); }
-.dtcs-btn:disabled { opacity: .5; cursor: not-allowed; }
-.dtcs-btn.primary { background: var(--dtcs-accent); border-color: var(--dtcs-accent); color: #fff; }
-.dtcs-btn.primary:hover:not(:disabled) { filter: brightness(1.08); }
-.dtcs-btn.danger { color: var(--dtcs-danger); }
-.dtcs-btn.icon { padding: 0 8px; }
-
-.dtcs-tag {
-  display: inline-flex; align-items: center; gap: 4px;
-  font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px;
-  background: #fef3c7; color: var(--dtcs-warn);
-}
-.dtcs-muted { color: var(--dtcs-ink-soft); }
-
-.dtcs-editor { border-top: 1px solid var(--dtcs-line); padding: 12px; background: var(--dtcs-surface-2); }
-.dtcs-editor[hidden] { display: none; }
-.dtcs-field { margin-bottom: 10px; }
-.dtcs-field label { display: block; font-size: 11px; font-weight: 700; margin-bottom: 4px; }
-.dtcs-input, .dtcs-select, .dtcs-textarea {
-  width: 100%; padding: 7px 10px; font: inherit; font-size: 12px;
-  border: 1px solid var(--dtcs-line); border-radius: 8px;
-  background: var(--dtcs-surface); color: var(--dtcs-ink);
-}
-.dtcs-input:focus, .dtcs-select:focus, .dtcs-textarea:focus {
-  outline: 2px solid var(--dtcs-accent); outline-offset: -1px;
-}
-.dtcs-textarea { resize: vertical; min-height: 62px; font-family: ui-monospace, "JetBrains Mono", monospace; }
-.dtcs-check { display: flex; align-items: center; gap: 7px; font-size: 12px; }
-.dtcs-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 12px; }
-.dtcs-row { display: flex; gap: 10px; }
-.dtcs-row > * { flex: 1; }
-
-.dtcs-note {
-  padding: 9px 12px; border-radius: 8px; font-size: 12px; margin-bottom: 12px;
-  border: 1px solid transparent;
-}
-.dtcs-note.success { background: #ecfdf5; border-color: #a7f3d0; color: #065f46; }
-.dtcs-note.error { background: #fef2f2; border-color: #fecaca; color: #991b1b; }
-.dtcs-note.warn { background: #fffbeb; border-color: #fde68a; color: var(--dtcs-warn); }
-.dtcs-note[hidden] { display: none; }
-`;
 
   /**
    * Settings console UI manager.
@@ -446,9 +315,10 @@
     ensureStyles_() {
       if (document.getElementById(STYLE_ID)) return;
 
-      const style = document.createElement('style');
+      const style = document.createElement('link');
+      style.rel = 'stylesheet';
+      style.href = '/services/css/settings-ui.css';
       style.id = STYLE_ID;
-      style.textContent = STYLES;
       document.head.appendChild(style);
     }
 
@@ -608,7 +478,7 @@
                     ? '<span class="dtcs-tag">Secret</span>'
                     : '<span class="dtcs-muted">&ndash;</span>'}</td>
                 ${this.readOnly ? '' : `
-                <td style="white-space: nowrap;">
+                <td class="inline-93c6e1d4">
                   <button type="button" class="dtcs-btn icon" data-action="edit-setting"
                           data-key="${this.escape_(entry.key)}" title="Edit">Edit</button>
                   <button type="button" class="dtcs-btn icon danger" data-action="delete-setting"
@@ -621,7 +491,7 @@
         <div class="dtcs-panel">
           <div class="dtcs-panel-head">
             <h4>${this.escape_(this.currentGroup)}</h4>
-            <div style="display: flex; gap: 6px;">
+            <div class="inline-a6025727">
               ${this.allowReveal ? `
                 <button type="button" class="dtcs-btn" data-action="toggle-reveal">
                   ${this.reveal ? 'Hide' : 'Reveal'}
@@ -634,14 +504,14 @@
             </div>
           </div>
           ${this.groupDetail?.description
-            ? `<div style="padding: 9px 12px; font-size: 12px; border-bottom: 1px solid var(--dtcs-line-2);"
+            ? `<div class="inline-b65327f7"
                     class="dtcs-muted">${this.escape_(this.groupDetail.description)}</div>`
             : ''}
           <table class="dtcs-table">
             <thead>
               <tr>
-                <th>Key</th><th>Value</th><th style="width: 80px;">Secret</th>
-                ${this.readOnly ? '' : '<th style="width: 110px;">Actions</th>'}
+                <th>Key</th><th>Value</th><th class="inline-1b3b3079">Secret</th>
+                ${this.readOnly ? '' : '<th class="inline-9ed99d3b">Actions</th>'}
               </tr>
             </thead>
             <tbody>${rows}</tbody>

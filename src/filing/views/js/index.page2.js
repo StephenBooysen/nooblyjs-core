@@ -528,7 +528,7 @@
                 window.ui = ui;
             } catch (error) {
                 console.error('Error initializing Swagger UI:', error);
-                document.getElementById('swagger-ui').innerHTML = '<p style="color: red;">Error loading API documentation. Please refresh the page.</p>';
+                document.getElementById('swagger-ui').innerHTML = '<p class="inline-31981a7d">Error loading API documentation. Please refresh the page.</p>';
             }
         };
     

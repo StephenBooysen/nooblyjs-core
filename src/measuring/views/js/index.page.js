@@ -38,7 +38,7 @@
                             metricsList.innerHTML = '';
 
                             if (metricsStore.allMetrics.length === 0) {
-                                metricsList.innerHTML = '<li class="metrics-item" style="text-align: center; color: #999; padding: 1rem;"><em>No metrics available</em></li>';
+                                metricsList.innerHTML = '<li class="inline-6e6dd971 metrics-item"><em>No metrics available</em></li>';
                                 return;
                             }
 
@@ -108,7 +108,7 @@
                             tbody.innerHTML = '';
 
                             if (values.length === 0) {
-                                tbody.innerHTML = '<tr><td colspan="3" style="text-align: center; color: #999;">No values recorded</td></tr>';
+                                tbody.innerHTML = '<tr><td colspan="3" class="inline-970db817">No values recorded</td></tr>';
                                 return;
                             }
 
@@ -118,7 +118,7 @@
                                 row.innerHTML = `
                                     <td>${val.metric}</td>
                                     <td><strong>${val.value}</strong></td>
-                                    <td style="font-size: 0.85rem; color: #666;">${date.toLocaleString()}</td>
+                                    <td class="inline-febca750">${date.toLocaleString()}</td>
                                 `;
                                 tbody.appendChild(row);
                             });
@@ -126,7 +126,7 @@
                             // Add footer showing count
                             const tfoot = document.createElement('tfoot');
                             tfoot.innerHTML = `
-                                <tr style="background-color: #f8f9fa; font-size: 0.85rem; color: #666;">
+                                <tr class="inline-a2f525a0">
                                     <td colspan="3">Showing top ${values.length} of ${totalCount} entries</td>
                                 </tr>
                             `;

@@ -1783,13 +1783,13 @@ class UIService {
 
     const headerRow = document.createElement('tr');
     headerRow.innerHTML = `
-      <th style="width: 25%;">Workflow Name</th>
-      <th style="width: 15%;">Status</th>
-      <th style="width: 12%;">Last Run</th>
-      <th style="width: 12%;">Next Run</th>
-      <th style="width: 10%;">Executions</th>
-      <th style="width: 10%;">Progress</th>
-      <th style="width: 16%;">Actions</th>
+      <th class="inline-38382c5f">Workflow Name</th>
+      <th class="inline-a659372d">Status</th>
+      <th class="inline-df576810">Last Run</th>
+      <th class="inline-df576810">Next Run</th>
+      <th class="inline-873f2980">Executions</th>
+      <th class="inline-873f2980">Progress</th>
+      <th class="inline-fa011c12">Actions</th>
     `;
 
     thead.appendChild(headerRow);
@@ -1812,8 +1812,8 @@ class UIService {
         <td>${workflow.nextRun}</td>
         <td>${workflow.executions}</td>
         <td>
-          <div class="progress" style="height: 20px; min-width: 60px;">
-            <div class="progress-bar" style="width: ${workflow.progress}%"></div>
+          <div class="inline-924c100b progress">
+            <div class="progress-bar core-width-${Math.min(100, Math.max(0, Math.round(Number(workflow.progress) || 0)))}"></div>
           </div>
         </td>
         <td>
@@ -2088,7 +2088,7 @@ class UIService {
             </div>
           </div>
           <div class="col-md-6">
-            <div class="form-check p-3 border rounded schedule-option" style="border-color: #f59e0b; border-width: 2px;">
+            <div class="inline-bfe5a6ec form-check p-3 border rounded schedule-option">
               <input class="form-check-input" type="radio" name="trigger" id="scheduled" value="scheduled">
               <label class="form-check-label" for="scheduled">
                 <strong>Scheduled</strong>

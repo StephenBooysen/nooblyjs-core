@@ -193,7 +193,7 @@
                             </button>
                         </div>
                         <div class="card-body">
-                            <div id="createUserForm" class="bg-light p-3 mb-3 d-none" style="border-radius: 4px;">
+                            <div id="createUserForm" class="inline-903ce3bc bg-light p-3 mb-3 d-none">
                                 <h5 class="mb-3">Create New User</h5>
                                 <form id="userCreateForm" class="needs-validation">
                                     <div class="row g-2 align-items-stretch">
@@ -219,7 +219,7 @@
                                         </div>
                                     </div>
                                     <div id="generatedPasswordDisplay" class="mt-2 p-2 bg-white border rounded d-none">
-                                        <small>Generated Password: <code id="generatedPasswordText" style="user-select: all;"></code></small>
+                                        <small>Generated Password: <code id="generatedPasswordText" class="inline-6d876c45"></code></small>
                                     </div>
                                 </form>
                             </div>
@@ -259,7 +259,7 @@
                         </div>
                         <div class="card-body">
                             <div class="mb-3">
-                                <label for="csvFile" class="form-label">CSV File <span style="font-weight: 500; color: var(--muted);">(columns: name, email)</span></label>
+                                <label for="csvFile" class="form-label">CSV File <span class="inline-f19e4668">(columns: name, email)</span></label>
                                 <input type="file" class="form-control" id="csvFile" accept=".csv" />
                                 <p class="form-text">Example: Jane Smith,jane@example.com</p>
                             </div>
@@ -296,7 +296,7 @@
                                 <div id="csvInvitationList" class="d-none mb-3"></div>
                                 <div class="alert alert-danger d-none" id="csvErrors">
                                     <strong>Errors:</strong>
-                                    <ul id="csvErrorsList" style="margin-bottom: 0;"></ul>
+                                    <ul id="csvErrorsList" class="inline-648149ce"></ul>
                                 </div>
                             </div>
                         </div>
@@ -316,7 +316,7 @@
                             </button>
                         </div>
                         <div class="card-body">
-                            <div id="createRoleForm" class="bg-light p-3 mb-3 d-none" style="border-radius: 4px;">
+                            <div id="createRoleForm" class="inline-903ce3bc bg-light p-3 mb-3 d-none">
                                 <h5 class="mb-3">Create New Role</h5>
                                 <form id="roleCreateForm" class="d-flex gap-2 align-items-center">
                                     <input type="text" class="form-control flex-grow-1" id="newRoleName" placeholder="Role name" required minlength="3">
@@ -482,7 +482,7 @@
                                     No users found.
                                 </div>
                             </div>
-                            <div class="core-response-container mt-3" id="userTableResponse" style="display: none;">
+                            <div class="inline-f2892a2e core-response-container mt-3" id="userTableResponse">
                                 <div class="core-response-title">Operation Result:</div>
                                 <pre class="core-response-content" id="userTableResponseContent"></pre>
                             </div>
@@ -513,7 +513,7 @@
                                     <button type="button" class="btn btn-secondary" data-onclick="fillDefaultUser" data-onclick-args="[]">Use User</button>
                                 </div>
                             </form>
-                            <div id="loginResponse" class="core-response-container" style="display: none;">
+                            <div id="loginResponse" class="inline-f2892a2e core-response-container">
                                 <div class="core-response-title">Authentication Result:</div>
                                 <div id="loginResponseContent" class="core-response-content"></div>
                             </div>
@@ -538,7 +538,7 @@
                                     <button type="button" class="btn btn-secondary" data-onclick="clearSessionToken" data-onclick-args="[]">Clear Token</button>
                                 </div>
                             </form>
-                            <div id="sessionResponse" class="core-response-container" style="display: none;">
+                            <div id="sessionResponse" class="inline-f2892a2e core-response-container">
                                 <div class="core-response-title">Session Status:</div>
                                 <div id="sessionResponseContent" class="core-response-content"></div>
                             </div>
@@ -570,7 +570,7 @@
                                 <button type="button" class="btn btn-secondary" data-onclick="listRoles" data-onclick-args="[]">List All Roles</button>
                                 <button type="button" class="btn btn-secondary" data-onclick="getUsersInRole" data-onclick-args="[]">Users in Role</button>
                             </div>
-                            <div id="roleResponse" class="core-response-container" style="display: none;">
+                            <div id="roleResponse" class="inline-f2892a2e core-response-container">
                                 <div class="core-response-title">Role Management:</div>
                                 <div id="roleResponseContent" class="core-response-content"></div>
                             </div>
@@ -587,7 +587,7 @@
                                 <button type="button" class="btn btn-primary" data-onclick="checkStatus" data-onclick-args="[]">Check Status</button>
                                 <button type="button" class="btn btn-secondary" data-onclick="refreshAll" data-onclick-args="[]">Refresh All Data</button>
                             </div>
-                            <div id="statusResponse" class="core-response-container" style="display: none;">
+                            <div id="statusResponse" class="inline-f2892a2e core-response-container">
                                 <div class="core-response-title">Service Status:</div>
                                 <div id="statusResponseContent" class="core-response-content"></div>
                             </div>
@@ -606,7 +606,7 @@
                 </div>
 
                 <!-- Settings Tab -->
-                <div class="tab-pane fade" id="settings" role="tabpanel" aria-labelledby="settings-tab" style="min-height:1000px">
+                <div class="inline-3ea6f166 tab-pane fade" id="settings" role="tabpanel" aria-labelledby="settings-tab">
 
                     <!-- Settings Card -->
                     <div class="card">
@@ -615,7 +615,7 @@
                             <p class="card-subtitle">Configure the authentication service parameters</p>
                         </div>
                         <div class="card-body">
-                            <div id="settingsInfo" class="alert alert-info mb-4" style="display: none;"></div>
+                            <div id="settingsInfo" class="inline-f2892a2e alert alert-info mb-4"></div>
                             <form id="settingsForm">
                                 <div id="settingsFormFields"></div>
                                 <div class="d-flex flex-wrap gap-2">
@@ -623,7 +623,7 @@
                                     <button type="button" class="btn btn-secondary" data-onclick="loadSettings" data-onclick-args="[]">Reload</button>
                                 </div>
                             </form>
-                            <div id="settingsSaveResponse" class="core-response-container" style="display: none; margin-top: 1rem;">
+                            <div id="settingsSaveResponse" class="inline-5a89b13a core-response-container">
                                 <div class="core-response-title">Save Response:</div>
                                 <pre class="core-response-content" id="settingsSaveResponseContent"></pre>
                             </div>

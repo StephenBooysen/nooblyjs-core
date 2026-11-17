@@ -994,17 +994,17 @@ async function loadTrainDocs() {
         const safeText = escapeHtml(text);
         return `
         <tr>
-            <td><code style="font-size:13px;">${safeKey}</code></td>
-            <td style="color:var(--ink-2); font-size:13px;">${preview}</td>
-            <td style="text-align:right; font-size:13px;">${formatNumber(text.length)}</td>
-            <td style="text-align:center;">
+            <td><code class="inline-9e6595fb">${safeKey}</code></td>
+            <td class="inline-3760d9ed">${preview}</td>
+            <td class="inline-43473a45">${formatNumber(text.length)}</td>
+            <td class="inline-dac4fe6c">
                 <div class="d-flex gap-1 justify-content-center">
                     <button class="btn btn-secondary btn-sm"
                         data-onclick="editTrainDoc" data-onclick-args="${nooblyArgs(JSON.stringify(safeKey), JSON.stringify(safeText))}"
                         title="Edit">
                         <i class="bi bi-pencil"></i>
                     </button>
-                    <button class="btn btn-secondary btn-sm" style="background:var(--danger-soft,#fef2f2); color:#dc2626; border-color:#fca5a5;"
+                    <button class="inline-5c96f2e1 btn btn-secondary btn-sm"
                         data-onclick="deleteTrainDoc" data-onclick-args="${nooblyArgs(JSON.stringify(safeKey))}"
                         title="Delete">
                         <i class="bi bi-trash"></i>

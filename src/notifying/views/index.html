@@ -95,7 +95,7 @@
 
             <div class="tab-content" id="notifyingTabContent">
                 <!-- Settings Tab -->
-                <div class="tab-pane fade" id="settings" role="tabpanel" aria-labelledby="settings-tab" style="min-height:1000px">
+                <div class="inline-3ea6f166 tab-pane fade" id="settings" role="tabpanel" aria-labelledby="settings-tab">
                     <!-- Settings Card -->
                     <div class="card">
                         <div class="card-header">
@@ -103,7 +103,7 @@
                             <p class="card-subtitle">Configure the notifying service parameters</p>
                         </div>
                         <div class="card-body">
-                            <div id="settingsInfo" class="alert alert-info mb-4" style="display: none;"></div>
+                            <div id="settingsInfo" class="inline-f2892a2e alert alert-info mb-4"></div>
                             <form id="settingsForm">
                                 <div id="settingsFormFields"></div>
                                 <div class="d-flex flex-wrap gap-2">
@@ -111,7 +111,7 @@
                                     <button type="button" class="btn btn-secondary" data-onclick="loadSettings" data-onclick-args="[]">Reload</button>
                                 </div>
                             </form>
-                            <div id="settingsSaveResponse" class="core-response-container" style="display: none; margin-top: 1rem;">
+                            <div id="settingsSaveResponse" class="inline-5a89b13a core-response-container">
                                 <div class="core-response-title">Save Response:</div>
                                 <div id="settingsSaveResponseContent" class="core-response-content"></div>
                             </div>
@@ -165,7 +165,7 @@
                                     Loading topics...
                                 </div>
                             </div>
-                            <div id="topTopicsEmpty" class="core-empty-state" style="display: none; min-height: 200px;">
+                            <div id="topTopicsEmpty" class="inline-0bee3d9c core-empty-state">
                                 <i class="bi bi-chat-dots"></i>
                                 <h3>No topics captured yet</h3>
                                 <p>Topics will appear here once notifications are published</p>
@@ -228,7 +228,7 @@
                                     <button type="submit" class="btn btn-primary">Create Topic</button>
                                 </div>
                             </form>
-                            <div id="createTopicResponse" class="core-response-container" style="display: none;">
+                            <div id="createTopicResponse" class="inline-f2892a2e core-response-container">
                                 <div class="core-response-title">Response:</div>
                                 <div id="createTopicResponseContent" class="core-response-content"></div>
                             </div>
@@ -242,7 +242,7 @@
                             <p class="card-subtitle">Subscribe to a topic with a JavaScript callback function (client-side, in-memory)</p>
                         </div>
                         <div class="card-body">
-                            <div class="alert alert-info" style="margin-bottom: 1rem;">
+                            <div class="inline-f267e3ca alert alert-info">
                                 <strong>Note:</strong> This creates a local in-memory subscription. Subscribers are stored in your browser memory and will be lost on page reload.
                             </div>
                             <form id="createSubscriberForm">
@@ -254,7 +254,7 @@
                                 <div class="mb-3">
                                     <label class="form-label" for="callbackFunction">Callback Function (JavaScript)</label>
                                     <textarea id="callbackFunction" class="form-control" placeholder="(msg) => {&#10;  console.log('Received:', msg);&#10;}" required></textarea>
-                                    <div id="callbackValidation" class="core-validation-message" style="display: none;"></div>
+                                    <div id="callbackValidation" class="inline-f2892a2e core-validation-message"></div>
                                     <div class="form-text">Enter a JavaScript function that will be called when a message is received. This runs locally in your browser. Example: <code>(msg) => { console.log(msg); }</code></div>
                                 </div>
                                 <div class="d-flex flex-wrap gap-2">
@@ -262,7 +262,7 @@
                                     <button type="button" class="btn btn-secondary" id="exampleCallbackButton">Load Example</button>
                                 </div>
                             </form>
-                            <div id="createSubscriberResponse" class="core-response-container" style="display: none;">
+                            <div id="createSubscriberResponse" class="inline-f2892a2e core-response-container">
                                 <div class="core-response-title">Response:</div>
                                 <div id="createSubscriberResponseContent" class="core-response-content"></div>
                             </div>
@@ -276,7 +276,7 @@
                             <p class="card-subtitle">Register a callback URL on the server so the subscription persists and appears in the dashboard</p>
                         </div>
                         <div class="card-body">
-                            <div class="alert alert-info" style="margin-bottom: 1rem;">
+                            <div class="inline-f267e3ca alert alert-info">
                                 <strong>Note:</strong> This registers a server-side subscription. The server delivers each notification to the callback URL, and the subscriber is counted in the dashboard analytics.
                             </div>
                             <form id="createServerSubscriberForm">
@@ -294,7 +294,7 @@
                                     <button type="submit" class="btn btn-primary">Create Subscriber</button>
                                 </div>
                             </form>
-                            <div id="createServerSubscriberResponse" class="core-response-container" style="display: none;">
+                            <div id="createServerSubscriberResponse" class="inline-f2892a2e core-response-container">
                                 <div class="core-response-title">Response:</div>
                                 <div id="createServerSubscriberResponseContent" class="core-response-content"></div>
                             </div>
@@ -317,7 +317,7 @@
                                 <div class="mb-3">
                                     <label class="form-label" for="sendMessage">Message (JSON)</label>
                                     <textarea id="sendMessage" class="form-control" placeholder='{"channel": "email", "recipient": "test@test.com", "subject": "Hello!", "body": "This is a test notification."}' required></textarea>
-                                    <div id="sendValidation" class="core-validation-message" style="display: none;"></div>
+                                    <div id="sendValidation" class="inline-f2892a2e core-validation-message"></div>
                                     <div class="form-text">Enter a valid JSON object for the notification</div>
                                 </div>
                                 <div class="d-flex flex-wrap gap-2">
@@ -326,7 +326,7 @@
                                     <button type="button" class="btn btn-secondary" id="exampleSendButton">Load Example</button>
                                 </div>
                             </form>
-                            <div id="sendResponse" class="core-response-container" style="display: none;">
+                            <div id="sendResponse" class="inline-f2892a2e core-response-container">
                                 <div class="core-response-title">Response:</div>
                                 <div id="sendResponseContent" class="core-response-content"></div>
                             </div>
@@ -342,7 +342,7 @@
                             <div class="d-flex flex-wrap gap-2">
                                 <button type="button" class="btn btn-primary" id="statusButton">Check Status</button>
                             </div>
-                            <div id="statusResponse" class="core-response-container" style="display: none;">
+                            <div id="statusResponse" class="inline-f2892a2e core-response-container">
                                 <div class="core-response-title">Service Status:</div>
                                 <div id="statusResponseContent" class="core-response-content"></div>
                             </div>
@@ -448,7 +448,7 @@
                             <h2 class="card-title">Notification Inbox</h2>
                             <p class="card-subtitle">View and manage your notifications</p>
                         </div>
-                        <div class="card-body" style="padding: 0; height: 600px;">
+                        <div class="inline-1c045a90 card-body">
                             <div class="notification-container">
                                 <!-- Left Navigation -->
                                 <div class="notification-left-nav" id="contentLeftNav">
@@ -464,7 +464,7 @@
                                                 <span>Inbox</span>
                                                 <span class="notification-folder-count" id="inboxCount">0</span>
                                             </div>
-                                            <div class="notification-folder-content" id="inbox-topics" style="display: none;"></div>
+                                            <div class="inline-f2892a2e notification-folder-content" id="inbox-topics"></div>
                                         </div>
 
                                         <!-- Read Folder -->
@@ -475,7 +475,7 @@
                                                 <span>Read</span>
                                                 <span class="notification-folder-count" id="readCount">0</span>
                                             </div>
-                                            <div class="notification-folder-content" id="read-topics" style="display: none;"></div>
+                                            <div class="inline-f2892a2e notification-folder-content" id="read-topics"></div>
                                         </div>
                                     </div>
                                 </div>
@@ -494,7 +494,7 @@
                                     <div class="notification-content-body" id="contentBody">
                                         <div class="no-selection">Select a topic from the list to view notifications</div>
                                     </div>
-                                    <div class="notification-content-actions" id="contentActions" style="display: none;">
+                                    <div class="inline-f2892a2e notification-content-actions" id="contentActions">
                                         <button id="toggleReadBtn" class="btn btn-sm btn-outline-secondary">
                                             <i class="bi bi-envelope"></i> Mark as Unread
                                         </button>
@@ -508,7 +508,7 @@
                                 <div class="notification-right-panel" id="contentRightNav">
                                     <div class="notification-right-panel-header">
                                         <span>Subscriptions</span>
-                                        <button data-onclick="toggleRightPanel" data-onclick-args="[]" style="background: none; border: none; font-size: 1.2rem; cursor: pointer;">&times;</button>
+                                        <button data-onclick="toggleRightPanel" data-onclick-args="[]" class="inline-e589911c">&times;</button>
                                     </div>
                                     <div class="notification-right-panel-content" id="subscriptionsPanel"></div>
                                 </div>
@@ -532,7 +532,7 @@
                                     <button type="submit" class="btn btn-primary">Subscribe</button>
                                 </div>
                             </form>
-                            <div id="subscribeResponse" class="core-response-container" style="display: none; margin-top: 1rem;">
+                            <div id="subscribeResponse" class="inline-5a89b13a core-response-container">
                                 <div class="core-response-title">Response:</div>
                                 <div id="subscribeResponseContent" class="core-response-content"></div>
                             </div>
@@ -560,7 +560,7 @@
                                     <button type="submit" class="btn btn-primary">Post Message</button>
                                 </div>
                             </form>
-                            <div id="postToTopicResponse" class="core-response-container" style="display: none; margin-top: 1rem;">
+                            <div id="postToTopicResponse" class="inline-5a89b13a core-response-container">
                                 <div class="core-response-title">Response:</div>
                                 <div id="postToTopicResponseContent" class="core-response-content"></div>
                             </div>

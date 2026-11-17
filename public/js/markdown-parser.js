@@ -880,14 +880,14 @@ class MarkdownParser {
     const heroImageAlign = properties['hero-image-align'] || properties['hero_image_align'] || 'right';
 
     // Build HTML based on image alignment
-    let html = '<section class="hero-banner-section py-4" style="background: var(--surface-sunken); margin-top: -1rem;">\n';
+    let html = '<section class="inline-77fe124b hero-banner-section py-4">\n';
     html += '<div class="container">\n';
     html += '<div class="row align-items-center g-4">\n';
 
     // Left side content
     html += '<div class="col-lg-6">\n';
     if (title) {
-      html += `<h2 class="display-5 fw-bold mb-3" style="color: var(--ink);">${this.escapeHtml(title)}</h2>\n`;
+      html += `<h2 class="inline-30f46876 display-5 fw-bold mb-3">${this.escapeHtml(title)}</h2>\n`;
     }
     if (subtitle) {
       html += `<p class="lead text-muted mb-4">${this.escapeHtml(subtitle)}</p>\n`;
@@ -897,7 +897,7 @@ class MarkdownParser {
     // Right side image
     if (heroImage) {
       html += '<div class="col-lg-6 text-center">\n';
-      html += `<img src="${this.escapeHtml(heroImage)}" alt="Hero Image" class="img-fluid robot-hero-img" style="max-width: 80%; filter: drop-shadow(0 20px 40px rgba(191, 59, 70, 0.2));">\n`;
+      html += `<img src="${this.escapeHtml(heroImage)}" alt="Hero Image" class="inline-aafea9a8 img-fluid robot-hero-img">\n`;
       html += '</div>\n';
     }
 
@@ -1048,7 +1048,7 @@ class MarkdownParser {
       const encodedPath = encodeURIComponent(link.path);
 
       html += '<div class="col-lg-4 col-md-6 mb-4">\n';
-      html += '<div class="wiki-link-card h-100" onclick="loadWikiLinkDocument(\'' + encodedPath.replace(/'/g, "\\'") + '\', \'' + link.title.replace(/'/g, "\\'") + '\')" style="cursor: pointer;">\n';
+      html += '<div class="inline-8410c989 wiki-link-card h-100" onclick="loadWikiLinkDocument(\'' + encodedPath.replace(/'/g, "\\'") + '\', \'' + link.title.replace(/'/g, "\\'") + '\')">\n';
 
       html += '<div class="wiki-link-card-header">\n';
       html += `<h5 class="wiki-link-card-title">${this.escapeHtml(link.title)}</h5>\n`;

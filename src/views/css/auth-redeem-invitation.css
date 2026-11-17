@@ -1,0 +1,85 @@
+/* Restore 12px base font: this page is sized in rem against a 12px root
+           (previously provided by public/styles.css before the CSS consolidation). */
+        html { font-size: 12px; }
+        :root {
+            --custom-primary: var(--accent);
+            --custom-secondary: var(--muted);
+            --custom-warning: var(--warn-border);
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .auth-container {
+            max-width: 500px;
+            width: 100%;
+            padding: 1rem;
+        }
+
+        .auth-card .card-body {
+            padding: 2.5rem 2rem;
+        }
+
+        .auth-card .text-center p {
+            font-size: 1.2rem;
+            color: var(--muted);
+            margin-bottom: 0;
+        }
+
+        .form-label {
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            font-size: 1.2rem;
+        }
+
+        .auth-card .form-control {
+            font-size: 1.2rem;
+            padding: 0.4rem 0.75rem;
+        }
+
+        .auth-card .btn {
+            font-size: 1.2rem;
+            padding: 0.5rem 1rem;
+        }
+
+        .strength-text {
+            font-size: 1.2rem;
+            margin-top: 0.25rem;
+            min-height: 1rem;
+        }
+
+        .invitation-status {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            background-color: var(--surface-sunken);
+            border-left: 4px solid var(--custom-primary);
+        }
+
+        .invitation-status.approved {
+            border-left-color: var(--core-success);
+            background-color: var(--core-success-soft);
+        }
+
+        .invitation-status.expired {
+            border-left-color: var(--danger);
+            background-color: var(--danger-soft);
+        }
+
+        .invitation-status.pending {
+            border-left-color: var(--warn-border);
+            background-color: var(--warn-soft);
+        }
+
+        .status-label {
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+        }
+
+        .status-message {
+            font-size: 1.2rem;
+        }

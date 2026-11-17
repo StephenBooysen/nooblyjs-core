@@ -241,11 +241,11 @@ const NooblyJSNavigation = {
 
             navHTML += `
                 <div class="core-sidebar-section">
-                    <div class="core-sidebar-title" role="button" style="cursor: pointer;" data-onclick="NooblyJSNavigation.toggleClassificationNav" data-onclick-args="${nooblyArgs(classification)}">
+                    <div class="inline-8410c989 core-sidebar-title" role="button" data-onclick="NooblyJSNavigation.toggleClassificationNav" data-onclick-args="${nooblyArgs(classification)}">
                         <span><i class="bi ${classConfig.icon}"></i> ${classConfig.label}</span>
                         <span class="toggle" id="toggle-icon-${classification}">▼</span>
                     </div>
-                    <div id="nav-services-${classification}" style="display: block;">
+                    <div id="nav-services-${classification}" class="inline-048b9a2b">
             `;
 
             services.forEach(service => {

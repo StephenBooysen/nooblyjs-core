@@ -55,7 +55,7 @@
                         <select id="instanceSelector" class="form-select form-select-sm">
                             <option value="default">default</option>
                         </select>
-                        <button id="refreshInstanceBtn" class="btn btn-secondary" style="height: 32px; width: 32px; padding: 0; justify-content: center;" title="Refresh instances list">
+                        <button id="refreshInstanceBtn" class="inline-6f775779 btn btn-secondary" title="Refresh instances list">
                             <i class="bi bi-arrow-clockwise"></i>
                         </button>
                 </div>
@@ -64,12 +64,12 @@
             <!-- CONTENT WRAPPER -->
             <div class="core-page-content">
                 <!-- ALERTS -->
-                <div class="alert alert-success alert-dismissible fade" id="successAlert" role="alert" style="margin-bottom: 0;">
+                <div class="inline-648149ce alert alert-success alert-dismissible fade" id="successAlert" role="alert">
                     <strong>Success!</strong> <span id="successMessage"></span>
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
 
-                <div class="alert alert-danger alert-dismissible fade" id="errorAlert" role="alert" style="margin-bottom: 0;">
+                <div class="inline-648149ce alert alert-danger alert-dismissible fade" id="errorAlert" role="alert">
                     <strong>Error!</strong> <span id="errorMessage"></span>
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
@@ -120,7 +120,7 @@
                         <div class="card-body">
                             <div class="row">
                                 <div class="col-md-6">
-                                    <div style="position: relative; height: 300px;">
+                                    <div class="inline-619533e7">
                                         <canvas id="logStatsChart"></canvas>
                                     </div>
                                 </div>
@@ -132,9 +132,9 @@
                                                 <span><span class="badge core-loglevel-info">INFO</span></span>
                                                 <strong id="statInfoCount">0</strong>
                                             </div>
-                                            <div class="progress" style="height: 20px;">
-                                                <div id="statInfoBar" class="progress-bar core-loglevel-info" role="progressbar"
-                                                    style="width: 0%">
+                                            <div class="inline-36f18c59 progress">
+                                                <div id="statInfoBar" class="inline-034359d7 progress-bar core-loglevel-info" role="progressbar"
+                                                   >
                                                     <span id="statInfoPercent">0%</span>
                                                 </div>
                                             </div>
@@ -144,9 +144,9 @@
                                                 <span><span class="badge core-loglevel-warn">WARN</span></span>
                                                 <strong id="statWarnCount">0</strong>
                                             </div>
-                                            <div class="progress" style="height: 20px;">
-                                                <div id="statWarnBar" class="progress-bar core-loglevel-warn" role="progressbar"
-                                                    style="width: 0%">
+                                            <div class="inline-36f18c59 progress">
+                                                <div id="statWarnBar" class="inline-034359d7 progress-bar core-loglevel-warn" role="progressbar"
+                                                   >
                                                     <span id="statWarnPercent">0%</span>
                                                 </div>
                                             </div>
@@ -156,9 +156,9 @@
                                                 <span><span class="badge core-loglevel-error">ERROR</span></span>
                                                 <strong id="statErrorCount">0</strong>
                                             </div>
-                                            <div class="progress" style="height: 20px;">
-                                                <div id="statErrorBar" class="progress-bar core-loglevel-error" role="progressbar"
-                                                    style="width: 0%">
+                                            <div class="inline-36f18c59 progress">
+                                                <div id="statErrorBar" class="inline-034359d7 progress-bar core-loglevel-error" role="progressbar"
+                                                   >
                                                     <span id="statErrorPercent">0%</span>
                                                 </div>
                                             </div>
@@ -168,9 +168,9 @@
                                                 <span><span class="badge core-loglevel-log">LOG</span></span>
                                                 <strong id="statLogCount">0</strong>
                                             </div>
-                                            <div class="progress" style="height: 20px;">
-                                                <div id="statLogBar" class="progress-bar core-loglevel-log"
-                                                    role="progressbar" style="width: 0%">
+                                            <div class="inline-36f18c59 progress">
+                                                <div id="statLogBar" class="inline-034359d7 progress-bar core-loglevel-log"
+                                                    role="progressbar">
                                                     <span id="statLogPercent">0%</span>
                                                 </div>
                                             </div>
@@ -197,7 +197,7 @@
                             </div>
                         </div>
                         <div class="card-body">
-                            <div style="position: relative; height: 400px;">
+                            <div class="inline-aa94e695">
                                 <canvas id="logTimelineChart"></canvas>
                             </div>
                         </div>
@@ -212,8 +212,8 @@
                                     <p class="card-subtitle">Recent log entries (last 1000 logs)</p>
                                 </div>
                                 <div class="d-flex gap-2 align-items-center">
-                                    <select class="form-select sm" id="logLevelFilter"
-                                        style="width: 150px; height: 32px; padding: 0 8px; font-size: 12px;">
+                                    <select class="inline-629b3b8c form-select sm" id="logLevelFilter"
+                                       >
                                         <option value="">All Levels</option>
                                         <option value="INFO">INFO</option>
                                         <option value="WARN">WARN</option>
@@ -228,9 +228,9 @@
                                 <table class="table table-hover">
                                     <thead>
                                         <tr>
-                                            <th style="width: 100px;">Level</th>
+                                            <th class="inline-807e5119">Level</th>
                                             <th>Message</th>
-                                            <th style="width: 200px;">Date Created</th>
+                                            <th class="inline-ec060bac">Date Created</th>
                                         </tr>
                                     </thead>
                                     <tbody id="logsTableBody">
@@ -285,7 +285,7 @@
                                     <label class="form-label" for="logMessage">Metadata (JSON)</label>
                                     <textarea id="logMessage" class="form-control"
                                         placeholder='{"provider": "redis", "duration": 5000}'></textarea>
-                                    <div id="logValidation" class="core-validation-message" style="display: none;"></div>
+                                    <div id="logValidation" class="inline-f2892a2e core-validation-message"></div>
                                     <div class="form-text">Optional JSON object with additional context (leave empty for no metadata)</div>
                                 </div>
                                 <div class="d-flex flex-wrap gap-2">
@@ -296,7 +296,7 @@
                                         data-onclick="loadExample" data-onclick-args="[&quot;logMessage&quot;]">Load Example</button>
                                 </div>
                             </form>
-                            <div id="logResponse" class="core-response-container" style="display: none;">
+                            <div id="logResponse" class="inline-f2892a2e core-response-container">
                                 <div class="core-response-title">Response:</div>
                                 <div id="logResponseContent" class="core-response-content"></div>
                             </div>
@@ -315,7 +315,7 @@
                             <div class="d-flex flex-wrap gap-2">
                                 <button type="button" class="btn btn-secondary" data-onclick="checkStatus" data-onclick-args="[]">Check Status</button>
                             </div>
-                            <div id="statusResponse" class="core-response-container" style="display: none;">
+                            <div id="statusResponse" class="inline-f2892a2e core-response-container">
                                 <div class="core-response-title">Service Status:</div>
                                 <div id="statusResponseContent" class="core-response-content"></div>
                             </div>
@@ -339,7 +339,7 @@
                 <!-- End Data Tab -->
 
                 <!-- Settings Tab -->
-                <div class="tab-pane fade" id="settings" role="tabpanel" aria-labelledby="settings-tab" style="min-height:1000px">
+                <div class="inline-3ea6f166 tab-pane fade" id="settings" role="tabpanel" aria-labelledby="settings-tab">
 
                     <!-- Settings Card -->
                     <div class="card">
@@ -350,7 +350,7 @@
                             </div>
                         </div>
                         <div class="card-body">
-                            <div id="settingsInfo" class="alert alert-info" style="margin-bottom: 16px;"></div>
+                            <div id="settingsInfo" class="inline-045aac89 alert alert-info"></div>
                             <form id="settingsForm">
                                 <div id="settingsFormFields"></div>
                                 <div class="d-flex flex-wrap gap-2">
@@ -359,8 +359,8 @@
                                         data-onclick="loadSettings" data-onclick-args="[]">Reload</button>
                                 </div>
                             </form>
-                            <div id="settingsSaveResponse" class="core-response-container"
-                                style="display: none; margin-top: 1rem;">
+                            <div id="settingsSaveResponse" class="inline-5a89b13a core-response-container"
+                               >
                                 <div class="core-response-title">Save Response:</div>
                                 <div id="settingsSaveResponseContent" class="core-response-content"></div>
                             </div>

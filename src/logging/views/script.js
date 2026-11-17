@@ -604,20 +604,20 @@
                 if (metadata) {
                     metadataSection = `
                         <div class="collapse mt-2" id="${collapsibleId}">
-                            <pre style="background-color: #f8f9fa; font-family: 'Courier New', monospace; font-size: 0.85rem; padding: 12px; margin: 12px 0 0 0; max-height: 300px; overflow-y: auto; border: 1px solid #dee2e6; border-radius: 4px; color: #333;">${formatJsonPretty(metadata)}</pre>
+                            <pre class="inline-44f6449d">${formatJsonPretty(metadata)}</pre>
                         </div>
                     `;
-                    chevronIcon = '<i class="bi bi-chevron-right" style="display: inline-block; margin-right: 8px; transition: transform 0.2s; color: #6c757d;"></i>';
+                    chevronIcon = '<i class="inline-0762504b bi bi-chevron-right"></i>';
                 }
 
                 return `
-                    <tr style="cursor: ${metadata ? 'pointer' : 'default'};" class="log-row-${index}" data-toggle-id="${collapsibleId}" data-has-metadata="${!!metadata}">
+                    <tr class="log-row-${index}${metadata ? ' log-row--clickable' : ''}" data-toggle-id="${collapsibleId}" data-has-metadata="${!!metadata}">
                         <td>
                             <span class="badge ${badgeClass}">${log.level}</span>
                         </td>
                         <td>
-                            <div style="white-space: normal; word-break: break-word;">
-                                ${chevronIcon}<span style="user-select: none;">${escapeHtml(message)}</span>
+                            <div class="inline-b441945f">
+                                ${chevronIcon}<span class="inline-c6b099a7">${escapeHtml(message)}</span>
                                 ${metadataSection}
                             </div>
                         </td>
@@ -1002,7 +1002,7 @@
                 console.error('Error initializing Swagger UI:', error);
                 const swaggerContainer = document.getElementById('swagger-ui');
                 if (swaggerContainer) {
-                    swaggerContainer.innerHTML = `<p style="color: red;">Error loading API documentation: ${error.message}</p><p style="color: #666; font-size: 14px;">Check the browser console for more details.</p>`;
+                    swaggerContainer.innerHTML = `<p class="inline-31981a7d">Error loading API documentation: ${error.message}</p><p class="inline-121b09d1">Check the browser console for more details.</p>`;
                 }
             }
         };

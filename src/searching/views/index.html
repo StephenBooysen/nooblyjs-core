@@ -48,7 +48,7 @@
                 </div>
                 <div class="core-instance-selector">
                     <label for="indexSelector">Index:</label>
-                    <select id="indexSelector" class="form-select" style="width: 200px; height: 32px; padding: 0 8px; font-size: 12px; font-weight: 600;">
+                    <select id="indexSelector" class="inline-f455d11d form-select">
                         <option value="">default</option>
                     </select>
                     <button id="refreshIndexSelectorBtn" class="btn btn-sm btn-outline-secondary core-icon-only" title="Refresh indexes list">
@@ -141,11 +141,11 @@
                                 <table class="table table-hover">
                                     <thead>
                                         <tr>
-                                            <th style="cursor: pointer;" data-onclick="sortTable" data-onclick-args="[&quot;term&quot;]">Search Term</th>
-                                            <th style="cursor: pointer;" data-onclick="sortTable" data-onclick-args="[&quot;index&quot;]">Index</th>
-                                            <th style="cursor: pointer; text-align: right;" data-onclick="sortTable" data-onclick-args="[&quot;callCount&quot;]">Call Count</th>
-                                            <th style="cursor: pointer; text-align: right;" data-onclick="sortTable" data-onclick-args="[&quot;totalResults&quot;]">Total Results</th>
-                                            <th style="cursor: pointer; width: 200px;" data-onclick="sortTable" data-onclick-args="[&quot;lastCalled&quot;]">Last Called</th>
+                                            <th class="inline-8410c989" data-onclick="sortTable" data-onclick-args="[&quot;term&quot;]">Search Term</th>
+                                            <th class="inline-8410c989" data-onclick="sortTable" data-onclick-args="[&quot;index&quot;]">Index</th>
+                                            <th class="inline-4fa74e19" data-onclick="sortTable" data-onclick-args="[&quot;callCount&quot;]">Call Count</th>
+                                            <th class="inline-4fa74e19" data-onclick="sortTable" data-onclick-args="[&quot;totalResults&quot;]">Total Results</th>
+                                            <th class="inline-4c6397e1" data-onclick="sortTable" data-onclick-args="[&quot;lastCalled&quot;]">Last Called</th>
                                         </tr>
                                     </thead>
                                     <tbody id="analyticsTableBody">
@@ -193,15 +193,15 @@
                                         <div class="form-text">Select which index to search in</div>
                                     </div>
                                     <div class="col-md-6">
-                                        <label class="form-label" style="visibility: hidden;">Refresh</label>
-                                        <button type="button" class="btn btn-secondary" id="uiRefreshIndexBtn" style="width: 100%;">
+                                        <label class="inline-8a461919 form-label">Refresh</label>
+                                        <button type="button" class="inline-69d66e5b btn btn-secondary" id="uiRefreshIndexBtn">
                                             <i class="bi bi-arrow-clockwise"></i> Refresh Indexes
                                         </button>
                                     </div>
                                 </div>
-                                <div class="contentSearch" style="position: relative; margin-bottom: 1rem;">
-                                    <input type="text" id="uiSearchBox" class="form-control" placeholder="Start typing to search..." style="width: 100%; padding: 12px; font-size: 16px;">
-                                    <div id="searchSuggestions" class="search-suggestions-dropdown" style="position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #e0e0e0; border-top: none; max-height: 300px; overflow-y: auto; z-index: 1000; display: none; box-shadow: 0 4px 6px rgba(0,0,0,0.1);"></div>
+                                <div class="inline-606f41e8 contentSearch">
+                                    <input type="text" id="uiSearchBox" class="inline-0c4b7e12 form-control" placeholder="Start typing to search...">
+                                    <div id="searchSuggestions" class="inline-6b67401a search-suggestions-dropdown"></div>
                                 </div>
                                 <div class="form-text">Suggestions appear as you type. Press Enter to search or click a suggestion.</div>
                             </div>
@@ -217,14 +217,14 @@
                                             <p class="card-subtitle" id="resultsSummary">Enter a search term to get started</p>
                                         </div>
                                         <div>
-                                            <button type="button" class="btn btn-secondary btn-sm" id="clearResultsBtn" style="display: none;">
+                                            <button type="button" class="inline-f2892a2e btn btn-secondary btn-sm" id="clearResultsBtn">
                                                 <i class="bi bi-trash"></i> Clear
                                             </button>
                                         </div>
                                     </div>
                                 </div>
                                 <div class="card-body">
-                                    <div id="searchResultsContainer" style="min-height: 300px; display: flex; align-items: center; justify-content: center;">
+                                    <div id="searchResultsContainer" class="inline-37431602">
                                         <div class="text-center text-muted">
                                             <i class="bi bi-search fs-1"></i>
                                             <p class="mt-3">No search results yet</p>
@@ -297,7 +297,7 @@
                                 <div class="mb-3">
                                     <label class="form-label" for="addDocument">Document (JSON)</label>
                                     <textarea id="addDocument" class="form-control" placeholder='{"title": "My Document", "content": "This is the content of my document."}' required></textarea>
-                                    <div id="addValidation" class="core-validation-message" style="display: none;"></div>
+                                    <div id="addValidation" class="inline-f2892a2e core-validation-message"></div>
                                     <div class="form-text">Enter a valid JSON object for the document</div>
                                 </div>
                                 <div class="d-flex flex-wrap gap-2">
@@ -306,7 +306,7 @@
                                     <button type="button" class="btn btn-secondary" data-onclick="loadExample" data-onclick-args="[&quot;addDocument&quot;]">Load Example</button>
                                 </div>
                             </form>
-                            <div id="addResponse" class="core-response-container" style="display: none;">
+                            <div id="addResponse" class="inline-f2892a2e core-response-container">
                                 <div class="core-response-title">Response:</div>
                                 <div id="addResponseContent" class="core-response-content"></div>
                             </div>
@@ -339,7 +339,7 @@
                                     <button type="submit" class="btn btn-primary">Search</button>
                                 </div>
                             </form>
-                            <div id="searchResponse" class="core-response-container" style="display: none;">
+                            <div id="searchResponse" class="inline-f2892a2e core-response-container">
                                 <div class="core-response-title">Search Results:</div>
                                 <div id="searchResponseContent" class="core-response-content"></div>
                             </div>
@@ -363,7 +363,7 @@
                                     <button type="submit" class="btn btn-error">Delete Document</button>
                                 </div>
                             </form>
-                            <div id="deleteResponse" class="core-response-container" style="display: none;">
+                            <div id="deleteResponse" class="inline-f2892a2e core-response-container">
                                 <div class="core-response-title">Response:</div>
                                 <div id="deleteResponseContent" class="core-response-content"></div>
                             </div>
@@ -380,7 +380,7 @@
                             <div class="d-flex flex-wrap gap-2">
                                 <button type="button" class="btn btn-primary" data-onclick="checkStatus" data-onclick-args="[]">Check Status</button>
                             </div>
-                            <div id="statusResponse" class="core-response-container" style="display: none;">
+                            <div id="statusResponse" class="inline-f2892a2e core-response-container">
                                 <div class="core-response-title">Service Status:</div>
                                 <div id="statusResponseContent" class="core-response-content"></div>
                             </div>
@@ -402,7 +402,7 @@
                 <!-- End Data Operations Tab -->
 
                 <!-- Settings Tab -->
-                <div class="tab-pane fade" id="settings" role="tabpanel" style="min-height:1000px">
+                <div class="inline-3ea6f166 tab-pane fade" id="settings" role="tabpanel">
 
                     <!-- Settings Card -->
                     <div class="card">
@@ -411,7 +411,7 @@
                             <p class="card-subtitle">Configure the search service parameters</p>
                         </div>
                         <div class="card-body">
-                            <div id="settingsInfo" class="alert alert-info mb-4" style="display: none;"></div>
+                            <div id="settingsInfo" class="inline-f2892a2e alert alert-info mb-4"></div>
                             <form id="settingsForm">
                                 <div id="settingsFormFields"></div>
                                 <div class="d-flex flex-wrap gap-2">
@@ -419,7 +419,7 @@
                                     <button type="button" class="btn btn-secondary" data-onclick="loadSettings" data-onclick-args="[]">Reload</button>
                                 </div>
                             </form>
-                            <div id="settingsSaveResponse" class="core-response-container" style="display: none; margin-top: 1rem;">
+                            <div id="settingsSaveResponse" class="inline-5a89b13a core-response-container">
                                 <div class="core-response-title">Save Response:</div>
                                 <div id="settingsSaveResponseContent" class="core-response-content"></div>
                             </div>

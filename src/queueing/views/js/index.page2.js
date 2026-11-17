@@ -908,7 +908,7 @@
                 console.error('SwaggerUIBundle not loaded');
                 const swaggerContainer = document.getElementById('swagger-ui');
                 if (swaggerContainer) {
-                    swaggerContainer.innerHTML = '<div style="color: red; padding: 20px; text-align: center;">Swagger UI failed to load. Please check your internet connection and refresh the page.</div>';
+                    swaggerContainer.innerHTML = '<div class="inline-c34ed4ee">Swagger UI failed to load. Please check your internet connection and refresh the page.</div>';
                 }
                 return;
             }
@@ -928,7 +928,7 @@
                     console.error('Error loading Swagger documentation:', error);
                     const container = document.getElementById('swagger-ui');
                     if (container) {
-                        container.innerHTML = '<div style="color: red; padding: 20px; border: 1px solid red; border-radius: 4px;"><strong>Error loading API documentation</strong><br>Error: ' + error.message + '<br><button data-onclick="location.reload" data-onclick-args="[]" style="margin-top: 10px; padding: 5px 10px;">Reload Page</button></div>';
+                        container.innerHTML = '<div class="inline-990f3275"><strong>Error loading API documentation</strong><br>Error: ' + error.message + '<br><button data-onclick="location.reload" data-onclick-args="[]" class="inline-266c08ca">Reload Page</button></div>';
                     }
                 });
 
@@ -974,7 +974,7 @@
                     },
                     onFailure: function(error) {
                         console.error('Swagger UI initialization failed:', error);
-                        document.getElementById('swagger-ui').innerHTML = '<div style="color: red; padding: 20px;">Failed to initialize API documentation: ' + error.message + '</div>';
+                        document.getElementById('swagger-ui').innerHTML = '<div class="inline-12219752">Failed to initialize API documentation: ' + error.message + '</div>';
                     }
                 });
 
@@ -983,7 +983,7 @@
                     console.error('Critical error initializing Swagger UI:', error);
                     const swaggerContainer = document.getElementById('swagger-ui');
                     if (swaggerContainer) {
-                        swaggerContainer.innerHTML = '<div style="color: red; padding: 20px; border: 1px solid red; border-radius: 4px;"><strong>Error loading API documentation</strong><br>Error: ' + error.message + '<br><button data-onclick="location.reload" data-onclick-args="[]" style="margin-top: 10px; padding: 5px 10px;">Reload Page</button></div>';
+                        swaggerContainer.innerHTML = '<div class="inline-990f3275"><strong>Error loading API documentation</strong><br>Error: ' + error.message + '<br><button data-onclick="location.reload" data-onclick-args="[]" class="inline-266c08ca">Reload Page</button></div>';
                     }
                 }
             }

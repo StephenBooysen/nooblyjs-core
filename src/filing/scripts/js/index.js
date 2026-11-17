@@ -78,289 +78,10 @@
     injectContentStyles() {
       if (document.getElementById('core-filer-content-styles')) return;
 
-      const style = document.createElement('style');
+      const style = document.createElement('link');
+      style.rel = 'stylesheet';
+      style.href = '/services/css/filer-ui.css';
       style.id = 'core-filer-content-styles';
-      style.textContent = `
-        .core-filer-items {
-          /* The host may style the content container as a grid or a flex line
-             (the datasources shell sets display:grid with 200px columns). This
-             wrapper would then be laid out as ONE cell of that grid, squeezing
-             the whole listing into a single 200px column. Spanning every column
-             and filling the width makes the panel independent of whatever the
-             host decided its container should be. */
-          grid-column: 1 / -1;
-          flex: 1 1 100%;
-          width: 100%;
-          box-sizing: border-box;
-        }
-
-        /* ── Grid view ─────────────────────────────────────────────────── */
-        .core-filer-items.core-filer-grid {
-          display: grid;
-          /* Was a fixed 6 columns, which is unusably narrow in a side panel and
-             sparse on a wide one. Tracks now size themselves to the container. */
-          grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
-          gap: 6px;
-          padding: 12px;
-          align-content: start;
-        }
-
-        .core-filer-tile {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 10px;
-          padding: 16px 10px 14px;
-          border: 1px solid transparent;
-          border-radius: 10px;
-          cursor: pointer;
-          text-align: center;
-          user-select: none;
-          background: transparent;
-          transition: background-color .12s ease, border-color .12s ease;
-        }
-        .core-filer-tile:hover {
-          background: var(--core-filer-hover-bg, var(--accent-tint, #FFF4EE));
-          border-color: var(--core-filer-hover-border, var(--accent-soft, #FCE3D6));
-        }
-        .core-filer-tile:focus-visible {
-          outline: 2px solid var(--core-filer-accent, var(--accent, #C2471F));
-          outline-offset: 1px;
-        }
-
-        .core-filer-tile-icon {
-          /* 3rem icons left no room for the label, which is what forced the
-             two-line mid-word truncation ("L2 Admi…"). */
-          font-size: 1.9rem;
-          line-height: 1;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          height: 34px;
-        }
-        .core-filer-tile-icon.core-is-folder { color: var(--core-filer-folder, var(--teal, #2B7F86)); }
-        .core-filer-tile-icon.core-is-file   { color: var(--core-filer-file, var(--neutral-dot, #8F837C)); }
-
-        .core-filer-tile-name {
-          font-size: 0.8125rem;
-          line-height: 1.35;
-          color: var(--core-filer-text, var(--ink, #241C1A));
-          /* overflow-wrap:anywhere breaks a word only when it genuinely does
-             not fit, where word-break:break-word chopped every label. */
-          overflow-wrap: anywhere;
-          display: -webkit-box;
-          -webkit-line-clamp: 2;
-          -webkit-box-orient: vertical;
-          overflow: hidden;
-          max-width: 100%;
-        }
-        .core-filer-tile-meta {
-          font-size: 0.6875rem;
-          color: var(--core-filer-muted, var(--muted, #6B605A));
-        }
-
-        /* ── List view ─────────────────────────────────────────────────── */
-        .core-filer-items.core-filer-list { display: block; padding: 0; }
-        .core-filer-row {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          padding: 9px 16px;
-          border-bottom: 1px solid var(--core-filer-line, var(--divider, #F0E9E4));
-          cursor: pointer;
-          transition: background-color .12s ease;
-        }
-        .core-filer-row:hover { background: var(--core-filer-hover-bg, var(--accent-tint, #FFF4EE)); }
-        .core-filer-row-head {
-          font-weight: 600;
-          font-size: 0.75rem;
-          letter-spacing: .04em;
-          text-transform: uppercase;
-          color: var(--core-filer-muted, var(--muted, #6B605A));
-          background: var(--core-filer-head-bg, var(--surface-sunken, #FBF8F6));
-          cursor: default;
-          position: sticky;
-          top: 0;
-          z-index: 1;
-        }
-        .core-filer-row-head:hover { background: var(--core-filer-head-bg, var(--surface-sunken, #FBF8F6)); }
-        .core-filer-row-icon {
-          width: 20px;
-          flex: 0 0 20px;
-          display: flex;
-          justify-content: center;
-          font-size: 1rem;
-        }
-        .core-filer-row-icon.core-is-folder { color: var(--core-filer-folder, var(--teal, #2B7F86)); }
-        .core-filer-row-icon.core-is-file   { color: var(--core-filer-file, var(--neutral-dot, #8F837C)); }
-        .core-filer-row-name {
-          flex: 1;
-          min-width: 0;
-          font-size: 0.8125rem;
-          color: var(--core-filer-text, var(--ink, #241C1A));
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
-        }
-        .core-filer-row-date {
-          width: 130px;
-          flex: 0 0 130px;
-          text-align: right;
-          font-size: 0.75rem;
-          color: var(--core-filer-muted, var(--muted, #6B605A));
-        }
-
-        /* ── File viewer ───────────────────────────────────────────────── */
-        /* The viewer emitted core-file-preview* classes that NO stylesheet
-           defined — not this component's (it had none) and not the hosts'. So a
-           previewed document rendered as unstyled body copy, inside the same
-           single 200px host-grid cell that squashed the listing: a tall narrow
-           column of text with its own scrollbar, stranded on the left. */
-        .core-file-preview {
-          grid-column: 1 / -1;
-          flex: 1 1 100%;
-          width: 100%;
-          min-width: 0;
-          box-sizing: border-box;
-          display: flex;
-          flex-direction: column;
-          background: #fff;
-          border: 1px solid var(--core-filer-line, var(--border, #E6DED8));
-          border-radius: 10px;
-          overflow: hidden;
-        }
-
-        .core-file-preview-header {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          padding: 10px 14px;
-          border-bottom: 1px solid var(--core-filer-line, var(--border, #E6DED8));
-          background: var(--core-filer-head-bg, var(--surface-sunken, #FBF8F6));
-          flex: 0 0 auto;
-        }
-        .core-file-preview-title {
-          flex: 1;
-          min-width: 0;
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          font-size: 0.875rem;
-          font-weight: 600;
-          color: var(--core-filer-text, var(--ink, #241C1A));
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
-        }
-        .core-file-preview-title i { color: var(--core-filer-file, var(--neutral-dot, #8F837C)); flex: 0 0 auto; }
-        .core-file-preview-actions { display: flex; gap: 6px; flex: 0 0 auto; }
-
-        .core-file-preview-content {
-          flex: 1 1 auto;
-          min-height: 0;
-          overflow: auto;
-          padding: 22px 26px;
-          font-size: 0.875rem;
-          line-height: 1.6;
-          color: var(--core-filer-text, var(--ink, #241C1A));
-        }
-
-        /* Rendered markdown. Capped to a readable measure and CENTRED, rather
-           than running the full width of a wide panel. */
-        .core-markdown-content { max-width: 78ch; margin: 0 auto; }
-        .core-markdown-content > :first-child { margin-top: 0; }
-        .core-markdown-content h1,
-        .core-markdown-content h2,
-        .core-markdown-content h3 {
-          line-height: 1.25;
-          margin: 1.6em 0 .6em;
-          color: var(--core-filer-text, var(--ink, #241C1A));
-        }
-        .core-markdown-content h1 { font-size: 1.5rem; padding-bottom: .3em; border-bottom: 1px solid var(--core-filer-line, var(--border, #E6DED8)); }
-        .core-markdown-content h2 { font-size: 1.2rem; }
-        .core-markdown-content h3 { font-size: 1.02rem; }
-        .core-markdown-content p { margin: 0 0 1em; }
-        .core-markdown-content ul,
-        .core-markdown-content ol { margin: 0 0 1em; padding-left: 1.4em; }
-        .core-markdown-content li { margin: .25em 0; }
-        .core-markdown-content a { color: var(--core-filer-accent, var(--accent, #C2471F)); }
-        .core-markdown-content img { max-width: 100%; height: auto; border-radius: 6px; }
-        .core-markdown-content blockquote {
-          margin: 0 0 1em;
-          padding: .2em 1em;
-          border-left: 3px solid var(--core-filer-line, var(--border, #E6DED8));
-          color: var(--core-filer-muted, var(--muted, #6B605A));
-        }
-        .core-markdown-content code {
-          font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-          font-size: .875em;
-          background: var(--core-filer-head-bg, var(--surface-sunken, #FBF8F6));
-          border: 1px solid var(--core-filer-line, var(--border, #E6DED8));
-          border-radius: 4px;
-          padding: .1em .35em;
-        }
-        .core-markdown-content pre {
-          background: var(--core-filer-head-bg, var(--surface-sunken, #FBF8F6));
-          border: 1px solid var(--core-filer-line, var(--border, #E6DED8));
-          border-radius: 8px;
-          padding: 12px 14px;
-          overflow-x: auto;
-        }
-        .core-markdown-content pre code { background: none; border: 0; padding: 0; }
-        .core-markdown-content table { border-collapse: collapse; width: 100%; margin: 0 0 1em; font-size: .8125rem; }
-        .core-markdown-content th,
-        .core-markdown-content td { border: 1px solid var(--core-filer-line, var(--border, #E6DED8)); padding: 6px 10px; text-align: left; }
-        .core-markdown-content th { background: var(--core-filer-head-bg, var(--surface-sunken, #FBF8F6)); font-weight: 600; }
-        .core-markdown-content hr { border: 0; border-top: 1px solid var(--core-filer-line, var(--border, #E6DED8)); margin: 1.6em 0; }
-
-        /* Code / JSON / plain text */
-        .core-file-preview-content.formatted-text,
-        .core-file-preview-content:not(.core-markdown-content) pre { padding: 0; }
-        .core-file-preview-content pre {
-          margin: 0;
-          font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-          font-size: .8125rem;
-          line-height: 1.55;
-          white-space: pre;
-          overflow-x: auto;
-        }
-
-        .binary-file-notice {
-          display: flex;
-          align-items: center;
-          gap: 14px;
-          margin: 22px;
-          padding: 16px 18px;
-          border: 1px solid var(--core-filer-line, var(--border, #E6DED8));
-          border-radius: 10px;
-          background: var(--core-filer-head-bg, var(--surface-sunken, #FBF8F6));
-          color: var(--core-filer-text, var(--ink, #241C1A));
-          font-size: .8125rem;
-        }
-        .binary-file-notice i { font-size: 1.6rem; color: var(--core-filer-file, var(--neutral-dot, #8F837C)); }
-        .binary-file-notice a { color: var(--core-filer-accent, var(--accent, #C2471F)); }
-
-        /* ── Empty state ───────────────────────────────────────────────── */
-        .core-filer-empty {
-          grid-column: 1 / -1;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          gap: 6px;
-          padding: 56px 20px;
-          color: var(--core-filer-muted, var(--muted, #6B605A));
-          text-align: center;
-        }
-        .core-filer-empty i { font-size: 1.75rem; opacity: .55; }
-        .core-filer-empty-title { font-size: 0.875rem; font-weight: 600; color: var(--core-filer-text, var(--ink, #241C1A)); }
-        .core-filer-empty-hint { font-size: 0.75rem; }
-
-        @media (max-width: 720px) {
-          .core-filer-items.core-filer-grid { grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); }
-          .core-filer-row-date { display: none; }
-        }
-      `;
       document.head.appendChild(style);
     }
 
@@ -1078,14 +799,14 @@
         // in the panel rather than solid black, which read as a rendering fault
         // beside the teal folders in the navigation tree.
         if (item.type === 'folder') {
-          previewContainer.innerHTML = '<i class="bi bi-folder-fill" style="font-size: 2.75rem; color: var(--core-filer-folder, var(--teal, #2B7F86));"></i>';
+          previewContainer.innerHTML = '<i class="inline-95e2af91 bi bi-folder-fill"></i>';
         } else {
           // For files, load preview
           const fileName = item.name.toLowerCase();
           const filePath = item.path || `${this.currentPath}/${item.name}`;
 
           // Show loading spinner while preview loads
-          previewContainer.innerHTML = '<div style="font-size: 0.8rem; color: #999;"><i class="bi bi-file-earmark" style="font-size: 2rem; display: block; margin-bottom: 0.5rem;"></i>Loading...</div>';
+          previewContainer.innerHTML = '<div class="inline-ffe5b19c"><i class="inline-39456bb3 bi bi-file-earmark"></i>Loading...</div>';
 
           // Load preview asynchronously
           this.loadGridItemPreview(previewContainer, filePath, fileName);
@@ -1150,7 +871,7 @@
           };
 
           img.onerror = () => {
-            container.innerHTML = '<div style="font-size: 0.8rem; color: #999;"><i class="bi bi-image" style="font-size: 2rem; display: block; margin-bottom: 0.5rem;"></i>Image</div>';
+            container.innerHTML = '<div class="inline-ffe5b19c"><i class="inline-39456bb3 bi bi-image"></i>Image</div>';
           };
 
           return;
@@ -1158,7 +879,7 @@
 
         // Handle PDF files
         if (this.isPdfFile(filePath)) {
-          container.innerHTML = '<div style="font-size: 0.8rem; color: #999;"><i class="bi bi-file-pdf" style="font-size: 2rem; display: block; margin-bottom: 0.5rem; color: #dc3545;"></i>PDF</div>';
+          container.innerHTML = '<div class="inline-ffe5b19c"><i class="inline-00a6b0ea bi bi-file-pdf"></i>PDF</div>';
           return;
         }
 
@@ -1170,7 +891,7 @@
 
           // Show first 200 characters as text preview
           const preview = content.substring(0, 200).replace(/\n/g, ' ');
-          container.innerHTML = `<div style="padding: 0.75rem; font-size: 0.75rem; color: #666; line-height: 1.4; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; word-break: break-word;">${this.escapeHtml(preview)}</div>`;
+          container.innerHTML = `<div class="inline-2e38a0e9">${this.escapeHtml(preview)}</div>`;
           return;
         }
 
@@ -1192,13 +913,13 @@
         };
 
         const icon = iconMap[ext] || 'bi-file-earmark';
-        container.innerHTML = `<div style="font-size: 0.8rem; color: #999;"><i class="bi ${icon}" style="font-size: 2rem; display: block; margin-bottom: 0.5rem;"></i>${ext.toUpperCase()}</div>`;
+        container.innerHTML = `<div class="inline-ffe5b19c"><i class="inline-39456bb3 bi ${icon}"></i>${ext.toUpperCase()}</div>`;
 
       } catch (error) {
         console.warn(`Failed to load grid preview for ${fileName}:`, error);
         // Fallback to file type icon
         const ext = fileName.split('.').pop().toLowerCase();
-        container.innerHTML = `<div style="font-size: 0.8rem; color: #999;"><i class="bi bi-file-earmark" style="font-size: 2rem; display: block; margin-bottom: 0.5rem;"></i>${ext.toUpperCase()}</div>`;
+        container.innerHTML = `<div class="inline-ffe5b19c"><i class="inline-39456bb3 bi bi-file-earmark"></i>${ext.toUpperCase()}</div>`;
       }
     }
 
@@ -1263,13 +984,13 @@
 
       // Display PDF in embed viewer directly
       content.innerHTML = `
-        <div class="pdf-viewer-container" style="display: flex; flex-direction: column; height: 100%;">
-          <div style="flex: 1; overflow: auto;">
+        <div class="inline-03430957 pdf-viewer-container">
+          <div class="inline-5e563cd4">
             <embed
               src="${pdfUrl}"
               type="application/pdf"
-              class="pdf-embed"
-              style="width: 100%; height: 100%; min-height: 500px;"
+              class="inline-06d5b19a pdf-embed"
+             
               title="${this.escapeHtml(fileName)}"
             />
           </div>
@@ -1427,11 +1148,11 @@
       const content = document.createElement('div');
       content.className = 'core-file-preview-content core-binary-content';
       content.innerHTML = `
-        <div style="text-align: center; padding: 2rem;">
-          <i class="bi bi-file" style="font-size: 3rem; color: #6c757d; margin-bottom: 1rem; display: block;"></i>
+        <div class="inline-8985a0e5">
+          <i class="inline-274661bf bi bi-file"></i>
           <p><strong>${this.escapeHtml(fileName)}</strong></p>
-          <p style="color: #6c757d; margin-bottom: 1.5rem;">Type: <code>${fileExt.toUpperCase()}</code></p>
-          <p style="color: #999; margin-bottom: 1.5rem; font-size: 0.9rem;">This file cannot be previewed in the browser</p>
+          <p class="inline-082c9fbc">Type: <code>${fileExt.toUpperCase()}</code></p>
+          <p class="inline-b32853bf">This file cannot be previewed in the browser</p>
           <button class="btn btn-primary" id="binaryDownloadBtn">
             <i class="bi bi-download"></i> Download File
           </button>
@@ -1634,12 +1355,12 @@
         if (this.isPdfFile(filePath)) {
           const pdfUrl = `${this.buildInstanceUrl('/download')}/${encodeURIComponent(filePath)}`;
           content.innerHTML = `
-            <div class="pdf-viewer-container" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
+            <div class="inline-f691a62b pdf-viewer-container">
               <embed
                 src="${pdfUrl}"
                 type="application/pdf"
-                class="pdf-embed"
-                style="width: 100%; height: 100%;"
+                class="inline-559371d6 pdf-embed"
+               
                 title="${this.escapeHtml(fileName)}"
               />
             </div>
@@ -1649,8 +1370,8 @@
         else if (this.isImageFile(filePath)) {
           const imgUrl = `${this.buildInstanceUrl('/download')}/${encodeURIComponent(filePath)}`;
           content.innerHTML = `
-            <div style="display: flex; align-items: center; justify-content: center; height: 100%;">
-              <img src="${imgUrl}" alt="${this.escapeHtml(fileName)}" style="max-width: 100%; max-height: 100%; object-fit: contain;" />
+            <div class="inline-4a9941d3">
+              <img src="${imgUrl}" alt="${this.escapeHtml(fileName)}" class="inline-8e813ce7" />
             </div>
           `;
         }
@@ -1677,11 +1398,11 @@
           const fileExt = filePath.split('.').pop().toLowerCase();
           const downloadUrl = `${this.buildInstanceUrl('/download')}/${encodeURIComponent(filePath)}?attachment=true`;
           content.innerHTML = `
-            <div style="text-align: center; padding: 2rem; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%;">
-              <i class="bi bi-file" style="font-size: 4rem; color: #6c757d; margin-bottom: 1rem;"></i>
+            <div class="inline-3f69855c">
+              <i class="inline-a9420062 bi bi-file"></i>
               <p><strong>${this.escapeHtml(fileName)}</strong></p>
-              <p style="color: #6c757d; margin-bottom: 1.5rem;">Type: <code>${fileExt.toUpperCase()}</code></p>
-              <p style="color: #999; margin-bottom: 1.5rem; font-size: 0.9rem;">This file cannot be previewed in the browser</p>
+              <p class="inline-082c9fbc">Type: <code>${fileExt.toUpperCase()}</code></p>
+              <p class="inline-b32853bf">This file cannot be previewed in the browser</p>
               <button class="btn btn-primary" id="modalDownloadBtn">
                 <i class="bi bi-download"></i> Download File
               </button>

@@ -195,11 +195,7 @@ function createServicesAuthMiddleware(serviceRegistry) {
           <head>
             <title>Authenticating...</title>
             <meta http-equiv="refresh" content="0;url=/services/authservice/views/login.html?returnUrl=${encodeURIComponent(req.path)}">
-            <style>
-              body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
-              .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 40px; height: 40px; animation: spin 2s linear infinite; margin: 20px auto; }
-              @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-            </style>
+            <link rel="stylesheet" href="/services/css/services-checking.css">
           </head>
           <body>
             <h2>Checking authentication...</h2>

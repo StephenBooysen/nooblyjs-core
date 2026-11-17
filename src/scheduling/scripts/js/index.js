@@ -51,211 +51,6 @@
    * Namespaced styles for the panel.
    * @const {string}
    */
-  const STYLES = `
-.njsc-root {
-  --njsc-ink: var(--ink, #241C1A);
-  --njsc-ink-2: var(--ink-2, #4A3F3A);
-  --njsc-muted: var(--muted, #6B605A);
-  --njsc-faint: var(--neutral-dot, #8F837C);
-  --njsc-line: var(--border, #E6DED8);
-  --njsc-line-2: var(--divider, #F0E9E4);
-  --njsc-surface: var(--surface, #ffffff);
-  --njsc-surface-2: var(--surface-sunken, #FBF8F6);
-  --njsc-bg: var(--bg, #F5F1EE);
-  --njsc-accent: var(--accent, #C2471F);
-  --njsc-accent-ink: var(--surface, #ffffff);
-  --njsc-success: var(--core-success, #1F7A4D);
-  --njsc-warn: var(--warn-dot, #8A6500);
-  --njsc-danger: var(--danger, #B42335);
-  --njsc-info: var(--core-info, #2F5F9E);
-  --njsc-radius: var(--radius-md, 12px);
-  --njsc-mono: var(--mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace);
-  font-family: inherit;
-  color: var(--njsc-ink);
-  font-size: 13px;
-  line-height: 1.45;
-  box-sizing: border-box;
-  min-width: 0;
-  scroll-margin-top: 80px;
-  position: relative;
-}
-.njsc-root *, .njsc-root *::before, .njsc-root *::after { box-sizing: inherit; }
-.njsc-root button { font: inherit; }
-.njsc-root svg { flex: none; }
-
-.njsc-tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--njsc-line); margin-bottom: 16px; overflow-x: auto; }
-.njsc-tab {
-  appearance: none; background: none; border: 0; border-bottom: 2px solid transparent;
-  padding: 9px 12px; color: var(--njsc-muted); font-weight: 600; cursor: pointer;
-  display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; margin-bottom: -1px;
-}
-.njsc-tab:hover { color: var(--njsc-ink); }
-.njsc-tab[aria-selected="true"] { color: var(--njsc-ink); border-bottom-color: var(--njsc-accent); }
-.njsc-tab .njsc-count {
-  font-size: 11px; font-weight: 600; background: var(--njsc-line-2); color: var(--njsc-muted);
-  border-radius: 999px; padding: 0 7px; font-variant-numeric: tabular-nums;
-}
-
-.njsc-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
-.njsc-title { font-size: 16px; font-weight: 700; margin: 0; }
-.njsc-sub { font-size: 12px; color: var(--njsc-muted); margin: 2px 0 0; }
-.njsc-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; min-width: 0; }
-.njsc-row.tight { gap: 4px; flex-wrap: nowrap; justify-content: flex-end; }
-.njsc-spacer { flex: 1 1 auto; }
-.njsc-muted { color: var(--njsc-muted); }
-.njsc-faint { color: var(--njsc-faint); }
-.njsc-mono { font-family: var(--njsc-mono); font-size: 12px; }
-.njsc-small { font-size: 12px; }
-.njsc-nowrap { white-space: nowrap; }
-
-.njsc-btn {
-  appearance: none; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
-  border: 1px solid var(--njsc-line); background: var(--njsc-surface); color: var(--njsc-ink);
-  border-radius: 8px; padding: 6px 11px; font-weight: 600; font-size: 12.5px; cursor: pointer;
-  line-height: 1.3; white-space: nowrap;
-}
-.njsc-btn:hover { background: var(--njsc-surface-2); border-color: var(--njsc-faint); }
-.njsc-btn:focus-visible, .njsc-chip:focus-visible, .njsc-tab:focus-visible, .njsc-group-head:focus-visible {
-  outline: 2px solid var(--njsc-info); outline-offset: 1px;
-}
-.njsc-btn[disabled] { opacity: .5; cursor: not-allowed; }
-.njsc-btn.primary { background: var(--njsc-accent); border-color: var(--njsc-accent); color: var(--njsc-accent-ink); }
-.njsc-btn.primary:hover { filter: brightness(1.08); }
-.njsc-btn.danger { color: var(--njsc-danger); }
-.njsc-btn.danger:hover { border-color: var(--njsc-danger); }
-.njsc-btn.ghost { border-color: transparent; background: transparent; }
-.njsc-btn.icon { padding: 5px; width: 28px; height: 28px; }
-.njsc-btn.icon.on { color: var(--njsc-warn); }
-
-.njsc-input, .njsc-select, .njsc-textarea {
-  width: 100%; border: 1px solid var(--njsc-line); border-radius: 8px; padding: 7px 10px;
-  background: var(--njsc-surface); color: var(--njsc-ink); font: inherit; font-size: 13px; min-width: 0;
-}
-.njsc-textarea { min-height: 90px; resize: vertical; font-family: var(--njsc-mono); font-size: 12px; }
-.njsc-input:focus, .njsc-select:focus, .njsc-textarea:focus { outline: 2px solid var(--njsc-info); outline-offset: -1px; }
-.njsc-input.mono { font-family: var(--njsc-mono); font-size: 12.5px; }
-.njsc-search { position: relative; flex: 1 1 260px; max-width: 420px; }
-.njsc-search svg { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--njsc-faint); }
-.njsc-search .njsc-input { padding-left: 32px; }
-
-.njsc-chip {
-  appearance: none; display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--njsc-line);
-  background: var(--njsc-surface); color: var(--njsc-muted); border-radius: 999px; padding: 4px 11px;
-  font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap;
-}
-.njsc-chip:hover { color: var(--njsc-ink); }
-.njsc-chip[aria-pressed="true"] { background: var(--njsc-ink); border-color: var(--njsc-ink); color: var(--njsc-surface); }
-.njsc-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; display: inline-block; flex: none; }
-
-.njsc-card { background: var(--njsc-surface); border: 1px solid var(--njsc-line); border-radius: var(--njsc-radius); min-width: 0; }
-.njsc-card.pad { padding: 14px 16px; }
-.njsc-toolbar { padding: 12px 14px; margin-bottom: 16px; display: flex; flex-direction: column; gap: 10px; }
-
-.njsc-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-bottom: 16px; }
-.njsc-stat { background: var(--njsc-surface); border: 1px solid var(--njsc-line); border-radius: var(--njsc-radius); padding: 10px 14px; }
-.njsc-stat .l { font-size: 11px; color: var(--njsc-muted); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
-.njsc-stat .v { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.2; margin-top: 2px; }
-
-.njsc-groups { display: flex; flex-direction: column; gap: 14px; }
-.njsc-group { border: 1px solid var(--njsc-line); border-radius: var(--njsc-radius); background: var(--njsc-surface); overflow: hidden; min-width: 0; }
-.njsc-group-head {
-  appearance: none; width: 100%; border: 0; background: var(--njsc-surface-2); color: inherit; text-align: left;
-  display: flex; align-items: center; gap: 10px; padding: 10px 14px; cursor: pointer;
-}
-.njsc-group-head .name { font-weight: 700; }
-.njsc-group-head .meta { font-size: 11.5px; color: var(--njsc-muted); }
-.njsc-group-head .njsc-count { margin-left: auto; font-size: 11px; font-weight: 700; background: var(--njsc-line-2); border-radius: 999px; padding: 1px 8px; color: var(--njsc-muted); }
-.njsc-group.open .njsc-group-head { border-bottom: 1px solid var(--njsc-line); }
-
-.njsc-table-wrap { overflow-x: auto; position: relative; }
-.njsc-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
-.njsc-table th {
-  text-align: left; font-size: 11px; font-weight: 700; color: var(--njsc-muted); text-transform: uppercase;
-  letter-spacing: .04em; padding: 8px 12px; border-bottom: 1px solid var(--njsc-line); white-space: nowrap;
-}
-.njsc-table td { padding: 9px 12px; border-bottom: 1px solid var(--njsc-line-2); vertical-align: middle; }
-.njsc-table tr:last-child td { border-bottom: 0; }
-.njsc-table tbody tr:hover td { background: var(--njsc-surface-2); }
-.njsc-cell { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-width: 0; }
-.njsc-cell .s { align-self: stretch; }
-.njsc-cell .t { font-weight: 600; color: var(--njsc-ink); }
-.njsc-cell .s { font-size: 11.5px; color: var(--njsc-muted); max-width: 460px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.njsc-link { appearance: none; background: none; border: 0; padding: 0; color: inherit; font-weight: 600; cursor: pointer; text-align: left; }
-.njsc-link:hover { text-decoration: underline; }
-
-.njsc-pill {
-  display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 2px 9px;
-  font-size: 11.5px; font-weight: 600; white-space: nowrap;
-  color: var(--njsc-muted); background: var(--njsc-line-2);
-}
-.njsc-pill.success { color: var(--njsc-success); background: color-mix(in srgb, var(--njsc-success) 12%, transparent); }
-.njsc-pill.failed { color: var(--njsc-danger); background: color-mix(in srgb, var(--njsc-danger) 12%, transparent); }
-.njsc-pill.running { color: var(--njsc-info); background: color-mix(in srgb, var(--njsc-info) 12%, transparent); }
-.njsc-pill.running .njsc-dot { animation: njsc-pulse 1.2s ease-in-out infinite; }
-.njsc-pill.warn { color: var(--njsc-warn); background: color-mix(in srgb, var(--njsc-warn) 14%, transparent); }
-@keyframes njsc-pulse { 50% { opacity: .3; } }
-@media (prefers-reduced-motion: reduce) { .njsc-pill.running .njsc-dot { animation: none; } }
-.njsc-tag { display: inline-block; font-size: 11px; background: var(--njsc-line-2); color: var(--njsc-ink-2); border-radius: 5px; padding: 1px 6px; margin: 0 4px 2px 0; }
-.njsc-code-inline { font-family: var(--njsc-mono); font-size: 11.5px; background: var(--njsc-line-2); border-radius: 4px; padding: 1px 6px; white-space: nowrap; }
-
-.njsc-empty { text-align: center; padding: 36px 16px; color: var(--njsc-muted); }
-.njsc-empty .h { font-size: 14px; font-weight: 700; color: var(--njsc-ink); margin: 8px 0 4px; }
-.njsc-empty svg { color: var(--njsc-faint); }
-.njsc-footer { margin-top: 14px; text-align: center; font-size: 12px; color: var(--njsc-muted); }
-.njsc-loading { padding: 32px; text-align: center; color: var(--njsc-muted); }
-.njsc-error { border: 1px solid color-mix(in srgb, var(--njsc-danger) 40%, transparent); background: color-mix(in srgb, var(--njsc-danger) 7%, transparent); color: var(--njsc-danger); border-radius: var(--njsc-radius); padding: 12px 14px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-
-.njsc-form { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 16px; align-items: start; }
-@media (max-width: 860px) { .njsc-form { grid-template-columns: minmax(0, 1fr); } }
-.njsc-field { margin-bottom: 14px; min-width: 0; }
-.njsc-field:last-child { margin-bottom: 0; }
-.njsc-label { display: block; font-size: 11.5px; font-weight: 700; color: var(--njsc-ink-2); margin-bottom: 5px; }
-.njsc-label .req { color: var(--njsc-danger); }
-.njsc-help { font-size: 11.5px; color: var(--njsc-muted); margin-top: 5px; display: flex; gap: 5px; align-items: flex-start; }
-.njsc-help.ok { color: var(--njsc-success); }
-.njsc-help.bad { color: var(--njsc-danger); }
-.njsc-grid2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; }
-@media (max-width: 600px) { .njsc-grid2 { grid-template-columns: minmax(0, 1fr); } }
-.njsc-steps { display: flex; flex-direction: column; gap: 6px; }
-.njsc-step { display: grid; grid-template-columns: 26px minmax(0, 1fr) auto; gap: 8px; align-items: center; }
-.njsc-step-num { width: 24px; height: 24px; border-radius: 50%; background: var(--njsc-line-2); color: var(--njsc-muted); font-size: 11px; font-weight: 700; display: grid; place-items: center; }
-.njsc-seg { display: inline-flex; border: 1px solid var(--njsc-line); border-radius: 8px; overflow: hidden; }
-.njsc-seg button { appearance: none; border: 0; background: var(--njsc-surface); color: var(--njsc-muted); padding: 5px 12px; font-weight: 600; font-size: 12px; cursor: pointer; }
-.njsc-seg button[aria-pressed="true"] { background: var(--njsc-ink); color: var(--njsc-surface); }
-.njsc-side h3 { font-size: 13px; margin: 0 0 8px; }
-.njsc-side p { margin: 0 0 12px; font-size: 12px; color: var(--njsc-muted); }
-.njsc-side .njsc-btn { width: 100%; margin-bottom: 8px; }
-.njsc-kv { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 16px; }
-.njsc-kv .k { font-size: 11px; font-weight: 700; color: var(--njsc-muted); text-transform: uppercase; letter-spacing: .04em; }
-.njsc-kv .v { margin-top: 2px; overflow-wrap: anywhere; }
-.njsc-pre {
-  font-family: var(--njsc-mono); font-size: 11.5px; background: var(--njsc-surface-2); border: 1px solid var(--njsc-line);
-  border-radius: 8px; padding: 10px 12px; max-height: 360px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; margin: 0;
-}
-.njsc-pre.err { color: var(--njsc-danger); border-color: color-mix(in srgb, var(--njsc-danger) 35%, transparent); }
-.njsc-section { margin-top: 18px; }
-.njsc-section > .njsc-label { margin-bottom: 8px; }
-.njsc-timeline { display: flex; flex-direction: column; gap: 6px; }
-.njsc-tl-item { border: 1px solid var(--njsc-line); border-radius: 8px; }
-.njsc-tl-item summary { display: grid; grid-template-columns: 26px minmax(0, 1fr) auto auto; gap: 10px; align-items: center; padding: 8px 10px; cursor: pointer; list-style: none; }
-.njsc-tl-item summary::-webkit-details-marker { display: none; }
-.njsc-tl-item .body { padding: 0 10px 10px 46px; }
-.njsc-banner { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 12px 14px; margin-bottom: 16px; }
-.njsc-banner .t { font-weight: 700; }
-.njsc-inline-note { font-size: 12px; color: var(--njsc-muted); }
-
-.njsc-toasts { position: fixed; right: 16px; bottom: 16px; display: flex; flex-direction: column; gap: 8px; z-index: 2147483000; max-width: min(360px, calc(100vw - 32px)); pointer-events: none; }
-.njsc-toast {
-  pointer-events: auto; background: var(--njsc-ink); color: var(--njsc-surface); border-radius: 8px; padding: 9px 12px;
-  font-size: 12.5px; box-shadow: 0 8px 24px rgba(0,0,0,.18); display: flex; gap: 8px; align-items: flex-start;
-}
-.njsc-toast.danger { background: var(--njsc-danger); color: #fff; }
-.njsc-toast.success { background: var(--njsc-success); color: #fff; }
-.njsc-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-@media (max-width: 640px) {
-  .njsc-table th.njsc-hide-sm, .njsc-table td.njsc-hide-sm { display: none; }
-}
-`;
 
   /**
    * Inline SVG icon paths (24x24, stroke-based).
@@ -731,9 +526,10 @@
      */
     injectStyles_() {
       if (document.getElementById(STYLE_ID)) return;
-      const style = document.createElement('style');
+      const style = document.createElement('link');
+      style.rel = 'stylesheet';
+      style.href = '/services/css/scheduling-ui.css';
       style.id = STYLE_ID;
-      style.textContent = STYLES;
       document.head.appendChild(style);
     }
 
@@ -860,7 +656,7 @@
      */
     empty_(iconName, heading, text, action) {
       return `<div class="njsc-card"><div class="njsc-empty">${icon(iconName, 26)}<div class="h">${esc(heading)}</div>
-        <div class="njsc-small">${esc(text)}</div>${action ? `<div style="margin-top:14px">${action}</div>` : ''}</div></div>`;
+        <div class="njsc-small">${esc(text)}</div>${action ? `<div class="inline-d6f2af6e">${action}</div>` : ''}</div></div>`;
     }
 
     /**
@@ -927,7 +723,7 @@
       const tip = [fmtDateTime(at), bucket === 'failed' && t.lastError ? t.lastError : ''].filter(Boolean).join(' · ');
       const runs = t.executionCount ? `${t.executionCount} run${t.executionCount === 1 ? '' : 's'}` : '';
       return `<div class="njsc-cell" title="${esc(tip)}">
-        <span class="njsc-row" style="gap:6px;flex-wrap:nowrap">${pill(bucket)}<span class="njsc-muted njsc-small njsc-nowrap">${esc(timeAgo(at))}</span></span>
+        <span class="inline-408b446d njsc-row">${pill(bucket)}<span class="njsc-muted njsc-small njsc-nowrap">${esc(timeAgo(at))}</span></span>
         <span class="s">${esc(runs)}${t.lastDurationMs !== null && t.lastDurationMs !== undefined ? ` · ${esc(fmtDuration(t.lastDurationMs))}` : ''}${bucket === 'failed' && t.lastError ? ` · ${esc(t.lastError)}` : ''}</span></div>`;
     }
 
@@ -962,17 +758,17 @@
         ${ro ? '' : `<button class="njsc-btn primary" type="button" data-action="new-schedule">${icon('plus', 13)} New schedule</button>`}`;
       const stats = st ? `<div class="njsc-stats">
         <div class="njsc-stat"><div class="l">Schedules</div><div class="v">${st.total}</div></div>
-        <div class="njsc-stat"><div class="l">Enabled</div><div class="v" style="color:var(--njsc-success)">${st.enabled}</div></div>
+        <div class="njsc-stat"><div class="l">Enabled</div><div class="inline-9fb34ef3 v">${st.enabled}</div></div>
         <div class="njsc-stat"><div class="l">Paused</div><div class="v">${st.paused}</div></div>
-        <div class="njsc-stat"><div class="l">Last run failed</div><div class="v" style="color:${st.failing ? 'var(--njsc-danger)' : 'inherit'}">${st.failing}</div></div>
+        <div class="njsc-stat"><div class="l">Last run failed</div><div class="v${st.failing ? ' njsc-tone-danger' : ''}">${st.failing}</div></div>
         <div class="njsc-stat"><div class="l">Runs recorded</div><div class="v">${st.totalExecutions}</div></div>
-        <div class="njsc-stat"><div class="l">Active jobs</div><div class="v">${st.activeJobs}<span class="njsc-muted" style="font-size:13px;font-weight:600"> / ${st.maxConcurrentJobs}</span></div></div>
+        <div class="njsc-stat"><div class="l">Active jobs</div><div class="v">${st.activeJobs}<span class="inline-eb673ec6 njsc-muted"> / ${st.maxConcurrentJobs}</span></div></div>
       </div>` : '';
       const chip = (value, label) => `<button class="njsc-chip" type="button" aria-pressed="${this.ui.statusFilter === value}" data-action="status-filter" data-value="${value}">${esc(label)}</button>`;
 
       const table = items => `<table class="njsc-table">
-        <thead><tr><th>Schedule</th><th style="width:170px">Cadence</th><th style="width:160px">Next run</th>
-          <th style="width:230px">Last run</th><th style="width:100px">Status</th><th style="width:190px"><span class="njsc-sr">Actions</span></th></tr></thead>
+        <thead><tr><th>Schedule</th><th class="inline-d52ddd08">Cadence</th><th class="inline-28c0f6ec">Next run</th>
+          <th class="inline-45d1f59d">Last run</th><th class="inline-db4cf10b">Status</th><th class="inline-fc2c71fc"><span class="njsc-sr">Actions</span></th></tr></thead>
         <tbody>${items.map(t => `<tr>
           <td><div class="njsc-cell">
             ${ro ? `<span class="t">${esc(t.name)}</span>` : `<button class="njsc-link t" type="button" data-action="edit-schedule" data-name="${esc(t.name)}">${esc(t.name)}</button>`}
@@ -1021,10 +817,10 @@
       const dataStatus = f.dataError
         ? `<div class="njsc-help bad">${icon('alert', 12)} ${esc(f.dataError)}</div>`
         : `<div class="njsc-help">Passed to the script on every run. Any JSON value; leave empty for none.</div>`;
-      return `<button class="njsc-btn ghost" type="button" data-action="back" style="margin-bottom:12px">${icon('chevronLeft', 13)} Back to schedules</button>
+      return `<button class="inline-da12f285 njsc-btn ghost" type="button" data-action="back">${icon('chevronLeft', 13)} Back to schedules</button>
         <div class="njsc-form">
           <div class="njsc-card pad">
-            <h2 class="njsc-title" style="margin-bottom:14px">${editing ? `Edit ${esc(f.original)}` : 'New schedule'}</h2>
+            <h2 class="inline-2b583d73 njsc-title">${editing ? `Edit ${esc(f.original)}` : 'New schedule'}</h2>
             <div class="njsc-grid2">
               <div class="njsc-field"><label class="njsc-label" for="njsc-name">Name <span class="req">*</span></label>
                 <input id="njsc-name" class="njsc-input" data-form="name" value="${esc(f.name)}" placeholder="e.g. nightly-cleanup" autocomplete="off" ${editing ? 'readonly aria-readonly="true"' : ''}>
@@ -1045,14 +841,14 @@
             <div class="njsc-field"><label class="njsc-label" for="njsc-cron">Cron expression <span class="req">*</span></label>
               <input id="njsc-cron" class="njsc-input mono" data-form="cron" value="${esc(f.cron)}" spellcheck="false" autocomplete="off" aria-describedby="njsc-cron-status">
               <div id="njsc-cron-status" data-region="cron-status" class="njsc-help"></div>
-              <div class="njsc-row" style="margin-top:8px">${CRON_PRESETS.map(([expr, label]) =>
+              <div class="inline-8a77e5a3 njsc-row">${CRON_PRESETS.map(([expr, label]) =>
     `<button class="njsc-chip" type="button" aria-pressed="${f.cron === expr}" data-action="cron-preset" data-cron="${esc(expr)}">${esc(label)}</button>`).join('')}</div>
               <div class="njsc-help">minute · hour · day-of-month · month · day-of-week — numbers only, Sunday is 0. Times are the server's local time.</div>
             </div>` : `
             <div class="njsc-field"><label class="njsc-label" for="njsc-int">Interval <span class="req">*</span></label>
-              <div class="njsc-row" style="flex-wrap:nowrap">
-                <input id="njsc-int" class="njsc-input" type="number" min="1" step="1" data-form="intervalValue" value="${esc(f.intervalValue)}" style="max-width:140px">
-                <select class="njsc-select" data-form="intervalUnit" style="max-width:140px" aria-label="Interval unit">
+              <div class="inline-2aca6dad njsc-row">
+                <input id="njsc-int" class="inline-7a96d9ba njsc-input" type="number" min="1" step="1" data-form="intervalValue" value="${esc(f.intervalValue)}">
+                <select class="inline-7a96d9ba njsc-select" data-form="intervalUnit" aria-label="Interval unit">
                   ${Object.keys(INTERVAL_SECONDS).map(u => `<option value="${u}"${f.intervalUnit === u ? ' selected' : ''}>${u}</option>`).join('')}
                 </select></div>
               <div class="njsc-help">${editing ? 'Changing the interval restarts its timer from now.' : 'The first run happens one interval after the schedule is saved.'}</div>
@@ -1066,7 +862,7 @@
           <div class="njsc-card pad njsc-side">
             <h3>${editing ? 'Save changes' : 'Create'}</h3>
             <p>${editing ? 'Run history and counters are kept. Changing the cadence re-plans the next run from now.' : 'The schedule starts enabled unless you untick it below.'}</p>
-            ${editing ? '' : `<label class="njsc-row" style="margin-bottom:12px;font-size:12.5px"><input type="checkbox" data-form="enabled" ${f.enabled ? 'checked' : ''}> Enabled</label>`}
+            ${editing ? '' : `<label class="inline-8e737b88 njsc-row"><input type="checkbox" data-form="enabled" ${f.enabled ? 'checked' : ''}> Enabled</label>`}
             <button class="njsc-btn primary" type="button" data-action="save">${icon('check', 13)} ${editing ? 'Save schedule' : 'Create schedule'}</button>
             ${editing ? `<button class="njsc-btn" type="button" data-action="history" data-name="${esc(f.original)}">${icon('history', 13)} Run history</button>
             <button class="njsc-btn danger" type="button" data-action="delete" data-name="${esc(f.original)}">${icon('trash', 13)} Delete schedule</button>` : ''}
@@ -1149,12 +945,12 @@
       const avg = durations.length ? durations.reduce((a, b) => a + b, 0) / durations.length : 0;
       return `<div class="njsc-stats">
         <div class="njsc-stat"><div class="l">Runs shown</div><div class="v">${runs.length}</div></div>
-        <div class="njsc-stat"><div class="l">Succeeded</div><div class="v" style="color:var(--njsc-success)">${succ}</div></div>
-        <div class="njsc-stat"><div class="l">Failed</div><div class="v" style="color:${fail ? 'var(--njsc-danger)' : 'inherit'}">${fail}</div></div>
-        <div class="njsc-stat"><div class="l">Running</div><div class="v" style="color:${count('running') ? 'var(--njsc-info)' : 'inherit'}">${count('running')}</div></div>
-        <div class="njsc-stat"><div class="l">Skipped</div><div class="v" style="color:${count('skipped') ? 'var(--njsc-warn)' : 'inherit'}">${count('skipped')}</div></div>
+        <div class="njsc-stat"><div class="l">Succeeded</div><div class="inline-9fb34ef3 v">${succ}</div></div>
+        <div class="njsc-stat"><div class="l">Failed</div><div class="v${fail ? ' njsc-tone-danger' : ''}">${fail}</div></div>
+        <div class="njsc-stat"><div class="l">Running</div><div class="v${count('running') ? ' njsc-tone-info' : ''}">${count('running')}</div></div>
+        <div class="njsc-stat"><div class="l">Skipped</div><div class="v${count('skipped') ? ' njsc-tone-warn' : ''}">${count('skipped')}</div></div>
         <div class="njsc-stat"><div class="l">Success rate</div><div class="v">${finished ? `${Math.round((succ / finished) * 100)}%` : '—'}</div></div>
-        <div class="njsc-stat"><div class="l">Avg duration</div><div class="v" style="font-size:18px">${avg ? esc(fmtDuration(avg)) : '—'}</div></div>
+        <div class="njsc-stat"><div class="l">Avg duration</div><div class="inline-4ff818ff v">${avg ? esc(fmtDuration(avg)) : '—'}</div></div>
       </div>`;
     }
 
@@ -1186,8 +982,8 @@
         .map(([v, label]) => `<button class="njsc-chip" type="button" aria-pressed="${this.ui.runStatus === v}" data-action="run-status" data-value="${v}">${esc(label)}</button>`).join('');
 
       const table = (items, showName) => `<table class="njsc-table">
-        <thead><tr>${showName ? '<th>Schedule</th>' : ''}<th style="width:200px">Started</th><th style="width:110px">Duration</th>
-          <th class="njsc-hide-sm" style="width:110px">Trigger</th><th class="njsc-hide-sm" style="width:90px">Attempts</th><th style="width:220px">Status</th><th style="width:60px"><span class="njsc-sr">Actions</span></th></tr></thead>
+        <thead><tr>${showName ? '<th>Schedule</th>' : ''}<th class="inline-2acaf3b5">Started</th><th class="inline-60746827">Duration</th>
+          <th class="inline-60746827 njsc-hide-sm">Trigger</th><th class="inline-581be415 njsc-hide-sm">Attempts</th><th class="inline-0fac9183">Status</th><th class="inline-bd09c419"><span class="njsc-sr">Actions</span></th></tr></thead>
         <tbody>${items.map(r => `<tr>
           ${showName ? `<td><div class="njsc-cell"><button class="njsc-link t" type="button" data-action="view-run" data-id="${esc(r.executionId)}">${esc(r.taskName)}</button><span class="s njsc-mono">${esc(r.executionId)}</span></div></td>` : ''}
           <td><div class="njsc-cell">${showName ? `<span class="njsc-small" title="${esc(fmtDateTime(r.startedAt))}">${esc(timeAgo(r.startedAt))}</span>`
@@ -1229,7 +1025,7 @@
         <div class="njsc-card njsc-toolbar"><div class="njsc-row">
           ${chips}
           <span class="njsc-spacer"></span>
-          <select class="njsc-select" data-field="runTask" style="width:220px" aria-label="Schedule">
+          <select class="inline-0fac9183 njsc-select" data-field="runTask" aria-label="Schedule">
             <option value="">All schedules</option>
             ${names.map(n => `<option value="${esc(n)}"${this.ui.runTask === n ? ' selected' : ''}>${esc(n)}</option>`).join('')}
           </select>
@@ -1249,11 +1045,11 @@
       const r = this.data.detail;
       if (!r) return `<div class="njsc-loading">Loading…</div>`;
       const t = this.data.tasks.find(x => x.name === r.taskName);
-      return `<button class="njsc-btn ghost" type="button" data-action="back" style="margin-bottom:12px">${icon('chevronLeft', 13)} Back</button>
+      return `<button class="inline-da12f285 njsc-btn ghost" type="button" data-action="back">${icon('chevronLeft', 13)} Back</button>
         <div class="njsc-card pad">
-          <div class="njsc-head" style="margin-bottom:10px">
+          <div class="inline-761d3add njsc-head">
             <div><h2 class="njsc-title">${esc(r.taskName)}</h2>
-              <div class="njsc-row" style="margin-top:6px">${this.runPill_(r)}<span class="njsc-code-inline">${esc(r.executionId)}</span></div></div>
+              <div class="inline-fe7b4979 njsc-row">${this.runPill_(r)}<span class="njsc-code-inline">${esc(r.executionId)}</span></div></div>
             <div class="njsc-row">
               <button class="njsc-btn" type="button" data-action="refresh-run" data-id="${esc(r.executionId)}">${icon('refresh', 13)} Refresh</button>
               <button class="njsc-btn" type="button" data-action="history" data-name="${esc(r.taskName)}">${icon('history', 13)} Schedule history</button>
@@ -1270,7 +1066,7 @@
             <div><div class="k">Script</div><div class="v njsc-mono">${esc(t.scriptPath || '—')}</div></div>
             <div><div class="k">Cadence</div><div class="v">${t.type === 'cron' ? `<span class="njsc-code-inline">${esc(t.cron)}</span>` : esc(describeInterval(t.intervalSeconds * 1000))}</div></div>
           </div>` : ''}
-          ${r.error ? `<div class="njsc-section"><div class="njsc-label" style="color:var(--njsc-danger)">Error</div><pre class="njsc-pre err">${esc(r.error)}</pre></div>` : ''}
+          ${r.error ? `<div class="njsc-section"><div class="inline-d40c5990 njsc-label">Error</div><pre class="njsc-pre err">${esc(r.error)}</pre></div>` : ''}
           ${t && t.data !== null && t.data !== undefined ? `<div class="njsc-section"><div class="njsc-label">Data (current schedule input)</div><pre class="njsc-pre">${esc(prettyJson(t.data))}</pre></div>` : ''}
           ${r.result !== undefined && r.result !== null ? `<div class="njsc-section"><div class="njsc-label">Result</div><pre class="njsc-pre">${esc(prettyJson(r.result))}</pre></div>` : ''}
         </div>`;

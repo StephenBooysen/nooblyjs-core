@@ -478,7 +478,7 @@
 
         function showAnalyticsError(message) {
             const tbody = document.getElementById('analyticsTableBody');
-            tbody.innerHTML = `<tr><td colspan="3" class="no-data" style="color: var(--custom-danger);">Error: ${escapeHtml(message)}</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="3" class="inline-df5c1aa2 no-data">Error: ${escapeHtml(message)}</td></tr>`;
             document.getElementById('analyticsCount').textContent = '0';
         }
 
@@ -883,11 +883,11 @@
             } catch (error) {
                 console.error('Error loading Swagger documentation:', error);
                 document.getElementById('swagger-ui').innerHTML = `
-                    <div style="color: red; padding: 20px; border: 1px solid red; border-radius: 4px;">
+                    <div class="inline-990f3275">
                         <strong>Error loading API documentation</strong><br>
                         Failed to load Swagger specification from docs.json<br>
                         Error: ${error.message}<br>
-                        <button data-onclick="location.reload" data-onclick-args="[]" style="margin-top: 10px; padding: 5px 10px;">Reload Page</button>
+                        <button data-onclick="location.reload" data-onclick-args="[]" class="inline-266c08ca">Reload Page</button>
                     </div>
                 `;
             }
@@ -898,7 +898,7 @@
             // Ensure Swagger UI dependencies are loaded
             if (typeof SwaggerUIBundle === 'undefined') {
                 console.error('SwaggerUIBundle not loaded');
-                document.getElementById('swagger-ui').innerHTML = '<div style="color: red; padding: 20px; text-align: center;">Swagger UI failed to load. Please check your internet connection and refresh the page.</div>';
+                document.getElementById('swagger-ui').innerHTML = '<div class="inline-c34ed4ee">Swagger UI failed to load. Please check your internet connection and refresh the page.</div>';
                 return;
             }
 
@@ -941,7 +941,7 @@
                     },
                     onFailure: function(error) {
                         console.error('Swagger UI initialization failed:', error);
-                        document.getElementById('swagger-ui').innerHTML = '<div style="color: red; padding: 20px;">Failed to initialize API documentation: ' + error.message + '</div>';
+                        document.getElementById('swagger-ui').innerHTML = '<div class="inline-12219752">Failed to initialize API documentation: ' + error.message + '</div>';
                     }
                 });
 
@@ -951,13 +951,13 @@
                     const swaggerContent = document.querySelector('#swagger-ui .swagger-ui');
                     if (!swaggerContent) {
                         console.warn('Swagger UI may not have initialized properly');
-                        document.getElementById('swagger-ui').innerHTML = '<div style="color: orange; padding: 20px;">API documentation is loading... If this message persists, please refresh the page.</div>';
+                        document.getElementById('swagger-ui').innerHTML = '<div class="inline-69acdf17">API documentation is loading... If this message persists, please refresh the page.</div>';
                     }
                 }, 3000);
 
             } catch (error) {
                 console.error('Critical error initializing Swagger UI:', error);
-                document.getElementById('swagger-ui').innerHTML = '<div style="color: red; padding: 20px; border: 1px solid red; border-radius: 4px;"><strong>Error loading API documentation</strong><br>Error: ' + error.message + '<br><button data-onclick="location.reload" data-onclick-args="[]" style="margin-top: 10px; padding: 5px 10px;">Reload Page</button></div>';
+                document.getElementById('swagger-ui').innerHTML = '<div class="inline-990f3275"><strong>Error loading API documentation</strong><br>Error: ' + error.message + '<br><button data-onclick="location.reload" data-onclick-args="[]" class="inline-266c08ca">Reload Page</button></div>';
             }
         }
 

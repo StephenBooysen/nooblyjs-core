@@ -86,7 +86,7 @@
             <!-- Tab Content -->
             <div class="tab-content" id="workflowTabContent">
                 <!-- Settings Tab -->
-                <div class="tab-pane fade" id="settings" role="tabpanel" aria-labelledby="settings-tab" style="min-height:1000px">
+                <div class="inline-3ea6f166 tab-pane fade" id="settings" role="tabpanel" aria-labelledby="settings-tab">
                     <!-- Settings Card -->
                     <div class="card">
                         <div class="card-header w-100">
@@ -94,7 +94,7 @@
                             <p class="card-subtitle">Configure the workflow service parameters</p>
                         </div>
                         <div class="card-body">
-                            <div id="settingsInfo" class="alert alert-info mb-4" style="display: none;"></div>
+                            <div id="settingsInfo" class="inline-f2892a2e alert alert-info mb-4"></div>
                             <form id="settingsForm">
                                 <div id="settingsFormFields"></div>
                                 <div class="d-flex flex-wrap gap-2">
@@ -102,7 +102,7 @@
                                     <button type="button" class="btn btn-secondary" data-onclick="loadSettings" data-onclick-args="[]">Reload</button>
                                 </div>
                             </form>
-                            <div id="settingsSaveResponse" class="core-response-container" style="display: none; margin-top: 1rem;">
+                            <div id="settingsSaveResponse" class="inline-5a89b13a core-response-container">
                                 <div class="core-response-title">Save Response:</div>
                                 <div id="settingsSaveResponseContent" class="core-response-content"></div>
                             </div>
@@ -125,7 +125,7 @@
                         <div class="card-body">
                             <div class="row">
                                 <div class="col-md-6">
-                                    <div style="position: relative; height: 300px;">
+                                    <div class="inline-619533e7">
                                         <canvas id="statsChart"></canvas>
                                     </div>
                                 </div>
@@ -137,8 +137,8 @@
                                                 <span><span class="badge bg-success">COMPLETED</span></span>
                                                 <strong id="statCompletedCount">0</strong>
                                             </div>
-                                            <div class="progress" style="height: 20px;">
-                                                <div id="statCompletedBar" class="progress-bar bg-success" role="progressbar" style="width: 0%">
+                                            <div class="inline-36f18c59 progress">
+                                                <div id="statCompletedBar" class="inline-034359d7 progress-bar bg-success" role="progressbar">
                                                     <span id="statCompletedPercent">0%</span>
                                                 </div>
                                             </div>
@@ -148,8 +148,8 @@
                                                 <span><span class="badge bg-danger">ERRORS</span></span>
                                                 <strong id="statErrorsCount">0</strong>
                                             </div>
-                                            <div class="progress" style="height: 20px;">
-                                                <div id="statErrorsBar" class="progress-bar bg-danger" role="progressbar" style="width: 0%">
+                                            <div class="inline-36f18c59 progress">
+                                                <div id="statErrorsBar" class="inline-034359d7 progress-bar bg-danger" role="progressbar">
                                                     <span id="statErrorsPercent">0%</span>
                                                 </div>
                                             </div>
@@ -159,8 +159,8 @@
                                                 <span><span class="badge bg-secondary">ACTIVE</span></span>
                                                 <strong id="statActiveCount">0</strong>
                                             </div>
-                                            <div class="progress" style="height: 20px;">
-                                                <div id="statActiveBar" class="progress-bar bg-secondary" role="progressbar" style="width: 0%">
+                                            <div class="inline-36f18c59 progress">
+                                                <div id="statActiveBar" class="inline-034359d7 progress-bar bg-secondary" role="progressbar">
                                                     <span id="statActivePercent">0%</span>
                                                 </div>
                                             </div>
@@ -249,7 +249,7 @@
                         <div class="mb-3">
                             <label class="form-label" for="defineSteps">Steps (JSON Array)</label>
                             <textarea id="defineSteps" class="form-control" placeholder='["step1", "step2", "step3"]' required></textarea>
-                            <div id="defineValidation" class="core-validation-message" style="display: none;"></div>
+                            <div id="defineValidation" class="inline-f2892a2e core-validation-message"></div>
                             <div class="form-text">Enter a valid JSON array of step names</div>
                         </div>
                         <div class="d-flex flex-wrap gap-2">
@@ -258,7 +258,7 @@
                             <button type="button" class="btn btn-secondary" data-onclick="loadExample" data-onclick-args="[&quot;defineSteps&quot;]">Load Example</button>
                         </div>
                     </form>
-                    <div id="defineResponse" class="core-response-container" style="display: none;">
+                    <div id="defineResponse" class="inline-f2892a2e core-response-container">
                         <div class="core-response-title">Response:</div>
                         <div id="defineResponseContent" class="core-response-content"></div>
                     </div>
@@ -281,7 +281,7 @@
                         <div class="mb-3">
                             <label class="form-label" for="startData">Initial Data (JSON)</label>
                             <textarea id="startData" class="form-control" placeholder='{"userId": 123, "orderId": 456}'></textarea>
-                            <div id="startValidation" class="core-validation-message" style="display: none;"></div>
+                            <div id="startValidation" class="inline-f2892a2e core-validation-message"></div>
                             <div class="form-text">Optional JSON data to pass to the workflow</div>
                         </div>
                         <div class="d-flex flex-wrap gap-2">
@@ -290,7 +290,7 @@
                             <button type="button" class="btn btn-secondary" data-onclick="loadExample" data-onclick-args="[&quot;startData&quot;]">Load Example</button>
                         </div>
                     </form>
-                    <div id="startResponse" class="core-response-container" style="display: none;">
+                    <div id="startResponse" class="inline-f2892a2e core-response-container">
                         <div class="core-response-title">Response:</div>
                         <div id="startResponseContent" class="core-response-content"></div>
                     </div>
@@ -314,7 +314,7 @@
                             <button type="submit" class="btn btn-secondary">Retrieve Workflow</button>
                         </div>
                     </form>
-                    <div id="retrieveResponse" class="core-response-container" style="display: none;">
+                    <div id="retrieveResponse" class="inline-f2892a2e core-response-container">
                         <div class="core-response-title">Workflow Definition:</div>
                         <div id="retrieveResponseContent" class="core-response-content"></div>
                     </div>
@@ -337,13 +337,13 @@
                         <div class="mb-3">
                             <label class="form-label" for="updateSteps">Steps (JSON Array)</label>
                             <textarea id="updateSteps" class="form-control" placeholder='["step1", "step2", "step3"]' required></textarea>
-                            <div id="updateValidation" class="core-validation-message" style="display: none;"></div>
+                            <div id="updateValidation" class="inline-f2892a2e core-validation-message"></div>
                             <div class="form-text">Enter a valid JSON array of step names</div>
                         </div>
                         <div class="mb-3">
                             <label class="form-label" for="updateMetadata">Metadata (JSON)</label>
                             <textarea id="updateMetadata" class="form-control" placeholder='{"description": "Updated description", "tags": ["tag1"]}'></textarea>
-                            <div id="updateMetadataValidation" class="core-validation-message" style="display: none;"></div>
+                            <div id="updateMetadataValidation" class="inline-f2892a2e core-validation-message"></div>
                             <div class="form-text">Optional JSON metadata (description and tags)</div>
                         </div>
                         <div class="d-flex flex-wrap gap-2">
@@ -352,7 +352,7 @@
                             <button type="button" class="btn btn-secondary" data-onclick="formatJSON" data-onclick-args="[&quot;updateMetadata&quot;]">Format Metadata JSON</button>
                         </div>
                     </form>
-                    <div id="updateResponse" class="core-response-container" style="display: none;">
+                    <div id="updateResponse" class="inline-f2892a2e core-response-container">
                         <div class="core-response-title">Updated Workflow:</div>
                         <div id="updateResponseContent" class="core-response-content"></div>
                     </div>
@@ -369,7 +369,7 @@
                     <div class="d-flex flex-wrap gap-2">
                         <button type="button" class="btn btn-secondary" data-onclick="listWorkflows" data-onclick-args="[]">List Workflows</button>
                     </div>
-                    <div id="listResponse" class="core-response-container" style="display: none;">
+                    <div id="listResponse" class="inline-f2892a2e core-response-container">
                         <div class="core-response-title">Workflows:</div>
                         <div id="listResponseContent" class="core-response-content"></div>
                     </div>
@@ -386,7 +386,7 @@
                     <div class="d-flex flex-wrap gap-2">
                         <button type="button" class="btn btn-secondary" data-onclick="checkStatus" data-onclick-args="[]">Check Status</button>
                     </div>
-                    <div id="statusResponse" class="core-response-container" style="display: none;">
+                    <div id="statusResponse" class="inline-f2892a2e core-response-container">
                         <div class="core-response-title">Service Status:</div>
                         <div id="statusResponseContent" class="core-response-content"></div>
                     </div>

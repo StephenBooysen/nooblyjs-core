@@ -127,8 +127,8 @@
                 <a href="#" class="core-sidebar-item ${group.name === currentGroup ? 'active' : ''}"
                    data-group="${escapeHtml(group.name)}">
                     <i class="bi bi-folder2"></i>
-                    <span style="overflow: hidden; text-overflow: ellipsis;">${escapeHtml(group.name)}</span>
-                    <span class="core-chip" style="margin-left: auto; font-size: 10px;">${group.count}</span>
+                    <span class="inline-15db3792">${escapeHtml(group.name)}</span>
+                    <span class="inline-8e4a517d core-chip">${group.count}</span>
                 </a>
             `).join('');
 
@@ -168,7 +168,7 @@
         const description = document.getElementById('groupDescription');
 
         if (!currentGroup) {
-            body.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--neutral-dot);">Select a group to view its settings</td></tr>';
+            body.innerHTML = '<tr><td colspan="4" class="inline-2c825d1f">Select a group to view its settings</td></tr>';
             description.style.display = 'none';
             return;
         }
@@ -185,29 +185,29 @@
             }
 
             if (!group.entries.length) {
-                body.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--neutral-dot);">No settings in this group</td></tr>';
+                body.innerHTML = '<tr><td colspan="4" class="inline-2c825d1f">No settings in this group</td></tr>';
                 return;
             }
 
             body.innerHTML = group.entries.map((entry) => `
                 <tr>
-                    <td style="font-weight: 600; font-family: 'JetBrains Mono', monospace; font-size: 12px;">
+                    <td class="inline-ebe4fdfd">
                         ${escapeHtml(entry.key)}
                         ${entry.description
-                            ? `<div style="font-family: inherit; font-weight: 400; font-size: 11px; color: var(--neutral-dot);">${escapeHtml(entry.description)}</div>`
+                            ? `<div class="inline-154a7603">${escapeHtml(entry.description)}</div>`
                             : ''}
                     </td>
-                    <td style="font-family: 'JetBrains Mono', monospace; font-size: 12px; word-break: break-all;">
+                    <td class="inline-b395a893">
                         ${escapeHtml(displayValue(entry.value))}
                     </td>
                     <td>${entry.secret
                         ? '<span class="core-chip warn"><i class="bi bi-shield-lock"></i> Secret</span>'
-                        : '<span style="color: var(--neutral-dot);">-</span>'}</td>
+                        : '<span class="inline-a45b5af9">-</span>'}</td>
                     <td>
-                        <button class="btn btn-secondary btn-sm" data-edit="${escapeHtml(entry.key)}" style="height: 28px;" title="Edit">
+                        <button class="inline-fbc1aea8 btn btn-secondary btn-sm" data-edit="${escapeHtml(entry.key)}" title="Edit">
                             <i class="bi bi-pencil"></i>
                         </button>
-                        <button class="btn btn-secondary btn-sm" data-delete="${escapeHtml(entry.key)}" style="height: 28px;" title="Delete">
+                        <button class="inline-fbc1aea8 btn btn-secondary btn-sm" data-delete="${escapeHtml(entry.key)}" title="Delete">
                             <i class="bi bi-trash"></i>
                         </button>
                     </td>

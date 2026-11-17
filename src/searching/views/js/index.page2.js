@@ -427,8 +427,8 @@
                     <tr>
                         <td>${escapeHtml(item.term)}</td>
                         <td>${indexName}</td>
-                        <td style="text-align: right;">${item.callCount || 0}</td>
-                        <td style="text-align: right;">${item.totalResults || 0}</td>
+                        <td class="inline-13cbe03b">${item.callCount || 0}</td>
+                        <td class="inline-13cbe03b">${item.totalResults || 0}</td>
                         <td>${lastCalled}</td>
                     </tr>
                 `;
@@ -927,7 +927,7 @@
                 window.ui = ui;
             } catch (error) {
                 console.error('Error initializing Swagger UI:', error);
-                document.getElementById('swagger-ui').innerHTML = '<p style="color: red;">Error loading API documentation. Please refresh the page.</p>';
+                document.getElementById('swagger-ui').innerHTML = '<p class="inline-31981a7d">Error loading API documentation. Please refresh the page.</p>';
             }
         };
 
@@ -1029,8 +1029,8 @@
                                 displayText = String(item);
                             }
 
-                            return `<div class="search-suggestion-item" style="padding: 10px 15px; cursor: pointer; border-bottom: 1px solid #f0f0f0; hover: background-color: #f9f9f9;" data-onclick="selectSuggestion" data-onclick-args="${nooblyArgs(displayText)}">
-                                <i class="bi bi-search" style="margin-right: 8px; color: #666;"></i>
+                            return `<div class="inline-3e4a20b2 search-suggestion-item" data-onclick="selectSuggestion" data-onclick-args="${nooblyArgs(displayText)}">
+                                <i class="inline-fe80c55c bi bi-search"></i>
                                 <span>${escapeHtml(displayText)}</span>
                             </div>`;
                         }).join('');
@@ -1069,7 +1069,7 @@
         // Perform search
         async function performSearch(term) {
             try {
-                resultsContainer.innerHTML = '<div style="text-align: center; color: #999;"><i class="bi bi-hourglass-split"></i> Searching...</div>';
+                resultsContainer.innerHTML = '<div class="inline-970db817"><i class="bi bi-hourglass-split"></i> Searching...</div>';
 
                 const mode = document.getElementById('searchMode')?.value || 'keyword';
                 let results;
@@ -1086,7 +1086,7 @@
                     const response = await fetch(`/services/searching/api/semantic?${params}`);
                     const body = await response.json();
                     if (!response.ok || body.success === false) {
-                        resultsContainer.innerHTML = `<div style="color: #d32f2f; text-align: center;"><i class="bi bi-exclamation-triangle"></i> <p>${escapeHtml(body.error || 'Meaning search is not available')}</p></div>`;
+                        resultsContainer.innerHTML = `<div class="inline-2bfcc274"><i class="bi bi-exclamation-triangle"></i> <p>${escapeHtml(body.error || 'Meaning search is not available')}</p></div>`;
                         return;
                     }
                     results = body.data;
@@ -1094,7 +1094,7 @@
 
                 displaySearchResults(results, term);
             } catch (error) {
-                resultsContainer.innerHTML = `<div style="color: #d32f2f; text-align: center;"><i class="bi bi-exclamation-triangle"></i> <p>Error performing search</p></div>`;
+                resultsContainer.innerHTML = `<div class="inline-2bfcc274"><i class="bi bi-exclamation-triangle"></i> <p>Error performing search</p></div>`;
                 console.error('Search error:', error);
             }
         }
@@ -1105,7 +1105,7 @@
                 const indexInfo = currentSearchIndex ? ` in "${currentSearchIndex}"` : '';
                 resultsSummary.textContent = `No results found for "${searchTerm}"${indexInfo}`;
                 clearResultsBtn.style.display = 'none';
-                resultsContainer.innerHTML = `<div style="text-align: center; color: #999;">
+                resultsContainer.innerHTML = `<div class="inline-970db817">
                     <i class="bi bi-inbox fs-3"></i>
                     <p class="mt-3">No documents found matching "${escapeHtml(searchTerm)}"${indexInfo}</p>
                 </div>`;
@@ -1124,7 +1124,7 @@
                         .join('')
                     : `<div>${escapeHtml(String(item))}</div>`;
 
-                return `<div style="padding: 12px; border: 1px solid #e0e0e0; border-radius: 4px; margin-bottom: 10px; background: #fafafa; cursor: pointer;" data-onclick="showResultDetail" data-onclick-args="${nooblyArgs(index)}">
+                return `<div class="inline-7b7c9ebc" data-onclick="showResultDetail" data-onclick-args="${nooblyArgs(index)}">
                     ${itemContent}
                 </div>`;
             }).join('');
@@ -1149,7 +1149,7 @@
         if (clearResultsBtn) {
             clearResultsBtn.addEventListener('click', function() {
                 searchBox.value = '';
-                resultsContainer.innerHTML = '<div style="text-align: center; text-muted;"><i class="bi bi-search fs-1"></i><p class="mt-3">No search results yet</p></div>';
+                resultsContainer.innerHTML = '<div class="inline-60705fd2"><i class="bi bi-search fs-1"></i><p class="mt-3">No search results yet</p></div>';
                 resultsSummary.textContent = 'Enter a search term to get started';
                 clearResultsBtn.style.display = 'none';
             });

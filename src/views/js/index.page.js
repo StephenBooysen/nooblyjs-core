@@ -46,8 +46,8 @@
                 // Render offline services in this classification
                 if (offlineServices.length > 0) {
                     html += `
-                        <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border);">
-                            <p style="color: var(--neutral-dot); font-size: 0.9rem; margin-bottom: 1rem;"><i class="bi bi-wifi-off"></i> Offline Services</p>
+                        <div class="inline-84641e51">
+                            <p class="inline-89d0e79d"><i class="bi bi-wifi-off"></i> Offline Services</p>
                             <div class="row">
                     `;
                     offlineServices.forEach(service => {
@@ -67,27 +67,27 @@
             const statusIcon = isOnline ? 'bi-check-circle-fill' : 'bi-x-circle-fill';
             const statusId = `service-status-${service.path}`;
             return `
-                <div class="core-stat-card" style="${isOnline ? '' : 'opacity: 0.6;'}">
+                <div class="core-stat-card${isOnline ? '' : ' core-stat-card--offline'}">
                     <div class="top">
-                        <div style="width: 100%;">
-                            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px; cursor: pointer; color: var(--ink-2); font-size: 12px; font-weight: 500;" data-onclick="navigateTo" data-onclick-args="${nooblyArgs(`/services/${service.path}/`)}">
-                                <i class="bi ${service.icon}" style="font-size: 14px; color: var(--ink-2);"></i>
+                        <div class="inline-69d66e5b">
+                            <div class="inline-1e8bb424" data-onclick="navigateTo" data-onclick-args="${nooblyArgs(`/services/${service.path}/`)}">
+                                <i class="inline-27fee7b4 bi ${service.icon}"></i>
                                 <span>${service.title}</span>
-                                <span class="core-chip ${statusClass}" style="font-size: 10px;">
+                                <span class="inline-cdc34a99 core-chip ${statusClass}">
                                     <i class="bi ${statusIcon}"></i>
                                 </span>
                             </div>
                             <button type="button"
                                 data-onclick="toggleServiceStatus" data-onclick-args="${nooblyArgs(service.path, statusId, { $this: true })}"
-                                style="background: none; border: none; padding: 0; color: var(--muted); font-size: 11px; cursor: pointer; display: flex; align-items: center; gap: 4px;">
-                                <i class="bi bi-chevron-right" style="transition: transform 0.15s ease;"></i>
+                                class="inline-0baea3c4">
+                                <i class="inline-2713d2b4 bi bi-chevron-right"></i>
                                 <span>Show status</span>
                             </button>
-                            <div id="${statusId}" style="display: none; margin-top: 8px;">
-                                <pre style="background: var(--surface-sunken); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px; font-size: 11px; max-height: 200px; overflow: auto; margin: 0;">Loading...</pre>
+                            <div id="${statusId}" class="inline-73f2857b">
+                                <pre class="inline-8ef17762">Loading...</pre>
                             </div>
                         </div>
-                        <div class="ico ${isOnline ? 't' : 'o'}" style="cursor: pointer;" data-onclick="navigateTo" data-onclick-args="${nooblyArgs(`/services/${service.path}/`)}"><i class="bi bi-gear"></i></div>
+                        <div class="inline-8410c989 ico ${isOnline ? 't' : 'o'}" data-onclick="navigateTo" data-onclick-args="${nooblyArgs(`/services/${service.path}/`)}"><i class="bi bi-gear"></i></div>
                     </div>
                 </div>
             `;
@@ -459,11 +459,11 @@
                     let marksHTML = '<table class="table table-hover mb-0"><thead><tr><th>Operation</th><th>Count</th><th>Avg (ms)</th><th>Min (ms)</th><th>Max (ms)</th></tr></thead><tbody>';
 
                     data.markStatistics.forEach(stat => {
-                        const statusColor = stat.avg > 100 ? 'var(--danger)' : stat.avg > 50 ? 'var(--warn-dot)' : 'var(--core-success)';
+                        const statusTone = stat.avg > 100 ? 'danger' : stat.avg > 50 ? 'warn' : 'success';
                         marksHTML += `<tr>
                             <td><small>${stat.name}</small></td>
                             <td><small>${stat.count}</small></td>
-                            <td><small style="color: ${statusColor}; font-weight: 600;">${stat.avg.toFixed(2)}</small></td>
+                            <td><small class="core-tone-${statusTone} fw-semibold">${stat.avg.toFixed(2)}</small></td>
                             <td><small>${stat.min.toFixed(2)}</small></td>
                             <td><small>${stat.max.toFixed(2)}</small></td>
                         </tr>`;
@@ -473,7 +473,7 @@
                     document.getElementById('performanceMarksContainer').innerHTML = marksHTML;
                 } else {
                     document.getElementById('performanceMarksContainer').innerHTML =
-                        '<small style="color: var(--neutral-dot);">No performance marks recorded yet. Services will populate this data as they track operations.</small>';
+                        '<small class="inline-a45b5af9">No performance marks recorded yet. Services will populate this data as they track operations.</small>';
                 }
             } catch (error) {
                 console.error('Error fetching monitoring data:', error);

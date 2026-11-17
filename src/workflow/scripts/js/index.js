@@ -78,211 +78,6 @@
    * Namespaced styles for the panel.
    * @const {string}
    */
-  const STYLES = `
-.njwf-root {
-  --njwf-ink: var(--ink, #241C1A);
-  --njwf-ink-2: var(--ink-2, #4A3F3A);
-  --njwf-muted: var(--muted, #6B605A);
-  --njwf-faint: var(--neutral-dot, #8F837C);
-  --njwf-line: var(--border, #E6DED8);
-  --njwf-line-2: var(--divider, #F0E9E4);
-  --njwf-surface: var(--surface, #ffffff);
-  --njwf-surface-2: var(--surface-sunken, #FBF8F6);
-  --njwf-bg: var(--bg, #F5F1EE);
-  --njwf-accent: var(--accent, #C2471F);
-  --njwf-accent-ink: var(--surface, #ffffff);
-  --njwf-success: var(--core-success, #1F7A4D);
-  --njwf-warn: var(--warn-dot, #8A6500);
-  --njwf-danger: var(--danger, #B42335);
-  --njwf-info: var(--core-info, #2F5F9E);
-  --njwf-radius: var(--radius-md, 12px);
-  --njwf-mono: var(--mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace);
-  font-family: inherit;
-  color: var(--njwf-ink);
-  font-size: 13px;
-  line-height: 1.45;
-  box-sizing: border-box;
-  min-width: 0;
-  scroll-margin-top: 80px;
-  position: relative;
-}
-.njwf-root *, .njwf-root *::before, .njwf-root *::after { box-sizing: inherit; }
-.njwf-root button { font: inherit; }
-.njwf-root svg { flex: none; }
-
-.njwf-tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--njwf-line); margin-bottom: 16px; overflow-x: auto; }
-.njwf-tab {
-  appearance: none; background: none; border: 0; border-bottom: 2px solid transparent;
-  padding: 9px 12px; color: var(--njwf-muted); font-weight: 600; cursor: pointer;
-  display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; margin-bottom: -1px;
-}
-.njwf-tab:hover { color: var(--njwf-ink); }
-.njwf-tab[aria-selected="true"] { color: var(--njwf-ink); border-bottom-color: var(--njwf-accent); }
-.njwf-tab .njwf-count {
-  font-size: 11px; font-weight: 600; background: var(--njwf-line-2); color: var(--njwf-muted);
-  border-radius: 999px; padding: 0 7px; font-variant-numeric: tabular-nums;
-}
-
-.njwf-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
-.njwf-title { font-size: 16px; font-weight: 700; margin: 0; }
-.njwf-sub { font-size: 12px; color: var(--njwf-muted); margin: 2px 0 0; }
-.njwf-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; min-width: 0; }
-.njwf-row.tight { gap: 4px; flex-wrap: nowrap; justify-content: flex-end; }
-.njwf-spacer { flex: 1 1 auto; }
-.njwf-muted { color: var(--njwf-muted); }
-.njwf-faint { color: var(--njwf-faint); }
-.njwf-mono { font-family: var(--njwf-mono); font-size: 12px; }
-.njwf-small { font-size: 12px; }
-.njwf-nowrap { white-space: nowrap; }
-
-.njwf-btn {
-  appearance: none; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
-  border: 1px solid var(--njwf-line); background: var(--njwf-surface); color: var(--njwf-ink);
-  border-radius: 8px; padding: 6px 11px; font-weight: 600; font-size: 12.5px; cursor: pointer;
-  line-height: 1.3; white-space: nowrap;
-}
-.njwf-btn:hover { background: var(--njwf-surface-2); border-color: var(--njwf-faint); }
-.njwf-btn:focus-visible, .njwf-chip:focus-visible, .njwf-tab:focus-visible, .njwf-group-head:focus-visible {
-  outline: 2px solid var(--njwf-info); outline-offset: 1px;
-}
-.njwf-btn[disabled] { opacity: .5; cursor: not-allowed; }
-.njwf-btn.primary { background: var(--njwf-accent); border-color: var(--njwf-accent); color: var(--njwf-accent-ink); }
-.njwf-btn.primary:hover { filter: brightness(1.08); }
-.njwf-btn.danger { color: var(--njwf-danger); }
-.njwf-btn.danger:hover { border-color: var(--njwf-danger); }
-.njwf-btn.ghost { border-color: transparent; background: transparent; }
-.njwf-btn.icon { padding: 5px; width: 28px; height: 28px; }
-.njwf-btn.icon.on { color: var(--njwf-warn); }
-
-.njwf-input, .njwf-select, .njwf-textarea {
-  width: 100%; border: 1px solid var(--njwf-line); border-radius: 8px; padding: 7px 10px;
-  background: var(--njwf-surface); color: var(--njwf-ink); font: inherit; font-size: 13px; min-width: 0;
-}
-.njwf-textarea { min-height: 90px; resize: vertical; font-family: var(--njwf-mono); font-size: 12px; }
-.njwf-input:focus, .njwf-select:focus, .njwf-textarea:focus { outline: 2px solid var(--njwf-info); outline-offset: -1px; }
-.njwf-input.mono { font-family: var(--njwf-mono); font-size: 12.5px; }
-.njwf-search { position: relative; flex: 1 1 260px; max-width: 420px; }
-.njwf-search svg { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--njwf-faint); }
-.njwf-search .njwf-input { padding-left: 32px; }
-
-.njwf-chip {
-  appearance: none; display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--njwf-line);
-  background: var(--njwf-surface); color: var(--njwf-muted); border-radius: 999px; padding: 4px 11px;
-  font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap;
-}
-.njwf-chip:hover { color: var(--njwf-ink); }
-.njwf-chip[aria-pressed="true"] { background: var(--njwf-ink); border-color: var(--njwf-ink); color: var(--njwf-surface); }
-.njwf-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; display: inline-block; flex: none; }
-
-.njwf-card { background: var(--njwf-surface); border: 1px solid var(--njwf-line); border-radius: var(--njwf-radius); min-width: 0; }
-.njwf-card.pad { padding: 14px 16px; }
-.njwf-toolbar { padding: 12px 14px; margin-bottom: 16px; display: flex; flex-direction: column; gap: 10px; }
-
-.njwf-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-bottom: 16px; }
-.njwf-stat { background: var(--njwf-surface); border: 1px solid var(--njwf-line); border-radius: var(--njwf-radius); padding: 10px 14px; }
-.njwf-stat .l { font-size: 11px; color: var(--njwf-muted); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
-.njwf-stat .v { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.2; margin-top: 2px; }
-
-.njwf-groups { display: flex; flex-direction: column; gap: 14px; }
-.njwf-group { border: 1px solid var(--njwf-line); border-radius: var(--njwf-radius); background: var(--njwf-surface); overflow: hidden; min-width: 0; }
-.njwf-group-head {
-  appearance: none; width: 100%; border: 0; background: var(--njwf-surface-2); color: inherit; text-align: left;
-  display: flex; align-items: center; gap: 10px; padding: 10px 14px; cursor: pointer;
-}
-.njwf-group-head .name { font-weight: 700; }
-.njwf-group-head .meta { font-size: 11.5px; color: var(--njwf-muted); }
-.njwf-group-head .njwf-count { margin-left: auto; font-size: 11px; font-weight: 700; background: var(--njwf-line-2); border-radius: 999px; padding: 1px 8px; color: var(--njwf-muted); }
-.njwf-group.open .njwf-group-head { border-bottom: 1px solid var(--njwf-line); }
-
-.njwf-table-wrap { overflow-x: auto; position: relative; }
-.njwf-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
-.njwf-table th {
-  text-align: left; font-size: 11px; font-weight: 700; color: var(--njwf-muted); text-transform: uppercase;
-  letter-spacing: .04em; padding: 8px 12px; border-bottom: 1px solid var(--njwf-line); white-space: nowrap;
-}
-.njwf-table td { padding: 9px 12px; border-bottom: 1px solid var(--njwf-line-2); vertical-align: middle; }
-.njwf-table tr:last-child td { border-bottom: 0; }
-.njwf-table tbody tr:hover td { background: var(--njwf-surface-2); }
-.njwf-cell { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-width: 0; }
-.njwf-cell .s { align-self: stretch; }
-.njwf-cell .t { font-weight: 600; color: var(--njwf-ink); }
-.njwf-cell .s { font-size: 11.5px; color: var(--njwf-muted); max-width: 460px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.njwf-link { appearance: none; background: none; border: 0; padding: 0; color: inherit; font-weight: 600; cursor: pointer; text-align: left; }
-.njwf-link:hover { text-decoration: underline; }
-
-.njwf-pill {
-  display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 2px 9px;
-  font-size: 11.5px; font-weight: 600; white-space: nowrap;
-  color: var(--njwf-muted); background: var(--njwf-line-2);
-}
-.njwf-pill.success { color: var(--njwf-success); background: color-mix(in srgb, var(--njwf-success) 12%, transparent); }
-.njwf-pill.failed { color: var(--njwf-danger); background: color-mix(in srgb, var(--njwf-danger) 12%, transparent); }
-.njwf-pill.running { color: var(--njwf-info); background: color-mix(in srgb, var(--njwf-info) 12%, transparent); }
-.njwf-pill.running .njwf-dot { animation: njwf-pulse 1.2s ease-in-out infinite; }
-.njwf-pill.warn { color: var(--njwf-warn); background: color-mix(in srgb, var(--njwf-warn) 14%, transparent); }
-@keyframes njwf-pulse { 50% { opacity: .3; } }
-@media (prefers-reduced-motion: reduce) { .njwf-pill.running .njwf-dot { animation: none; } }
-.njwf-tag { display: inline-block; font-size: 11px; background: var(--njwf-line-2); color: var(--njwf-ink-2); border-radius: 5px; padding: 1px 6px; margin: 0 4px 2px 0; }
-.njwf-code-inline { font-family: var(--njwf-mono); font-size: 11.5px; background: var(--njwf-line-2); border-radius: 4px; padding: 1px 6px; white-space: nowrap; }
-
-.njwf-empty { text-align: center; padding: 36px 16px; color: var(--njwf-muted); }
-.njwf-empty .h { font-size: 14px; font-weight: 700; color: var(--njwf-ink); margin: 8px 0 4px; }
-.njwf-empty svg { color: var(--njwf-faint); }
-.njwf-footer { margin-top: 14px; text-align: center; font-size: 12px; color: var(--njwf-muted); }
-.njwf-loading { padding: 32px; text-align: center; color: var(--njwf-muted); }
-.njwf-error { border: 1px solid color-mix(in srgb, var(--njwf-danger) 40%, transparent); background: color-mix(in srgb, var(--njwf-danger) 7%, transparent); color: var(--njwf-danger); border-radius: var(--njwf-radius); padding: 12px 14px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-
-.njwf-form { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 16px; align-items: start; }
-@media (max-width: 860px) { .njwf-form { grid-template-columns: minmax(0, 1fr); } }
-.njwf-field { margin-bottom: 14px; min-width: 0; }
-.njwf-field:last-child { margin-bottom: 0; }
-.njwf-label { display: block; font-size: 11.5px; font-weight: 700; color: var(--njwf-ink-2); margin-bottom: 5px; }
-.njwf-label .req { color: var(--njwf-danger); }
-.njwf-help { font-size: 11.5px; color: var(--njwf-muted); margin-top: 5px; display: flex; gap: 5px; align-items: flex-start; }
-.njwf-help.ok { color: var(--njwf-success); }
-.njwf-help.bad { color: var(--njwf-danger); }
-.njwf-grid2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; }
-@media (max-width: 600px) { .njwf-grid2 { grid-template-columns: minmax(0, 1fr); } }
-.njwf-steps { display: flex; flex-direction: column; gap: 6px; }
-.njwf-step { display: grid; grid-template-columns: 26px minmax(0, 1fr) auto; gap: 8px; align-items: center; }
-.njwf-step-num { width: 24px; height: 24px; border-radius: 50%; background: var(--njwf-line-2); color: var(--njwf-muted); font-size: 11px; font-weight: 700; display: grid; place-items: center; }
-.njwf-seg { display: inline-flex; border: 1px solid var(--njwf-line); border-radius: 8px; overflow: hidden; }
-.njwf-seg button { appearance: none; border: 0; background: var(--njwf-surface); color: var(--njwf-muted); padding: 5px 12px; font-weight: 600; font-size: 12px; cursor: pointer; }
-.njwf-seg button[aria-pressed="true"] { background: var(--njwf-ink); color: var(--njwf-surface); }
-.njwf-side h3 { font-size: 13px; margin: 0 0 8px; }
-.njwf-side p { margin: 0 0 12px; font-size: 12px; color: var(--njwf-muted); }
-.njwf-side .njwf-btn { width: 100%; margin-bottom: 8px; }
-.njwf-kv { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 16px; }
-.njwf-kv .k { font-size: 11px; font-weight: 700; color: var(--njwf-muted); text-transform: uppercase; letter-spacing: .04em; }
-.njwf-kv .v { margin-top: 2px; overflow-wrap: anywhere; }
-.njwf-pre {
-  font-family: var(--njwf-mono); font-size: 11.5px; background: var(--njwf-surface-2); border: 1px solid var(--njwf-line);
-  border-radius: 8px; padding: 10px 12px; max-height: 360px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; margin: 0;
-}
-.njwf-pre.err { color: var(--njwf-danger); border-color: color-mix(in srgb, var(--njwf-danger) 35%, transparent); }
-.njwf-section { margin-top: 18px; }
-.njwf-section > .njwf-label { margin-bottom: 8px; }
-.njwf-timeline { display: flex; flex-direction: column; gap: 6px; }
-.njwf-tl-item { border: 1px solid var(--njwf-line); border-radius: 8px; }
-.njwf-tl-item summary { display: grid; grid-template-columns: 26px minmax(0, 1fr) auto auto; gap: 10px; align-items: center; padding: 8px 10px; cursor: pointer; list-style: none; }
-.njwf-tl-item summary::-webkit-details-marker { display: none; }
-.njwf-tl-item .body { padding: 0 10px 10px 46px; }
-.njwf-banner { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 12px 14px; margin-bottom: 16px; }
-.njwf-banner .t { font-weight: 700; }
-.njwf-inline-note { font-size: 12px; color: var(--njwf-muted); }
-
-.njwf-toasts { position: fixed; right: 16px; bottom: 16px; display: flex; flex-direction: column; gap: 8px; z-index: 2147483000; max-width: min(360px, calc(100vw - 32px)); pointer-events: none; }
-.njwf-toast {
-  pointer-events: auto; background: var(--njwf-ink); color: var(--njwf-surface); border-radius: 8px; padding: 9px 12px;
-  font-size: 12.5px; box-shadow: 0 8px 24px rgba(0,0,0,.18); display: flex; gap: 8px; align-items: flex-start;
-}
-.njwf-toast.danger { background: var(--njwf-danger); color: #fff; }
-.njwf-toast.success { background: var(--njwf-success); color: #fff; }
-.njwf-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-@media (max-width: 640px) {
-  .njwf-table th.njwf-hide-sm, .njwf-table td.njwf-hide-sm { display: none; }
-}
-`;
 
   /**
    * Inline SVG icon paths (24x24, stroke-based).
@@ -786,9 +581,10 @@
      */
     injectStyles_() {
       if (document.getElementById(STYLE_ID)) return;
-      const style = document.createElement('style');
+      const style = document.createElement('link');
+      style.rel = 'stylesheet';
+      style.href = '/services/css/workflow-ui.css';
       style.id = STYLE_ID;
-      style.textContent = STYLES;
       document.head.appendChild(style);
     }
 
@@ -929,7 +725,7 @@
      */
     empty_(iconName, heading, text, action) {
       return `<div class="njwf-card"><div class="njwf-empty">${icon(iconName, 26)}<div class="h">${esc(heading)}</div>
-        <div class="njwf-small">${esc(text)}</div>${action ? `<div style="margin-top:14px">${action}</div>` : ''}</div></div>`;
+        <div class="njwf-small">${esc(text)}</div>${action ? `<div class="inline-d6f2af6e">${action}</div>` : ''}</div></div>`;
     }
 
     /**
@@ -1014,7 +810,7 @@
       const tip = [fmtDateTime(run.startedAt), triggerLabel(run.trigger), bucket === 'failed' && run.error ? run.error : '']
         .filter(Boolean).join(' · ');
       return `<div class="njwf-cell" title="${esc(tip)}">
-        <span class="njwf-row" style="gap:6px;flex-wrap:nowrap">${pill(bucket)}<span class="njwf-muted njwf-small njwf-nowrap">${esc(timeAgo(run.startedAt))}</span></span>
+        <span class="inline-408b446d njwf-row">${pill(bucket)}<span class="njwf-muted njwf-small njwf-nowrap">${esc(timeAgo(run.startedAt))}</span></span>
         <span class="s njwf-mono">${esc(fmtDuration(run.duration))}</span></div>`;
     }
 
@@ -1027,9 +823,9 @@
       const ro = this.options.readOnly;
       const list = this.filteredWorkflows_();
       const groups = this.groupBy_(list, w => w.group || 'Ungrouped');
-      const chip = (field, value, label, dotColor) => {
+      const chip = (field, value, label, dotTone) => {
         const on = this.ui[field] === value;
-        const dot = dotColor ? `<span class="njwf-dot" style="color:${dotColor}"></span>` : '';
+        const dot = dotTone ? `<span class="njwf-dot njwf-tone-${dotTone}"></span>` : '';
         return `<button class="njwf-chip" type="button" aria-pressed="${on}" data-action="set-filter" data-filter="${field}" data-value="${esc(value)}">${dot}${esc(label)}</button>`;
       };
       const actions = ro ? '' : `
@@ -1038,10 +834,10 @@
 
       const table = items => `<table class="njwf-table">
         <thead><tr>
-          <th style="width:34px"><span class="njwf-sr">Starred</span></th><th>Name</th>
-          <th style="width:120px">Schedule</th><th class="njwf-hide-sm" style="width:70px">Steps</th>
-          <th class="njwf-hide-sm" style="width:150px">Tags</th><th class="njwf-hide-sm" style="width:150px">Modified</th>
-          <th style="width:190px">Last run</th><th style="width:190px"><span class="njwf-sr">Actions</span></th>
+          <th class="inline-fb6a3156"><span class="njwf-sr">Starred</span></th><th>Name</th>
+          <th class="inline-465bfea3">Schedule</th><th class="inline-ec6626e1 njwf-hide-sm">Steps</th>
+          <th class="inline-7c07cdf8 njwf-hide-sm">Tags</th><th class="inline-7c07cdf8 njwf-hide-sm">Modified</th>
+          <th class="inline-fc2c71fc">Last run</th><th class="inline-fc2c71fc"><span class="njwf-sr">Actions</span></th>
         </tr></thead>
         <tbody>${items.map(w => `<tr>
           <td>${ro ? (w.starred ? `<span class="njwf-faint">${icon('starFilled', 14)}</span>` : '')
@@ -1050,7 +846,7 @@
             ${ro ? `<span class="t">${esc(w.name)}</span>` : `<button class="njwf-link t" type="button" data-action="edit-workflow" data-name="${esc(w.name)}">${esc(w.name)}</button>`}
             <span class="s">${esc(w.description || '')}</span></div></td>
           <td>${this.scheduleBadge_(w.status)}</td>
-          <td class="njwf-hide-sm"><span class="njwf-row" style="gap:5px"><span class="njwf-faint">${icon('layers', 12)}</span>${w.stepCount}</span></td>
+          <td class="njwf-hide-sm"><span class="inline-e51ab5a6 njwf-row"><span class="njwf-faint">${icon('layers', 12)}</span>${w.stepCount}</span></td>
           <td class="njwf-hide-sm">${(w.tags || []).slice(0, 3).map(t => `<span class="njwf-tag">${esc(t)}</span>`).join('') || '<span class="njwf-faint">—</span>'}</td>
           <td class="njwf-hide-sm njwf-muted njwf-small">${esc(fmtDateTime(w.modifiedAt))}</td>
           <td>${this.lastRunCell_(w)}</td>
@@ -1068,7 +864,7 @@
           <div class="njwf-row">
             <label class="njwf-search">${icon('search', 14)}<span class="njwf-sr">Search workflows</span>
               <input class="njwf-input" data-field="search" placeholder="Search by name, tag, group…" value="${esc(this.ui.search)}"></label>
-            <select class="njwf-select" data-field="statusFilter" style="width:160px" aria-label="Schedule status">
+            <select class="inline-28c0f6ec njwf-select" data-field="statusFilter" aria-label="Schedule status">
               <option value="">Any schedule</option>
               <option value="active"${this.ui.statusFilter === 'active' ? ' selected' : ''}>Scheduled</option>
               <option value="inactive"${this.ui.statusFilter === 'inactive' ? ' selected' : ''}>Paused</option>
@@ -1081,9 +877,9 @@
           <div class="njwf-row" role="group" aria-label="Filter by last run">
             <span class="njwf-muted njwf-small">Last run:</span>
             ${chip('lastRunFilter', '', 'Any')}
-            ${chip('lastRunFilter', 'success', 'Succeeded', 'var(--njwf-success)')}
-            ${chip('lastRunFilter', 'failed', 'Failed', 'var(--njwf-danger)')}
-            ${chip('lastRunFilter', 'running', 'Running', 'var(--njwf-info)')}
+            ${chip('lastRunFilter', 'success', 'Succeeded', 'success')}
+            ${chip('lastRunFilter', 'failed', 'Failed', 'danger')}
+            ${chip('lastRunFilter', 'running', 'Running', 'info')}
             ${chip('lastRunFilter', 'never', 'Never run')}
           </div>
         </div>
@@ -1107,10 +903,10 @@
       const inputStatus = f.inputError
         ? `<div class="njwf-help bad">${icon('alert', 12)} ${esc(f.inputError)}</div>`
         : `<div class="njwf-help">Used when a run is started without input.</div>`;
-      return `<button class="njwf-btn ghost" type="button" data-action="back" style="margin-bottom:12px">${icon('chevronLeft', 13)} Back to workflows</button>
+      return `<button class="inline-da12f285 njwf-btn ghost" type="button" data-action="back">${icon('chevronLeft', 13)} Back to workflows</button>
         <div class="njwf-form">
           <div class="njwf-card pad">
-            <h2 class="njwf-title" style="margin-bottom:14px">${editing ? `Edit ${esc(f.original)}` : 'New workflow'}</h2>
+            <h2 class="inline-2b583d73 njwf-title">${editing ? `Edit ${esc(f.original)}` : 'New workflow'}</h2>
             <div class="njwf-grid2">
               <div class="njwf-field"><label class="njwf-label" for="njwf-wf-name">Name <span class="req">*</span></label>
                 <input id="njwf-wf-name" class="njwf-input" data-form="name" value="${esc(f.name)}" placeholder="e.g. nightly-ingest" autocomplete="off"></div>
@@ -1133,7 +929,7 @@
                     <button class="njwf-btn icon danger" type="button" title="Remove" aria-label="Remove step ${i + 1}" data-action="step-remove" data-index="${i}" ${f.steps.length === 1 ? 'disabled' : ''}>${icon('x', 12)}</button>
                   </span></div>`).join('')}
               </div>
-              <button class="njwf-btn" type="button" data-action="step-add" style="margin-top:8px">${icon('plus', 12)} Add step</button>
+              <button class="inline-8a77e5a3 njwf-btn" type="button" data-action="step-add">${icon('plus', 12)} Add step</button>
               <div class="njwf-help">Each step is an activity file run by the working service; it receives the input plus every earlier step's output.</div>
             </div>
             <div class="njwf-field"><label class="njwf-label" for="njwf-wf-input">Default input (JSON)</label>
@@ -1157,13 +953,13 @@
      * @private
      */
     renderImport_() {
-      return `<button class="njwf-btn ghost" type="button" data-action="back" style="margin-bottom:12px">${icon('chevronLeft', 13)} Back to workflows</button>
-        <div class="njwf-card pad" style="max-width:560px">
-          <h2 class="njwf-title" style="margin-bottom:12px">Import workflow</h2>
+      return `<button class="inline-da12f285 njwf-btn ghost" type="button" data-action="back">${icon('chevronLeft', 13)} Back to workflows</button>
+        <div class="inline-765d57b5 njwf-card pad">
+          <h2 class="inline-da12f285 njwf-title">Import workflow</h2>
           <div class="njwf-field"><label class="njwf-label" for="njwf-import-file">Workflow JSON file</label>
             <input id="njwf-import-file" class="njwf-input" type="file" accept="application/json,.json" data-form="importFile">
             <div class="njwf-help">A file exported from this workflow manager.</div></div>
-          <div class="njwf-row" style="justify-content:flex-end">
+          <div class="inline-455f8cca njwf-row">
             <button class="njwf-btn ghost" type="button" data-action="back">Cancel</button>
             <button class="njwf-btn primary" type="button" data-action="do-import">${icon('upload', 13)} Import</button>
           </div>
@@ -1203,7 +999,7 @@
       const tip = [fmtDateTime(s.lastRun), bucket === 'failed' && s.lastError ? s.lastError : ''].filter(Boolean).join(' · ');
       const runs = s.executionCount ? `${s.executionCount} run${s.executionCount === 1 ? '' : 's'}` : '';
       return `<div class="njwf-cell" title="${esc(tip)}">
-        <span class="njwf-row" style="gap:6px;flex-wrap:nowrap">${pill(bucket)}<span class="njwf-muted njwf-small njwf-nowrap">${esc(timeAgo(s.lastRun))}</span></span>
+        <span class="inline-408b446d njwf-row">${pill(bucket)}<span class="njwf-muted njwf-small njwf-nowrap">${esc(timeAgo(s.lastRun))}</span></span>
         <span class="s">${esc(runs)}${bucket === 'failed' && s.lastError ? ` · ${esc(s.lastError)}` : ''}</span></div>`;
     }
 
@@ -1220,18 +1016,18 @@
         ${ro ? '' : `<button class="njwf-btn primary" type="button" data-action="new-schedule" ${this.data.workflows.length ? '' : 'disabled title="Create a workflow first"'}>${icon('plus', 13)} New schedule</button>`}`;
       const stats = st ? `<div class="njwf-stats">
         <div class="njwf-stat"><div class="l">Schedules</div><div class="v">${st.total}</div></div>
-        <div class="njwf-stat"><div class="l">Enabled</div><div class="v" style="color:var(--njwf-success)">${st.enabled}</div></div>
+        <div class="njwf-stat"><div class="l">Enabled</div><div class="inline-ca4a80ae v">${st.enabled}</div></div>
         <div class="njwf-stat"><div class="l">Paused</div><div class="v">${st.paused}</div></div>
-        <div class="njwf-stat"><div class="l">Last run failed</div><div class="v" style="color:${st.failing ? 'var(--njwf-danger)' : 'inherit'}">${st.failing}</div></div>
+        <div class="njwf-stat"><div class="l">Last run failed</div><div class="v${st.failing ? ' njwf-tone-danger' : ''}">${st.failing}</div></div>
         <div class="njwf-stat"><div class="l">Runs recorded</div><div class="v">${st.totalExecutions}</div></div>
       </div>` : '';
 
       const table = items => `<table class="njwf-table">
-        <thead><tr><th>Schedule</th><th style="width:170px">Cadence</th><th style="width:160px">Next run</th>
-          <th style="width:220px">Last run</th><th style="width:100px">Status</th><th style="width:190px"><span class="njwf-sr">Actions</span></th></tr></thead>
+        <thead><tr><th>Schedule</th><th class="inline-d52ddd08">Cadence</th><th class="inline-28c0f6ec">Next run</th>
+          <th class="inline-0fac9183">Last run</th><th class="inline-db4cf10b">Status</th><th class="inline-fc2c71fc"><span class="njwf-sr">Actions</span></th></tr></thead>
         <tbody>${items.map(s => `<tr>
           <td><div class="njwf-cell"><span class="t">${esc(s.name)}</span>
-            <span class="s">${s.workflowExists ? esc(s.workflowName) : `<span style="color:var(--njwf-danger)">${esc(s.workflowName)} (missing)</span>`}${s.description ? ` · ${esc(s.description)}` : ''}</span></div></td>
+            <span class="s">${s.workflowExists ? esc(s.workflowName) : `<span class="inline-627e98b1">${esc(s.workflowName)} (missing)</span>`}${s.description ? ` · ${esc(s.description)}` : ''}</span></div></td>
           <td>${this.cadenceCell_(s)}</td>
           <td><div class="njwf-cell"><span class="njwf-small">${s.enabled && s.nextRun ? esc(fmtDateTime(s.nextRun)) : '—'}</span>
             <span class="s">${s.enabled && s.nextRun ? esc(timeAgo(s.nextRun)) : ''}</span></div></td>
@@ -1266,10 +1062,10 @@
       const inputStatus = f.inputError
         ? `<div class="njwf-help bad">${icon('alert', 12)} ${esc(f.inputError)}</div>`
         : `<div class="njwf-help">Passed to the workflow on every run.</div>`;
-      return `<button class="njwf-btn ghost" type="button" data-action="back" style="margin-bottom:12px">${icon('chevronLeft', 13)} ${backLabel}</button>
+      return `<button class="inline-da12f285 njwf-btn ghost" type="button" data-action="back">${icon('chevronLeft', 13)} ${backLabel}</button>
         <div class="njwf-form">
           <div class="njwf-card pad">
-            <h2 class="njwf-title" style="margin-bottom:14px">${editing ? 'Edit schedule' : 'New schedule'}</h2>
+            <h2 class="inline-2b583d73 njwf-title">${editing ? 'Edit schedule' : 'New schedule'}</h2>
             <div class="njwf-field"><label class="njwf-label" for="njwf-s-wf">Workflow <span class="req">*</span></label>
               <select id="njwf-s-wf" class="njwf-select" data-form="workflowName">
                 <option value="">Select a workflow…</option>
@@ -1284,14 +1080,14 @@
             <div class="njwf-field"><label class="njwf-label" for="njwf-s-cron">Cron expression <span class="req">*</span></label>
               <input id="njwf-s-cron" class="njwf-input mono" data-form="cron" value="${esc(f.cron)}" spellcheck="false" autocomplete="off" aria-describedby="njwf-cron-status">
               <div id="njwf-cron-status" data-region="cron-status" class="njwf-help"></div>
-              <div class="njwf-row" style="margin-top:8px">${CRON_PRESETS.map(([expr, label]) =>
+              <div class="inline-8a77e5a3 njwf-row">${CRON_PRESETS.map(([expr, label]) =>
     `<button class="njwf-chip" type="button" aria-pressed="${f.cron === expr}" data-action="cron-preset" data-cron="${esc(expr)}">${esc(label)}</button>`).join('')}</div>
               <div class="njwf-help">minute · hour · day-of-month · month · day-of-week — numbers only, Sunday is 0. Times are the server's local time.</div>
             </div>` : `
             <div class="njwf-field"><label class="njwf-label" for="njwf-s-int">Interval <span class="req">*</span></label>
-              <div class="njwf-row" style="flex-wrap:nowrap">
-                <input id="njwf-s-int" class="njwf-input" type="number" min="1" step="1" data-form="intervalValue" value="${esc(f.intervalValue)}" style="max-width:140px">
-                <select class="njwf-select" data-form="intervalUnit" style="max-width:140px" aria-label="Interval unit">
+              <div class="inline-2aca6dad njwf-row">
+                <input id="njwf-s-int" class="inline-7a96d9ba njwf-input" type="number" min="1" step="1" data-form="intervalValue" value="${esc(f.intervalValue)}">
+                <select class="inline-7a96d9ba njwf-select" data-form="intervalUnit" aria-label="Interval unit">
                   ${Object.keys(INTERVAL_UNITS).map(u => `<option value="${u}"${f.intervalUnit === u ? ' selected' : ''}>${u}</option>`).join('')}
                 </select></div>
               <div class="njwf-help">The first run happens one interval after the schedule is saved.</div>
@@ -1308,7 +1104,7 @@
           <div class="njwf-card pad njwf-side">
             <h3>${editing ? 'Save changes' : 'Create'}</h3>
             <p>${editing ? 'Changing the cadence re-plans the next run from now.' : 'The schedule starts enabled unless you untick it below.'}</p>
-            ${editing ? '' : `<label class="njwf-row" style="margin-bottom:12px;font-size:12.5px"><input type="checkbox" data-form="enabled" ${f.enabled ? 'checked' : ''}> Enabled</label>`}
+            ${editing ? '' : `<label class="inline-8e737b88 njwf-row"><input type="checkbox" data-form="enabled" ${f.enabled ? 'checked' : ''}> Enabled</label>`}
             <button class="njwf-btn primary" type="button" data-action="save-schedule">${icon('check', 13)} ${editing ? 'Save schedule' : 'Create schedule'}</button>
             <button class="njwf-btn ghost" type="button" data-action="back">Cancel</button>
           </div>
@@ -1388,11 +1184,11 @@
       if (!s) return '';
       return `<div class="njwf-stats">
         <div class="njwf-stat"><div class="l">Total runs</div><div class="v">${s.total}</div></div>
-        <div class="njwf-stat"><div class="l">Succeeded</div><div class="v" style="color:var(--njwf-success)">${s.succeeded}</div></div>
-        <div class="njwf-stat"><div class="l">Failed</div><div class="v" style="color:${s.failed ? 'var(--njwf-danger)' : 'inherit'}">${s.failed}</div></div>
-        <div class="njwf-stat"><div class="l">Running</div><div class="v" style="color:${s.running ? 'var(--njwf-info)' : 'inherit'}">${s.running}</div></div>
+        <div class="njwf-stat"><div class="l">Succeeded</div><div class="inline-ca4a80ae v">${s.succeeded}</div></div>
+        <div class="njwf-stat"><div class="l">Failed</div><div class="v${s.failed ? ' njwf-tone-danger' : ''}">${s.failed}</div></div>
+        <div class="njwf-stat"><div class="l">Running</div><div class="v${s.running ? ' njwf-tone-info' : ''}">${s.running}</div></div>
         <div class="njwf-stat"><div class="l">Success rate</div><div class="v">${s.total ? `${s.successRate}%` : '—'}</div></div>
-        <div class="njwf-stat"><div class="l">Avg duration</div><div class="v" style="font-size:18px">${s.averageDuration ? esc(fmtDuration(s.averageDuration)) : '—'}</div></div>
+        <div class="njwf-stat"><div class="l">Avg duration</div><div class="inline-4ff818ff v">${s.averageDuration ? esc(fmtDuration(s.averageDuration)) : '—'}</div></div>
       </div>`;
     }
 
@@ -1443,11 +1239,11 @@
       const ro = this.options.readOnly;
       const names = Array.from(new Set(this.data.workflows.map(w => w.name))).sort();
       const table = items => `<table class="njwf-table">
-        <thead><tr><th>Workflow</th><th style="width:170px">Started</th><th style="width:110px">Duration</th>
-          <th class="njwf-hide-sm" style="width:120px">Trigger</th><th style="width:150px">Status</th><th style="width:80px"><span class="njwf-sr">Actions</span></th></tr></thead>
+        <thead><tr><th>Workflow</th><th class="inline-d52ddd08">Started</th><th class="inline-60746827">Duration</th>
+          <th class="inline-465bfea3 njwf-hide-sm">Trigger</th><th class="inline-7c07cdf8">Status</th><th class="inline-8573bae3"><span class="njwf-sr">Actions</span></th></tr></thead>
         <tbody>${items.map(e => `<tr>
           <td><div class="njwf-cell"><button class="njwf-link t" type="button" data-action="view-run" data-id="${esc(e.executionId)}">${esc(e.workflowName)}</button>
-            <span class="s njwf-mono">${esc(String(e.executionId).slice(0, 12))}${e.error && outcomeOf(e) === 'failed' ? ` · <span style="color:var(--njwf-danger)">${esc(e.error)}</span>` : ''}</span></div></td>
+            <span class="s njwf-mono">${esc(String(e.executionId).slice(0, 12))}${e.error && outcomeOf(e) === 'failed' ? ` · <span class="inline-627e98b1">${esc(e.error)}</span>` : ''}</span></div></td>
           <td><div class="njwf-cell"><span class="njwf-small" title="${esc(fmtDateTime(e.startedAt))}">${esc(timeAgo(e.startedAt))}</span></div></td>
           <td class="njwf-mono">${outcomeOf(e) === 'running' ? '—' : esc(fmtDuration(e.duration))}</td>
           <td class="njwf-hide-sm"><div class="njwf-cell"><span class="njwf-small">${esc(triggerLabel(e.trigger))}</span>${e.scheduleName ? `<span class="s">${esc(e.scheduleName)}</span>` : ''}</div></td>
@@ -1462,7 +1258,7 @@
         <div class="njwf-card njwf-toolbar"><div class="njwf-row">
           ${this.execChips_()}
           <span class="njwf-spacer"></span>
-          <select class="njwf-select" data-field="execWorkflow" style="width:220px" aria-label="Workflow">
+          <select class="inline-0fac9183 njwf-select" data-field="execWorkflow" aria-label="Workflow">
             <option value="">All workflows</option>
             ${names.map(n => `<option value="${esc(n)}"${this.ui.execWorkflow === n ? ' selected' : ''}>${esc(n)}</option>`).join('')}
           </select>
@@ -1490,8 +1286,8 @@
         : `${list.length} ${noun}${list.length === 1 ? '' : 's'}`;
       const windowLabel = w.days ? `last ${w.days} days` : 'all retained history';
       const table = `<table class="njwf-table">
-        <thead><tr><th style="width:210px">Started</th><th class="njwf-hide-sm" style="width:140px">Execution</th><th style="width:110px">Duration</th>
-          <th class="njwf-hide-sm" style="width:130px">Trigger</th><th style="width:150px">Status</th><th style="width:80px"><span class="njwf-sr">Actions</span></th></tr></thead>
+        <thead><tr><th class="inline-4854a4d7">Started</th><th class="inline-830eb986 njwf-hide-sm">Execution</th><th class="inline-60746827">Duration</th>
+          <th class="inline-c6fffdfe njwf-hide-sm">Trigger</th><th class="inline-7c07cdf8">Status</th><th class="inline-8573bae3"><span class="njwf-sr">Actions</span></th></tr></thead>
         <tbody>${list.map(e => `<tr>
           <td><div class="njwf-cell"><button class="njwf-link t" type="button" data-action="view-run" data-id="${esc(e.executionId)}">${esc(fmtDateTime(e.startedAt))}</button><span class="s">${esc(timeAgo(e.startedAt))}</span></div></td>
           <td class="njwf-hide-sm njwf-mono njwf-muted">${esc(String(e.executionId).slice(0, 12))}</td>
@@ -1531,11 +1327,11 @@
       const steps = Array.isArray(e.stepExecutions) ? e.stepExecutions : [];
       const ro = this.options.readOnly;
       const pending = bucket === 'running' && e.stepCount ? Math.max(0, e.stepCount - steps.length) : 0;
-      return `<button class="njwf-btn ghost" type="button" data-action="back" style="margin-bottom:12px">${icon('chevronLeft', 13)} Back</button>
+      return `<button class="inline-da12f285 njwf-btn ghost" type="button" data-action="back">${icon('chevronLeft', 13)} Back</button>
         <div class="njwf-card pad">
-          <div class="njwf-head" style="margin-bottom:10px">
+          <div class="inline-761d3add njwf-head">
             <div><h2 class="njwf-title">${esc(e.workflowName)}</h2>
-              <div class="njwf-row" style="margin-top:6px">${pill(bucket)}<span class="njwf-code-inline">${esc(e.executionId)}</span></div></div>
+              <div class="inline-fe7b4979 njwf-row">${pill(bucket)}<span class="njwf-code-inline">${esc(e.executionId)}</span></div></div>
             <div class="njwf-row">
               <button class="njwf-btn" type="button" data-action="refresh-run" data-id="${esc(e.executionId)}">${icon('refresh', 13)} Refresh</button>
               <button class="njwf-btn" type="button" data-action="workflow-history" data-name="${esc(e.workflowName)}">${icon('history', 13)} Workflow history</button>
@@ -1550,7 +1346,7 @@
             <div><div class="k">Trigger</div><div class="v">${esc(triggerLabel(e.trigger))}${e.scheduleName ? ` · ${esc(e.scheduleName)}` : ''}</div></div>
             <div><div class="k">Steps</div><div class="v">${steps.length}${e.stepCount ? ` of ${e.stepCount}` : ''}</div></div>
           </div>
-          ${e.error ? `<div class="njwf-section"><div class="njwf-label" style="color:var(--njwf-danger)">Error</div><pre class="njwf-pre err">${esc(e.error)}</pre></div>` : ''}
+          ${e.error ? `<div class="njwf-section"><div class="inline-627e98b1 njwf-label">Error</div><pre class="njwf-pre err">${esc(e.error)}</pre></div>` : ''}
           <div class="njwf-section"><div class="njwf-label">Steps</div>
             ${steps.length || pending ? `<div class="njwf-timeline">
               ${steps.map((st, i) => {
@@ -1560,11 +1356,11 @@
                     <span class="njwf-cell"><span class="t">${esc(st.stepName || `Step ${i + 1}`)}</span><span class="s njwf-mono">${esc(st.stepPath || '')}</span></span>
                     <span class="njwf-mono njwf-muted">${esc(fmtDuration(st.duration))}</span>${pill(sb)}</summary>
                   <div class="body">
-                    ${st.error ? `<pre class="njwf-pre err" style="margin-bottom:8px">${esc(st.error)}</pre>` : ''}
+                    ${st.error ? `<pre class="inline-fdf33f23 njwf-pre err">${esc(st.error)}</pre>` : ''}
                     ${st.outputData ? `<div class="njwf-label">Output</div><pre class="njwf-pre">${esc(prettyJson(st.outputData))}</pre>` : ''}
                   </div></details>`;
   }).join('')}
-              ${pending ? `<div class="njwf-tl-item"><div style="padding:8px 10px" class="njwf-row">${pill('running')}<span class="njwf-muted njwf-small">${pending} step${pending === 1 ? '' : 's'} still to run</span></div></div>` : ''}
+              ${pending ? `<div class="njwf-tl-item"><div class="inline-cfa1ecf5" class="njwf-row">${pill('running')}<span class="njwf-muted njwf-small">${pending} step${pending === 1 ? '' : 's'} still to run</span></div></div>` : ''}
             </div>` : '<div class="njwf-muted njwf-small">No steps recorded.</div>'}
           </div>
           <div class="njwf-section"><div class="njwf-label">Input</div><pre class="njwf-pre">${esc(prettyJson(e.inputData || {}))}</pre></div>

@@ -146,9 +146,9 @@
                             </div>
                         </div>
                         <div class="card-body">
-                            <div class="chart-container" style="height: 300px;">
+                            <div class="inline-84534291 chart-container">
                                 <canvas id="hitDistributionChart"></canvas>
-                                <div id="hitDistributionEmpty" class="core-empty-state" style="display: none;">
+                                <div id="hitDistributionEmpty" class="inline-f2892a2e core-empty-state">
                                     <i class="bi bi-inbox"></i>
                                     <h3>No cache hit data available</h3>
                                     <p>Cache hit distribution will appear here once data is collected</p>
@@ -166,9 +166,9 @@
                             </div>
                         </div>
                         <div class="card-body">
-                            <div class="chart-container" style="height: 400px;">
+                            <div class="inline-e4f1a204 chart-container">
                                 <canvas id="activityChart"></canvas>
-                                <div id="activityEmpty" class="core-empty-state" style="display: none;">
+                                <div id="activityEmpty" class="inline-f2892a2e core-empty-state">
                                     <i class="bi bi-graph-up"></i>
                                     <h3>No activity data available</h3>
                                     <p>Activity timeline will appear here once cache operations are recorded</p>
@@ -190,7 +190,7 @@
                                 <table class="table table-hover" id="keyListTable">
                                     <thead>
                                         <tr>
-                                            <th style="width: 40%;" class="sortable" data-onclick="sortDashboardTable" data-onclick-args="[&quot;keyList&quot;,&quot;name&quot;]">Cache Key<span id="sort-keyList-name"></span></th>
+                                            <th class="inline-bc0eb551" class="sortable" data-onclick="sortDashboardTable" data-onclick-args="[&quot;keyList&quot;,&quot;name&quot;]">Cache Key<span id="sort-keyList-name"></span></th>
                                             <th class="sortable" data-onclick="sortDashboardTable" data-onclick-args="[&quot;keyList&quot;,&quot;hitCount&quot;]">Hits<span id="sort-keyList-hitCount"></span></th>
                                             <th class="sortable" data-onclick="sortDashboardTable" data-onclick-args="[&quot;keyList&quot;,&quot;missCount&quot;]">Misses<span id="sort-keyList-missCount"></span></th>
                                             <th class="sortable" data-onclick="sortDashboardTable" data-onclick-args="[&quot;keyList&quot;,&quot;totalReads&quot;]">Total Reads<span id="sort-keyList-totalReads"></span></th>
@@ -208,7 +208,7 @@
                                         </tr>
                                     </tbody>
                                 </table>
-                                <div id="keyListEmpty" class="core-empty-state" style="display: none; min-height: 200px;">
+                                <div id="keyListEmpty" class="inline-0bee3d9c core-empty-state">
                                     <i class="bi bi-key"></i>
                                     <h3>No cache keys found</h3>
                                     <p>Cache keys will appear here once they are stored</p>
@@ -235,7 +235,7 @@
                                 <table class="table table-hover" id="missesTable">
                                     <thead>
                                         <tr>
-                                            <th style="width: 50%;" class="sortable" data-onclick="sortDashboardTable" data-onclick-args="[&quot;misses&quot;,&quot;key&quot;]">Cache Key<span id="sort-misses-key"></span></th>
+                                            <th class="inline-11517999" class="sortable" data-onclick="sortDashboardTable" data-onclick-args="[&quot;misses&quot;,&quot;key&quot;]">Cache Key<span id="sort-misses-key"></span></th>
                                             <th class="sortable" data-onclick="sortDashboardTable" data-onclick-args="[&quot;misses&quot;,&quot;missCount&quot;]">Miss Count<span id="sort-misses-missCount"></span></th>
                                             <th class="sortable" data-onclick="sortDashboardTable" data-onclick-args="[&quot;misses&quot;,&quot;hitCount&quot;]">Hit Count<span id="sort-misses-hitCount"></span></th>
                                         </tr>
@@ -251,7 +251,7 @@
                                         </tr>
                                     </tbody>
                                 </table>
-                                <div id="missesEmpty" class="core-empty-state" style="display: none; min-height: 200px;">
+                                <div id="missesEmpty" class="inline-0bee3d9c core-empty-state">
                                     <i class="bi bi-exclamation-circle"></i>
                                     <h3>No cache misses recorded</h3>
                                     <p>Cache misses will appear here once requested keys are not found</p>
@@ -316,7 +316,7 @@
                                 <div class="mb-3">
                                     <label class="form-label" for="putValue">Value (JSON)</label>
                                     <textarea id="putValue" class="form-control" placeholder='{"message": "Hello World", "timestamp": "2024-01-01"}' required></textarea>
-                                    <div id="putValidation" class="form-text" style="display: none;"></div>
+                                    <div id="putValidation" class="inline-f2892a2e form-text"></div>
                                     <div class="form-text">Enter valid JSON data</div>
                                 </div>
                                 <div class="d-flex flex-wrap gap-2">
@@ -325,7 +325,7 @@
                                     <button type="button" class="btn btn-secondary" data-onclick="loadExample" data-onclick-args="[&quot;putValue&quot;]">Load Example</button>
                                 </div>
                             </form>
-                            <div id="putResponse" class="core-response-container" style="display: none;">
+                            <div id="putResponse" class="inline-f2892a2e core-response-container">
                                 <div class="core-response-title">Response:</div>
                                 <div id="putResponseContent" class="core-response-content"></div>
                             </div>
@@ -351,7 +351,7 @@
                                     <button type="submit" class="btn btn-primary">Retrieve Cache</button>
                                 </div>
                             </form>
-                            <div id="getResponse" class="core-response-container" style="display: none;">
+                            <div id="getResponse" class="inline-f2892a2e core-response-container">
                                 <div class="core-response-title">Retrieved Data:</div>
                                 <div id="getResponseContent" class="core-response-content"></div>
                             </div>
@@ -374,10 +374,10 @@
                                     <div class="form-text">Key of the cache entry to remove</div>
                                 </div>
                                 <div class="d-flex flex-wrap gap-2">
-                                    <button type="submit" class="btn btn-primary" style="background: var(--danger);">Delete Cache</button>
+                                    <button type="submit" class="inline-312a77de btn btn-primary">Delete Cache</button>
                                 </div>
                             </form>
-                            <div id="deleteResponse" class="core-response-container" style="display: none;">
+                            <div id="deleteResponse" class="inline-f2892a2e core-response-container">
                                 <div class="core-response-title">Response:</div>
                                 <div id="deleteResponseContent" class="core-response-content"></div>
                             </div>
@@ -396,7 +396,7 @@
                             <div class="d-flex flex-wrap gap-2">
                                 <button type="button" class="btn btn-secondary" data-onclick="checkStatus" data-onclick-args="[]">Check Status</button>
                             </div>
-                            <div id="statusResponse" class="core-response-container" style="display: none;">
+                            <div id="statusResponse" class="inline-f2892a2e core-response-container">
                                 <div class="core-response-title">Service Status:</div>
                                 <div id="statusResponseContent" class="core-response-content"></div>
                             </div>
@@ -418,7 +418,7 @@
                 </div>
 
                 <!-- Settings Tab -->
-                <div class="tab-pane fade" id="settings" role="tabpanel" style="min-height:1000px">
+                <div class="inline-3ea6f166 tab-pane fade" id="settings" role="tabpanel">
 
                     <!-- Settings Card -->
                     <div class="card">
@@ -429,7 +429,7 @@
                             </div>
                         </div>
                         <div class="card-body">
-                            <div id="settingsInfo" class="alert alert-info" style="display: none;"></div>
+                            <div id="settingsInfo" class="inline-f2892a2e alert alert-info"></div>
                             <form id="settingsForm">
                                 <div id="settingsFormFields"></div>
                                 <div class="d-flex flex-wrap gap-2">
@@ -437,7 +437,7 @@
                                     <button type="button" class="btn btn-secondary" data-onclick="loadSettings" data-onclick-args="[]">Reload</button>
                                 </div>
                             </form>
-                            <div id="settingsSaveResponse" class="core-response-container" style="display: none;">
+                            <div id="settingsSaveResponse" class="inline-f2892a2e core-response-container">
                                 <div class="core-response-title">Save Response:</div>
                                 <div id="settingsSaveResponseContent" class="core-response-content"></div>
                             </div>

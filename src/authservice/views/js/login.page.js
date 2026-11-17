@@ -48,7 +48,7 @@
             // Add logo if provided (use default NooblyJS logo if not)
             const logoContainer = document.getElementById('logo-container');
             const logoUrl = brandingConfig.logoUrl || '/images/nooblyjs-logo.png';
-            logoContainer.innerHTML = `<img src="${logoUrl}" alt="${brandingConfig.appName || 'Logo'}" style="max-height: 80px; width: auto; margin-bottom: 1rem;"><div class="auth-logo" id="app-name">${brandingConfig.appName || 'NooblyJS'}</div>`;
+            logoContainer.innerHTML = `<img src="${logoUrl}" alt="${brandingConfig.appName || 'Logo'}" class="inline-573cce16"><div class="auth-logo" id="app-name">${brandingConfig.appName || 'NooblyJS'}</div>`;
 
             // Apply custom colors to CSS variables.
             // Note: the primary color is intentionally fixed (the NooblyJS accent) on this

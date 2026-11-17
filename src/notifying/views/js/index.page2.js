@@ -1097,7 +1097,7 @@
 
             // Render topics
             if (Object.keys(topicMap).length === 0) {
-                folderContent.innerHTML = '<div style="padding: 0.5rem 1rem; color: #999; font-size: 0.9rem;">No notifications</div>';
+                folderContent.innerHTML = '<div class="inline-61453769">No notifications</div>';
                 return;
             }
 
@@ -1250,7 +1250,7 @@
                         <button id="toggleReadDetailBtn">
                             <i class="bi bi-check-circle"></i> Mark as Unread
                         </button>
-                        <button id="deleteDetailBtn" style="color: #dc3545; border-color: #dc3545;">
+                        <button id="deleteDetailBtn" class="inline-0bfe87b6">
                             <i class="bi bi-trash"></i> Delete
                         </button>
                     </div>
@@ -1326,7 +1326,7 @@
                 panel.innerHTML = `
                     <div class="subscription-section">
                         <div class="subscription-section-title">No Subscriptions</div>
-                        <p style="color: #999; font-size: 0.9rem; margin-top: 0.5rem;">
+                        <p class="inline-57a2f7a8">
                             No active topic subscriptions. Subscribe to a topic to get started.
                         </p>
                     </div>

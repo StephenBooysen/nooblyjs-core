@@ -49,12 +49,12 @@
 
         <div class="core-page-content">
             <!-- Alerts -->
-            <div class="alert alert-success alert-dismissible fade" id="successAlert" role="alert" style="display: none;">
+            <div class="inline-f2892a2e alert alert-success alert-dismissible fade" id="successAlert" role="alert">
                 <strong>Success!</strong> <span id="successMessage"></span>
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
 
-            <div class="alert alert-danger alert-dismissible fade" id="errorAlert" role="alert" style="display: none;">
+            <div class="inline-f2892a2e alert alert-danger alert-dismissible fade" id="errorAlert" role="alert">
                 <strong>Error!</strong> <span id="errorMessage"></span>
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
@@ -121,17 +121,17 @@
                     <div class="card">
                         <div class="card-header"><h3><i class="bi bi-shield-lock"></i> Store</h3></div>
                         <div class="card-body">
-                            <div id="secretWarning" class="alert alert-warning" style="display: none;">
+                            <div id="secretWarning" class="inline-f2892a2e alert alert-warning">
                                 <i class="bi bi-exclamation-triangle-fill"></i>
                                 Settings are encrypted with the built-in development secret.
                                 Set <code>SETTINGS_SECRET</code> before storing production values.
                             </div>
                             <table class="table table-hover">
                                 <tbody>
-                                    <tr><td style="width: 200px; font-weight: 600;">Cipher</td><td id="infoAlgorithm">-</td></tr>
-                                    <tr><td style="font-weight: 600;">File</td><td id="infoFilepath" style="font-family: 'JetBrains Mono', monospace; font-size: 12px;">-</td></tr>
-                                    <tr><td style="font-weight: 600;">Created</td><td id="infoCreated">-</td></tr>
-                                    <tr><td style="font-weight: 600;">Last updated</td><td id="infoUpdated">-</td></tr>
+                                    <tr><td class="inline-ad9c8e1a">Cipher</td><td id="infoAlgorithm">-</td></tr>
+                                    <tr><td class="inline-5c05f4af">File</td><td id="infoFilepath" class="inline-0ee24d0b">-</td></tr>
+                                    <tr><td class="inline-5c05f4af">Created</td><td id="infoCreated">-</td></tr>
+                                    <tr><td class="inline-5c05f4af">Last updated</td><td id="infoUpdated">-</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -144,13 +144,13 @@
                         <!-- Groups -->
                         <div class="col-lg-4">
                             <div class="card">
-                                <div class="card-header" style="display: flex; align-items: center; justify-content: space-between;">
+                                <div class="inline-204b18f8 card-header">
                                     <h3><i class="bi bi-collection"></i> Groups</h3>
-                                    <button class="btn btn-primary btn-sm" id="newGroupBtn" style="height: 30px;">
+                                    <button class="inline-4392f332 btn btn-primary btn-sm" id="newGroupBtn">
                                         <i class="bi bi-plus-lg"></i> New
                                     </button>
                                 </div>
-                                <div class="card-body" style="padding: 8px;">
+                                <div class="inline-cb92ec43 card-body">
                                     <div id="groupList"></div>
                                 </div>
                             </div>
@@ -159,33 +159,33 @@
                         <!-- Key / values -->
                         <div class="col-lg-8">
                             <div class="card">
-                                <div class="card-header" style="display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+                                <div class="inline-f3cd6b78 card-header">
                                     <h3><i class="bi bi-sliders"></i> <span id="currentGroupName">Select a group</span></h3>
-                                    <div style="display: flex; gap: 8px;">
-                                        <button class="btn btn-secondary btn-sm" id="toggleRevealBtn" style="height: 30px;" disabled>
+                                    <div class="inline-693434c7">
+                                        <button class="inline-4392f332 btn btn-secondary btn-sm" id="toggleRevealBtn" disabled>
                                             <i class="bi bi-eye"></i> Reveal
                                         </button>
-                                        <button class="btn btn-primary btn-sm" id="newSettingBtn" style="height: 30px;" disabled>
+                                        <button class="inline-4392f332 btn btn-primary btn-sm" id="newSettingBtn" disabled>
                                             <i class="bi bi-plus-lg"></i> Add setting
                                         </button>
-                                        <button class="btn btn-secondary btn-sm" id="deleteGroupBtn" style="height: 30px;" disabled title="Delete this group">
+                                        <button class="inline-4392f332 btn btn-secondary btn-sm" id="deleteGroupBtn" disabled title="Delete this group">
                                             <i class="bi bi-trash"></i>
                                         </button>
                                     </div>
                                 </div>
-                                <div class="card-body" style="padding: 0;">
-                                    <p id="groupDescription" style="display: none; margin: 0; padding: 12px 16px; font-size: 13px; color: var(--muted); border-bottom: 1px solid var(--divider);"></p>
+                                <div class="inline-bcb0a0d8 card-body">
+                                    <p id="groupDescription" class="inline-4df95c5b"></p>
                                     <table class="table table-hover">
                                         <thead>
                                             <tr>
                                                 <th>Key</th>
                                                 <th>Value</th>
-                                                <th style="width: 90px;">Secret</th>
-                                                <th style="width: 110px;">Actions</th>
+                                                <th class="inline-e60a90d7">Secret</th>
+                                                <th class="inline-9ed99d3b">Actions</th>
                                             </tr>
                                         </thead>
                                         <tbody id="settingsTableBody">
-                                            <tr><td colspan="4" style="text-align: center; color: var(--neutral-dot);">Select a group to view its settings</td></tr>
+                                            <tr><td colspan="4" class="inline-2c825d1f">Select a group to view its settings</td></tr>
                                         </tbody>
                                     </table>
                                 </div>
@@ -209,7 +209,7 @@
                             <span><i class="bi bi-toggles"></i> Feature flags</span>
                             <div class="d-flex flex-wrap align-items-center gap-2">
                                 <label class="small" for="flagsStaleDays">Stale after (days)</label>
-                                <input class="form-control form-control-sm" id="flagsStaleDays" type="number" min="1" value="30" style="width: 6rem">
+                                <input class="inline-db0ab88d form-control form-control-sm" id="flagsStaleDays" type="number" min="1" value="30">
                                 <div class="form-check mb-0">
                                     <input class="form-check-input" type="checkbox" id="flagsOnlyStale" data-onclick="NooblyJSFlags.refresh" data-onclick-args="[]">
                                     <label class="form-check-label small" for="flagsOnlyStale">Only stale</label>
@@ -238,7 +238,7 @@
                         <div class="card-body">
                             <form id="settingsForm">
                                 <div id="settingsFormFields"></div>
-                                <div style="margin-top: 20px; display: flex; gap: 10px;">
+                                <div class="inline-73d91423">
                                     <button type="submit" class="btn btn-primary">Save Configuration</button>
                                     <button type="button" class="btn btn-secondary" data-onclick="loadProviderSettings" data-onclick-args="[]">Reload</button>
                                 </div>

@@ -1,0 +1,3 @@
+body { margin: 0; }
+    .docs-status { padding: 16px; font-family: system-ui, sans-serif; }
+    .docs-status[hidden] { display: none; }

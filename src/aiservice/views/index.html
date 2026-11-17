@@ -235,7 +235,7 @@
                             </form>
                             <div class="core-response-container mt-3">
                                 <div class="core-response-title">Reply <span class="text-muted small" id="playgroundStats"></span></div>
-                                <pre id="playgroundOutput" class="core-response-content" style="white-space: pre-wrap;"></pre>
+                                <pre id="playgroundOutput" class="inline-17d8c5ec core-response-content"></pre>
                             </div>
                         </div>
                     </div>
@@ -301,10 +301,10 @@
                                     </div>
                                 </form>
 
-                            <div id="responseContainer" class="core-response-container" style="display: none;">
+                            <div id="responseContainer" class="inline-f2892a2e core-response-container">
                                 <div class="core-response-title">AI Response</div>
                                 <pre id="aiResponse" class="mb-0"></pre>
-                                <div id="usageInfo" class="mt-4" style="display: none;">
+                                <div id="usageInfo" class="inline-f2892a2e mt-4">
                                     <div class="text-uppercase fw-bold small text-muted mb-2">Usage Metrics</div>
                                     <div class="row g-3">
                                         <div class="col-6 col-md-3">
@@ -348,7 +348,7 @@
                                 <button type="button" class="btn btn-secondary" data-onclick="checkModels" data-onclick-args="[]">List Models</button>
                                 <button type="button" class="btn btn-secondary" data-onclick="checkHealth" data-onclick-args="[]">Health Check</button>
                             </div>
-                            <div id="statusResponse" class="core-response-container" style="display: none;">
+                            <div id="statusResponse" class="inline-f2892a2e core-response-container">
                                 <div class="core-response-title">Status Information</div>
                                 <div id="statusResponseContent" class="core-response-content"></div>
                             </div>
@@ -365,7 +365,7 @@
                                 <div class="text-muted small" id="analyticsCount">Loading...</div>
                                 <button class="btn btn-sm btn-outline-primary" data-onclick="loadAnalytics" data-onclick-args="[]">Refresh</button>
                             </div>
-                            <div id="analyticsData" class="core-response-container" style="display: none;">
+                            <div id="analyticsData" class="inline-f2892a2e core-response-container">
                                 <div class="core-response-content" id="analyticsContent"></div>
                             </div>
                         </div>
@@ -394,8 +394,8 @@
                     </div>
 
                     <!-- Shown when provider does NOT support training -->
-                    <div id="trainNotSupported" style="display:none;">
-                        <div class="alert alert-warning d-flex align-items-start gap-3" style="border-radius: var(--radius-md);">
+                    <div id="trainNotSupported" class="inline-c8be1ccb">
+                        <div class="inline-a1f0d399 alert alert-warning d-flex align-items-start gap-3">
                             <i class="bi bi-exclamation-triangle-fill fs-4 flex-shrink-0 mt-1"></i>
                             <div>
                                 <div class="fw-bold mb-1">Training Not Supported</div>
@@ -405,11 +405,11 @@
                     </div>
 
                     <!-- Shown when provider supports training -->
-                    <div id="trainSupported" style="display:none;">
+                    <div id="trainSupported" class="inline-c8be1ccb">
 
                         <!-- Status row -->
                         <div class="card mb-4">
-                            <div class="card-header" style="display:flex; justify-content:space-between; align-items:center;">
+                            <div class="inline-41f999b3 card-header">
                                 <div>
                                     <h2 class="card-title mb-0">Training Status</h2>
                                     <p class="card-subtitle mb-0">Live state of the background training pipeline</p>
@@ -458,9 +458,9 @@
                                 <form id="addDocForm">
                                     <div class="mb-3">
                                         <label class="form-label" for="docKey">Document Key</label>
-                                        <input type="text" id="docKey" class="form-control"
+                                        <input type="text" id="docKey" class="inline-6d09221a form-control"
                                             placeholder="e.g. chapter-1, faq-intro, product-manual"
-                                            style="max-width:400px;" required>
+                                            required>
                                         <div class="form-text">Unique identifier — reusing the same key updates that document</div>
                                     </div>
                                     <div class="mb-3">
@@ -484,7 +484,7 @@
 
                         <!-- Documents table -->
                         <div class="card">
-                            <div class="card-header" style="display:flex; justify-content:space-between; align-items:center;">
+                            <div class="inline-41f999b3 card-header">
                                 <div>
                                     <h2 class="card-title mb-0">Training Documents</h2>
                                     <p class="card-subtitle mb-0">All documents currently in the training corpus</p>
@@ -496,10 +496,10 @@
                                     <table class="table table-hover">
                                         <thead>
                                             <tr>
-                                                <th style="width:20%">Key</th>
+                                                <th class="inline-44b21af7">Key</th>
                                                 <th>Text Preview</th>
-                                                <th style="width:8%; text-align:right;">Chars</th>
-                                                <th style="width:14%; text-align:center;">Actions</th>
+                                                <th class="inline-7f3a83bf">Chars</th>
+                                                <th class="inline-f9c7633e">Actions</th>
                                             </tr>
                                         </thead>
                                         <tbody id="trainDocsTableBody">
@@ -519,7 +519,7 @@
                 <!-- End Train Tab -->
 
                 <!-- Settings Tab -->
-                <div class="tab-pane fade" id="settings" role="tabpanel" aria-labelledby="settings-tab" style="min-height:1000px">
+                <div class="inline-3ea6f166 tab-pane fade" id="settings" role="tabpanel" aria-labelledby="settings-tab">
 
                     <!-- Settings Card -->
                     <div class="card">
@@ -528,7 +528,7 @@
                             <p class="card-subtitle">Configure the AI service parameters</p>
                         </div>
                         <div class="card-body">
-                            <div id="settingsInfo" class="alert alert-info mb-4" style="display: none;"></div>
+                            <div id="settingsInfo" class="inline-f2892a2e alert alert-info mb-4"></div>
                             <form id="settingsForm">
                                 <div id="settingsFormFields"></div>
                                 <div class="d-flex flex-wrap gap-2">
@@ -536,7 +536,7 @@
                                     <button type="button" class="btn btn-secondary" data-onclick="loadSettings" data-onclick-args="[]">Reload</button>
                                 </div>
                             </form>
-                            <div id="settingsSaveResponse" class="core-response-container" style="display: none; margin-top: 1rem;">
+                            <div id="settingsSaveResponse" class="inline-5a89b13a core-response-container">
                                 <div class="core-response-title">Save Response:</div>
                                 <div id="settingsSaveResponseContent" class="core-response-content"></div>
                             </div>

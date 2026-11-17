@@ -3,10 +3,11 @@
  *
  * Scripts are loaded from files and clicks use data-onclick attributes handled
  * by /services/js/actions.js, so no inline script or inline handler is allowed.
- * Styles still allow 'unsafe-inline' (the dashboards use style attributes). The
- * policy pins every external origin (jsDelivr, unpkg, Google Fonts, Google
- * Analytics), blocks plugins, <base> hijacking and foreign framing, and
- * restricts form targets.
+ * Styles allow no inline style attributes and no style elements (feature 17b):
+ * the dashboards use classes, and JavaScript sets dynamic values through the
+ * CSSOM, which CSP does not block. The policy pins every external origin
+ * (jsDelivr, unpkg, Google Fonts, Google Analytics), blocks plugins, <base>
+ * hijacking and foreign framing, and restricts form targets.
  *
  * Environment:
  *   CSP_MODE          enforce (default) | report-only | off
@@ -34,7 +35,7 @@ function buildCspDirectives({ extraSources = [] } = {}) {
     defaultSrc: ["'self'"],
     scriptSrc: ["'self'", ...CDN_SOURCES, ...ANALYTICS_SOURCES, ...extraSources],
     scriptSrcAttr: ["'none'"],
-    styleSrc: ["'self'", "'unsafe-inline'", ...CDN_SOURCES, 'https://fonts.googleapis.com', ...extraSources],
+    styleSrc: ["'self'", ...CDN_SOURCES, 'https://fonts.googleapis.com', ...extraSources],
     fontSrc: ["'self'", 'data:', 'https://fonts.gstatic.com', ...CDN_SOURCES],
     imgSrc: ["'self'", 'data:', 'blob:', 'https:', ...extraSources],
     connectSrc: ["'self'", ...CDN_SOURCES, ...ANALYTICS_SOURCES, ...extraSources],

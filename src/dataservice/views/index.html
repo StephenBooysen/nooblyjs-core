@@ -84,7 +84,7 @@
             <!-- Tab Content -->
             <div class="tab-content" id="dataserviceTabContent">
                 <!-- Settings Tab -->
-                <div class="tab-pane fade" id="settings" role="tabpanel" aria-labelledby="settings-tab" style="min-height:1000px">
+                <div class="inline-3ea6f166 tab-pane fade" id="settings" role="tabpanel" aria-labelledby="settings-tab">
                     <!-- Settings Card -->
                     <div class="card">
                         <div class="card-header">
@@ -92,7 +92,7 @@
                             <p class="card-subtitle">Configure the data service parameters</p>
                         </div>
                         <div class="card-body">
-                            <div id="settingsInfo" class="alert alert-info mb-4" style="display: none;"></div>
+                            <div id="settingsInfo" class="inline-f2892a2e alert alert-info mb-4"></div>
                             <form id="settingsForm">
                                 <div id="settingsFormFields"></div>
                                 <div class="d-flex flex-wrap gap-2">
@@ -100,7 +100,7 @@
                                     <button type="button" class="btn btn-secondary" data-onclick="loadSettings" data-onclick-args="[]">Reload</button>
                                 </div>
                             </form>
-                            <div id="settingsSaveResponse" class="core-response-container" style="display: none; margin-top: 1rem;">
+                            <div id="settingsSaveResponse" class="inline-5a89b13a core-response-container">
                                 <div class="core-response-title">Save Response:</div>
                                 <div id="settingsSaveResponseContent" class="core-response-content"></div>
                             </div>
@@ -197,7 +197,7 @@
                                     <textarea id="putValue" class="form-control"
                                         placeholder='{"message": "Hello World", "timestamp": "2024-01-01"}'
                                         required></textarea>
-                                    <div id="putValidation" class="core-validation-message" style="display: none;"></div>
+                                    <div id="putValidation" class="inline-f2892a2e core-validation-message"></div>
                                     <div class="form-text">Enter valid JSON data</div>
                                 </div>
                                 <div class="d-flex flex-wrap gap-2">
@@ -210,7 +210,7 @@
                                         data-onclick="loadContainerExample" data-onclick-args="[&quot;put&quot;]">Load Example</button>
                                 </div>
                             </form>
-                            <div id="putResponse" class="core-response-container" style="display: none;">
+                            <div id="putResponse" class="inline-f2892a2e core-response-container">
                                 <div class="core-response-title">Response:</div>
                                 <div id="putResponseContent" class="core-response-content"></div>
                             </div>
@@ -243,7 +243,7 @@
                                         data-onclick="loadContainerExample" data-onclick-args="[&quot;get&quot;]">Load Example</button>
                                 </div>
                             </form>
-                            <div id="getResponse" class="core-response-container" style="display: none;">
+                            <div id="getResponse" class="inline-f2892a2e core-response-container">
                                 <div class="core-response-title">Retrieved Data:</div>
                                 <div id="getResponseContent" class="core-response-content"></div>
                             </div>
@@ -276,7 +276,7 @@
                                         data-onclick="loadContainerExample" data-onclick-args="[&quot;delete&quot;]">Load Example</button>
                                 </div>
                             </form>
-                            <div id="deleteResponse" class="core-response-container" style="display: none;">
+                            <div id="deleteResponse" class="inline-f2892a2e core-response-container">
                                 <div class="core-response-title">Response:</div>
                                 <div id="deleteResponseContent" class="core-response-content"></div>
                             </div>
@@ -311,7 +311,7 @@
                                         data-onclick="loadPredicateExample" data-onclick-args="[]">Load Example</button>
                                 </div>
                             </form>
-                            <div id="jsonFindResponse" class="core-response-container" style="display: none;">
+                            <div id="jsonFindResponse" class="inline-f2892a2e core-response-container">
                                 <div class="core-response-title">Search Results:</div>
                                 <div id="jsonFindResponseContent" class="core-response-content"></div>
                             </div>
@@ -348,7 +348,7 @@
                                         Example</button>
                                 </div>
                             </form>
-                            <div id="jsonFindByPathResponse" class="core-response-container" style="display: none;">
+                            <div id="jsonFindByPathResponse" class="inline-f2892a2e core-response-container">
                                 <div class="core-response-title">Search Results:</div>
                                 <div id="jsonFindByPathResponseContent" class="core-response-content"></div>
                             </div>
@@ -372,7 +372,7 @@
                                     <textarea id="searchCriteria" class="form-control"
                                         placeholder='{"id": 123, "status": "active", "profile.department": "engineering"}'
                                         required></textarea>
-                                    <div id="criteriaValidation" class="core-validation-message" style="display: none;">
+                                    <div id="criteriaValidation" class="inline-f2892a2e core-validation-message">
                                     </div>
                                     <div class="form-text">JSON object with path-value pairs (all must match)</div>
                                 </div>
@@ -384,7 +384,7 @@
                                         Example</button>
                                 </div>
                             </form>
-                            <div id="jsonFindByCriteriaResponse" class="core-response-container" style="display: none;">
+                            <div id="jsonFindByCriteriaResponse" class="inline-f2892a2e core-response-container">
                                 <div class="core-response-title">Search Results:</div>
                                 <div id="jsonFindByCriteriaResponseContent" class="core-response-content"></div>
                             </div>
@@ -402,7 +402,7 @@
                                 <button type="button" class="btn btn-secondary" data-onclick="checkStatus" data-onclick-args="[]">Check
                                     Status</button>
                             </div>
-                            <div id="statusResponse" class="core-response-container" style="display: none;">
+                            <div id="statusResponse" class="inline-f2892a2e core-response-container">
                                 <div class="core-response-title">Service Status:</div>
                                 <div id="statusResponseContent" class="core-response-content"></div>
                             </div>
