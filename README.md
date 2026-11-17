@@ -4,7 +4,7 @@ A powerful set of modular Node.js backend services built with the singleton patt
 
 ## Features
 
-- **Modular Architecture**: 16 services with dashboards (plus the MCP endpoint and app-service base classes) with clear separation of concerns
+- **Modular Architecture**: 16 services with dashboards, plus AppService base classes for building your own, and the MCP endpoint, with clear separation of concerns
 - **Dependency Injection**: Built-in service dependency resolution and injection
 - **Multiple Providers**: Most services support multiple backends (e.g., Redis/Memcached for caching, MongoDB/File for data)
 - **Event-Driven**: Global event emitter for inter-service communication
@@ -17,8 +17,10 @@ A powerful set of modular Node.js backend services built with the singleton patt
 - **Developer CLI**: `npx nooblyjs create`, `add`, `doctor`, `routes`, `openapi` and a typed TypeScript client
 - **OpenAPI 3.1**: one merged, validated document for every mounted service, with Swagger UI at `/services/api/docs`
 - **Test Kit**: `nooblyjs-core/testing` gives app tests a registry, event matchers and authenticated requests
-- **Monitoring & Analytics**: Built-in metrics collection and service dashboards
-- **Scalable**: Support for multi-instance services and cloud providers (AWS, Azure, GCP)
+- **Webhooks and Outbox**: signed outbound webhooks with retries and dead letters, sent from a transactional outbox
+- **Feature Flags**: targeting, percentage rollouts and variants, with REST endpoints and an OpenFeature provider
+- **Monitoring & Analytics**: Built-in metrics collection, service dashboards and OpenTelemetry traces and metrics (off unless `telemetry.enabled` is set)
+- **Scalable**: cloud providers (AWS, Azure, GCP) for caching, queueing and filing; sessions and shared state can live in Redis for multi-replica deployments (horizontal scaling is partly done)
 
 ## Services Overview
 
@@ -30,7 +32,7 @@ Core foundational services that power all other services. These services have no
 | Service | Purpose | Providers |
 |---------|---------|-----------|
 | **Logging** | Centralized logging system | Memory, File, API |
-| **Caching** | In-memory and distributed caching | Memory, Redis, Memcached, File, API |
+| **Caching** | In-memory and distributed caching | Memory, Redis, Memcached, File, AWS, Azure, GCP, API |
 | **Queueing** | Message queuing and job processing; reliable jobs (retries, dead-letter queue) on Memory and Redis | Memory, Redis, RabbitMQ, ActiveMQ, AWS SQS, Azure Queue, GCP Pub/Sub, API |
 | **Fetching** | HTTP requests with caching | Node.js native, Axios |
 | **Settings** | Grouped, encrypted settings; feature flags | File, Encrypted |
@@ -54,6 +56,7 @@ Services that form user-facing application interfaces. These services leverage b
 | **Searching** | Full-text, semantic and hybrid search | Memory, Vector, Semantic, Tokens, Files, Solr, API |
 | **Workflow** | Workflow and pipeline orchestration | Memory, API |
 | **Filing** | File operations and storage | Local filesystem, FTP, S3, Git, GCP, Sync, API |
+| **AppService** | Base classes for building your own application services (routes, services, data access, background work) | Base classes (no provider) |
 
 ### ⭐ Advanced Application Services
 Sophisticated services that leverage most underlying services and are almost fully stand-alone applications.
@@ -573,6 +576,23 @@ The full, current list is the OpenAPI document at `/services/api/openapi.json` (
 - `GET /services/api/monitoring/metrics` - System metrics
 - `GET /services/api/monitoring/snapshot` - Current snapshot
 
+### OpenTelemetry
+
+Tracing and metrics are off by default. Turn them on in the registry options:
+
+```javascript
+serviceRegistry.initialize(app, eventEmitter, {
+  telemetry: {
+    enabled: true,
+    serviceName: 'orders-api',        // defaults to OTEL_SERVICE_NAME, then 'nooblyjs-app'
+    exporter: 'otlp',                 // console (default when enabled), otlp, memory or none
+    sampleRatio: 0.1,                 // share of new traces recorded, 0 to 1 (default 1)
+  },
+});
+```
+
+Requests get a request id and W3C `traceparent` handling, and log lines carry the `request_id`. The `otlp` exporter needs the optional `@opentelemetry/exporter-trace-otlp-http` package, and `@opentelemetry/exporter-metrics-otlp-http` for metrics. Set the collector address with the standard `OTEL_EXPORTER_OTLP_ENDPOINT` variable. A worked example is in `examples/otel/`.
+
 ## Service Dashboards
 
 Each service provides a web dashboard at `/services/{serviceName}/`:
@@ -645,7 +665,7 @@ The ServiceRegistry ensures dependencies are initialized in order and injects th
 - Use SimpleDB for lightweight data needs
 
 ### Queue Configuration
-- Use Redis or RabbitMQ for reliable message delivery
+- Use Redis for reliable message delivery; RabbitMQ and ActiveMQ do not take reliable options yet
 - For retries and dead letters, enqueue with options (`queue.enqueue(name, data, { attempts, backoff, idempotencyKey })`) on the memory or Redis provider; other providers refuse these options with a 400
 - Monitor queue depth and processing times
 
@@ -912,3 +932,5 @@ For issues, questions, or contributions, please contact the NooblyJS Team or ope
 Current version: 2.0.0
 
 Node.js requirement: >= 22 (CI tests Node 22 and 24)
+
+Release notes and migration notes are in [CHANGELOG.md](CHANGELOG.md).
