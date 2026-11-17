@@ -1,3 +1,9 @@
+---
+type: Learning Guide
+title: 'NooblyJS Core: learning tutorials'
+description: These tutorials teach each NooblyJS Core service by doing.
+---
+
 # NooblyJS Core: learning tutorials
 
 These tutorials teach each NooblyJS Core service by doing. Each one has a runnable example in [`examples/`](examples/) and a written walk-through of that example. The examples are tested: every one runs from the repository root and prints what the tutorial describes.

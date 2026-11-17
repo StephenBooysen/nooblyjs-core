@@ -1,3 +1,9 @@
+---
+type: Learning Guide
+title: '07: Data service'
+description: Store JSON records in named containers, find and change them by uuid, search by text, and choose a database for production.
+---
+
 # 07: Data service
 
 **Time:** about 20 minutes · **Example:** [`examples/07-dataservice.js`](examples/07-dataservice.js) · **Run:** `node .claude/learning/examples/07-dataservice.js`

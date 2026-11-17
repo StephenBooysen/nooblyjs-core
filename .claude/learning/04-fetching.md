@@ -1,3 +1,9 @@
+---
+type: Learning Guide
+title: '04: Fetching'
+description: Make outbound HTTP requests through the fetching service, why it refuses some addresses, and how responses are cached.
+---
+
 # 04: Fetching
 
 **Time:** about 15 minutes · **Example:** [`examples/04-fetching.js`](examples/04-fetching.js) · **Run:** `node .claude/learning/examples/04-fetching.js`

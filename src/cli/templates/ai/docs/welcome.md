@@ -1,3 +1,9 @@
+---
+type: Guide
+title: Welcome
+description: This app answers questions from the Markdown files in this folder.
+---
+
 # Welcome
 
 This app answers questions from the Markdown files in this folder.

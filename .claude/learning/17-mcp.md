@@ -1,3 +1,9 @@
+---
+type: Learning Guide
+title: '17: MCP endpoint'
+description: Let a coding agent (such as Claude Code) read and use a running NooblyJS app through the Model Context Protocol, with the same permissions as the REST API.
+---
+
 # 17: MCP endpoint
 
 **Time:** about 20 minutes · **Example:** [`examples/17-mcp.js`](examples/17-mcp.js) · **Run:** `node .claude/learning/examples/17-mcp.js`

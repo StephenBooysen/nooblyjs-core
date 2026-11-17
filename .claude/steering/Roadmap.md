@@ -1,3 +1,9 @@
+---
+type: Steering Doc
+title: NooblyJS Core Roadmap
+description: This page lists only work that is still open.
+---
+
 # NooblyJS Core Roadmap
 
 **Updated:** 2026-11-17 · **Owner:** NooblyJS Core team · **Review:** monthly

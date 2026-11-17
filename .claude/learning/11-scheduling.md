@@ -1,3 +1,9 @@
+---
+type: Learning Guide
+title: '11: Scheduling'
+description: Run an activity every few seconds, or on a cron schedule, pause and resume it, and read its run history.
+---
+
 # 11: Scheduling
 
 **Time:** about 20 minutes · **Example:** [`examples/11-scheduling.js`](examples/11-scheduling.js) · **Run:** `node .claude/learning/examples/11-scheduling.js`

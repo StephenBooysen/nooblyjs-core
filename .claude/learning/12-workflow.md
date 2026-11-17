@@ -1,3 +1,9 @@
+---
+type: Learning Guide
+title: '12: Workflow'
+description: Define a named sequence of activities, run it with input, read its history, and keep its state across restarts.
+---
+
 # 12: Workflow
 
 **Time:** about 25 minutes · **Example:** [`examples/12-workflow.js`](examples/12-workflow.js) · **Run:** `node .claude/learning/examples/12-workflow.js`

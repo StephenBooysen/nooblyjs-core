@@ -1,3 +1,9 @@
+---
+type: Learning Guide
+title: '14: Auth service'
+description: Create users with a password policy, sign them in, check and end sessions, issue personal access tokens with narrower scopes, and understand how the auth service controls access to the dashboard...
+---
+
 # 14: Auth service
 
 **Time:** about 25 minutes · **Example:** [`examples/14-authservice.js`](examples/14-authservice.js) · **Run:** `node .claude/learning/examples/14-authservice.js`

@@ -1,3 +1,9 @@
+---
+type: Learning Guide
+title: '01: Logging'
+description: Write structured log entries from your code, read them back over REST, and choose a logging backend.
+---
+
 # 01: Logging
 
 **Time:** about 15 minutes · **Example:** [`examples/01-logging.js`](examples/01-logging.js) · **Run:** `node .claude/learning/examples/01-logging.js`

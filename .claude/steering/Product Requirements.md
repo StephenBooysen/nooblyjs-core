@@ -1,3 +1,9 @@
+---
+type: Steering Doc
+title: Product Requirements Document
+description: Provide a unified, extensible backend framework that abstracts complex infrastructure concerns while maintaining flexibility to integrate with any provider or technology stack.
+---
+
 # Product Requirements Document
 ## NooblyJS Core - Enterprise Node.js Backend Framework
 

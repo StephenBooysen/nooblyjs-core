@@ -1,3 +1,9 @@
+---
+type: Rule
+title: 'Branding: NooblyJS only'
+description: This project is NooblyJS / nooblyjs-core (github.com/nooblyjs/nooblyjs-core).
+---
+
 # Branding: NooblyJS only
 
 This project is NooblyJS / `nooblyjs-core` (github.com/nooblyjs/nooblyjs-core). Never introduce Shoprite, S-Tech / STECH or "Digital Technologies (Core)" names, logos, Bitbucket URLs or `@shoprite.co.za` addresses — including in code copied from other forks.

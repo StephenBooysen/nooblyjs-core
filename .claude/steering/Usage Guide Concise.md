@@ -1,3 +1,9 @@
+---
+type: Steering Doc
+title: NooblyJS Core - Concise Usage Guide
+description: Quick reference for using NooblyJS Core in an application.
+---
+
 # NooblyJS Core - Concise Usage Guide
 
 Quick reference for using NooblyJS Core in an application. Method names match the provider classes in `src/*/providers/`. Where an option is provider-specific, check the service's `index.js` for the full list.

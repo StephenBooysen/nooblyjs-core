@@ -1,4 +1,5 @@
 ---
+type: Skill
 name: write-tests
 description: Write or extend Jest unit tests for nooblyjs-core services following the repo's patterns (factory creation, mocked dependencies, EventEmitter spies, cleanup), then run them. Use when adding coverage for a service, provider, route or bug fix.
 argument-hint: "<service or file to test>"

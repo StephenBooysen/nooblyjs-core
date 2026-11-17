@@ -1,3 +1,9 @@
+---
+type: Guide
+title: nooblyjs-ai-common
+description: The AI building blocks shared by the nooblyjs AI projects, so each one stops carrying its own copy
+---
+
 # nooblyjs-ai-common
 
 The AI building blocks shared by the nooblyjs AI projects, so each one stops carrying its own copy:

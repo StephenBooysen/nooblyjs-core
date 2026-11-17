@@ -1,3 +1,9 @@
+---
+type: Learning Guide
+title: '10: Working'
+description: Write an activity, run it in a worker thread, read its result, and understand the limits that keep activities safe.
+---
+
 # 10: Working
 
 **Time:** about 20 minutes · **Example:** [`examples/10-working.js`](examples/10-working.js) · **Run:** `node .claude/learning/examples/10-working.js`

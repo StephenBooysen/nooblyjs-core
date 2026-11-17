@@ -1,3 +1,9 @@
+---
+type: Learning Guide
+title: '06: Settings and feature flags'
+description: Store grouped configuration values, keep secrets encrypted, and switch features on for some callers with feature flags.
+---
+
 # 06: Settings and feature flags
 
 **Time:** about 20 minutes · **Example:** [`examples/06-settings-and-flags.js`](examples/06-settings-and-flags.js) · **Run:** `node .claude/learning/examples/06-settings-and-flags.js`

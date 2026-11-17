@@ -1,3 +1,9 @@
+---
+type: Rule
+title: Where generated docs and tests go
+description: Where generated docs, test output and temporary data go, and the exceptions to that.
+---
+
 # Where generated docs and tests go
 
 - Markdown documents written while building features (feature notes, change summaries, design write-ups, reports) go in `.temp/updates/`.

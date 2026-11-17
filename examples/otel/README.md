@@ -1,3 +1,9 @@
+---
+type: Guide
+title: OpenTelemetry example (feature 07)
+description: A NooblyJS app that sends traces and metrics over OTLP to an OpenTelemetry Collector, which forwards traces to Jaeger.
+---
+
 # OpenTelemetry example (feature 07)
 
 A NooblyJS app that sends traces and metrics over OTLP to an OpenTelemetry

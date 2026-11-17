@@ -1,3 +1,9 @@
+---
+type: Learning Guide
+title: '02: Caching'
+description: Store values by key, read them back, delete them, and keep separate caches for different purposes with named instances.
+---
+
 # 02: Caching
 
 **Time:** about 15 minutes · **Example:** [`examples/02-caching.js`](examples/02-caching.js) · **Run:** `node .claude/learning/examples/02-caching.js`

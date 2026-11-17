@@ -1,3 +1,9 @@
+---
+type: Guide
+title: NooblyJS Notifying Service - Client Library
+description: A lightweight JavaScript library for integrating pub/sub messaging capabilities into web applications.
+---
+
 # NooblyJS Notifying Service - Client Library
 
 A lightweight JavaScript library for integrating pub/sub messaging capabilities into web applications. Features both **local client-side pub/sub** (no server needed) and **remote server-side integration** (for distributed messaging).

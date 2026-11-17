@@ -1,3 +1,9 @@
+---
+type: Learning Guide
+title: '15: AI service'
+description: Call a model through one API whatever the provider, read the reply and its usage, ask for structured output, create embeddings, and keep spending under control with budgets.
+---
+
 # 15: AI service
 
 **Time:** about 25 minutes · **Example:** [`examples/15-aiservice.js`](examples/15-aiservice.js) · **Run:** `node .claude/learning/examples/15-aiservice.js`

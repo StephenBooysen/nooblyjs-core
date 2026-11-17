@@ -1,0 +1,8 @@
+# Subdirectories
+
+* [add-endpoint](add-endpoint/) - Add or change a REST endpoint on a nooblyjs-core service — route in routes/index.js (default and :instanceName variants), auth, safe errors, Swagger docs.json, .http example and a test. Use whenever an API route under /services/{service}/api is added or modified.
+* [feature](feature/) - End-to-end workflow for building a feature in nooblyjs-core — scope it, implement it following the service conventions, test it, write the feature notes to .temp/updates, and run the full suite. Use when the user asks to add or change behaviour in a service.
+* [migrate-logging](migrate-logging/) - Replace server-side console.* calls in nooblyjs-core with the injected logging service using optional chaining and structured metadata, without changing behaviour. Use when the user asks to clean up logging or finish the console migration for a file or service.
+* [new-provider](new-provider/) - Add a new backend provider (e.g. Redis, a cloud SDK) to an existing nooblyjs-core service, with parity to the default provider, factory registration, optional-dependency handling and tests. Use when the user asks to support a new backend for caching, queueing, dataservice, filing, etc.
+* [new-service](new-service/) - Scaffold a new nooblyjs-core service — factory, default and API providers, analytics module, routes with Swagger, dashboard view, registry wiring, navigation entry and tests. Use when the user wants a new top-level service under src/.
+* [write-tests](write-tests/) - Write or extend Jest unit tests for nooblyjs-core services following the repo's patterns (factory creation, mocked dependencies, EventEmitter spies, cleanup), then run them. Use when adding coverage for a service, provider, route or bug fix.

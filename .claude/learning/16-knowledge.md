@@ -1,3 +1,9 @@
+---
+type: Learning Guide
+title: '16: Knowledge'
+description: Answer questions from your own documents, with numbered citations that point at the source, and give the service feedback so it can be checked.
+---
+
 # 16: Knowledge
 
 **Time:** about 25 minutes · **Example:** [`examples/16-knowledge.js`](examples/16-knowledge.js) · **Run:** `node .claude/learning/examples/16-knowledge.js`

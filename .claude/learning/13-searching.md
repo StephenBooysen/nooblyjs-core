@@ -1,3 +1,9 @@
+---
+type: Learning Guide
+title: '13: Searching'
+description: Index documents, search them with ranked results, get suggestions as someone types, and remove documents from the index.
+---
+
 # 13: Searching
 
 **Time:** about 20 minutes · **Example:** [`examples/13-searching.js`](examples/13-searching.js) · **Run:** `node .claude/learning/examples/13-searching.js`

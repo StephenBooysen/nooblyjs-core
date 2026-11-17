@@ -1,3 +1,9 @@
+---
+type: Learning Guide
+title: '09: Measuring'
+description: Record numbers as they happen, then ask for totals and averages across all time or across a period.
+---
+
 # 09: Measuring
 
 **Time:** about 15 minutes · **Example:** [`examples/09-measuring.js`](examples/09-measuring.js) · **Run:** `node .claude/learning/examples/09-measuring.js`

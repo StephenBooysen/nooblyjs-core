@@ -1,3 +1,9 @@
+---
+type: Learning Guide
+title: '03: Queueing'
+description: Put work on a named queue, take it off in order, and use reliable jobs with retries, a dead-letter queue and idempotency keys.
+---
+
 # 03: Queueing
 
 **Time:** about 20 minutes · **Example:** [`examples/03-queueing.js`](examples/03-queueing.js) · **Run:** `node .claude/learning/examples/03-queueing.js`

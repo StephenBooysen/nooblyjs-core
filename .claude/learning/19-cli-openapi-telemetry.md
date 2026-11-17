@@ -1,3 +1,9 @@
+---
+type: Learning Guide
+title: '19: CLI, OpenAPI, telemetry and the test kit'
+description: 'Use the tools that sit across every service: the OpenAPI document and generated client, the nooblyjs command, OpenTelemetry tracing, and the test kit for your own tests.'
+---
+
 # 19: CLI, OpenAPI, telemetry and the test kit
 
 **Time:** about 25 minutes · **Example:** [`examples/19-cli-openapi-telemetry.js`](examples/19-cli-openapi-telemetry.js) · **Run:** `node .claude/learning/examples/19-cli-openapi-telemetry.js`

@@ -1,3 +1,9 @@
+---
+type: Steering Doc
+title: Architecture Documentation
+description: This document describes the architecture of NooblyJS Core, a modular Node.js backend framework providing enterprise services with singleton pattern implementation.
+---
+
 # Architecture Documentation
 
 This document describes the architecture of NooblyJS Core, a modular Node.js backend framework providing enterprise services with singleton pattern implementation.

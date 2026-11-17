@@ -1,3 +1,9 @@
+---
+type: Learning Guide
+title: '18: AppService'
+description: 'Build your own application on top of NooblyJS: routes, services, data access and background work, using the base classes the appservice service provides and the services you have already learned.'
+---
+
 # 18: AppService
 
 **Time:** about 20 minutes · **Example:** [`examples/18-appservice.js`](examples/18-appservice.js) · **Run:** `node .claude/learning/examples/18-appservice.js`

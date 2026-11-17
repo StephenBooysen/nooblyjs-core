@@ -1,3 +1,9 @@
+---
+type: Learning Guide
+title: '05: Notifying and webhooks'
+description: Send messages to topics inside your app, and send signed webhooks to other systems, and verify those signatures on the receiving side.
+---
+
 # 05: Notifying and webhooks
 
 **Time:** about 20 minutes · **Example:** [`examples/05-notifying.js`](examples/05-notifying.js) · **Run:** `node .claude/learning/examples/05-notifying.js`

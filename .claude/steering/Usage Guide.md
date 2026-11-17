@@ -1,3 +1,9 @@
+---
+type: Steering Doc
+title: NooblyJS Core - Usage Guide
+description: This document gives detailed examples and best practices for integrating NooblyJS Core into an application.
+---
+
 # NooblyJS Core - Usage Guide
 
 This document gives detailed examples and best practices for integrating NooblyJS Core into an application. Method names match the provider classes in `src/*/providers/`. For the short version, see `Usage Guide Concise.md`.

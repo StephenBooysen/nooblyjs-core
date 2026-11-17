@@ -1,3 +1,9 @@
+---
+type: Learning Guide
+title: '08: Filing'
+description: Create, read, update, list and delete files in a storage root, see how paths are kept inside it, and accept uploads safely over REST.
+---
+
 # 08: Filing
 
 **Time:** about 20 minutes · **Example:** [`examples/08-filing.js`](examples/08-filing.js) · **Run:** `node .claude/learning/examples/08-filing.js`
