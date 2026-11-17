@@ -1,0 +1,46 @@
+// Declarations for esm/index.mjs. Keep in step with the ServiceRegistry interface.
+import type { ServiceRegistry } from '../types/index.js';
+
+declare const registry: ServiceRegistry;
+export default registry;
+
+export declare const aiservice: ServiceRegistry['aiservice'];
+export declare const appservice: ServiceRegistry['appservice'];
+export declare const authservice: ServiceRegistry['authservice'];
+export declare const buildOpenApi: ServiceRegistry['buildOpenApi'];
+export declare const cache: ServiceRegistry['cache'];
+export declare const dataService: ServiceRegistry['dataService'];
+export declare const fetching: ServiceRegistry['fetching'];
+export declare const filer: ServiceRegistry['filer'];
+export declare const filing: ServiceRegistry['filing'];
+export declare const generateApiKey: ServiceRegistry['generateApiKey'];
+export declare const getDefaultProviderType: ServiceRegistry['getDefaultProviderType'];
+export declare const getEventEmitter: ServiceRegistry['getEventEmitter'];
+export declare const getService: ServiceRegistry['getService'];
+export declare const getServiceInitializationOrder: ServiceRegistry['getServiceInitializationOrder'];
+export declare const getServiceInstance: ServiceRegistry['getServiceInstance'];
+export declare const initialize: ServiceRegistry['initialize'];
+export declare const initializeServiceDependencies: ServiceRegistry['initializeServiceDependencies'];
+export declare const knowledge: ServiceRegistry['knowledge'];
+export declare const listInstances: ServiceRegistry['listInstances'];
+export declare const listServices: ServiceRegistry['listServices'];
+export declare const logger: ServiceRegistry['logger'];
+export declare const mcpServices: ServiceRegistry['mcpServices'];
+export declare const measuring: ServiceRegistry['measuring'];
+export declare const notifying: ServiceRegistry['notifying'];
+export declare const queue: ServiceRegistry['queue'];
+export declare const reset: ServiceRegistry['reset'];
+export declare const resetService: ServiceRegistry['resetService'];
+export declare const resetServiceInstance: ServiceRegistry['resetServiceInstance'];
+export declare const resolveDependencies: ServiceRegistry['resolveDependencies'];
+export declare const resolveRequestPrincipal: ServiceRegistry['resolveRequestPrincipal'];
+export declare const scheduling: ServiceRegistry['scheduling'];
+export declare const searching: ServiceRegistry['searching'];
+export declare const setDefaultProvider: ServiceRegistry['setDefaultProvider'];
+export declare const settings: ServiceRegistry['settings'];
+export declare const shutdown: ServiceRegistry['shutdown'];
+export declare const validateDependencies: ServiceRegistry['validateDependencies'];
+export declare const verifyClusterMode: ServiceRegistry['verifyClusterMode'];
+export declare const verifyRouteDeclarations: ServiceRegistry['verifyRouteDeclarations'];
+export declare const workflow: ServiceRegistry['workflow'];
+export declare const working: ServiceRegistry['working'];

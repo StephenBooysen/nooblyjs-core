@@ -30,27 +30,45 @@
   "main": "index.js",
   "exports": {
     ".": {
-      "types": "./types/index.d.ts",
-      "import": "./esm/index.mjs",
+      "import": {
+        "types": "./esm/index.d.mts",
+        "default": "./esm/index.mjs"
+      },
+      "require": {
+        "types": "./types/index.d.ts",
+        "default": "./index.js"
+      },
       "default": "./index.js"
     },
     "./package.json": "./package.json",
     "./testing": {
-      "import": "./esm/testing.mjs",
+      "import": {
+        "types": "./esm/testing.d.mts",
+        "default": "./esm/testing.mjs"
+      },
       "default": "./testing.js"
     },
     "./ai": "./src/aiservice/common/index.js",
     "./ai-common": "./src/aiservice/common/index.js",
     "./shell": {
-      "import": "./esm/shell.mjs",
+      "import": {
+        "types": "./esm/shell.d.mts",
+        "default": "./esm/shell.mjs"
+      },
       "default": "./src/shell/index.js"
     },
     "./store": {
-      "import": "./esm/store.mjs",
+      "import": {
+        "types": "./esm/store.d.mts",
+        "default": "./esm/store.mjs"
+      },
       "default": "./src/store/fs-store.js"
     },
     "./route-pattern": {
-      "import": "./esm/route-pattern.mjs",
+      "import": {
+        "types": "./esm/route-pattern.d.mts",
+        "default": "./esm/route-pattern.mjs"
+      },
       "default": "./src/shared/utils/routePattern.js"
     },
     "./src/shell": "./src/shell/index.js",
@@ -74,7 +92,7 @@
     "build:esm": "node scripts/generate-esm.js --write",
     "check:esm": "node scripts/generate-esm.js --check",
     "check:ai-common": "tsc -p src/aiservice/common",
-    "check:types": "tsc -p types/tsconfig.json",
+    "check:types": "tsc -p types/tsconfig.json && tsc -p types/tsconfig.esm.json",
     "clean": "rimraf node_modules dist",
     "coverage": "jest --coverage",
     "dev": "nodemon --watch ./src ./app.js",

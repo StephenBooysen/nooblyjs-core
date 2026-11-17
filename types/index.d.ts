@@ -502,8 +502,36 @@ export interface ServiceRegistry {
 
   knowledge(providerType?: 'default', options?: KnowledgeOptions): KnowledgeService;
 
+  appservice(providerType: string, options?: ServiceOptions): unknown;
+  fetching(providerType?: 'node' | 'axios', options?: ServiceOptions): unknown;
+  filer(providerType?: 'local', options?: ServiceOptions): FilingService;
+  measuring(providerType?: 'default', options?: ServiceOptions): unknown;
+  notifying(providerType?: 'default', options?: ServiceOptions): unknown;
+  scheduling(providerType?: 'default', options?: ServiceOptions): unknown;
+  searching(providerType?: 'memory' | 'api', options?: ServiceOptions): unknown;
+  working(providerType?: 'default', options?: ServiceOptions): unknown;
+  workflow(providerType?: 'memory', options?: ServiceOptions): unknown;
+
+  buildOpenApi(): unknown;
+  mcpServices(): unknown;
+  generateApiKey(length?: number): string;
+  getEventEmitter(): unknown;
+  getDefaultProviderType(serviceName: string): string;
+  setDefaultProvider(serviceName: string, providerType: string, options?: ServiceOptions): void;
+  getServiceInstance(serviceName: string, providerType?: string, instanceName?: string): unknown;
+  getServiceInitializationOrder(): string[];
+  initializeServiceDependencies(): void;
+  listInstances(serviceName: string): unknown;
+  listServices(): string[];
+  resolveDependencies(serviceName: string, requestedProviderType?: string): unknown;
+  resolveRequestPrincipal(req: unknown): Promise<unknown>;
+  validateDependencies(): unknown;
+  verifyRouteDeclarations(): void;
+  resetService(serviceName: string): void;
+  resetServiceInstance(serviceName: string, providerType?: string, instanceName?: string): void;
+
   getService(serviceName: string, providerType?: string, options?: ServiceOptions): unknown;
-  shutdown(): void;
+  shutdown(options?: Record<string, unknown>): Promise<void>;
   reset(): void;
 }
 
