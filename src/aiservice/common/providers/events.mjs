@@ -24,7 +24,7 @@
  * @property {Array<{ type: string, [key: string]: any }>} content  text, tool_use, thinking… blocks
  * @property {string | null} stop_reason  end_turn, tool_use, max_tokens, refusal…
  * @property {object} [stop_details]
- * @property {import('../cost.js').Usage} usage
+ * @property {import('../cost.mjs').Usage} usage
  */
 
 export const EVENT = Object.freeze({

@@ -46,7 +46,7 @@ To call a real model, pick a provider and set its credentials in the environment
 | `vertex` | `GOOGLE_APPLICATION_CREDENTIALS` (a service-account file), `VERTEX_PROJECT_ID` or `GOOGLE_CLOUD_PROJECT` |
 | `azure` | `AZURE_AI_ENDPOINT`, `AZURE_AI_API_KEY` |
 
-The model names come from the catalogue in `src/aiservice/common/models.js`.
+The model names come from the catalogue in `src/aiservice/common/models.mjs`.
 
 ### Complete
 

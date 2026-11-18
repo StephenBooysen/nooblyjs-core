@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { addUsage, costOf, emptyUsage, formatCost, hasPrice, normalizeUsage, priceUsage } from '../../../../src/aiservice/common/cost.js';
+import { addUsage, costOf, emptyUsage, formatCost, hasPrice, normalizeUsage, priceUsage } from '../../../../src/aiservice/common/cost.mjs';
 
 test('costOf prices input and output tokens per million', () => {
   // claude-opus-5-5: $4 in, $20 out per million tokens

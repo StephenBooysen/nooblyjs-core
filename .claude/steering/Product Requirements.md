@@ -779,7 +779,7 @@ One API for calling AI models, with streaming, tools, structured output and embe
 
 **Purpose**: Give application code one way to call every model provider, with token and cost limits
 
-**Providers (AI Service v2)**: `anthropic`, `openai-compatible`, `bedrock`, `vertex`, `azure` and `mock`. They use the shared module in `src/aiservice/common/` (`nooblyjs-ai-common`, no dependencies), which also carries the model catalogue, discovery, token estimates, cost, retry and SSE.
+**Providers (AI Service v2)**: `anthropic`, `openai-compatible`, `bedrock`, `vertex`, `azure` and `mock`. They use the shared module in `src/aiservice/common/` (`src/aiservice/common/`, no dependencies), which also carries the model catalogue, discovery, token estimates, cost, retry and SSE.
 
 **Removed in 2.0.0**: the `claude` (default), `openai` (alias `chatgpt`), `ollama` and `gemini` providers. Use `anthropic` for Claude, or `openai-compatible` with a `baseUrl` for OpenAI, Ollama and Gemini. The default provider is `anthropic`. **Still present**: `openai-kv` (Azure OpenAI through Azure Key Vault) and `tensorflow` (experimental), which keep `prompt()`.
 

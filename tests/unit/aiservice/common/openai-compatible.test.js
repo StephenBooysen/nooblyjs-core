@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { buildOpenAIRequest, createOpenAICompatibleProvider, toOpenAIMessages, toOpenAITools } from '../../../../src/aiservice/common/providers/openai-compatible.js';
+import { buildOpenAIRequest, createOpenAICompatibleProvider, toOpenAIMessages, toOpenAITools } from '../../../../src/aiservice/common/providers/openai-compatible.mjs';
 import { collect } from './helpers.js';
 
 const sse = (...chunks) => chunks.map((c) => `data: ${typeof c === 'string' ? c : JSON.stringify(c)}\n\n`).join('');

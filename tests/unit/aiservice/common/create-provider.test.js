@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { ApiError, explainError } from '../../../../src/aiservice/common/errors.js';
-import { addCacheBreakpoints, createProvider, findApiKey } from '../../../../src/aiservice/common/providers/index.js';
+import { ApiError, explainError } from '../../../../src/aiservice/common/errors.mjs';
+import { addCacheBreakpoints, createProvider, findApiKey } from '../../../../src/aiservice/common/providers/index.mjs';
 
 const BREAKPOINT = { type: 'ephemeral' };
 

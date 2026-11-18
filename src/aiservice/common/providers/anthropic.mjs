@@ -10,11 +10,11 @@
 //           ("omitted"). With the `thinking: "summarized"` setting we ask for a
 //           readable summary and stream it as thinking_delta events. `effort`
 //           (low … max) sets how hard the model thinks, and so its cost.
-import { EVENT } from './events.js';
-import { addCacheBreakpoints } from './cache.js';
-import { ApiError, retryAfterMs } from '../errors.js';
-import { getModel } from '../models.js';
-import { parseSSE } from '../sse.js';
+import { EVENT } from './events.mjs';
+import { addCacheBreakpoints } from './cache.mjs';
+import { ApiError, retryAfterMs } from '../errors.mjs';
+import { getModel } from '../models.mjs';
+import { parseSSE } from '../sse.mjs';
 
 export { ApiError };
 

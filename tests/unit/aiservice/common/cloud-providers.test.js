@@ -3,14 +3,14 @@
 import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
 import { test } from 'node:test';
-import { ApiError } from '../../../../src/aiservice/common/errors.js';
-import { cloudModelId } from '../../../../src/aiservice/common/models.js';
-import { complete, createProvider } from '../../../../src/aiservice/common/providers/index.js';
-import { signRequest } from '../../../../src/aiservice/common/providers/aws-sigv4.js';
-import { decodeFrame, encodeFrame, parseEventStream, EventStreamError } from '../../../../src/aiservice/common/providers/aws-eventstream.js';
-import { buildBedrockRequest } from '../../../../src/aiservice/common/providers/bedrock.js';
-import { createGoogleAuth } from '../../../../src/aiservice/common/providers/google-auth.js';
-import { isRetryable } from '../../../../src/aiservice/common/retry.js';
+import { ApiError } from '../../../../src/aiservice/common/errors.mjs';
+import { cloudModelId } from '../../../../src/aiservice/common/models.mjs';
+import { complete, createProvider } from '../../../../src/aiservice/common/providers/index.mjs';
+import { signRequest } from '../../../../src/aiservice/common/providers/aws-sigv4.mjs';
+import { decodeFrame, encodeFrame, parseEventStream, EventStreamError } from '../../../../src/aiservice/common/providers/aws-eventstream.mjs';
+import { buildBedrockRequest } from '../../../../src/aiservice/common/providers/bedrock.mjs';
+import { createGoogleAuth } from '../../../../src/aiservice/common/providers/google-auth.mjs';
+import { isRetryable } from '../../../../src/aiservice/common/retry.mjs';
 import { chunked, collect } from './helpers.js';
 
 // ── A reply in Anthropic's stream events, and fakes that carry it ─────────

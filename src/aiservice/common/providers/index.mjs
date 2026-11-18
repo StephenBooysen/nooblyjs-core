@@ -27,26 +27,26 @@
 //   anthropic          Claude's Messages API
 //   openai-responses   OpenAI's Responses API (reasoning models with tools)
 //   openai-chat        Chat Completions: Grok, Gemini, DeepSeek, Ollama, and any compatible server
-import { normalizeUsage } from '../cost.js';
-import { CLOUD_HOSTS, DIRECT_APIS, PROVIDERS } from '../models.js';
-import { withRetry } from '../retry.js';
-import { createAnthropicProvider } from './anthropic.js';
-import { createAzureProvider } from './azure.js';
-import { createBedrockProvider } from './bedrock.js';
-import { createVertexProvider } from './vertex.js';
-import { EVENT } from './events.js';
-import { createOpenAICompatibleProvider } from './openai-compatible.js';
-import { createOpenAIResponsesProvider } from './openai-responses.js';
+import { normalizeUsage } from '../cost.mjs';
+import { CLOUD_HOSTS, DIRECT_APIS, PROVIDERS } from '../models.mjs';
+import { withRetry } from '../retry.mjs';
+import { createAnthropicProvider } from './anthropic.mjs';
+import { createAzureProvider } from './azure.mjs';
+import { createBedrockProvider } from './bedrock.mjs';
+import { createVertexProvider } from './vertex.mjs';
+import { EVENT } from './events.mjs';
+import { createOpenAICompatibleProvider } from './openai-compatible.mjs';
+import { createOpenAIResponsesProvider } from './openai-responses.mjs';
 
-export { EVENT } from './events.js';
-export { createAnthropicProvider } from './anthropic.js';
-export { createOpenAICompatibleProvider } from './openai-compatible.js';
-export { createOpenAIResponsesProvider } from './openai-responses.js';
-export { createMockProvider } from './mock.js';
-export { createBedrockProvider } from './bedrock.js';
-export { createVertexProvider } from './vertex.js';
-export { createAzureProvider } from './azure.js';
-export { addCacheBreakpoints } from './cache.js';
+export { EVENT } from './events.mjs';
+export { createAnthropicProvider } from './anthropic.mjs';
+export { createOpenAICompatibleProvider } from './openai-compatible.mjs';
+export { createOpenAIResponsesProvider } from './openai-responses.mjs';
+export { createMockProvider } from './mock.mjs';
+export { createBedrockProvider } from './bedrock.mjs';
+export { createVertexProvider } from './vertex.mjs';
+export { createAzureProvider } from './azure.mjs';
+export { addCacheBreakpoints } from './cache.mjs';
 
 /**
  * The API key for a provider, and which variable it came from, or null.
@@ -115,7 +115,7 @@ export function createProvider(id, { apiKey, authToken, baseUrl, api, env = proc
 
 /**
  * @typedef {Object} Reply
- * @property {import('./events.js').Message} message  the complete reply: send it back as-is in a tool loop
+ * @property {import('./events.mjs').Message} message  the complete reply: send it back as-is in a tool loop
  * @property {string} text                            its text blocks, joined
  * @property {Array<{ id: string, name: string, input: object }>} toolCalls  tools the model wants to run
  * @property {string | null} stopReason               end_turn, tool_use, max_tokens, refusal…
@@ -134,7 +134,7 @@ export function createProvider(id, { apiKey, authToken, baseUrl, api, env = proc
  * @returns {Promise<Reply>}
  */
 export async function complete(provider, request, { signal, onText, onEvent, maxRetries = 2 } = {}) {
-  /** @type {import('./events.js').Message | undefined} */
+  /** @type {import('./events.mjs').Message | undefined} */
   let message;
   const events = /** @type {AsyncIterable<any>} */ (withRetry(() => provider.stream(request, { signal }), { maxRetries, signal }));
   for await (const event of events) {

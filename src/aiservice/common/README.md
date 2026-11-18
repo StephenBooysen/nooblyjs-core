@@ -1,10 +1,10 @@
 ---
 type: Guide
-title: nooblyjs-ai-common
+title: nooblyjs-core/ai
 description: The AI building blocks shared by the nooblyjs AI projects, so each one stops carrying its own copy
 ---
 
-# nooblyjs-ai-common
+# nooblyjs-core/ai
 
 The AI building blocks shared by the nooblyjs AI projects, so each one stops carrying its own copy:
 
@@ -22,23 +22,24 @@ Like the harness, it's written to be read: plain JavaScript, no build step, no d
 
 ## Use it
 
-It lives in `nooblyjs-core`, at `src/aiservice/common`. The folder has its own `package.json`, so it is an ESM package
-named `nooblyjs-ai-common` inside the CommonJS `nooblyjs-core`. Check `nooblyjs-core` out next to the project that uses
-it and link the folder as a `file:` dependency (from a project in the nooblyjs-ai monorepo, core is two levels up):
+It lives in `nooblyjs-core`, at `src/aiservice/common`. Its files are ES modules (`.mjs`) inside the CommonJS
+`nooblyjs-core` package, and the root `package.json` exports them as the `nooblyjs-core/ai` subpaths. Check `nooblyjs-core`
+out next to the project that uses it and depend on it as a `file:` dependency (from a project in the nooblyjs-ai monorepo,
+core is two levels up):
 
 ```bash
 git clone https://github.com/nooblyjs/nooblyjs-core.git
 ```
 
 ```json
-"dependencies": { "nooblyjs-ai-common": "file:../../nooblyjs-core/src/aiservice/common" }
+"dependencies": { "nooblyjs-core": "file:../../nooblyjs-core" }
 ```
 
 Import everything from the package, or one area at a time:
 
 ```js
-import { costOf, formatCost } from 'nooblyjs-ai-common/cost';
-import { openSSE } from 'nooblyjs-ai-common/sse';
+import { costOf, formatCost } from 'nooblyjs-core/ai/cost';
+import { openSSE } from 'nooblyjs-core/ai/sse';
 ```
 
 It's ESM. CommonJS projects can `require()` it on Node 22.12 or later.
@@ -47,16 +48,16 @@ It's ESM. CommonJS projects can `require()` it on Node 22.12 or later.
 
 | Import | What it does | Came from |
 |---|---|---|
-| `nooblyjs-ai-common/providers` | One way to call every model: `createProvider(id)` builds an adapter for any catalogue provider (Anthropic Messages, OpenAI Responses, or Chat Completions for Grok, Gemini, DeepSeek, Ollama and compatible servers); `complete()` waits for the whole reply, with retries; Anthropic also signs in with a bearer token (`ANTHROPIC_AUTH_TOKEN`) and can cache only the system prompt (`caching: 'system'`); `createMockProvider` for tests and offline use; `findApiKey`, `addCacheBreakpoints`, `EVENT`. The cloud hosts: `createProvider('bedrock' | 'vertex' | 'azure')` (AWS SigV4 and event-stream, a Google service-account token, Microsoft Foundry's Anthropic endpoint; `node:crypto` only). The direct public APIs are refused when `NODE_ENV=production` | harness `providers/` and `context/cache.js`; cloud hosts from the NooblyJS AI host's Platform |
-| `nooblyjs-ai-common/discovery` | Which models exist right now: `discoverModels` (each configured provider's own list, GET only), `openRouterPrices` (OpenRouter's public list prices, a reference), `availableModels` (both, described and priced from the best source, cached a day), `describeModel`, `suggestedTier` | Teammates Settings · Models & pricing |
-| `nooblyjs-ai-common/models` | The model catalogue: `MODELS` (label, context window, price, aliases, request quirks), `PROVIDERS` (key variables, default and small model, name prefixes, API style and address), `getModel`, `modelsFor`, `providerForModel`, and the derived `PRICES` and `CONTEXT_WINDOWS`; `CLOUD_HOSTS`, `cloudModelId` (a model's id on a cloud host), `DIRECT_APIS` | harness `config/defaults.js` and `providers/index.js`, desktop `config/models.js`, teammate seed prices |
-| `nooblyjs-ai-common/tokens` | `estimateTokens` (images count as a flat 1,600), `contextWindowFor` | harness `context/tokens.js` |
-| `nooblyjs-ai-common/cost` | `costOf`, `hasPrice` (with an optional custom price table), `priceUsage` (price usage at a given pricing), `normalizeUsage` (accepts `input_tokens` or `inputTokens`), `addUsage`, `emptyUsage`, `formatCost` | harness `core/cost.js`, teammate `apiCost` |
-| `nooblyjs-ai-common/errors` | `ApiError`, `retryAfterMs`, `explainError` (any provider failure as a readable message, an HTTP status and whether to retry; null for a cancelled request) | harness `providers/errors.js`, desktop `providers/errorMapping.js` |
-| `nooblyjs-ai-common/retry` | `withRetry`, `isRetryable`, `backoffDelay`, `sleep` (exponential backoff with jitter, abortable) | harness `providers/retry.js` |
-| `nooblyjs-ai-common/sse` | reading: `parseSSE`, `parseEvent`; writing: `openSSE`, `formatSSE`, `SSE_HEADERS` | harness `providers/sse.js`; the writer replaces the factory's hand-written one (teammate and desktop still write their own) |
-| `nooblyjs-ai-common/embeddings` | `createEmbedder(id)` and `embed(id, texts, options)` for OpenAI, Gemini, Ollama, OpenAI-compatible, Bedrock (Titan or Cohere), Vertex and a mock; Anthropic and Azure have no embeddings endpoint, so they answer with an error that names the providers that do. Also `createMockEmbedder`, `DEFAULT_EMBEDDING_MODELS`, `EMBEDDING_PROVIDERS` | new in nooblyjs-core (feature 02), used by the aiservice `embed` route and by semantic search |
-| `nooblyjs-ai-common/frontmatter` | `parseFrontmatter`, `formatFrontmatter` (the tiny `key: value` / `[a, b]` format) | harness and factory `util/frontmatter.js` |
+| `nooblyjs-core/ai/providers` | One way to call every model: `createProvider(id)` builds an adapter for any catalogue provider (Anthropic Messages, OpenAI Responses, or Chat Completions for Grok, Gemini, DeepSeek, Ollama and compatible servers); `complete()` waits for the whole reply, with retries; Anthropic also signs in with a bearer token (`ANTHROPIC_AUTH_TOKEN`) and can cache only the system prompt (`caching: 'system'`); `createMockProvider` for tests and offline use; `findApiKey`, `addCacheBreakpoints`, `EVENT`. The cloud hosts: `createProvider('bedrock' | 'vertex' | 'azure')` (AWS SigV4 and event-stream, a Google service-account token, Microsoft Foundry's Anthropic endpoint; `node:crypto` only). The direct public APIs are refused when `NODE_ENV=production` | harness `providers/` and `context/cache.js`; cloud hosts from the NooblyJS AI host's Platform |
+| `nooblyjs-core/ai/discovery` | Which models exist right now: `discoverModels` (each configured provider's own list, GET only), `openRouterPrices` (OpenRouter's public list prices, a reference), `availableModels` (both, described and priced from the best source, cached a day), `describeModel`, `suggestedTier` | Teammates Settings · Models & pricing |
+| `nooblyjs-core/ai/models` | The model catalogue: `MODELS` (label, context window, price, aliases, request quirks), `PROVIDERS` (key variables, default and small model, name prefixes, API style and address), `getModel`, `modelsFor`, `providerForModel`, and the derived `PRICES` and `CONTEXT_WINDOWS`; `CLOUD_HOSTS`, `cloudModelId` (a model's id on a cloud host), `DIRECT_APIS` | harness `config/defaults.js` and `providers/index.js`, desktop `config/models.js`, teammate seed prices |
+| `nooblyjs-core/ai/tokens` | `estimateTokens` (images count as a flat 1,600), `contextWindowFor` | harness `context/tokens.js` |
+| `nooblyjs-core/ai/cost` | `costOf`, `hasPrice` (with an optional custom price table), `priceUsage` (price usage at a given pricing), `normalizeUsage` (accepts `input_tokens` or `inputTokens`), `addUsage`, `emptyUsage`, `formatCost` | harness `core/cost.js`, teammate `apiCost` |
+| `nooblyjs-core/ai/errors` | `ApiError`, `retryAfterMs`, `explainError` (any provider failure as a readable message, an HTTP status and whether to retry; null for a cancelled request) | harness `providers/errors.js`, desktop `providers/errorMapping.js` |
+| `nooblyjs-core/ai/retry` | `withRetry`, `isRetryable`, `backoffDelay`, `sleep` (exponential backoff with jitter, abortable) | harness `providers/retry.js` |
+| `nooblyjs-core/ai/sse` | reading: `parseSSE`, `parseEvent`; writing: `openSSE`, `formatSSE`, `SSE_HEADERS` | harness `providers/sse.js`; the writer replaces the factory's hand-written one (teammate and desktop still write their own) |
+| `nooblyjs-core/ai/embeddings` | `createEmbedder(id)` and `embed(id, texts, options)` for OpenAI, Gemini, Ollama, OpenAI-compatible, Bedrock (Titan or Cohere), Vertex and a mock; Anthropic and Azure have no embeddings endpoint, so they answer with an error that names the providers that do. Also `createMockEmbedder`, `DEFAULT_EMBEDDING_MODELS`, `EMBEDDING_PROVIDERS` | new in nooblyjs-core (feature 02), used by the aiservice `embed` route and by semantic search |
+| `nooblyjs-core/ai/frontmatter` | `parseFrontmatter`, `formatFrontmatter` (the tiny `key: value` / `[a, b]` format) | harness and factory `util/frontmatter.js` |
 
 ## Roadmap
 

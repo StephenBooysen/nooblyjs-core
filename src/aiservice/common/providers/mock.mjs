@@ -9,7 +9,7 @@
 //   ]);
 //
 // A reply with `tools` gets stop_reason "tool_use" automatically.
-import { EVENT } from './events.js';
+import { EVENT } from './events.mjs';
 
 export function createMockProvider(script, { chunkSize = 3 } = {}) {
   const queue = [...script];

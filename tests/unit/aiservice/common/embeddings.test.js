@@ -2,9 +2,9 @@
 // Offline: every call goes to a fake fetch.
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { ApiError } from '../../../../src/aiservice/common/errors.js';
-import { createEmbedder, createMockEmbedder, embed, DEFAULT_EMBEDDING_MODELS } from '../../../../src/aiservice/common/embeddings.js';
-import * as common from '../../../../src/aiservice/common/index.js';
+import { ApiError } from '../../../../src/aiservice/common/errors.mjs';
+import { createEmbedder, createMockEmbedder, embed, DEFAULT_EMBEDDING_MODELS } from '../../../../src/aiservice/common/embeddings.mjs';
+import * as common from '../../../../src/aiservice/common/index.mjs';
 
 /** A fake fetch that records requests and answers with the given JSON. */
 function fakeFetch(answer, { status = 200 } = {}) {

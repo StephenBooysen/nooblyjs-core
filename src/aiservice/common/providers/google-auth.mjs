@@ -7,7 +7,7 @@
 // https://developers.google.com/identity/protocols/oauth2/service-account#httprest
 import crypto from 'node:crypto';
 import fs from 'node:fs';
-import { ApiError } from '../errors.js';
+import { ApiError } from '../errors.mjs';
 
 const SCOPE = 'https://www.googleapis.com/auth/cloud-platform';
 const TOKEN_URI = 'https://oauth2.googleapis.com/token';

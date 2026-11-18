@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { CONTEXT_WINDOWS, MODELS, PRICES, PROVIDERS, getModel, modelsFor, providerForModel } from '../../../../src/aiservice/common/models.js';
+import { CONTEXT_WINDOWS, MODELS, PRICES, PROVIDERS, getModel, modelsFor, providerForModel } from '../../../../src/aiservice/common/models.mjs';
 
 test('every model belongs to a known provider and has a label', () => {
   for (const model of MODELS) {

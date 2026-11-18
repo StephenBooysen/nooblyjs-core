@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { parseEvent, parseSSE } from '../../../../src/aiservice/common/sse.js';
+import { parseEvent, parseSSE } from '../../../../src/aiservice/common/sse.mjs';
 import { chunked, collect, readFixture } from './helpers.js';
 
 test('parseEvent reads the event name and JSON data', () => {

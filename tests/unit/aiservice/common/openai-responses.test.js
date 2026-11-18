@@ -1,9 +1,9 @@
 // The OpenAI Responses API adapter: translation both ways.
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { createProvider } from '../../../../src/aiservice/common/providers/index.js';
-import { assembleResponse, buildResponsesRequest, toResponsesInput, toResponsesTools } from '../../../../src/aiservice/common/providers/openai-responses.js';
-import { parseSSE } from '../../../../src/aiservice/common/sse.js';
+import { createProvider } from '../../../../src/aiservice/common/providers/index.mjs';
+import { assembleResponse, buildResponsesRequest, toResponsesInput, toResponsesTools } from '../../../../src/aiservice/common/providers/openai-responses.mjs';
+import { parseSSE } from '../../../../src/aiservice/common/sse.mjs';
 import { collect } from './helpers.js';
 
 /** A Responses API stream: each event has an `event:` line and a JSON `data:` line with the same type. */

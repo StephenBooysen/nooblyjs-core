@@ -4,12 +4,12 @@
 //
 //   POST https://<region>-aiplatform.googleapis.com/v1/projects/<project>/locations/<region>/publishers/anthropic/models/<model>:streamRawPredict
 //   (region "global": https://aiplatform.googleapis.com/…), with a Google access token (google-auth.js)
-import { EVENT } from './events.js';
-import { assembleMessage, buildRequest } from './anthropic.js';
-import { createGoogleAuth } from './google-auth.js';
-import { ApiError, retryAfterMs } from '../errors.js';
-import { cloudModelId } from '../models.js';
-import { parseSSE } from '../sse.js';
+import { EVENT } from './events.mjs';
+import { assembleMessage, buildRequest } from './anthropic.mjs';
+import { createGoogleAuth } from './google-auth.mjs';
+import { ApiError, retryAfterMs } from '../errors.mjs';
+import { cloudModelId } from '../models.mjs';
+import { parseSSE } from '../sse.mjs';
 
 export const VERTEX_VERSION = 'vertex-2023-10-16';
 

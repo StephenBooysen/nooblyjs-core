@@ -1,12 +1,12 @@
 // @ts-check
-// nooblyjs-ai-common: the AI building blocks shared by the nooblyjs AI projects
+// nooblyjs-core/ai: the AI building blocks shared by the nooblyjs AI projects
 // (harness, factory, teammate, desktop). Import everything from here, or one
-// area at a time from its subpath, e.g. 'nooblyjs-ai-common/sse'.
-export { ApiError, explainError, retryAfterMs } from './errors.js';
-export { addUsage, costOf, emptyUsage, formatCost, hasPrice, normalizeUsage, priceUsage } from './cost.js';
-export { formatFrontmatter, parseFrontmatter } from './frontmatter.js';
-export { availableModels, describeModel, discoverModels, forgetAvailableModels, modelKey, openRouterPrices, suggestedTier } from './discovery.js';
-export { CLOUD_HOSTS, CONTEXT_WINDOWS, DEFAULT_CONTEXT_WINDOW, DIRECT_APIS, MODELS, PRICES, PROVIDERS, cloudModelId, getModel, modelsFor, providerForModel } from './models.js';
+// area at a time from its subpath, e.g. 'nooblyjs-core/ai/sse'.
+export { ApiError, explainError, retryAfterMs } from './errors.mjs';
+export { addUsage, costOf, emptyUsage, formatCost, hasPrice, normalizeUsage, priceUsage } from './cost.mjs';
+export { formatFrontmatter, parseFrontmatter } from './frontmatter.mjs';
+export { availableModels, describeModel, discoverModels, forgetAvailableModels, modelKey, openRouterPrices, suggestedTier } from './discovery.mjs';
+export { CLOUD_HOSTS, CONTEXT_WINDOWS, DEFAULT_CONTEXT_WINDOW, DIRECT_APIS, MODELS, PRICES, PROVIDERS, cloudModelId, getModel, modelsFor, providerForModel } from './models.mjs';
 export {
   EVENT,
   addCacheBreakpoints,
@@ -20,8 +20,8 @@ export {
   createProvider,
   createVertexProvider,
   findApiKey,
-} from './providers/index.js';
-export { DEFAULT_EMBEDDING_MODELS, EMBEDDING_PROVIDERS, createEmbedder, createMockEmbedder, embed } from './embeddings.js';
-export { backoffDelay, isRetryable, sleep, withRetry } from './retry.js';
-export { SSE_HEADERS, formatSSE, openSSE, parseEvent, parseSSE } from './sse.js';
-export { CHARS_PER_TOKEN, IMAGE_TOKENS, contextWindowFor, estimateTokens } from './tokens.js';
+} from './providers/index.mjs';
+export { DEFAULT_EMBEDDING_MODELS, EMBEDDING_PROVIDERS, createEmbedder, createMockEmbedder, embed } from './embeddings.mjs';
+export { backoffDelay, isRetryable, sleep, withRetry } from './retry.mjs';
+export { SSE_HEADERS, formatSSE, openSSE, parseEvent, parseSSE } from './sse.mjs';
+export { CHARS_PER_TOKEN, IMAGE_TOKENS, contextWindowFor, estimateTokens } from './tokens.mjs';

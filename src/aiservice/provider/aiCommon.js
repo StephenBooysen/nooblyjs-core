@@ -44,7 +44,7 @@ const nativeImport = new Function('specifier', 'return import(specifier)');
  */
 function loadCommon() {
   if (!commonPromise) {
-    const entry = path.join(__dirname, '..', 'common', 'index.js');
+    const entry = path.join(__dirname, '..', 'common', 'index.mjs');
     commonPromise = nativeImport(pathToFileURL(entry).href);
   }
   return commonPromise;

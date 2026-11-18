@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { EventEmitter } from 'node:events';
 import { test } from 'node:test';
-import { SSE_HEADERS, formatSSE, openSSE, parseSSE } from '../../../../src/aiservice/common/sse.js';
+import { SSE_HEADERS, formatSSE, openSSE, parseSSE } from '../../../../src/aiservice/common/sse.mjs';
 import { collect } from './helpers.js';
 
 /** Just enough of a ServerResponse to watch what openSSE writes. */

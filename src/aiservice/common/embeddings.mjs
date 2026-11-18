@@ -12,11 +12,11 @@
 //   anthropic, azure  no embeddings endpoint: an ApiError names the providers that have one
 //
 // Vectors come back in the order of the input texts.
-import { ApiError, retryAfterMs } from './errors.js';
-import { DIRECT_APIS, PROVIDERS } from './models.js';
-import { awsCredentials, signRequest } from './providers/aws-sigv4.js';
-import { createGoogleAuth } from './providers/google-auth.js';
-import { describeError } from './providers/openai-compatible.js';
+import { ApiError, retryAfterMs } from './errors.mjs';
+import { DIRECT_APIS, PROVIDERS } from './models.mjs';
+import { awsCredentials, signRequest } from './providers/aws-sigv4.mjs';
+import { createGoogleAuth } from './providers/google-auth.mjs';
+import { describeError } from './providers/openai-compatible.mjs';
 
 /** The model each provider embeds with when none is given. */
 export const DEFAULT_EMBEDDING_MODELS = Object.freeze({

@@ -9,7 +9,7 @@
 // English and code is ~4 characters per token. (Anthropic also offers a
 // count_tokens endpoint for exact numbers, at the cost of an extra request.)
 // Moved here from the harness's context/tokens.js (harness Phase 08).
-import { DEFAULT_CONTEXT_WINDOW, getModel } from './models.js';
+import { DEFAULT_CONTEXT_WINDOW, getModel } from './models.mjs';
 
 export const CHARS_PER_TOKEN = 4;
 

@@ -25,11 +25,11 @@
 //   stop_reason: end_turn / tool_use /      finish_reason: stop / tool_calls / length /
 //     max_tokens / refusal                    content_filter
 //   usage: input_tokens / output_tokens     usage: prompt_tokens / completion_tokens
-import { dataUrl, imagesIn } from './images.js';
-import { EVENT } from './events.js';
-import { ApiError, retryAfterMs } from '../errors.js';
-import { getModel } from '../models.js';
-import { parseSSE } from '../sse.js';
+import { dataUrl, imagesIn } from './images.mjs';
+import { EVENT } from './events.mjs';
+import { ApiError, retryAfterMs } from '../errors.mjs';
+import { getModel } from '../models.mjs';
+import { parseSSE } from '../sse.mjs';
 
 // ── Request translation ─────────────────────────────────────────────────
 

@@ -5,12 +5,12 @@
 //
 //   POST https://bedrock-runtime.<region>.amazonaws.com/model/<model id>/invoke-model-with-response-stream
 //   signed with AWS Signature V4 (aws-sigv4.js)
-import { EVENT } from './events.js';
-import { assembleMessage, buildRequest } from './anthropic.js';
-import { awsCredentials, signRequest } from './aws-sigv4.js';
-import { parseEventStream } from './aws-eventstream.js';
-import { ApiError, retryAfterMs } from '../errors.js';
-import { cloudModelId } from '../models.js';
+import { EVENT } from './events.mjs';
+import { assembleMessage, buildRequest } from './anthropic.mjs';
+import { awsCredentials, signRequest } from './aws-sigv4.mjs';
+import { parseEventStream } from './aws-eventstream.mjs';
+import { ApiError, retryAfterMs } from '../errors.mjs';
+import { cloudModelId } from '../models.mjs';
 
 export const BEDROCK_VERSION = 'bedrock-2023-05-31';
 

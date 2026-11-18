@@ -2,7 +2,7 @@
 // An error returned by a model API, e.g. a bad key (401) or rate limit (429).
 // Shared by every provider, so retry.js and the UI treat them all the same way.
 // Moved here from the harness's providers/errors.js.
-import { isRetryable } from './retry.js';
+import { isRetryable } from './retry.mjs';
 
 export class ApiError extends Error {
   /**

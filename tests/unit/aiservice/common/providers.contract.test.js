@@ -5,10 +5,10 @@
 import assert from 'node:assert/strict';
 import http from 'node:http';
 import { after, before, test } from 'node:test';
-import { ApiError, explainError } from '../../../../src/aiservice/common/errors.js';
-import { PROVIDERS } from '../../../../src/aiservice/common/models.js';
-import { EVENT, complete, createMockProvider, createProvider } from '../../../../src/aiservice/common/providers/index.js';
-import { isRetryable } from '../../../../src/aiservice/common/retry.js';
+import { ApiError, explainError } from '../../../../src/aiservice/common/errors.mjs';
+import { PROVIDERS } from '../../../../src/aiservice/common/models.mjs';
+import { EVENT, complete, createMockProvider, createProvider } from '../../../../src/aiservice/common/providers/index.mjs';
+import { isRetryable } from '../../../../src/aiservice/common/retry.mjs';
 import { collect } from './helpers.js';
 
 // ── The fake server ──────────────────────────────────────────────────────

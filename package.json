@@ -48,8 +48,10 @@
       },
       "default": "./testing.js"
     },
-    "./ai": "./src/aiservice/common/index.js",
-    "./ai-common": "./src/aiservice/common/index.js",
+    "./ai": "./src/aiservice/common/index.mjs",
+    "./ai-common": "./src/aiservice/common/index.mjs",
+    "./ai/*": "./src/aiservice/common/*.mjs",
+    "./ai-common/*": "./src/aiservice/common/*.mjs",
     "./shell": {
       "import": {
         "types": "./esm/shell.d.mts",
@@ -72,7 +74,7 @@
       "default": "./src/shared/utils/routePattern.js"
     },
     "./src/shell": "./src/shell/index.js",
-    "./src/aiservice/common": "./src/aiservice/common/index.js",
+    "./src/aiservice/common": "./src/aiservice/common/index.mjs",
     "./src/*.js": "./src/*.js",
     "./src/*.json": "./src/*.json",
     "./src/*": "./src/*.js",

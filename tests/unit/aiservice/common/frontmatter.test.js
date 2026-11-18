@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { formatFrontmatter, parseFrontmatter } from '../../../../src/aiservice/common/frontmatter.js';
+import { formatFrontmatter, parseFrontmatter } from '../../../../src/aiservice/common/frontmatter.mjs';
 
 test('parseFrontmatter reads key: value lines, lists and quotes', () => {
   const { data, body } = parseFrontmatter('---\ndescription: Review "it"\nlabels: [a, "b", c]\nname: \'x\'\n---\nBody text\n');

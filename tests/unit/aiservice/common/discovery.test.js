@@ -2,7 +2,7 @@
 // Offline: `fetch` is a fake answering with the shapes the real lists have. Run with `node --test`.
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { availableModels, describeModel, discoverModels, forgetAvailableModels, modelKey, openRouterPrices, suggestedTier } from '../../../../src/aiservice/common/discovery.js';
+import { availableModels, describeModel, discoverModels, forgetAvailableModels, modelKey, openRouterPrices, suggestedTier } from '../../../../src/aiservice/common/discovery.mjs';
 
 const json = (body, status = 200) => new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json' } });
 function fakeFetch() {

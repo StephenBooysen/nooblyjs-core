@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { ApiError, buildRequest, createAnthropicProvider } from '../../../../src/aiservice/common/providers/anthropic.js';
+import { ApiError, buildRequest, createAnthropicProvider } from '../../../../src/aiservice/common/providers/anthropic.mjs';
 import { collect, readFixture } from './helpers.js';
 
 const params = {

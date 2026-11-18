@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { ApiError } from '../../../../src/aiservice/common/errors.js';
-import { backoffDelay, isRetryable, sleep, withRetry } from '../../../../src/aiservice/common/retry.js';
+import { ApiError } from '../../../../src/aiservice/common/errors.mjs';
+import { backoffDelay, isRetryable, sleep, withRetry } from '../../../../src/aiservice/common/retry.mjs';
 import { collect } from './helpers.js';
 
 const overloaded = () => new ApiError(529, 'overloaded_error', 'Overloaded');

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { DEFAULT_CONTEXT_WINDOW } from '../../../../src/aiservice/common/models.js';
-import { IMAGE_TOKENS, contextWindowFor, estimateTokens } from '../../../../src/aiservice/common/tokens.js';
+import { DEFAULT_CONTEXT_WINDOW } from '../../../../src/aiservice/common/models.mjs';
+import { IMAGE_TOKENS, contextWindowFor, estimateTokens } from '../../../../src/aiservice/common/tokens.mjs';
 
 test('estimateTokens counts about 4 characters per token', () => {
   assert.equal(estimateTokens('abcd'.repeat(10)), 10);

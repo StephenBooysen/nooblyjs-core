@@ -33,12 +33,12 @@
 // The model's own reasoning items are not sent back (we don't ask OpenAI to
 // store them, `store: false`), so each request reasons afresh from the visible
 // conversation. Simpler, and it works with switching providers mid-chat.
-import { dataUrl, imagesIn } from './images.js';
-import { EVENT } from './events.js';
-import { ApiError, retryAfterMs } from '../errors.js';
-import { createOpenAICompatibleProvider, describeError } from './openai-compatible.js';
-import { getModel } from '../models.js';
-import { parseSSE } from '../sse.js';
+import { dataUrl, imagesIn } from './images.mjs';
+import { EVENT } from './events.mjs';
+import { ApiError, retryAfterMs } from '../errors.mjs';
+import { createOpenAICompatibleProvider, describeError } from './openai-compatible.mjs';
+import { getModel } from '../models.mjs';
+import { parseSSE } from '../sse.mjs';
 
 // ── Request translation ─────────────────────────────────────────────────
 

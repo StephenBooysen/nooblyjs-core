@@ -6,9 +6,9 @@
 // cache_read_input_tokens, cache_creation_input_tokens). Pricing also accepts the
 // camelCase names some apps use (inputTokens, outputTokens, cacheReadTokens,
 // cacheWriteTokens): see normalizeUsage.
-import { PRICES, getModel } from './models.js';
+import { PRICES, getModel } from './models.mjs';
 
-/** @typedef {import('./models.js').Pricing} Pricing */
+/** @typedef {import('./models.mjs').Pricing} Pricing */
 /** @typedef {{ input_tokens?: number, output_tokens?: number, cache_read_input_tokens?: number, cache_creation_input_tokens?: number }} Usage */
 /** @typedef {{ inputTokens?: number, outputTokens?: number, cacheReadTokens?: number, cacheWriteTokens?: number }} CamelUsage */
 

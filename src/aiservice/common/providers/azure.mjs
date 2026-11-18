@@ -7,8 +7,8 @@
 //   AZURE_AI_API_KEY    the resource's key
 //
 // The model is the deployment's name; by default the catalogue id (a deployment named after its model).
-import { createAnthropicProvider } from './anthropic.js';
-import { cloudModelId } from '../models.js';
+import { createAnthropicProvider } from './anthropic.mjs';
+import { cloudModelId } from '../models.mjs';
 
 /**
  * @param {{ env?: Record<string, string | undefined>, endpoint?: string, apiKey?: string, caching?: boolean | 'system',

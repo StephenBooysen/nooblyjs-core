@@ -11,7 +11,7 @@
 //
 // Governance: the direct public APIs are refused in production (providers/index.js), so production lists none of
 // them; Claude is reached there through AWS Bedrock, Vertex AI or Azure, whose model ids are configured.
-import { DIRECT_APIS, PROVIDERS, getModel } from './models.js';
+import { DIRECT_APIS, PROVIDERS, getModel } from './models.mjs';
 
 const DAY = 86_400_000;
 const TIMEOUT_MS = 20_000;
