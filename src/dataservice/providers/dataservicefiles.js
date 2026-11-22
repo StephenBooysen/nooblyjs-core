@@ -12,7 +12,23 @@ const outbox = require('../modules/outbox');
 
 const fs = require('node:fs').promises;
 const path = require('node:path');
+const crypto = require('node:crypto');
 const { v4: uuidv4 } = require('uuid');
+
+// Windows can hold a file briefly (an indexer, an antivirus scan), which makes rename fail.
+const RENAME_RETRIES = [10, 30, 100, 300];
+
+async function renameWithRetry(from, to) {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      return await fs.rename(from, to);
+    } catch (err) {
+      const busy = err.code === 'EPERM' || err.code === 'EBUSY' || err.code === 'EACCES';
+      if (!busy || attempt >= RENAME_RETRIES.length) throw err;
+      await new Promise((resolve) => setTimeout(resolve, RENAME_RETRIES[attempt]));
+    }
+  }
+}
 
 /**
  * A class that implements a file-based data storage provider.
@@ -170,7 +186,22 @@ class FileDataRingProvider {
   async _writeContainerData(containerName, data) {
     const containerFilePath = await this._getContainerFilePath(containerName);
     await fs.mkdir(path.dirname(containerFilePath), { recursive: true });
-    await fs.writeFile(containerFilePath, JSON.stringify(data, null, 2));
+    // Atomic: write a temp file, fsync, rename over the container file. Reads take no lock, so writing in place
+    // (truncate, then write) let a reader see an empty or half-written file and fail to parse it.
+    const tmp = `${containerFilePath}.tmp-${crypto.randomBytes(4).toString('hex')}`;
+    const handle = await fs.open(tmp, 'w');
+    try {
+      await handle.writeFile(JSON.stringify(data, null, 2), 'utf8');
+      await handle.sync();
+    } finally {
+      await handle.close();
+    }
+    try {
+      await renameWithRetry(tmp, containerFilePath);
+    } catch (err) {
+      await fs.rm(tmp, { force: true });
+      throw err;
+    }
   }
 
   /**

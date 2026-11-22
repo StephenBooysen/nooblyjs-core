@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+- **File dataservice: reads during a write.** The `file` provider rewrote a container file in place (truncate, then write) and reads take no lock, so a read during a write could see an empty or half-written file and fail with `Unexpected end of JSON input`. Writes now go to a temp file that is fsynced and renamed over the container file, as FsStore's do. A reader sees the whole old file or the whole new one.
+
 ## 2.0.0 — 2026-11-17
 
 A major release. It removes the 1.x AI providers, enforces a strict style policy, and closes the security findings from the 2026-11-12 review.
