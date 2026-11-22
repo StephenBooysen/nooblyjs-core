@@ -2,9 +2,10 @@
  * @fileoverview Unit tests for the file-backed dataservice provider.
  *
  * Covers CRUD and search, input validation (container names, reserved keys,
- * non-object values), corrupt-file handling, settings, and serialisation of
+ * non-object values), corrupt-file handling, settings, serialisation of
  * concurrent writes to the same container file (which previously lost all
- * but the last write).
+ * but the last write), and reads during a write (which could see an empty or
+ * half-written file).
  *
  * @author NooblyJS Team
  * @version 1.0.0
@@ -47,6 +48,27 @@ describe('File dataservice provider', () => {
     expect(await provider.count('c')).toBe(15);
     expect((await provider.find('c')).filter((o) => o.updated)).toHaveLength(10);
   });
+
+  it('never shows a reader half a file while a write is going', async () => {
+    // A container big enough that writing it takes more than one chunk, rewritten while it is read.
+    const big = 'x'.repeat(2000);
+    const seed = Object.fromEntries(Array.from({ length: 300 }, (_, i) => [`k${i}`, { i, big }]));
+    fs.writeFileSync(path.join(dir, 'c.json'), JSON.stringify(seed));
+    const failures = [];
+    let writing = true;
+    const writes = (async () => {
+      for (let n = 0; n < 15; n++) await provider.update('c', `k${n}`, { n, big });
+      writing = false;
+    })();
+    while (writing) {
+      await Promise.all([provider.listAll('c'), provider.getByUuid('c', 'k1'), provider.count('c')])
+        .catch((err) => failures.push(err.message));
+    }
+    await writes;
+    expect(failures).toEqual([]);
+    expect(await provider.count('c')).toBe(300);
+    expect(fs.readdirSync(dir).filter((f) => f.includes('.tmp-'))).toEqual([]);
+  }, 20000);
 
   it('keeps writing after a failed write', async () => {
     const original = provider._writeContainerData.bind(provider);
