@@ -392,7 +392,10 @@ export interface AuthOptions extends ServiceOptions {
 export interface OAuthOptions extends AuthOptions {
   clientID: string;
   clientSecret: string;
+  /** The full redirect URI registered with the provider; its path is also the route core answers. */
   callbackURL?: string;
+  /** The app's public base URL, used to build the redirect URI when callbackURL is not given. */
+  baseUrl?: string;
 }
 
 

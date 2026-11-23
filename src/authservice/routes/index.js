@@ -1403,6 +1403,10 @@ module.exports = (options, eventEmitter, auth, analytics) => {
 
     // Google OAuth routes (if available)
     if (auth.initiateGoogleAuth) {
+      // The callback path is owned by the provider (the path of its callbackURL), so the route registered here and
+      // the redirect URI sent to Google always agree.
+      const googleCallbackPath = auth.callbackPath_ || '/services/authservice/api/google/callback';
+
       /**
        * GET /services/authservice/api/google
        * Initiates Google OAuth flow.
@@ -1412,23 +1416,27 @@ module.exports = (options, eventEmitter, auth, analytics) => {
       });
 
       /**
-       * GET /services/authservice/api/google/callback
-       * Handles Google OAuth callback.
+       * GET {googleCallbackPath} (default /services/authservice/api/google/callback)
+       * Google sends the browser here after sign-in. On success the session is established (req.logIn inside
+       * handleGoogleCallback) and the browser goes on to the page it was heading to (or loginSuccessRedirectUrl);
+       * on failure it goes back to the login page with an error.
        */
       app.get(
-        '/services/authservice/api/google/callback',
+        googleCallbackPath,
         asyncHandler(async (req, res, next) => {
-          const result = await auth.handleGoogleCallback(req, res, next);
-
-          // result.redirectUrl is already the page they were heading to or the app's loginSuccessRedirectUrl
-          const redirectUrl = postLoginRedirect(result.redirectUrl, options);
-
-          res.status(200).json({
-            success: true,
-            message: 'Google login successful',
-            data: result,
-            redirectUrl: redirectUrl
-          });
+          let result;
+          try {
+            result = await auth.handleGoogleCallback(req, res, next);
+          } catch (err) {
+            eventEmitter.emit('auth:google-callback-error', { error: err.message });
+            return res.redirect(
+              '/services/authservice/views/login.html?error=' +
+              encodeURIComponent('Google sign-in failed')
+            );
+          }
+          // result.redirectUrl is the page they were heading to (the sanitized returnUrl) or the app's
+          // loginSuccessRedirectUrl; /services only when neither is set.
+          res.redirect(postLoginRedirect(result.redirectUrl, options));
         })
       );
     }

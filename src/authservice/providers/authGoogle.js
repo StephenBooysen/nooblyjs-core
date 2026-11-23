@@ -13,6 +13,22 @@ const { loadOptionalModule } = require('../../shared/utils/optionalRequire');
 const { postLoginRedirect, safeReturnUrl } = require('../modules/redirect');
 const AuthBase = require('./authBase');
 
+/** Where Google sends the browser back to when no callbackURL is given (the route core registers). */
+const GOOGLE_CALLBACK_PATH = '/services/authservice/api/google/callback';
+
+/**
+ * The path part of a callback URL ("https://x.test/a/b?c" → "/a/b"; a bare path is kept).
+ * @param {string} url
+ * @return {string}
+ */
+function callbackPathOf(url) {
+  try {
+    return new URL(url, 'http://placeholder.invalid').pathname || GOOGLE_CALLBACK_PATH;
+  } catch (_err) {
+    return GOOGLE_CALLBACK_PATH;
+  }
+}
+
 /**
  * Google OAuth authentication provider.
  * Integrates with passport Google OAuth2 strategy for authentication.
@@ -25,7 +41,9 @@ class AuthGoogle extends AuthBase {
    * @param {Object=} options Configuration options.
    * @param {string} options.clientID Google OAuth client ID.
    * @param {string} options.clientSecret Google OAuth client secret.
-   * @param {string} options.callbackURL Callback URL for OAuth flow.
+   * @param {string=} options.callbackURL The full redirect URI registered with Google; its path is also the route
+   *     core answers. Default: options.baseUrl (or GOOGLE_BASE_URL) + /services/authservice/api/google/callback.
+   * @param {string=} options.baseUrl The app's public base URL, used when callbackURL is not given.
    * @param {Object} options.express-app Express app instance for passport setup.
    * @param {EventEmitter=} eventEmitter Optional event emitter for auth events.
    */
@@ -40,7 +58,14 @@ class AuthGoogle extends AuthBase {
     this.GoogleStrategy_ = null;
     this.clientID_ = options.clientID;
     this.clientSecret_ = options.clientSecret;
-    this.callbackURL_ = options.callbackURL || '/auth/google/callback';
+    // The path Google sends the browser back to, and the route that answers it (routes/index.js), are one value:
+    // the path of options.callbackURL when one is given, otherwise GOOGLE_CALLBACK_PATH. Register the full URL
+    // (<base URL><path>) as an authorised redirect URI in Google Cloud Console. The base URL comes from
+    // options.baseUrl or GOOGLE_BASE_URL; without one the path alone is sent, which Google accepts only when it
+    // matches what the browser is on.
+    this.baseUrl_ = (options.baseUrl || process.env.GOOGLE_BASE_URL || '').replace(/\/+$/, '');
+    this.callbackURL_ = options.callbackURL || process.env.GOOGLE_REDIRECT_URL || (this.baseUrl_ + GOOGLE_CALLBACK_PATH);
+    this.callbackPath_ = callbackPathOf(this.callbackURL_);
 
     this.initializePassport_();
 
@@ -355,3 +380,4 @@ class AuthGoogle extends AuthBase {
 }
 
 module.exports = AuthGoogle;
+module.exports.GOOGLE_CALLBACK_PATH = GOOGLE_CALLBACK_PATH;
