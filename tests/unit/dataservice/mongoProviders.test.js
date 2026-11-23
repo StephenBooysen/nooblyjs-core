@@ -33,6 +33,11 @@ class FakeCollection {
     if (doc) Object.assign(doc, $set);
     return { modifiedCount: doc ? 1 : 0 };
   }
+  async replaceOne(q, replacement) {
+    const i = this.docs.findIndex((d) => d.uuid === q.uuid);
+    if (i >= 0) this.docs[i] = { _id: this.docs[i]._id, ...replacement };
+    return { matchedCount: i >= 0 ? 1 : 0, modifiedCount: i >= 0 ? 1 : 0 };
+  }
   async countDocuments() { return this.docs.length; }
   find() {
     let i = 0;
@@ -124,6 +129,7 @@ describe.each([
     collection.findOne = boom;
     collection.deleteOne = boom;
     collection.updateOne = boom;
+    collection.replaceOne = boom;
     collection.countDocuments = boom;
     collection.find = () => ({ hasNext: boom });
     collection.createIndex = jest.fn(boom);
