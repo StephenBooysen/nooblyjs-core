@@ -62,6 +62,16 @@ function runDataserviceContract(name, makeService, teardown = async () => {}) {
       expect(await ds.update(c, 'no-such-id', { n: 3 })).toBe(false);
     });
 
+    it('drops a field the replacement leaves out, and reports an unchanged update as found', async () => {
+      const c = container('update-drop');
+      const id = await ds.add(c, { name: 'Ada', role: 'admin' });
+      expect(await ds.update(c, id, { name: 'Ada' })).toBe(true);
+      const after = await ds.getByUuid(c, id);
+      expect(after.name).toBe('Ada');
+      expect(after).not.toHaveProperty('role');
+      expect(await ds.update(c, id, { name: 'Ada' })).toBe(true);
+    });
+
     it('removes an object and reports whether it existed', async () => {
       const c = container('remove');
       const id = await ds.add(c, { n: 1 });

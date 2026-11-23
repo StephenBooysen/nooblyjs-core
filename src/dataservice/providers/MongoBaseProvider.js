@@ -340,25 +340,28 @@ class MongoBaseProvider {
   }
 
   /**
-   * Updates an existing object.
+   * Replaces an existing object, as the other providers do: a field left out
+   * of jsonObject is gone afterwards (the dataservice contract). Reports
+   * whether the object existed, even when nothing in it changed.
    */
   async update(containerName, objectKey, jsonObject) {
     await this.ensureConnection_();
-    
+
     try {
       const collection = this.getCollection_(containerName);
+      const existing = await collection.findOne({ uuid: objectKey }, { projection: { _createdAt: 1 } });
+      if (!existing) return false;
+      const { _id, ...fields } = structuredClone(jsonObject);
       const updateDoc = {
-        ...jsonObject,
+        ...fields,
         uuid: objectKey,
+        _createdAt: existing._createdAt,
         _updatedAt: new Date()
       };
-      
-      const result = await collection.updateOne(
-        { uuid: objectKey },
-        { $set: updateDoc }
-      );
-      
-      const updated = result.modifiedCount > 0;
+
+      const result = await collection.replaceOne({ uuid: objectKey }, updateDoc);
+
+      const updated = result.matchedCount > 0;
       if (updated) {
         this.emitEvent_('update', {
           containerName,
