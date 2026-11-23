@@ -89,6 +89,9 @@ class ServiceRegistry {
     this.telemetry = new Telemetry(globalOptions.telemetry || {}, this.eventEmitter);
     this.telemetryStatus = this.telemetry.start();
     if (expressApp) {
+      // Core's own routes under /services read JSON bodies (req.body); parse them here rather than rely on the host
+      // app having a global express.json(). A body the host already parsed is left alone (the parser skips it).
+      expressApp.use('/services', express.json({ limit: process.env.BODY_LIMIT || '1mb' }));
       expressApp.use(createRequestContextMiddleware());
       if (this.telemetry.active) expressApp.use(this.telemetry.middleware());
     }
