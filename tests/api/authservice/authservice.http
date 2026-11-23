@@ -306,13 +306,13 @@ x-api-key: {{apiKey}}
 ###
 
 ### GOOGLE OAUTH - Initiate Google OAuth flow
-GET {{baseUrl}}/services/authservice/api/auth/google
+GET {{baseUrl}}/services/authservice/api/google
 x-api-key: {{apiKey}}
 
 ###
 
 ### GOOGLE OAUTH CALLBACK - Handle Google OAuth callback
-GET {{baseUrl}}/services/authservice/api/auth/google/callback?code=auth-code-here&state=state-here
+GET {{baseUrl}}/services/authservice/api/google/callback?code=auth-code-here&state=state-here
 x-api-key: {{apiKey}}
 
 ###

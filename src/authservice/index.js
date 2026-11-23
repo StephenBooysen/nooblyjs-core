@@ -72,7 +72,8 @@ function passportConfigurator(strategyFactoryOrConfig) {
  * const googleAuth = createAuth('google', {
  *   clientID: process.env.GOOGLE_CLIENT_ID,
  *   clientSecret: process.env.GOOGLE_CLIENT_SECRET,
- *   callbackURL: '/auth/google/callback',
+ *   // Register this exact URL in Google Cloud Console; core answers its path.
+ *   callbackURL: 'https://your-app.example/services/authservice/api/google/callback',
  *   dependencies: { logging, caching, dataservice }
  * }, eventEmitter);
  */
